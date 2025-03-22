@@ -22,7 +22,7 @@ export const Navbar = () => {
         <img src="/assets/logo_black.png" alt="logo" />
       </a>
       <div className='navbar_search'>
-        <input type="text" placeholder='Search ...' />
+        <input type="text" placeholder='Tìm kiếm ...' />
         <IconButton>
           <Search sx={{ color: variables.pinkred }} />
         </IconButton>
@@ -47,16 +47,16 @@ export const Navbar = () => {
 
         {dropdownMenu && !user && (
           <div className="navbar_right_accountmenu">
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/login">Đăng nhập</Link>
+            <Link to="/register">Đăng ký</Link>
           </div>
         )}
 
         {dropdownMenu && user && (
           <div className="navbar_right_accountmenu">
-            <Link to={`/${user._id}/trips`}>Trip List</Link>
-            <Link to={`/${user._id}/properties`}>Property List</Link>
-            <Link to="/login" onClick={() => dispatch(setLogout())}>Log Out</Link>
+            <Link to={`/${user._id}/booking`}>Danh sách đặt phòng</Link>
+            <Link to={`/${user._id}/properties`}>Thông tin cá nhân</Link>
+            <Link to="/login" onClick={() => dispatch(setLogout())}>Đăng xuất</Link>
           </div>
         )}
 
