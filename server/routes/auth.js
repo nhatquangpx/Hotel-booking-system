@@ -23,7 +23,7 @@ router.post("/register", upload.none(), async (req, res) => {
 
         const existingUser = await User.findOne({ email })        //Kiem tra nguoi dung co ton tai bang email
         if (existingUser) {
-            return res.status(400).json({ message: "User already exists!" });
+            return res.status(400).json({ message: "Người dùng đã tồn tại!" });
         }
 
         const salt = await bcrypt.genSalt()                     //Ma hoa mat khau
@@ -37,11 +37,11 @@ router.post("/register", upload.none(), async (req, res) => {
         });
         await newUser.save()                                    //Luu nguoi dung moi
 
-        res.status(200).json({ message: "User registerd successfully!", user: newUser })
+        res.status(200).json({ message: "Đăng ký thành công!", user: newUser })
     }
     catch (err) {
         console.log(err)
-        res.status(500).json({ message: "Registration failed!", error: err.message })
+        res.status(500).json({ message: "Đăng ký thất bại!", error: err.message })
     }
 })
 
@@ -51,12 +51,12 @@ router.post("/login", async (req, res) => {
 
         const user = await User.findOne({ email })        //Kiem tra nguoi dung co ton tai bang email
         if (!user) {
-            return res.status(400).json({ message: "User doesn't exist!" });
+            return res.status(400).json({ message: "Người dùng không tồn tại!" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password)
         if(!isMatch) {
-            return res.status(400).json({ message: "Invalid Credentials!" })
+            return res.status(400).json({ message: "Mật khẩu không chính xác!" })
         }
 
         const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)

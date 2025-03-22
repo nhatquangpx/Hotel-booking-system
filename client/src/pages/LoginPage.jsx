@@ -65,15 +65,15 @@ const LoginPage = () => {
           />
           <input
             type='password'
-            placeholder='Password'
+            placeholder='Mật khẩu'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
           {errorMessage && <p className="error_message">{errorMessage}</p>}
-          <button type="submit">LOGIN</button>
+          <button type="submit">ĐĂNG NHẬP</button>
         </form>
-        <a href='/register'>Don't have an account? Sign In Here</a>
+        <a href='/register'>Bạn chưa có tài khoản? Đăng ký ngay</a>
       </div>
     </div>
   );

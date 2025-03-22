@@ -58,14 +58,14 @@ const RegisterPage = () => {
             <div className='register_content'>
                 <form className='register_content_form' onSubmit = {handleSubmit}>
                     <input
-                        placeholder='First Name'
+                        placeholder='Họ'
                         name='firstName'
                         value={formData.firstName}
                         onChange={handleChange}
                         required
                     />
                     <input
-                        placeholder='Last Name'
+                        placeholder='Tên'
                         name='lastName'
                         value={formData.lastName}
                         onChange={handleChange}
@@ -80,7 +80,7 @@ const RegisterPage = () => {
                         required
                     />
                     <input
-                        placeholder='Password'
+                        placeholder='Mật khẩu'
                         name='password'
                         value={formData.password}
                         onChange={handleChange}
@@ -88,7 +88,7 @@ const RegisterPage = () => {
                         required
                     />
                     <input
-                        placeholder='Confirm Password'
+                        placeholder='Nhập lại mật khẩu'
                         name='confirmPassword'
                         value={formData.confirmPassword}
                         onChange={handleChange}
@@ -96,12 +96,12 @@ const RegisterPage = () => {
                         required
                     />
                     {!passwordMatch && (
-                        <p style = {{ color: "red"}}>Passwords are not matched!</p>
+                        <p style = {{ color: "red"}}>Mật khẩu không khớp!</p>
                     )} 
                     
-                    <button type="submit">REGISTER</button>
+                    <button type="submit">ĐĂNG KÝ</button>
                 </form>
-                <a href="/login"> Already have an account? Login Here</a>
+                <a href="/login"> Bạn đã có tài khoản? Đăng nhập ngay</a>
             </div>
         </div>
     )
