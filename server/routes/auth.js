@@ -47,27 +47,27 @@ router.post("/register", upload.none(), async (req, res) => {
 
 router.post("/login", async (req, res) => {
     try {
-      const { email, password } = req.body
-  
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(409).json({ message: "User doesn't exist!" });
-      }
-  
-      const isMatch = await bcrypt.compare(password, user.password)
-      if (!isMatch) {
-        return res.status(400).json({ message: "Incorrect password!"})
-      }
-  
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
-      delete user.password
-  
-      res.status(200).json({ token, user })
-  
-    } catch (err) {
-      console.log(err)
-      res.status(500).json({ error: err.message })
+        const {email, password} = req.body;
+
+        const user = await User.findOne({ email })        //Kiem tra nguoi dung co ton tai bang email
+        if (!user) {
+            return res.status(400).json({ message: "User doesn't exist!" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password)
+        if(!isMatch) {
+            return res.status(400).json({ message: "Invalid Credentials!" })
+        }
+
+        const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)
+        delete user.password
+        
+        res.status(200).json({ token, user })
     }
-  })
+    catch (err) {
+        console.log(err)
+        res.status(500).json({ error: err.message})
+    }
+})
 
 module.exports = router

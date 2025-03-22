@@ -51,7 +51,9 @@ const RegisterPage = () => {
     return (
         <div className='register'>
             <div className="register_header">
+            <a href="/">
                 <img src="assets/logo_white.png" alt="Website Logo" className="register_logo"  style={{ maxWidth: "500px" }} />
+            </a>
             </div>
             <div className='register_content'>
                 <form className='register_content_form' onSubmit = {handleSubmit}>

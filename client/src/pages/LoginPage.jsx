@@ -51,7 +51,9 @@ const LoginPage = () => {
     <div className='login'>
       <div className='login_content'>
         <div className="login_header">
+        <a href="/">
           <img src="assets/logo_black.png" alt="Website Logo" className="login_logo" />
+        </a>
         </div>
         <form className='login_content_form' onSubmit={handleSubmit}>
           <input
