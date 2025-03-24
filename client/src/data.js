@@ -1,18 +1,6 @@
-import { FaUser, FaUsers, FaBed, FaHotel } from "react-icons/fa";
-import { BiWorld } from "react-icons/bi";
-import { TbBeach, TbMountain, TbPool } from "react-icons/tb";
+import { FaUser, FaUsers, FaHotel } from "react-icons/fa";
+
 import {
-  GiBarn,
-  GiBoatFishing,
-  GiCactus,
-  GiCastle,
-  GiCaveEntrance,
-  GiForestCamp,
-  GiIsland,
-  GiWindmill,
-} from "react-icons/gi";
-import {
-  FaSkiing,
   FaPumpSoap,
   FaShower,
   FaFireExtinguisher,
@@ -29,8 +17,7 @@ import {
   BiWorld,
 } from "react-icons/bi";
 import { BsSnow, BsFillDoorOpenFill, BsPersonWorkspace } from "react-icons/bs";
-import { IoDiamond } from "react-icons/io5";
-import { MdOutlineVilla, MdMicrowave, MdBalcony, MdYard, MdPets } from "react-icons/md";
+import { MdMicrowave, MdBalcony, MdYard, MdPets } from "react-icons/md";
 import {
   PiBathtubFill,
   PiCoatHangerFill,
@@ -43,6 +30,7 @@ import {
   GiBarbecue,
   GiToaster,
   GiCampfire,
+  GiFamilyHouse,
 } from "react-icons/gi";
 import { AiFillCar } from "react-icons/ai";
 export const categories = [
@@ -65,7 +53,7 @@ export const categories = [
   {
     img: "assets/family_room.jpg",
     label: "Phòng gia đình",
-    icon: <FaBed />,
+    icon: <GiFamilyHouse/>,
     description: "Phòng rộng rãi dành cho gia đình với nhiều giường và không gian sinh hoạt chung."
   },
   {
