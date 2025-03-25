@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "../styles/Slide.scss";
 
 const images = [
@@ -13,10 +14,20 @@ const Slide = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3000); // 3 giây đổi ảnh
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
 
   return (
     <div className="slider-container">
@@ -30,6 +41,13 @@ const Slide = () => {
           </div>
         ))}
       </div>
+
+      <button className="prev-btn" onClick={prevSlide}>
+        <FaChevronLeft />
+      </button>
+      <button className="next-btn" onClick={nextSlide}>
+        <FaChevronRight />
+      </button>
     </div>
   );
 };
