@@ -37,7 +37,7 @@ const Slide = () => {
       >
         {images.map((img, index) => (
           <div key={index} className="slide" style={{ backgroundImage: `url(${img})` }}>
-            <h1>Khám phá thế giới theo cách của bạn – Đặt phòng dễ dàng, trải nghiệm đáng nhớ!</h1>
+            <h1>Khám phá thế giới theo cách của bạn <br/> Đặt phòng dễ dàng, trải nghiệm đáng nhớ!</h1>
           </div>
         ))}
       </div>
