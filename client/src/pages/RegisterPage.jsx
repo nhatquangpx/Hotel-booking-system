@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from "react-router-dom"
-import "../styles/Register.scss"
+import { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
+import "../styles/Register.scss";
+import { registerUser } from "../services/authService";
+
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
         firstName: "",
@@ -9,54 +11,54 @@ const RegisterPage = () => {
         password: "",
         confirmPassword: "",
     });
+    const [passwordMatch, setPasswordMatch] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+    
+    const navigate = useNavigate();
+
     const handleChange = (e) => {
-        const {name, value} = e.target
-        setFormData({
-            ...formData,
-            [name]: value,
-        })
-    }
-    const [passwordMatch, setPasswordMatch] = useState (true);
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
     useEffect(() => {
         setPasswordMatch(
             formData.password === formData.confirmPassword || formData.confirmPassword === ""
         );
     }, [formData.password, formData.confirmPassword]);
-    
 
-    const navigate = useNavigate()
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
 
-    const handleSubmit =async (e) =>{
-        e.preventDefault()
-       
-        try {  
-            const register_form = new FormData();
-
-            for (var key in formData) {
-                register_form.append(key, formData[key])
-            }
-            const response = await fetch("http://localhost:8001/auth/register",{
-                method: "POST",
-                body: register_form
-            })
-            if (response.ok) {
-                navigate("/login")
-            }
-        } catch (err) {
-                console.log("Registration failed", err.message)
+        if (!passwordMatch) {
+            setErrorMessage("Mật khẩu không khớp!");
+            return;
         }
-    }
-    console.log(formData);
+
+        try {
+            const form = new FormData();
+            for (let key in formData) {
+                form.append(key, formData[key]);
+            }
+
+            await registerUser(form);
+            navigate("/login");
+        } catch (err) {
+            setErrorMessage(err.message);
+            console.error("Registration failed", err.message);
+        }
+    };
+
     return (
         <div className='register'>
             <div className="register_header">
-            <a href="/">
-                <img src="assets/logo_white.png" alt="Website Logo" className="register_logo"  style={{ maxWidth: "500px" }} />
-            </a>
+                <a href="/">
+                    <img src="assets/logo_white.png" alt="Website Logo" className="register_logo" style={{ maxWidth: "500px" }} />
+                </a>
             </div>
             <div className='register_content'>
-                <form className='register_content_form' onSubmit = {handleSubmit}>
+                <form className='register_content_form' onSubmit={handleSubmit}>
                     <input
                         placeholder='Họ'
                         name='firstName'
@@ -96,15 +98,15 @@ const RegisterPage = () => {
                         required
                     />
                     {!passwordMatch && (
-                        <p style = {{ color: "red"}}>Mật khẩu không khớp!</p>
-                    )} 
-                    
+                        <p style={{ color: "red" }}>Mật khẩu không khớp!</p>
+                    )}
+                    {errorMessage && <p className="error_message">{errorMessage}</p>}
                     <button type="submit">ĐĂNG KÝ</button>
                 </form>
-                <a href="/login"> Bạn đã có tài khoản? Đăng nhập ngay</a>
+                <a href="/login">Bạn đã có tài khoản? Đăng nhập ngay</a>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default RegisterPage
+export default RegisterPage;

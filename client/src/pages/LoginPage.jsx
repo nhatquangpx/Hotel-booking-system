@@ -3,6 +3,7 @@ import "../styles/Login.scss";
 import { setLogin } from '../redux/state';
 import { useDispatch } from "react-redux";
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from "../services/authService";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -17,19 +18,7 @@ const LoginPage = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://localhost:8001/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || "Đăng nhập thất bại!");
-        return;
-      }
-
-      const loggedIn = await response.json();
+      const loggedIn = await loginUser(email, password);
 
       if (loggedIn.token) {
         dispatch(setLogin({ user: loggedIn.user, token: loggedIn.token }));
@@ -37,6 +26,7 @@ const LoginPage = () => {
         localStorage.setItem("token", loggedIn.token);
         localStorage.setItem("user", JSON.stringify(loggedIn.user));
 
+        // Điều hướng dựa trên role
         switch (loggedIn.user.role) {
           case "admin":
             navigate("/admin");
@@ -50,7 +40,7 @@ const LoginPage = () => {
         }
       }
     } catch (err) {
-      setErrorMessage("Có lỗi xảy ra. Vui lòng thử lại!");
+      setErrorMessage(err.message);
     }
   };
 
