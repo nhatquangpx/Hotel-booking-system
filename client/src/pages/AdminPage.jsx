@@ -1,16 +1,13 @@
-// src/pages/AdminPage.jsx
 import React from 'react';
 import { Admin, Resource } from 'react-admin';
 import restProvider from 'ra-data-simple-rest';
 import { authProvider } from '../auth/authProvider'; // file authProvider tự tạo (theo hướng dẫn của bạn)
 import AppLayout from '../layouts/AppLayout'; // Layout có thể tùy chỉnh (xem phần bên dưới)
 
-// Import các component CRUD cho resource users
 import { UserList } from '../components/users/UserList';
 import { UserEdit } from '../components/users/UserEdit';
 import { UserCreate } from '../components/users/UserCreate';
 
-// Import các component CRUD cho resource posts (nếu có)
 import { PostList } from '../components/posts/PostList';
 import { PostEdit } from '../components/posts/PostEdit';
 import { PostCreate } from '../components/posts/PostCreate';
