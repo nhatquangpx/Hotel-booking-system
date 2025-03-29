@@ -1,6 +1,7 @@
-// Hàm đăng nhập
+const API_URL = "http://localhost:8001/auth";
+
 export const loginUser = async (email, password) => {
-    const response = await fetch("http://localhost:8001/auth/login", {
+    const response = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -14,7 +15,7 @@ export const loginUser = async (email, password) => {
   
   // Hàm đăng ký
   export const registerUser = async (formData) => {
-    const response = await fetch("http://localhost:8001/auth/register", {
+    const response = await fetch(`${API_URL}/register`, {
       method: "POST",
       body: formData,
     });

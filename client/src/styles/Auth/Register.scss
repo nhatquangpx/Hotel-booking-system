@@ -1,14 +1,14 @@
-@use "variables" as *;
-@use "./breakpoints.scss" as *;
+@use "../variables" as *;
+@use "../breakpoints.scss" as *;
 
-.login {
+.register {
   width: 100vw;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  background: url("../../public/assets/login.jpg") center;
+  background: url("../../../public/assets/register.jpg") center;
   background-size: cover;
 
   &_header {
@@ -31,15 +31,15 @@
     gap: 15px;
     width: 40%;
     padding: 40px;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(120, 109, 109, 0.8);
     border-radius: 20px;
 
     @include lg {
-      width: 60%
+      width: 60%;
     }
 
     @include mm {
-      width: 80%
+      width: 80%;
     }
 
     &_form {
@@ -59,11 +59,26 @@
         color: white;
 
         input:not(:placeholder-shown):focus {
-          background: transparent; /* or background: none; */
+          background: transparent;
         }
 
         &::placeholder {
           color: white;
+        }
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        color: white;
+        font-size: 14px;
+
+        img {
+          width: 25px;
         }
       }
 
@@ -78,18 +93,6 @@
         }
       }
     }
-    .error_message {
-      color: red;
-      font-size: 14px;
-      margin-top: 5px;
-      text-align: center;
-    }
-    &_google {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
 
     a {
       text-decoration: none;
@@ -101,11 +104,6 @@
       &:hover {
         text-decoration: underline;
       }
-    }
-    p {
-      color: white;
-      font-size: 13px;
-      text-align: center;
     }
   }
 }

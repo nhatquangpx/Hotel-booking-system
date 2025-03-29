@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import variables from "../styles/variables.scss"
 import { Link } from 'react-router-dom'
 import { setLogout } from '../redux/state'
-import "../styles/Navbar.scss"
+import "../styles/Homepage/Navbar.scss"
 
 export const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false)

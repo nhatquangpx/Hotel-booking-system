@@ -19,17 +19,17 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
 
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             user ? (
-              user.role === "admin" ? <Navigate to="/admin" /> 
-              : user.role === "staff" ? <Navigate to="/staff" /> 
-              : <Navigate to="/" />
+              user.role === "admin" ? <Navigate to="/admin" />
+                : user.role === "staff" ? <Navigate to="/staff" />
+                  : <Navigate to="/" />
             ) : (
               <Navigate to="/login" />
             )
-          } 
+          }
         />
 
         <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
