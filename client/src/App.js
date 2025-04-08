@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminPage from "./pages/AdminPage";
 import StaffDashboard from "./pages/StaffDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import "./App.css";
@@ -33,11 +33,11 @@ function App() {
         />
 
         <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
-          <Route path="/admin" element={<AdminDashboard />} />
+         <Route path="/admin/*" element={<AdminPage />} />
         </Route>
 
         <Route element={<PrivateRoute allowedRoles={["staff"]} />}>
-          <Route path="/staff" element={<StaffDashboard />} />
+          <Route path="/staff/*" element={<StaffDashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>

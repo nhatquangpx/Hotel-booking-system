@@ -8,9 +8,9 @@ import { UserList } from '../components/users/UserList';
 import { UserEdit } from '../components/users/UserEdit';
 import { UserCreate } from '../components/users/UserCreate';
 
-import { PostList } from '../components/posts/PostList';
-import { PostEdit } from '../components/posts/PostEdit';
-import { PostCreate } from '../components/posts/PostCreate';
+// import { PostList } from '../components/posts/PostList';
+// import { PostEdit } from '../components/posts/PostEdit';
+// import { PostCreate } from '../components/posts/PostCreate';
 
 const dataProvider = restProvider('http://localhost:3000'); // Địa chỉ API của bạn
 
@@ -23,12 +23,12 @@ const AdminPage = () => (
       create={UserCreate} 
       recordRepresentation={(record) => record.username} 
     />
-    <Resource 
+    {/* <Resource 
       name="posts" 
       list={PostList} 
       edit={PostEdit} 
       create={PostCreate} 
-    />
+    /> */}
   </Admin>
 );
 
