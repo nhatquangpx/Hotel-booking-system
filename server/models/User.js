@@ -2,12 +2,7 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    lastName: {
+    fullName: {
       type: String,
       required: true,
       trim: true
@@ -23,10 +18,6 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 6
-    },
-    profileImagePath: {
-      type: String,
-      default: ""
     },
     role: {
       type: String,

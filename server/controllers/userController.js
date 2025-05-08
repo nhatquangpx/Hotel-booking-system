@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
-import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
+const mongoose = require('mongoose');
+const User = require('../models/User.js');
+const bcrypt = require('bcryptjs');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -31,7 +31,7 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role} = req.body;
+        const { name, email, password, role} = req.body;
         if (!firstName || !lastName || !email || !password) {
             return res.status(400).json({ message: 'Không được để trống!' });
         }
@@ -45,8 +45,7 @@ exports.createUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRound); 
 
         const newUser = new User({
-            firstName,
-            lastName,
+            name,
             email,
             password: hashedPassword,
             role: role || 'user'

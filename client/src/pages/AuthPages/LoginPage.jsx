@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import "../styles/Auth/Login.scss";
-import { setLogin } from '../redux/state';
+import "../../styles/Auth/Login.scss";
+import { setLogin } from '../../redux/state';
 import { useDispatch } from "react-redux";
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from "../services/authService";
+import { loginUser } from "../../services/authService";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -67,6 +67,7 @@ const LoginPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <a href='/forgotpassword'>Quên mật khẩu?</a>
           {errorMessage && <p className="error_message">{errorMessage}</p>}
           <button type="submit">ĐĂNG NHẬP</button>
         </form>

@@ -34,11 +34,7 @@ export const Navbar = () => {
             <Person sx={{ color: variables.darkgrey }} />
           ) : (
             <img
-              src={
-                user.profileImagePath
-                  ? `http://localhost:8001/${user.profileImagePath.replace("public", "")}`
-                  : "/assets/default-profile.jpg"
-              }
+              src= "/assets/default-profile.jpg"
               alt="profile"
               style={{ objectFit: "cover", borderRadius: "50%" }}
             />

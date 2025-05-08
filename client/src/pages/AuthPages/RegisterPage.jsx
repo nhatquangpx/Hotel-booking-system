@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import "../styles/Auth/Register.scss";
-import { registerUser } from "../services/authService";
+import "../../styles/Auth/Register.scss";
+import { registerUser } from "../../services/authService";
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
+        fullName: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -37,12 +36,11 @@ const RegisterPage = () => {
         }
 
         try {
-            const form = new FormData();
-            for (let key in formData) {
-                form.append(key, formData[key]);
-            }
-
-            await registerUser(form);
+            await registerUser({
+                fullName: formData.fullName,
+                email: formData.email,
+                password: formData.password,
+            });
             navigate("/login");
         } catch (err) {
             setErrorMessage(err.message);
@@ -60,16 +58,9 @@ const RegisterPage = () => {
             <div className='register_content'>
                 <form className='register_content_form' onSubmit={handleSubmit}>
                     <input
-                        placeholder='Họ'
-                        name='firstName'
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        required
-                    />
-                    <input
-                        placeholder='Tên'
-                        name='lastName'
-                        value={formData.lastName}
+                        placeholder='Họ và tên'	
+                        name='fullName'
+                        value={formData.fullName}
                         onChange={handleChange}
                         required
                     />

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, getUserById, createUser, updateUser, deleteUser } = qequire('../controllers/api_userController');
+const { getAllUsers, getUserById, createUser, updateUser, deleteUser } = require('../controllers/userController');
 
 router.get('/get-all-users', getAllUsers);
 router.get('/get-user/:id;', getUserById);
