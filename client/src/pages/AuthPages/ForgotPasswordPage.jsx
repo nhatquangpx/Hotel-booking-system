@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import "../../styles/Auth/Login.scss"; 
 import { sendResetPasswordEmail } from "../../services/authService";
+import Slide from '../../components/Slide';
+
+const sliderImages = [
+  '/assets/slide1.jpg',
+  '/assets/slide2.jpg',
+  '/assets/slide3.jpg',
+];
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -21,26 +28,48 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className='login'>
-      <div className='login_content'>
-        <div className="login_header">
-          <a href="/">
-            <img src="/assets/logo_black.png" alt="Website Logo" className="login_logo" />
+    <div className="login-container">
+      <div className="login-left">
+        <div className="logo">
+          <a href="/">        
+            <img src="/assets/logo_black_horizontal.png" alt="StayJourney Logo" />
           </a>
         </div>
-        <form className='login_content_form' onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder='Nhập email của bạn'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {message && <p style={{ color: 'lightgreen', textAlign: 'center' }}>{message}</p>}
-          {errorMessage && <p className="error_message">{errorMessage}</p>}
-          <button type="submit">GỬI MẬT KHẨU MỚI</button>
-        </form>
-        <a href="/login">Quay lại trang đăng nhập</a>
+        <div className="login-form-container">
+          <h1>Quên mật khẩu</h1>
+          <p className="subtitle">Nhập email của bạn để nhận mật khẩu mới</p>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                placeholder="example@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            {message && <p style={{ color: 'lightgreen', textAlign: 'center' }}>{message}</p>}
+            {errorMessage && <div className="error-message">{errorMessage}</div>}
+
+            <button type="submit" className="login-button">Gửi mật khẩu mới</button>
+          </form>
+
+          <p className="signup-prompt">
+            <a href="/login">Quay lại trang đăng nhập</a>
+          </p>
+        </div>
+      </div>
+      
+      <div className="login-right">
+        <Slide
+          images={sliderImages}
+          showTitle={false}
+          className="login-slide"
+          slideHeight="100%"
+        />
       </div>
     </div>
   );

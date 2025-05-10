@@ -1,12 +1,14 @@
 import Navbar from "../components/Navbar"
 import Slide from "../components/Slide"
-import Categorises from "../components/Categories"
+import Categories from "../components/Categories"
+
 const HomePage = () => {
+  console.log("HomePage rendering");
   return (
     <>
        <Navbar/>
        <Slide/>
-       <Categorises/>
+       <Categories/>
     </>
   )
 }

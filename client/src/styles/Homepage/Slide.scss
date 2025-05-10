@@ -6,6 +6,7 @@
   overflow: hidden;
   position: relative;
   margin-top: -80px;
+  font-family: $main-font;
 }
 
 .slide-wrapper {
@@ -70,4 +71,32 @@
 
 .next-btn {
   right: 20px;
+}
+
+.dots-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+
+  &.active {
+    background-color: white;
+    transform: scale(1.2);
+  }
 }

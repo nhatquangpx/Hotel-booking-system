@@ -8,6 +8,7 @@
   align-items: center;
   text-align: center;
   background-color: $lightgrey;
+  font-family: $main-font;
 
   @include sm {
     padding: 50px 20px;

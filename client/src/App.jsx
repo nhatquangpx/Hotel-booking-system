@@ -6,14 +6,17 @@ import LoginPage from "./pages/AuthPages/LoginPage";
 import ForgotPasswordPage from "./pages/AuthPages/ForgotPasswordPage";
 import AdminPage from "./pages/AdminPage";
 import StaffDashboard from "./pages/StaffDashboard";
-import PrivateRoute from "./components/PrivateRoute";
-import "./App.css";
+import PrivateRoute from "./components/PrivateRoute.jsx";
+import "./App.scss";
 
 function App() {
   const user = useSelector((state) => state.auth?.user || null);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ 
+      v7_startTransition: true,
+      v7_relativeSplatPath: true 
+    }}>
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<HomePage />} />
