@@ -22,7 +22,6 @@ const LoginPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Check for saved credentials when component mounts
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedPassword = localStorage.getItem("rememberedPassword");
     const savedRememberMe = localStorage.getItem("rememberMe");
@@ -44,13 +43,11 @@ const LoginPage = () => {
       if (loggedIn.token) {
         dispatch(setLogin({ user: loggedIn.user, token: loggedIn.token }));
 
-        // Save credentials if remember me is checked
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", email);
           localStorage.setItem("rememberedPassword", password);
           localStorage.setItem("rememberMe", "true");
         } else {
-          // Clear saved credentials if remember me is unchecked
           localStorage.removeItem("rememberedEmail");
           localStorage.removeItem("rememberedPassword");
           localStorage.removeItem("rememberMe");
@@ -118,7 +115,7 @@ const LoginPage = () => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span>Remember me</span>
+                <span>Lưu đăng nhập</span>
               </label>
               <a href="/forgotpassword" className="forgot-password">Quên mật khẩu</a>
             </div>
