@@ -5,7 +5,6 @@ import "../styles/Homepage/Slide.scss";
 const Slide = ({
   images = [
     "/assets/slide1.jpg",
-    "/assets/slide2.jpg",
     "/assets/slide3.jpg"
   ],
   showTitle = true,
