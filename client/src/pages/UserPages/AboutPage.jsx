@@ -1,5 +1,6 @@
 import Navbar from "../../components/Navbar/Navbar"
 import Footer from "../../components/Footer/Footer"
+import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaHeart, FaThumbsUp, FaGlobe, FaStar } from "react-icons/fa"
 import "./AboutPage.scss"
 
 const AboutPage = () => {
@@ -32,18 +33,22 @@ const AboutPage = () => {
             <h2>Giá trị cốt lõi</h2>
             <div className="values-grid">
               <div className="value-item">
+                <div className="value-icon"><FaStar /></div>
                 <h3>Chất lượng</h3>
                 <p>Cam kết mang đến dịch vụ và trải nghiệm tốt nhất cho khách hàng.</p>
               </div>
               <div className="value-item">
+                <div className="value-icon"><FaHeart /></div>
                 <h3>Tin cậy</h3>
                 <p>Xây dựng mối quan hệ dựa trên sự minh bạch và uy tín.</p>
               </div>
               <div className="value-item">
+                <div className="value-icon"><FaGlobe /></div>
                 <h3>Đổi mới</h3>
                 <p>Không ngừng cải tiến và phát triển để đáp ứng nhu cầu thay đổi.</p>
               </div>
               <div className="value-item">
+                <div className="value-icon"><FaThumbsUp /></div>
                 <h3>Trách nhiệm</h3>
                 <p>Có trách nhiệm với cộng đồng và môi trường trong mọi hoạt động.</p>
               </div>
@@ -88,16 +93,19 @@ const AboutPage = () => {
           <h2>Liên hệ với chúng tôi</h2>
           <div className="contact-info">
             <div className="contact-item">
+              <div className="contact-icon"><FaMapMarkerAlt /></div>
               <h3>Địa chỉ</h3>
-              <p>123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</p>
+              <p>Số 1 Đại Cồ Việt, Hà Nội</p>
             </div>
             <div className="contact-item">
+              <div className="contact-icon"><FaEnvelope /></div>
               <h3>Email</h3>
-              <p>info@stayjourney.com</p>
+              <p>stayjourney2025@gmail.com</p>
             </div>
             <div className="contact-item">
+              <div className="contact-icon"><FaPhone /></div>
               <h3>Điện thoại</h3>
-              <p>+84 123 456 789</p>
+              <p>+84 332 915 004</p>
             </div>
           </div>
         </div>

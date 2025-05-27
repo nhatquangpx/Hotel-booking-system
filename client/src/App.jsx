@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 //User Pages
 import HomePage from "./pages/UserPages/HomePage.jsx";
 import AboutPage from "./pages/UserPages/AboutPage.jsx";
+import ContactPage from "./pages/UserPages/ContactPage.jsx";
 import RegisterPage from "./pages/AuthPages/RegisterPage/RegisterPage";
 import LoginPage from "./pages/AuthPages/LoginPage/LoginPage.jsx";
 import ForgotPasswordPage from "./pages/AuthPages/LoginPage/ForgotPasswordPage.jsx";
@@ -26,6 +27,7 @@ function App() {
         {/* Auth Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
