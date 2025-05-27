@@ -1,21 +1,22 @@
-@use "../variables" as *;
-@use "../breakpoints.scss" as *;
+@use "../../../styles/variables" as *;
+@use "../../../styles/breakpoints.scss" as *;
 
 .register-container {
   display: flex;
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
+  overflow-x: hidden;
 
   .register-left {
     flex: 1;
     position: relative;
     padding: 0;
     margin: 0;
+    max-width: 65vw;
 
     .register-slide {
       width: 100%;
-      height: 200px;
-      max-width: 1300px;
+      height: 100vh;
       margin: 0;
       overflow: hidden;
       position: relative;
@@ -82,18 +83,23 @@
   .register-right {
     flex: 1;
     padding: 2rem;
-    max-width: 600px;
+    width: 50vw;
     position: relative;
     background: #fff;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow-y: auto;
+    
     .logo {
       position: absolute;
-      top: -30px;
+      top: -50px;
       left: 0;
       width: 100%;
       z-index: 2;
+      display: flex;
+      justify-content: flex-start;
+      
       img {
         height: 200px;
         width: auto;
@@ -101,32 +107,42 @@
         margin-left: 20px;
       }
     }
+    
     .register-form-container {
-      padding-top: 100px;
+      padding-top: 50px;
+      max-width: 500px;
+      margin: 0 auto;
+      width: 100%;
+      
       h1 {
-        font-size: 48px;
+        font-size: clamp(32px, 5vw, 48px);
         font-weight: 600;
         margin-bottom: 0.5rem;
         color: #1C1B1F;
       }
+      
       .subtitle {
         color: #79747E;
         margin-bottom: 2rem;
       }
+      
       form {
         .form-row {
           display: flex;
           gap: 1rem;
-          margin-bottom: rem;
+          margin-bottom: 1.5rem;
+          
           .form-group {
             flex: 1;
             display: flex;
             flex-direction: column;
+            
             label {
               margin-bottom: 0.5rem;
               color: #1C1B1F;
               font-weight: 500;
             }
+            
             input {
               width: 100%;
               padding: 1rem;
@@ -134,25 +150,30 @@
               border-radius: 4px;
               font-size: 1rem;
               color: #1C1B1F;
+              
               &:focus {
                 border-color: #1C1B1F;
                 outline: none;
               }
+              
               &::placeholder {
                 color: #79747E;
               }
             }
           }
         }
+        
         .form-group {
           display: flex;
           flex-direction: column;
           margin-bottom: 1.5rem;
+          
           label {
             margin-bottom: 0.5rem;
             color: #1C1B1F;
             font-weight: 500;
           }
+          
           input {
             width: 100%;
             padding: 1rem;
@@ -160,37 +181,45 @@
             border-radius: 4px;
             font-size: 1rem;
             color: #1C1B1F;
+            
             &:focus {
               border-color: #1C1B1F;
               outline: none;
             }
+            
             &::placeholder {
               color: #79747E;
             }
           }
         }
+        
         .form-options {
           display: flex;
           align-items: center;
           margin-bottom: 1.5rem;
+          
           .agree-checkbox {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             color: #1C1B1F;
+            
             input[type="checkbox"] {
               width: 18px;
               height: 18px;
             }
+            
             .terms, .privacy {
               color: #FF8682;
               text-decoration: none;
+              
               &:hover {
                 text-decoration: underline;
               }
             }
           }
         }
+        
         .register-button {
           width: 100%;
           padding: 1rem;
@@ -202,28 +231,34 @@
           font-size: 1rem;
           cursor: pointer;
           margin-bottom: 2rem;
+          
           &:hover {
-            background-color: darken(#8DD3BB, 5%);
+            background-color:#8DD3BB;
           }
         }
       }
+      
       .login-prompt {
         text-align: center;
         color: #1C1B1F;
         margin-bottom: 1rem;
+        
         a {
           color: #FF8682;
           text-decoration: none;
           font-weight: 500;
+          
           &:hover {
             text-decoration: underline;
           }
         }
       }
+      
       .divider {
         text-align: center;
         position: relative;
         margin: 2rem 0;
+        
         &::before,
         &::after {
           content: "";
@@ -233,18 +268,22 @@
           height: 1px;
           background-color: #79747E;
         }
+        
         &::before {
           left: 0;
         }
+        
         &::after {
           right: 0;
         }
+        
         span {
           background-color: white;
           padding: 0 1rem;
           color: #79747E;
         }
       }
+      
       .error-message {
         color: #B3261E;
         margin-bottom: 1rem;
@@ -257,20 +296,35 @@
 @media (max-width: 900px) {
   .register-container {
     flex-direction: column;
+    
     .register-left {
-      max-width: 100%;
+      max-width: 100vw;
       min-height: 250px;
+      
       .register-slide {
-        max-width: 100vw;
         height: 250px;
       }
     }
+    
     .register-right {
-      max-width: 100%;
-      padding: 1rem;
+      max-width: 100vw;
+      width: 100vw;
+      padding: 1.5rem;
+      
       .register-form-container {
         padding-top: 60px;
       }
     }
+  }
+}
+
+/* Add this for viewport height adjustments */
+@media (max-height: 700px) {
+  .register-container .register-right .register-form-container {
+    padding-top: 130px;
+  }
+  
+  .register-container .register-right .logo img {
+    height: 100px;
   }
 }

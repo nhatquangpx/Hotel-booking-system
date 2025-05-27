@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8001/auth";
+const API_URL = "http://localhost:8001/api/auth";
 
   // Hàm đăng nhập
 export const loginUser = async (email, password) => {

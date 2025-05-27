@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import "../../styles/Auth/Login.scss"; 
-import { sendResetPasswordEmail } from "../../services/authService";
-import Slide from '../../components/Slide';
+import "./Login.scss"; 
+import { sendResetPasswordEmail } from "../../../services/authService";
+import Slide from '../../../components/Slide/Slide';
 
 const sliderImages = [
   '/assets/slide1.jpg',

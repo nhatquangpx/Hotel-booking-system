@@ -1,5 +1,5 @@
-import { categories } from '../data';
-import "../styles/Homepage/Categories.scss";
+import { categories } from '../../data';
+import "./Categories.scss";
 import { Link } from 'react-router-dom';
 
 const Categories = () => {

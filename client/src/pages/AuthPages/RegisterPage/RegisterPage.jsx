@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import "../../styles/Auth/Register.scss";
-import { registerUser } from "../../services/authService";
-import Slide from '../../components/Slide';
-import { FaFacebook, FaApple } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
+import "./Register.scss";
+import { registerUser } from "../../../services/authService";
+import Slide from '../../../components/Slide/Slide';
 
 const sliderImages = [
   '/assets/slide1.jpg',

@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { Search, Person, Menu } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from 'react-router-dom'
-import { setLogout } from '../redux/state'
-import "../styles/Homepage/Navbar.scss"
+import { setLogout } from '../../redux/state'
+import "./Navbar.scss"
 
 const pinkred = '#fa002a';
 const darkgrey = '#969393';

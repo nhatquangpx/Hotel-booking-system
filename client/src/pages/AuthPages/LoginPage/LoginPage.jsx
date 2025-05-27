@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import "../../styles/Auth/Login.scss";
-import { setLogin } from '../../redux/state';
+import "./Login.scss";
+import { setLogin } from '../../../redux/state';
 import { useDispatch } from "react-redux";
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from "../../services/authService";
-import Slide from '../../components/Slide';
+import { loginUser } from "../../../services/authService";
+import Slide from '../../../components/Slide/Slide';
 
 const sliderImages = [
   '/assets/slide1.jpg',

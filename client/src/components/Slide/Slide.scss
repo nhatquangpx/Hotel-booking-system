@@ -1,5 +1,5 @@
-@use "../variables" as *;
-@use "../breakpoints.scss" as *;
+@use "../../styles/variables" as *;
+@use "../../styles/breakpoints.scss" as *;
 .slider-container {
   width: 100vw;
   height: 50vh;

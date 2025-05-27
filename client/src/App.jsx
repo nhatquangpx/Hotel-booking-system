@@ -1,11 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import HomePage from "./pages/HomePage";
-import RegisterPage from "./pages/AuthPages/RegisterPage";
-import LoginPage from "./pages/AuthPages/LoginPage";
-import ForgotPasswordPage from "./pages/AuthPages/ForgotPasswordPage";
-import AdminPage from "./pages/AdminPage";
-import StaffDashboard from "./pages/StaffDashboard";
+//User Pages
+import HomePage from "./pages/UserPages/HomePage.jsx";
+import RegisterPage from "./pages/AuthPages/RegisterPage/RegisterPage";
+import LoginPage from "./pages/AuthPages/LoginPage/LoginPage.jsx";
+import ForgotPasswordPage from "./pages/AuthPages/LoginPage/ForgotPasswordPage.jsx";
+//Admin Pages
+import AdminHomePage from "./pages/AdminPages/AdminHomePage.jsx";
+import UserList from "./pages/AdminPages/UserList.jsx";
+//Staff Pages
+import StaffHomePage from "./pages/StaffPages/StaffHomePage.jsx";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import "./App.scss";
 
@@ -38,11 +42,12 @@ function App() {
         />
 
         <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
-         <Route path="/admin/*" element={<AdminPage />} />
+         <Route path="/admin/*" element={<AdminHomePage />} />
+         <Route path="/admin/users" element={<UserList />} />
         </Route>
 
         <Route element={<PrivateRoute allowedRoles={["staff"]} />}>
-          <Route path="/staff/*" element={<StaffDashboard />} />
+          <Route path="/staff/*" element={<StaffHomePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

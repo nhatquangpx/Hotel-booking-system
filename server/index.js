@@ -18,7 +18,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("/auth", authRoutes);
-app.use("/api/admin/", require("./routes/adminUserRoutes"));
+app.use("/api/auth", authRoutes);
+app.use("/api/admin/", adminUserRoutes);
 
 app.listen(PORT, () => console.log(`Server chạy tại port: ${PORT}`));

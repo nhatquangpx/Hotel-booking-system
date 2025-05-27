@@ -1,8 +1,19 @@
 @use './styles/variables' as *;
 @use './styles/fonts.scss' as *;
+
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: $main-font;
+}
+
+html, body {
+  width: 100vw;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100vw;
+  overflow-x: hidden;
 }
