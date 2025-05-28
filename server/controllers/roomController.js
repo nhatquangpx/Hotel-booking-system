@@ -1,6 +1,6 @@
 const Room = require("../models/Room");
 const Hotel = require("../models/Hotel");
-const BookingHistory = require("../models/BookingHistory");
+const BookingHistory = require("../models/Booking");
 
 // Get all rooms for a specific hotel
 exports.getRoomsByHotel = async (req, res) => {

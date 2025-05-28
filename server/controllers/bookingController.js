@@ -1,4 +1,4 @@
-const BookingHistory = require("../models/BookingHistory");
+const BookingHistory = require("../models/Booking");
 const Room = require("../models/Room");
 const Hotel = require("../models/Hotel");
 
