@@ -8,8 +8,9 @@ const {
   deleteHotel,
   getHotelsByOwner
 } = require("../controllers/hotelController");
-const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
+const { verifyToken} = require("../middlewares/authMiddleware");
 const { verifyOwnerOrAdmin, verifyAdmin } = require("../middlewares/hotelMiddleware");
+const { hotelValidation, validate } = require("../validations/hotelValidation");
 
 // Tất cả người dùng có thể xem danh sách và chi tiết khách sạn
 router.get("/", getAllHotels);
@@ -19,10 +20,10 @@ router.get("/:id", getHotelById);
 router.get("/my/hotels", verifyToken, getHotelsByOwner);
 
 // Chỉ admin mới có quyền tạo khách sạn mới
-router.post("/", [verifyToken, verifyAdmin], createHotel);
+router.post("/", [verifyToken, verifyAdmin, hotelValidation, validate], createHotel);
 
 // Admin hoặc chủ sở hữu khách sạn (staff) có thể cập nhật
-router.put("/:id", [verifyToken, verifyOwnerOrAdmin], updateHotel);
+router.put("/:id", [verifyToken, verifyOwnerOrAdmin, hotelValidation, validate], updateHotel);
 
 // Chỉ admin mới có quyền xóa khách sạn
 router.delete("/:id", [verifyToken, verifyAdmin], deleteHotel);

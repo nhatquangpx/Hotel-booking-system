@@ -78,9 +78,8 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-  
-  //Đổi mật khẩu
-  exports.resetPassword = async (req, res) => {
+//Đổi mật khẩu
+exports.resetPassword = async (req, res) => {
     try {
       const { newPassword } = req.body;
       const id = req.user.id;
