@@ -3,7 +3,7 @@ const dotenv = require("dotenv").config();
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
-const adminUserRoutes = require("./routes/adminUserRoutes");
+const userRoutes = require("./routes/userRoutes");
 const hotelRoutes = require("./routes/hotelRoutes");
 const roomRoutes = require("./routes/roomRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
@@ -20,9 +20,9 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// General routes
 app.use("/api/auth", authRoutes);
-app.use("/api/admin/", adminUserRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bookings", bookingRoutes);

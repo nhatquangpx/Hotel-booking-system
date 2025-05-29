@@ -3,7 +3,7 @@ const Hotel = require("../models/Hotel");
 // Get all hotels
 exports.getAllHotels = async (req, res) => {
   try {
-    const { city, minPrice, maxPrice, starRating } = req.query;
+    const { city, starRating } = req.query;
     let query = {};
 
     // Apply filters if they exist

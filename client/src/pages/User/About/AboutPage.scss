@@ -1,0 +1,238 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/breakpoints.scss" as *;
+
+.about-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  .about-hero {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/slide1.jpg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-align: center;
+    padding: 100px 20px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+    
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+      
+      h1 {
+        font-size: 48px;
+        margin-bottom: 15px;
+      }
+      
+      p {
+        font-size: 18px;
+      }
+    }
+  }
+  
+  .about-section {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 60px;
+    
+    @include md {
+      flex-direction: column;
+    }
+    
+    &.reverse {
+      flex-direction: row-reverse;
+      
+      @include md {
+        flex-direction: column;
+      }
+    }
+    
+    .about-content {
+      flex: 1;
+      
+      h2 {
+        font-size: 32px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+      
+      p {
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 20px;
+      }
+      
+      .values-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        
+        @include sm {
+          grid-template-columns: 1fr;
+        }
+        
+        .value-item {
+          background-color: #f9f9f9;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+          
+          .value-icon {
+            font-size: 24px;
+            color: #8DD3BB;
+            margin-bottom: 10px;
+          }
+          
+          h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #333;
+          }
+          
+          p {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+    
+    .about-image {
+      flex: 1;
+      
+      img {
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+  
+  .team-section {
+    margin-bottom: 60px;
+    text-align: center;
+    
+    h2 {
+      font-size: 32px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .team-intro {
+      color: #666;
+      max-width: 800px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+    
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      
+      .team-member {
+        background-color: #fff;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s;
+        
+        &:hover {
+          transform: translateY(-5px);
+        }
+        
+        .member-image {
+          width: 100%;
+          height: 250px;
+          overflow: hidden;
+          
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        
+        h3 {
+          font-size: 20px;
+          margin: 15px 0 5px;
+          color: #333;
+        }
+        
+        .member-title {
+          color: #666;
+          margin-bottom: 15px;
+        }
+      }
+    }
+  }
+  
+  .contact-section {
+    padding: 40px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    
+    h2 {
+      font-size: 32px;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    
+    .contact-info {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      
+      @include md {
+        flex-direction: column;
+        gap: 30px;
+      }
+      
+      .contact-item {
+        .contact-icon {
+          font-size: 32px;
+          color: #8DD3BB;
+          margin-bottom: 10px;
+        }
+        
+        h3 {
+          font-size: 20px;
+          margin-bottom: 10px;
+          color: #333;
+        }
+        
+        p {
+          color: #666;
+        }
+      }
+    }
+  }
+}
+
+// Responsive Styles
+@media (max-width: 600px) {
+  .about-container {
+    .about-hero {
+      padding: 60px 20px;
+      
+      .hero-content h1 {
+        font-size: 36px;
+      }
+    }
+    
+    .about-section {
+      gap: 30px;
+      
+      .about-content h2 {
+        font-size: 28px;
+      }
+    }
+    
+    .team-section h2,
+    .contact-section h2 {
+      font-size: 28px;
+    }
+  }
+} 

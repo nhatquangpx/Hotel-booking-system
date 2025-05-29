@@ -31,8 +31,8 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, role} = req.body;
-        if (!firstName || !lastName || !email || !password) {
+        const { fullName, email, password, phone, role} = req.body;
+        if (!fullName || !email || !password) {
             return res.status(400).json({ message: 'Không được để trống!' });
         }
 
@@ -45,9 +45,10 @@ exports.createUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRound); 
 
         const newUser = new User({
-            name,
+            fullName,
             email,
             password: hashedPassword,
+            phone,
             role: role || 'user'
         });
         await newUser.save();
