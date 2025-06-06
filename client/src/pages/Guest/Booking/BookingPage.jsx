@@ -24,7 +24,7 @@ const BookingPage = () => {
       adults: 1,
       children: 0
     },
-    paymentMethod: 'credit_card',
+    paymentMethod: 'qr_code',
     specialRequests: ''
   });
   const [totalAmount, setTotalAmount] = useState(0);
@@ -274,18 +274,11 @@ const BookingPage = () => {
               
               <div className="form-group">
                 <label htmlFor="paymentMethod">Phương thức thanh toán</label>
-                <select
-                  id="paymentMethod"
-                  name="paymentMethod"
-                  value={formData.paymentMethod}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="credit_card">Thẻ tín dụng</option>
-                  <option value="debit_card">Thẻ ghi nợ</option>
-                  <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                  <option value="cash">Tiền mặt</option>
-                </select>
+                <div className="payment-method-info">
+                  <p>Thanh toán qua mã QR</p>
+                  <img src="/assets/qr-code.png" alt="QR Code" style={{ width: '200px', height: '200px' }} />
+                  <p className="payment-note">Vui lòng quét mã QR để thanh toán</p>
+                </div>
               </div>
               
               <div className="form-group">

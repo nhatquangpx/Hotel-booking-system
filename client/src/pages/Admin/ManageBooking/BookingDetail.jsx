@@ -221,7 +221,7 @@ const BookingDetail = () => {
           </div>
           <div className="payment-method">
             <span className="label">Phương thức thanh toán:</span>
-            <span>{booking.paymentMethod || 'Thanh toán tại khách sạn'}</span>
+            <span>Thanh toán qua mã QR</span>
           </div>
         </div>
         

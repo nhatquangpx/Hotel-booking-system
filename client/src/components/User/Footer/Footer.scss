@@ -4,111 +4,6 @@
   font-family: 'Inter', sans-serif;
   width: 100%;
   padding: 0;
-
-  &__subscribe {
-    background: #d6f5ee;
-    border-radius: 20px;
-    margin: 32px auto 0 auto;
-    max-width: 1200px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 40px 48px 32px 48px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-    position: relative;
-    top: -40px;
-    @media (max-width: 900px) {
-      flex-direction: column;
-      gap: 32px;
-      padding: 32px 12px 24px 12px;
-      top: 0;
-    }
-  }
-  &__subscribe-left {
-    flex: 1;
-    min-width: 260px;
-  }
-  &__subscribe-title {
-    font-size: 2.6rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #222;
-    line-height: 1.1;
-  }
-  &__subscribe-desc {
-    font-size: 1.1rem;
-    color: #222;
-    margin-bottom: 18px;
-    b {
-      font-size: 1.15rem;
-      font-weight: 600;
-      display: block;
-      margin-bottom: 2px;
-    }
-    p {
-      margin: 0;
-      color: #444;
-      font-size: 1rem;
-    }
-  }
-  &__subscribe-form {
-    display: flex;
-    max-width: 420px;
-    width: 100%;
-    @media (max-width: 600px) {
-      flex-direction: column;
-      gap: 10px;
-    }
-  }
-  &__input {
-    flex: 1;
-    padding: 12px 18px;
-    border: 1px solid #b2e2d6;
-    background: #fff;
-    color: #222;
-    font-size: 1rem;
-    border-radius: 6px 0 0 6px;
-    outline: none;
-    transition: border 0.2s;
-    &::placeholder {
-      color: #bfc3c7;
-      opacity: 1;
-    }
-    &:focus {
-      border-color: #5ed6b3;
-    }
-    @media (max-width: 600px) {
-      border-radius: 6px;
-    }
-  }
-  &__button {
-    background: #222;
-    color: #fff;
-    border: none;
-    padding: 12px 32px;
-    font-size: 1rem;
-    border-radius: 0 6px 6px 0;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
-    &:hover {
-      background: #444;
-    }
-    @media (max-width: 600px) {
-      border-radius: 6px;
-      width: 100%;
-    }
-  }
-  &__subscribe-right {
-    min-width: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    @media (max-width: 900px) {
-      margin-top: 18px;
-    }
-  }
-
   &__main {
     display: flex;
     justify-content: space-between;
@@ -137,19 +32,11 @@
     }
   }
   &__logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #222;
-    letter-spacing: 1px;
-    .footer__logo-o {
-      color: #5ed6b3;
-      font-size: 2.2rem;
-      font-family: inherit;
-      font-weight: 700;
-      position: relative;
-      top: 2px;
+    img {
+      height: 200px;
     }
+    margin-top: -70px;
+    margin-left: -70px;
   }
   &__socials {
     display: flex;

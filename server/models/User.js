@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    fullName: {
+    name: {
       type: String,
       required: true,
       trim: true
@@ -27,8 +27,8 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin", "staff"],
-      default: "user"
+      enum: ["guest", "admin", "owner"],
+      default: "guest"
     }
   },
   { timestamps: true }

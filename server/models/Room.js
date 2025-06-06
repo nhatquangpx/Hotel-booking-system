@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const RoomSchema = new mongoose.Schema(
   {
-    hotel: {
+    hotelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hotel",
       required: true

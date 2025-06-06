@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const BookingHistorySchema = new mongoose.Schema(
   {
-    user: {
+    guest: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true
@@ -25,13 +25,6 @@ const BookingHistorySchema = new mongoose.Schema(
       type: Date,
       required: true
     },
-    guestDetails: {
-      adults: { type: Number, required: true, min: 1 },
-      children: { type: Number, default: 0 },
-      fullName: { type: String, required: true },
-      email: { type: String, required: true },
-      phone: { type: String, required: true }
-    },
     totalAmount: {
       type: Number,
       required: true
@@ -43,8 +36,8 @@ const BookingHistorySchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["credit_card", "debit_card", "paypal", "bank_transfer", "cash"],
-      required: true
+      enum: ["qr_code"],
+      default: "qr_code"
     },
     specialRequests: {
       type: String

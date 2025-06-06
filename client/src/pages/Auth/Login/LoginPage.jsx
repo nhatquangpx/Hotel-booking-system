@@ -72,8 +72,8 @@ const LoginPage = () => {
           case "admin":
             navigate("/admin");
             break;
-          case "staff":
-            navigate("/staff");
+          case "owner":
+            navigate("/owner");
             break;
           default:
             navigate("/");

@@ -1,17 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-//User Pages
-import HomePage from "./pages/User/Home/HomePage";
-import AboutPage from "./pages/User/About/AboutPage";
-import ContactPage from "./pages/User/Contact/ContactPage";
-import HotelListPage from "./pages/User/HotelList/HotelListPage";
-import HotelDetailPage from "./pages/User/HotelDetail/HotelDetailPage";
-import BookingPage from "./pages/User/Booking/BookingPage";
-import MyBookingsPage from "./pages/User/Booking/MyBookingsPage";
+
+// Auth Pages
 import RegisterPage from "./pages/Auth/Register/RegisterPage";
 import LoginPage from "./pages/Auth/Login/LoginPage";
 import ForgotPasswordPage from "./pages/Auth/Login/ForgotPasswordPage";
-//Admin Pages
+
+// Guest Pages
+import HomePage from "./pages/Guest/Home/HomePage";
+import AboutPage from "./pages/Guest/About/AboutPage";
+import ContactPage from "./pages/Guest/Contact/ContactPage";
+import HotelListPage from "./pages/Guest/HotelList/HotelListPage";
+import HotelDetailPage from "./pages/Guest/HotelDetail/HotelDetailPage";
+import BookingPage from "./pages/Guest/Booking/BookingPage";
+import MyBookingsPage from "./pages/Guest/Booking/MyBookingsPage";
+
+// Admin Pages
 import AdminHomePage from "./pages/Admin/Home/AdminHomePage.jsx";
 import UserList from "./pages/Admin/ManageUser/UserList.jsx";
 import UserCreate from "./pages/Admin/ManageUser/UserCreate.jsx";
@@ -24,8 +28,10 @@ import RoomList from "./pages/Admin/ManageRoom/RoomList.jsx";
 import RoomCreate from "./pages/Admin/ManageRoom/RoomCreate.jsx";
 import BookingList from "./pages/Admin/ManageBooking/BookingList.jsx";
 import BookingDetail from "./pages/Admin/ManageBooking/BookingDetail.jsx";
-//Staff Pages
-import StaffHomePage from "./pages/Staff/StaffHomePage.jsx";
+
+// Owner Pages
+import OwnerHomePage from "./pages/Owner/Home/OwnerHomePage.jsx";
+
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import "./App.scss";
 
@@ -59,7 +65,7 @@ function App() {
           element={
             user ? (
               user.role === "admin" ? <Navigate to="/admin" />
-                : user.role === "staff" ? <Navigate to="/staff" />
+                : user.role === "owner" ? <Navigate to="/owner" />
                   : <Navigate to="/" />
             ) : (
               <Navigate to="/login" />
@@ -86,8 +92,8 @@ function App() {
          <Route path="/admin/bookings/:id" element={<BookingDetail />} />
         </Route>
 
-        <Route element={<PrivateRoute allowedRoles={["staff"]} />}>
-          <Route path="/staff/*" element={<StaffHomePage />} />
+        <Route element={<PrivateRoute allowedRoles={["owner"]} />}>
+          <Route path="/owner/*" element={<OwnerHomePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

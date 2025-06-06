@@ -7,7 +7,7 @@ const HotelSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    owner: {
+    ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true
@@ -34,8 +34,7 @@ const HotelSchema = new mongoose.Schema(
     },
     policies: {
       checkInTime: { type: String, default: "14:00" },
-      checkOutTime: { type: String, default: "12:00" },
-      cancellationPolicy: { type: String, required: true }
+      checkOutTime: { type: String, default: "12:00" }
     },
     status: {
       type: String,

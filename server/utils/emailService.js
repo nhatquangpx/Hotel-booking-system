@@ -61,7 +61,7 @@ const sendReceiptEmail = async (to, orderDetails) => {
       ${orderDetails.items.map(item => `<li>${item.name}: ${item.quantity} x ${item.price} = ${item.total}</li>`).join('')}
     </ul>
     <p>Tổng cộng: <strong>${orderDetails.totalAmount}</strong></p>
-    <p>Phương thức thanh toán: ${orderDetails.paymentMethod || 'Không xác định'}</p>
+    <p>Phương thức thanh toán: Thanh toán qua mã QR</p>
     <p>Ngày thanh toán: ${orderDetails.paymentDate || new Date().toLocaleDateString()}</p>
     <p>Trân trọng,</p>
     <p>Đội ngũ của bạn</p>
