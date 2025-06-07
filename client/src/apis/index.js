@@ -73,7 +73,7 @@ const handleApiError = (error, defaultMessage) => {
   }
 };
 
-// API Authentication
+// ==================== GUEST APIs ====================
 export const authAPI = {
   // Đăng nhập
   login: async (email, password) => {
@@ -174,7 +174,38 @@ export const authAPI = {
   },
 };
 
-// API Hotel
+export const userAPI = {
+  // Lấy thông tin người dùng
+  getUserProfile: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể lấy thông tin người dùng!');
+    }
+  },
+
+  // Cập nhật thông tin user
+  updateUserProfile: async (userId, userData) => {
+    try {
+      const response = await api.put(`/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể cập nhật thông tin người dùng!');
+    }
+  },
+
+  // Đổi mật khẩu
+  changePassword: async (userId, passwordData) => {
+    try {
+      const response = await api.put(`/users/${userId}/password`, passwordData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể đổi mật khẩu!');
+    }
+  }
+};
+
 export const hotelAPI = {
   // Lấy tất cả khách sạn
   getAllHotels: async (filters = {}) => {
@@ -185,7 +216,7 @@ export const hotelAPI = {
       handleApiError(error, 'Không thể lấy danh sách khách sạn!');
     }
   },
-  
+
   // Lấy thông tin chi tiết khách sạn
   getHotelById: async (hotelId) => {
     try {
@@ -194,40 +225,9 @@ export const hotelAPI = {
     } catch (error) {
       handleApiError(error, 'Không thể lấy thông tin khách sạn!');
     }
-  },
-  
-  // Tạo khách sạn mới (admin/staff)
-  createHotel: async (hotelData) => {
-    try {
-      const response = await api.post('/hotels', hotelData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể tạo khách sạn mới!');
-    }
-  },
-  
-  // Cập nhật thông tin khách sạn (admin/staff)
-  updateHotel: async (hotelId, hotelData) => {
-    try {
-      const response = await api.put(`/hotels/${hotelId}`, hotelData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể cập nhật khách sạn!');
-    }
-  },
-  
-  // Xóa khách sạn (admin)
-  deleteHotel: async (hotelId) => {
-    try {
-      const response = await api.delete(`/hotels/${hotelId}`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể xóa khách sạn!');
-    }
-  },
+  }
 };
 
-// API Room
 export const roomAPI = {
   // Lấy tất cả phòng
   getAllRooms: async (params = {}) => {
@@ -238,17 +238,7 @@ export const roomAPI = {
       handleApiError(error, 'Không thể lấy danh sách phòng!');
     }
   },
-  
-  // Lấy tất cả phòng của một khách sạn
-  getRoomsByHotel: async (hotelId, params = {}) => {
-    try {
-      const response = await api.get(`/rooms/hotel/${hotelId}`, { params });
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể lấy danh sách phòng!');
-    }
-  },
-  
+
   // Lấy thông tin chi tiết phòng
   getRoomById: async (roomId) => {
     try {
@@ -257,71 +247,10 @@ export const roomAPI = {
     } catch (error) {
       handleApiError(error, 'Không thể lấy thông tin phòng!');
     }
-  },
-  
-  // Tạo phòng mới (admin/staff)
-  createRoom: async (roomData) => {
-    try {
-      const response = await api.post('/rooms', roomData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể tạo phòng mới!');
-    }
-  },
-  
-  // Cập nhật thông tin phòng (admin/staff)
-  updateRoom: async (roomId, roomData) => {
-    try {
-      const response = await api.put(`/rooms/${roomId}`, roomData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể cập nhật phòng!');
-    }
-  },
-  
-  // Cập nhật trạng thái phòng (admin/staff)
-  updateRoomStatus: async (roomId, status) => {
-    try {
-      const response = await api.put(`/rooms/${roomId}/status`, { status });
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể cập nhật trạng thái phòng!');
-    }
-  },
-  
-  // Xóa phòng (admin/staff)
-  deleteRoom: async (roomId) => {
-    try {
-      const response = await api.delete(`/rooms/${roomId}`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể xóa phòng!');
-    }
-  },
+  }
 };
 
-// API Booking
 export const bookingAPI = {
-  // Lấy tất cả đặt phòng (admin)
-  getAllBookings: async (params = {}) => {
-    try {
-      const response = await api.get('/bookings', { params });
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể lấy danh sách đặt phòng!');
-    }
-  },
-  
-  // Tạo đặt phòng mới
-  createBooking: async (bookingData) => {
-    try {
-      const response = await api.post('/bookings', bookingData);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể tạo đơn đặt phòng!');
-    }
-  },
-  
   // Lấy tất cả đặt phòng của người dùng
   getUserBookings: async () => {
     try {
@@ -331,7 +260,7 @@ export const bookingAPI = {
       handleApiError(error, 'Không thể lấy danh sách đặt phòng!');
     }
   },
-  
+
   // Lấy thông tin chi tiết đặt phòng
   getBookingById: async (bookingId) => {
     try {
@@ -341,7 +270,17 @@ export const bookingAPI = {
       handleApiError(error, 'Không thể lấy thông tin đặt phòng!');
     }
   },
-  
+
+  // Tạo đặt phòng mới
+  createBooking: async (bookingData) => {
+    try {
+      const response = await api.post('/bookings', bookingData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể tạo đơn đặt phòng!');
+    }
+  },
+
   // Hủy đặt phòng
   cancelBooking: async (bookingId, reason) => {
     try {
@@ -350,9 +289,76 @@ export const bookingAPI = {
     } catch (error) {
       handleApiError(error, 'Không thể hủy đặt phòng!');
     }
+  }
+};
+
+// ==================== OWNER APIs ====================
+export const ownerHotelAPI = {
+  // Tạo khách sạn mới
+  createHotel: async (hotelData) => {
+    try {
+      const response = await api.post('/hotels', hotelData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể tạo khách sạn mới!');
+    }
   },
-  
-  // Cập nhật trạng thái đặt phòng (admin/staff)
+
+  // Cập nhật thông tin khách sạn
+  updateHotel: async (hotelId, hotelData) => {
+    try {
+      const response = await api.put(`/hotels/${hotelId}`, hotelData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể cập nhật khách sạn!');
+    }
+  }
+};
+
+export const ownerRoomAPI = {
+  // Tạo phòng mới
+  createRoom: async (roomData) => {
+    try {
+      const response = await api.post('/rooms', roomData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể tạo phòng mới!');
+    }
+  },
+
+  // Cập nhật thông tin phòng
+  updateRoom: async (roomId, roomData) => {
+    try {
+      const response = await api.put(`/rooms/${roomId}`, roomData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể cập nhật phòng!');
+    }
+  },
+
+  // Cập nhật trạng thái phòng
+  updateRoomStatus: async (roomId, status) => {
+    try {
+      const response = await api.put(`/rooms/${roomId}/status`, { status });
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể cập nhật trạng thái phòng!');
+    }
+  },
+
+  // Xóa phòng
+  deleteRoom: async (roomId) => {
+    try {
+      const response = await api.delete(`/rooms/${roomId}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể xóa phòng!');
+    }
+  }
+};
+
+export const ownerBookingAPI = {
+  // Cập nhật trạng thái đặt phòng
   updateBookingStatus: async (bookingId, statusData) => {
     try {
       const response = await api.put(`/bookings/${bookingId}/status`, statusData);
@@ -361,8 +367,8 @@ export const bookingAPI = {
       handleApiError(error, 'Không thể cập nhật trạng thái đặt phòng!');
     }
   },
-  
-  // Cập nhật trạng thái thanh toán (admin/staff)
+
+  // Cập nhật trạng thái thanh toán
   updatePaymentStatus: async (bookingId, paymentStatus) => {
     try {
       const response = await api.put(`/bookings/${bookingId}/payment`, { paymentStatus });
@@ -370,13 +376,12 @@ export const bookingAPI = {
     } catch (error) {
       handleApiError(error, 'Không thể cập nhật trạng thái thanh toán!');
     }
-  },
+  }
 };
 
-// API User
-export const userAPI = {
-  
-  // Lấy tất cả người dùng (admin only)
+// ==================== ADMIN APIs ====================
+export const adminUserAPI = {
+  // Lấy tất cả người dùng
   getAllUsers: async () => {
     try {
       const response = await api.get('/users');
@@ -385,18 +390,8 @@ export const userAPI = {
       handleApiError(error, 'Không thể lấy danh sách người dùng!');
     }
   },
-  
-  // Lấy thông tin chi tiết người dùng (admin only)
-  getUserById: async (userId) => {
-    try {
-      const response = await api.get(`/users/${userId}`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error, 'Không thể lấy thông tin người dùng!');
-    }
-  },
-  
-  // Tạo người dùng mới (admin only)
+
+  // Tạo người dùng mới
   createUser: async (userData) => {
     try {
       const response = await api.post('/users', userData);
@@ -405,8 +400,8 @@ export const userAPI = {
       handleApiError(error, 'Không thể tạo người dùng mới!');
     }
   },
-  
-  // Cập nhật thông tin người dùng (admin only)
+
+  // Cập nhật thông tin người dùng
   updateUser: async (userId, userData) => {
     try {
       const response = await api.put(`/users/${userId}`, userData);
@@ -415,8 +410,8 @@ export const userAPI = {
       handleApiError(error, 'Không thể cập nhật thông tin người dùng!');
     }
   },
-  
-  // Xóa người dùng (admin only)
+
+  // Xóa người dùng
   deleteUser: async (userId) => {
     try {
       const response = await api.delete(`/users/${userId}`);
@@ -424,14 +419,44 @@ export const userAPI = {
     } catch (error) {
       handleApiError(error, 'Không thể xóa người dùng!');
     }
-  },
+  }
+};
+
+export const adminHotelAPI = {
+  // Xóa khách sạn
+  deleteHotel: async (hotelId) => {
+    try {
+      const response = await api.delete(`/hotels/${hotelId}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể xóa khách sạn!');
+    }
+  }
+};
+
+export const adminBookingAPI = {
+  // Lấy tất cả đặt phòng
+  getAllBookings: async (params = {}) => {
+    try {
+      const response = await api.get('/bookings', { params });
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không thể lấy danh sách đặt phòng!');
+    }
+  }
 };
 
 // Export API
 export default {
   auth: authAPI,
+  user: userAPI,
   hotel: hotelAPI,
   room: roomAPI,
   booking: bookingAPI,
-  user: userAPI,
+  ownerHotel: ownerHotelAPI,
+  ownerRoom: ownerRoomAPI,
+  ownerBooking: ownerBookingAPI,
+  adminUser: adminUserAPI,
+  adminHotel: adminHotelAPI,
+  adminBooking: adminBookingAPI
 }; 

@@ -53,15 +53,6 @@ const AdminLayout = ({ children }) => {
             </li>
             <li>
               <Link 
-                to="/admin/rooms" 
-                className={location.pathname.includes('/admin/rooms') ? 'active' : ''}
-              >
-                <i className="fas fa-door-open"></i>
-                Quản lý phòng
-              </Link>
-            </li>
-            <li>
-              <Link 
                 to="/admin/bookings" 
                 className={location.pathname.includes('/admin/bookings') ? 'active' : ''}
               >
@@ -84,7 +75,6 @@ const AdminLayout = ({ children }) => {
             {location.pathname === '/admin' && 'Dashboard'}
             {location.pathname.includes('/admin/users') && 'Quản lý người dùng'}
             {location.pathname.includes('/admin/hotels') && 'Quản lý khách sạn'}
-            {location.pathname.includes('/admin/rooms') && 'Quản lý phòng'}
             {location.pathname.includes('/admin/bookings') && 'Quản lý đặt phòng'}
           </h1>
         </header>

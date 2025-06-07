@@ -61,7 +61,7 @@ export const Navbar = () => {
         {dropdownMenu && user && (
           <div className="navbar_right_accountmenu">
             <Link to="/my-bookings">Đặt phòng của tôi</Link>
-            <Link to={`/profile`}>Thông tin cá nhân</Link>
+            <Link to={`/profile/${user.id}`}>Thông tin cá nhân</Link>
             <Link to="/login" onClick={() => dispatch(setLogout())}>Đăng xuất</Link>
           </div>
         )}

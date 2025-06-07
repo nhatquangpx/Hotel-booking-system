@@ -2,21 +2,24 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 // Auth Pages
-import RegisterPage from "./pages/Auth/Register/RegisterPage";
-import LoginPage from "./pages/Auth/Login/LoginPage";
-import ForgotPasswordPage from "./pages/Auth/Login/ForgotPasswordPage";
+import RegisterPage from "./pages/Auth/Register/Register.jsx";
+import LoginPage from "./pages/Auth/Login/Login.jsx";
+import ForgotPasswordPage from "./pages/Auth/Login/ForgotPassword.jsx";
 
 // Guest Pages
-import HomePage from "./pages/Guest/Home/HomePage";
-import AboutPage from "./pages/Guest/About/AboutPage";
-import ContactPage from "./pages/Guest/Contact/ContactPage";
-import HotelListPage from "./pages/Guest/HotelList/HotelListPage";
-import HotelDetailPage from "./pages/Guest/HotelDetail/HotelDetailPage";
-import BookingPage from "./pages/Guest/Booking/BookingPage";
-import MyBookingsPage from "./pages/Guest/Booking/MyBookingsPage";
+import HomePage from "./pages/Guest/Home/Home.jsx";
+import AboutPage from "./pages/Guest/About/About.jsx";
+import ContactPage from "./pages/Guest/Contact/Contact.jsx";
+import HotelListPage from "./pages/Guest/Hotel/HotelList.jsx";
+import HotelDetailPage from "./pages/Guest/Hotel/HotelDetail.jsx";
+import BookingPage from "./pages/Guest/Booking/Booking.jsx";
+import MyBookingsPage from "./pages/Guest/Booking/MyBookings.jsx";
+import Account from "./pages/Guest/Profile/Account.jsx";
+import AccountEdit from "./pages/Guest/Profile/AccountEdit.jsx";
+import ChangePassword from "./pages/Guest/Profile/ChangePassword.jsx";
 
 // Admin Pages
-import AdminHomePage from "./pages/Admin/Home/AdminHomePage.jsx";
+import AdminHomePage from "./pages/Admin/Home/AdminHome.jsx";
 import UserList from "./pages/Admin/ManageUser/UserList.jsx";
 import UserCreate from "./pages/Admin/ManageUser/UserCreate.jsx";
 import UserDetail from "./pages/Admin/ManageUser/UserDetail.jsx";
@@ -52,6 +55,11 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
 
+        {/* Profile Routes */}
+        <Route path="/profile/:id" element={<Account />} />
+        <Route path="/profile/:id/edit" element={<AccountEdit />} />
+        <Route path="/profile/:id/changepassword" element={<ChangePassword />} />
+
         {/* Hotel Routes */}
         <Route path="/hotels" element={<HotelListPage />} />
         <Route path="/hotels/:id" element={<HotelDetailPage />} />
@@ -85,8 +93,8 @@ function App() {
          <Route path="/admin/hotels/create" element={<HotelCreate />} />
          <Route path="/admin/hotels/:id" element={<HotelDetail />} />
          {/* Quản lý phòng (được truy cập từ trang chi tiết khách sạn) */}
-         <Route path="/admin/rooms" element={<RoomList />} />
-         <Route path="/admin/rooms/create" element={<RoomCreate />} />
+         <Route path="/admin/hotels/:hotelId/rooms" element={<RoomList />} />
+         <Route path="/admin/hotels/:hotelId/rooms/create" element={<RoomCreate />} />
          {/* Quản lý đặt phòng */}
          <Route path="/admin/bookings" element={<BookingList />} />
          <Route path="/admin/bookings/:id" element={<BookingDetail />} />
