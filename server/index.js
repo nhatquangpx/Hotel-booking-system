@@ -3,10 +3,9 @@ const dotenv = require("dotenv").config();
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const hotelRoutes = require("./routes/hotelRoutes");
-const roomRoutes = require("./routes/roomRoutes");
-const bookingRoutes = require("./routes/bookingRoutes");
+const guestRoutes = require("./routes/guestRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const ownerRoutes = require("./routes/ownerRoutes");
 
 const app = express();
 const PORT = process.env.PORT;
@@ -22,9 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // General routes
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/hotels", hotelRoutes);
-app.use("/api/rooms", roomRoutes);
-app.use("/api/bookings", bookingRoutes);
+app.use("/api/guests", guestRoutes);
+app.use("/api/admins", adminRoutes);
+app.use("/api/owners", ownerRoutes);
 
 app.listen(PORT, () => console.log(`Server chạy tại port: ${PORT}`));

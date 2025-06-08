@@ -8,7 +8,7 @@ function Footer() {
       <div className="footer__main">
         <div className="footer__logo-social">
           <div className="footer__logo">
-            <img src="/assets/logo_black_horizental.png" alt="StayJourney Logo" style={{ height: '250px' }} />
+            <img src="/assets/logo_black_horizontal.png" alt="StayJourney Logo" style={{ height: '250px' }} />
           </div>
           <div className="footer__socials">
             <a href="#" className="footer__icon"><i className="fab fa-facebook-f"></i></a>

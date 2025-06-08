@@ -7,7 +7,7 @@ const getTokenFromHeader = (req) => {
 };
 
 // Middleware xác thực token
-const verifyToken = (req, res, next) => {
+const authenticate = (req, res, next) => {
     const token = getTokenFromHeader(req);
     if (!token) {
         return res.status(403).json({ message: "Truy cập bị từ chối! Không có token." });
@@ -22,14 +22,4 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-// Middleware kiểm tra quyền truy cập theo vai trò
-const verifyRole = (roles) => {
-    return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.role)) {
-            return res.status(403).json({ message: "Bạn không có quyền truy cập!" });
-        }
-        next();
-    };
-};
-
-module.exports = { verifyToken, verifyRole };
+module.exports = { authenticate }; 

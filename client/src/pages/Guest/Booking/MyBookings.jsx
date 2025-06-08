@@ -8,7 +8,7 @@ import './MyBookingsPage.scss';
 
 const MyBookingsPage = () => {
   const navigate = useNavigate();
-  const user = useSelector(state => state.auth?.user);
+  const user = useSelector(state => state.user.user);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,12 +27,16 @@ const MyBookingsPage = () => {
       try {
         setLoading(true);
         const response = await bookingAPI.getUserBookings();
-        setBookings(response.data);
+        if (response && Array.isArray(response)) {
+          setBookings(response);
+        } else {
+          setBookings([]);
+        }
         setLoading(false);
       } catch (err) {
         setError('Không thể tải danh sách đặt phòng');
         setLoading(false);
-        console.error(err);
+        console.error('Error fetching bookings:', err);
       }
     };
 
@@ -115,7 +119,7 @@ const MyBookingsPage = () => {
         
         {error && <div className="error-message">{error}</div>}
         
-        {!loading && !error && bookings.length === 0 && (
+        {!loading && !error && (!bookings || bookings.length === 0) && (
           <div className="no-bookings">
             <p>Bạn chưa có đặt phòng nào</p>
             <button 
@@ -127,13 +131,13 @@ const MyBookingsPage = () => {
           </div>
         )}
         
-        {!loading && !error && bookings.length > 0 && (
+        {!loading && !error && bookings && bookings.length > 0 && (
           <div className="bookings-list">
             {bookings.map((booking) => (
               <div className="booking-card" key={booking._id}>
                 <div className="booking-header">
                   <div className="hotel-info">
-                    <h2>{booking.hotel.name}</h2>
+                    <h2>{booking.hotel?.name || 'Không có tên khách sạn'}</h2>
                     <p className="booking-dates">
                       {formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}
                     </p>
@@ -147,23 +151,25 @@ const MyBookingsPage = () => {
                   <div className="room-info">
                     <div className="room-image">
                       <img 
-                        src={booking.room.images && booking.room.images[0] || 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
-                        alt={booking.room.name} 
+                        src={booking.room?.images?.[0] || 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
+                        alt={booking.room?.name || 'Không có tên phòng'} 
                       />
                     </div>
                     <div className="room-details">
-                      <h3>{booking.room.name}</h3>
-                      <p className="room-type">{booking.room.type}</p>
+                      <h3>{booking.room?.name || 'Không có tên phòng'}</h3>
+                      <p className="room-type">{booking.room?.type || 'Không có loại phòng'}</p>
                       <p className="guest-info">
-                        {booking.guestDetails.adults} người lớn
-                        {booking.guestDetails.children > 0 && `, ${booking.guestDetails.children} trẻ em`}
+                        {booking.guestDetails?.adults || 0} người lớn
+                        {booking.guestDetails?.children > 0 && `, ${booking.guestDetails.children} trẻ em`}
                       </p>
                     </div>
                   </div>
                   
                   <div className="booking-actions">
                     <div className="price-info">
-                      <span className="total-price">{booking.totalAmount.toLocaleString('vi-VN')} VNĐ</span>
+                      <span className="total-price">
+                        {(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ
+                      </span>
                     </div>
                     
                     {canCancelBooking(booking) && (
@@ -210,7 +216,7 @@ const MyBookingsPage = () => {
                 <button 
                   className="confirm-btn"
                   onClick={handleCancelBooking}
-                  disabled={cancelling}
+                  disabled={cancelling || !cancelReason.trim()}
                 >
                   {cancelling ? 'Đang xử lý...' : 'Xác nhận hủy'}
                 </button>

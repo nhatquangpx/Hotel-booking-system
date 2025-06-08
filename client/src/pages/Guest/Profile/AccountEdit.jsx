@@ -15,7 +15,6 @@ const AccountEdit = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -69,10 +68,6 @@ const AccountEdit = () => {
 
   if (!user) {
     return <div>Vui lòng đăng nhập để chỉnh sửa thông tin</div>;
-  }
-
-  if (initialLoading) {
-    return <div>Đang tải thông tin...</div>;
   }
 
   return (
@@ -141,17 +136,7 @@ const AccountEdit = () => {
                     title="Vui lòng nhập số điện thoại hợp lệ (10 chữ số)"
                   />
                 </div>
-                <div className="form-group">
-                  <label>Địa chỉ</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                  />
-                </div>
               </div>
-
               <div className="button-group">
                 <button type="submit" className="primary" disabled={loading}>
                   {loading ? 'Đang cập nhật...' : 'Lưu thay đổi'}

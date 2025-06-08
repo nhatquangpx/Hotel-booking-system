@@ -1,4 +1,5 @@
 const Hotel = require("../models/Hotel");
+const User = require("../models/User");
 
 // Get all hotels
 exports.getAllHotels = async (req, res) => {
@@ -14,8 +15,7 @@ exports.getAllHotels = async (req, res) => {
     if (starRating) {
       query.starRating = starRating;
     }
-    
-    const hotels = await Hotel.find(query).select("-owner");
+      const hotels = await Hotel.find(query).select("-ownerId");
     res.status(200).json(hotels);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn:", error);
@@ -27,9 +27,9 @@ exports.getAllHotels = async (req, res) => {
 exports.getHotelById = async (req, res) => {
   try {
     const hotel = await Hotel.findById(req.params.id).populate({
-      path: "owner",
-      select: "fullName email phone -_id"
-    });
+      path: "ownerId",
+      select: "name email phone -_id"
+    }); 
     
     if (!hotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
@@ -45,7 +45,7 @@ exports.getHotelById = async (req, res) => {
 // Get hotels by owner
 exports.getHotelsByOwner = async (req, res) => {
   try {
-    const hotels = await Hotel.find({ owner: req.user.id });
+    const hotels = await Hotel.find({ ownerId: req.user.id });
     res.status(200).json(hotels);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn của bạn:", error);
@@ -56,17 +56,54 @@ exports.getHotelsByOwner = async (req, res) => {
 // Create new hotel (admin only)
 exports.createHotel = async (req, res) => {
   try {
+    // Chỉ admin mới được tạo hotel
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ 
+        message: "Chỉ Admin mới có quyền tạo khách sạn" 
+      });
+    }
+
     // Đã được validation qua middleware hotelValidation
     console.log("Đang tạo khách sạn mới với dữ liệu:", JSON.stringify(req.body));
     
-    // Đảm bảo rằng owner là người tạo (hoặc có thể chỉ định owner nếu là admin)
-    if (!req.body.owner) {
-      req.body.owner = req.user.id;
+    // Validate ownerId được cung cấp
+    if (!req.body.ownerId) {
+      return res.status(400).json({ 
+        message: "Phải chỉ định ownerId cho khách sạn" 
+      });
+    }
+
+    // Kiểm tra user có tồn tại và có role = "owner"
+    const ownerUser = await User.findById(req.body.ownerId);
+    if (!ownerUser) {
+      return res.status(404).json({ 
+        message: "Không tìm thấy user với ID đã cung cấp" 
+      });
+    }
+
+    if (ownerUser.role !== "owner") {
+      return res.status(400).json({ 
+        message: "User được chỉ định phải có role là 'owner'" 
+      });
+    }
+
+    // Validate address structure
+    if (!req.body.address || !req.body.address.street || !req.body.address.city || !req.body.address.state || !req.body.address.zipCode) {
+      return res.status(400).json({ 
+        message: "Address phải có đầy đủ: street, city, state, zipCode" 
+      });
+    }
+
+    // Validate contactInfo structure
+    if (!req.body.contactInfo || !req.body.contactInfo.phone || !req.body.contactInfo.email) {
+      return res.status(400).json({ 
+        message: "ContactInfo phải có đầy đủ: phone, email" 
+      });
     }
 
     const newHotel = new Hotel({
       name: req.body.name,
-      owner: req.body.owner,
+      ownerId: req.body.ownerId,
       description: req.body.description,
       address: req.body.address,
       contactInfo: req.body.contactInfo,
@@ -78,6 +115,7 @@ exports.createHotel = async (req, res) => {
     
     const savedHotel = await newHotel.save();
     console.log("Đã tạo khách sạn thành công:", savedHotel._id);
+    console.log("Owner được chỉ định:", ownerUser.name, `(${ownerUser.email})`);
     
     res.status(201).json(savedHotel);
   } catch (error) {
@@ -91,11 +129,9 @@ exports.updateHotel = async (req, res) => {
   try {
     // Đã được validation qua middleware hotelValidation
     console.log("Đang cập nhật khách sạn với ID:", req.params.id);
-    console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
-
-    // Không cho phép thay đổi trường owner
-    if (req.body.owner) {
-      delete req.body.owner;
+    console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));    // Không cho phép thay đổi trường ownerId
+    if (req.body.ownerId) {
+      delete req.body.ownerId;
     }
 
     const updatedHotel = await Hotel.findByIdAndUpdate(
@@ -125,4 +161,24 @@ exports.deleteHotel = async (req, res) => {
     console.error("Lỗi khi xóa khách sạn:", error);
     res.status(500).json({ message: "Lỗi khi xóa khách sạn", error: error.message });
   }
-}; 
+};
+
+// Get all users with role "owner" (admin only)
+exports.getAllOwners = async (req, res) => {
+  try {
+    // Chỉ admin mới được xem danh sách owners
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ 
+        message: "Chỉ Admin mới có quyền xem danh sách owners" 
+      });
+    }
+
+    const owners = await User.find({ role: "owner" }).select("name email phone _id");
+    console.log(`Tìm thấy ${owners.length} owners`);
+    
+    res.status(200).json(owners);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách owners:", error);
+    res.status(500).json({ message: "Lỗi khi lấy danh sách owners", error: error.message });
+  }
+};

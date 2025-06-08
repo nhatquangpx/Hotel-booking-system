@@ -1,0 +1,228 @@
+.hotel-detail-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+.hotel-detail-container .loading, .hotel-detail-container .error-message {
+  text-align: center;
+  padding: 50px 0;
+  font-size: 1.2rem;
+}
+.hotel-detail-container .error-message {
+  color: #e74c3c;
+}
+.hotel-detail-container .hotel-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.hotel-detail-container .hotel-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+.hotel-detail-container .hotel-header .hotel-rating {
+  margin-bottom: 15px;
+}
+.hotel-detail-container .hotel-header .hotel-rating .star {
+  color: #f39c12;
+  font-size: 1.5rem;
+  margin-right: 5px;
+}
+.hotel-detail-container .hotel-header .hotel-address {
+  font-size: 1.1rem;
+  color: #555;
+}
+.hotel-detail-container .hotel-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-bottom: 40px;
+}
+.hotel-detail-container .hotel-gallery .gallery-item {
+  border-radius: 8px;
+  overflow: hidden;
+  height: 250px;
+}
+.hotel-detail-container .hotel-gallery .gallery-item img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.hotel-detail-container .hotel-gallery .gallery-item img:hover {
+  transform: scale(1.05);
+}
+.hotel-detail-container .hotel-description, .hotel-detail-container .hotel-policies, .hotel-detail-container .booking-search, .hotel-detail-container .room-list, .hotel-detail-container .hotel-contact {
+  margin-bottom: 40px;
+}
+.hotel-detail-container .hotel-description h2, .hotel-detail-container .hotel-policies h2, .hotel-detail-container .booking-search h2, .hotel-detail-container .room-list h2, .hotel-detail-container .hotel-contact h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 2px solid #f39c12;
+  padding-bottom: 10px;
+}
+.hotel-detail-container .hotel-description p, .hotel-detail-container .hotel-policies p, .hotel-detail-container .booking-search p, .hotel-detail-container .room-list p, .hotel-detail-container .hotel-contact p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #444;
+}
+.hotel-detail-container .policy-details, .hotel-detail-container .contact-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+}
+.hotel-detail-container .policy-details .policy-item, .hotel-detail-container .policy-details .contact-item, .hotel-detail-container .contact-details .policy-item, .hotel-detail-container .contact-details .contact-item {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.hotel-detail-container .policy-details .policy-item h3, .hotel-detail-container .policy-details .contact-item h3, .hotel-detail-container .contact-details .policy-item h3, .hotel-detail-container .contact-details .contact-item h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+.hotel-detail-container .policy-details .policy-item p, .hotel-detail-container .policy-details .contact-item p, .hotel-detail-container .contact-details .policy-item p, .hotel-detail-container .contact-details .contact-item p {
+  font-size: 1rem;
+  color: #555;
+}
+.hotel-detail-container .booking-search {
+  background-color: #f5f5f5;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.hotel-detail-container .booking-search .date-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+}
+.hotel-detail-container .booking-search .date-picker .date-field {
+  flex: 1;
+  min-width: 200px;
+}
+.hotel-detail-container .booking-search .date-picker .date-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.hotel-detail-container .booking-search .date-picker .date-field input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.hotel-detail-container .booking-search .date-picker .search-btn {
+  padding: 12px 25px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.hotel-detail-container .booking-search .date-picker .search-btn:hover {
+  background-color: #2980b9;
+}
+.hotel-detail-container .booking-search .date-picker .search-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+.hotel-detail-container .room-list .no-rooms {
+  text-align: center;
+  padding: 30px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  color: #555;
+}
+.hotel-detail-container .room-list .room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 30px;
+}
+.hotel-detail-container .room-list .room-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  transition: transform 0.3s ease;
+}
+.hotel-detail-container .room-list .room-card:hover {
+  transform: translateY(-5px);
+}
+.hotel-detail-container .room-list .room-card .room-image {
+  height: 200px;
+  overflow: hidden;
+}
+.hotel-detail-container .room-list .room-card .room-image img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.hotel-detail-container .room-list .room-card .room-info {
+  padding: 20px;
+}
+.hotel-detail-container .room-list .room-card .room-info h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+  color: #333;
+}
+.hotel-detail-container .room-list .room-card .room-info .room-type {
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  text-transform: capitalize;
+}
+.hotel-detail-container .room-list .room-card .room-info .room-price {
+  margin-bottom: 20px;
+}
+.hotel-detail-container .room-list .room-card .room-info .room-price .price {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #e74c3c;
+}
+.hotel-detail-container .room-list .room-card .room-info .room-price .per-night {
+  font-size: 0.9rem;
+  color: #777;
+  margin-left: 5px;
+}
+.hotel-detail-container .room-list .room-card .room-info .book-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.hotel-detail-container .room-list .room-card .room-info .book-btn:hover {
+  background-color: #27ae60;
+}
+
+@media (max-width: 768px) {
+  .hotel-detail-container {
+    padding: 0 15px;
+  }
+  .hotel-detail-container .hotel-header h1 {
+    font-size: 2rem;
+  }
+  .hotel-detail-container .booking-search .date-picker {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hotel-detail-container .booking-search .date-picker .search-btn {
+    margin-top: 10px;
+  }
+}/*# sourceMappingURL=HotelDetailPage.css.map */

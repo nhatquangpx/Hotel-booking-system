@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const BookingHistorySchema = new mongoose.Schema(
+const BookingSchema = new mongoose.Schema(
   {
     guest: {
       type: mongoose.Schema.Types.ObjectId,
@@ -52,5 +52,5 @@ const BookingHistorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const BookingHistory = mongoose.model("BookingHistory", BookingHistorySchema);
-module.exports = BookingHistory;
+const Booking = mongoose.model("Booking", BookingSchema);
+module.exports = Booking;

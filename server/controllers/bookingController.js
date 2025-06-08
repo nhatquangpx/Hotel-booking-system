@@ -75,16 +75,14 @@ exports.createBooking = async (req, res) => {
 
     // Create new booking
     const newBooking = new BookingHistory({
-      user: req.user.id,
+      guest: req.user.id,
       hotel: hotelId,
       room: roomId,
       checkInDate: startDate,
       checkOutDate: endDate,
-      guestDetails,
       totalAmount: calculatedAmount,
       paymentMethod,
       specialRequests,
-      status: "confirmed", // Mặc định
       paymentStatus: "pending" // Mặc định
     });
 
@@ -107,8 +105,7 @@ exports.createBooking = async (req, res) => {
 exports.getUserBookings = async (req, res) => {
   try {
     console.log(`Lấy danh sách đặt phòng của người dùng ID: ${req.user.id}`);
-    
-    const bookings = await BookingHistory.find({ user: req.user.id })
+      const bookings = await BookingHistory.find({ guest: req.user.id })
       .populate({
         path: "hotel",
         select: "name address images starRating"
@@ -166,6 +163,39 @@ exports.getAllBookings = async (req, res) => {
   }
 };
 
+// Get bookings by owner (for owner's hotels)
+exports.getBookingsByOwner = async (req, res) => {
+  try {
+    console.log(`Lấy danh sách đặt phòng của chủ khách sạn ID: ${req.user.id}`);
+
+    // Tìm tất cả hotel thuộc về owner này
+    const ownerHotels = await Hotel.find({ ownerId: req.user.id }).select('_id');
+    const hotelIds = ownerHotels.map(hotel => hotel._id);
+
+    const bookings = await BookingHistory.find({ hotel: { $in: hotelIds } })
+      .populate({
+        path: "hotel",
+        select: "name address"
+      })
+      .populate({
+        path: "room",
+        select: "name type"
+      })
+      .populate({
+        path: "guest",
+        select: "name email phone"
+      })
+      .sort({ createdAt: -1 });
+
+    console.log(`Tìm thấy ${bookings.length} đặt phòng cho các khách sạn của chủ sở hữu`);
+    res.status(200).json(bookings);
+  }
+  catch (error) {
+    console.error("Lỗi khi lấy danh sách đặt phòng của chủ khách sạn:", error);
+    res.status(500).json({ message: "Lỗi khi lấy danh sách đặt phòng của chủ khách sạn", error: error.message });
+  }
+};
+
 // Get booking details by ID
 exports.getBookingById = async (req, res) => {
   try {
@@ -184,10 +214,8 @@ exports.getBookingById = async (req, res) => {
     if (!booking) {
       console.log(`Không tìm thấy đặt phòng với ID: ${req.params.id}`);
       return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
-    }
-
-    // Kiểm tra quyền truy cập: admin hoặc chủ booking
-    if (booking.user.toString() !== req.user.id && req.user.role !== "admin") {
+    }    // Kiểm tra quyền truy cập: admin hoặc chủ booking
+    if (booking.guest.toString() !== req.user.id && req.user.role !== "admin") {
       console.log(`Người dùng ${req.user.id} không có quyền xem đặt phòng ${req.params.id}`);
       return res.status(403).json({ message: "Bạn không có quyền xem đơn đặt phòng này" });
     }
@@ -197,6 +225,41 @@ exports.getBookingById = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi lấy thông tin đơn đặt phòng:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin đơn đặt phòng", error: error.message });
+  }
+};
+
+// Update booking status (admin only)
+exports.updateBookingStatus = async (req, res) => {
+  const { bookingId } = req.params;
+  const { status } = req.body;
+  const { role, _id: userId } = req.user; // Lấy thông tin người dùng từ middleware xác thực
+
+  try {
+    // Tìm đơn đặt phòng
+    const booking = await BookingHistory.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Đơn đặt phòng không tồn tại" });
+    }
+
+    // Kiểm tra quyền: chỉ admin hoặc owner của đơn đặt phòng được phép
+    if (role !== "admin" && booking.guest.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
+    }
+
+    // Kiểm tra trạng thái hợp lệ
+    const validStatuses = ["pending", "paid", "cancelled"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Trạng thái không hợp lệ" });
+    }
+
+    // Cập nhật trạng thái
+    booking.paymentStatus = status;
+    await booking.save();
+
+    res.status(200).json({ message: "Cập nhật trạng thái thành công", booking });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật trạng thái đơn đặt phòng:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
@@ -214,10 +277,8 @@ exports.cancelBooking = async (req, res) => {
     if (!booking) {
       console.log(`Không tìm thấy đặt phòng với ID: ${id}`);
       return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
-    }
-
-    // Kiểm tra quyền truy cập: admin hoặc chủ booking
-    if (booking.user.toString() !== req.user.id && req.user.role !== "admin") {
+    }    // Kiểm tra quyền truy cập: admin hoặc chủ booking
+    if (booking.guest.toString() !== req.user.id && req.user.role !== "admin") {
       console.log(`Người dùng ${req.user.id} không có quyền hủy đặt phòng ${id}`);
       return res.status(403).json({ message: "Bạn không có quyền hủy đơn đặt phòng này" });
     }

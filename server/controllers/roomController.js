@@ -12,9 +12,8 @@ exports.getRoomsByHotel = async (req, res) => {
     if (checkInDate && checkOutDate) {
       console.log(`Kiểm tra phòng trống từ ${checkInDate} đến ${checkOutDate}`);
     }
-    
-    // Base query to find rooms in the specified hotel
-    let query = { hotel: hotelId };
+      // Base query to find rooms in the specified hotel
+    let query = { hotelId: hotelId };
     
     // Get all rooms in the hotel
     const rooms = await Room.find(query);
@@ -56,9 +55,8 @@ exports.getRoomsByHotel = async (req, res) => {
 exports.getRoomById = async (req, res) => {
   try {
     console.log(`Lấy thông tin phòng ID: ${req.params.id}`);
-    
-    const room = await Room.findById(req.params.id).populate({
-      path: "hotel",
+      const room = await Room.findById(req.params.id).populate({
+      path: "hotelId",
       select: "name address starRating images"
     });
     
@@ -67,7 +65,7 @@ exports.getRoomById = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
     
-    console.log(`Đã tìm thấy phòng: ${room.name} thuộc khách sạn: ${room.hotel.name}`);
+    console.log(`Đã tìm thấy phòng: ${room.name} thuộc khách sạn: ${room.hotelId.name}`);
     res.status(200).json(room);
   } catch (error) {
     console.error("Lỗi khi lấy thông tin phòng:", error);
@@ -75,7 +73,7 @@ exports.getRoomById = async (req, res) => {
   }
 };
 
-// Create new room (admin/staff/owner)
+// Create new room (admin/owner)
 exports.createRoom = async (req, res) => {
   try {
     const { hotelId } = req.params;
@@ -84,8 +82,23 @@ exports.createRoom = async (req, res) => {
     console.log(`Đang tạo phòng mới cho khách sạn ID: ${hotelId}`);
     console.log("Dữ liệu phòng:", JSON.stringify(req.body));
     
+    // Validate type enum
+    const validTypes = ['single', 'double', 'vip', 'family'];
+    if (!validTypes.includes(req.body.type)) {
+      return res.status(400).json({ 
+        message: `Type phải là một trong: ${validTypes.join(', ')}` 
+      });
+    }
+
+    // Validate price structure
+    if (!req.body.price || typeof req.body.price.base !== 'number' || req.body.price.base <= 0) {
+      return res.status(400).json({ 
+        message: "Price phải có trường base với giá trị số dương" 
+      });
+    }
+    
     const newRoom = new Room({
-      hotel: hotelId,
+      hotelId: hotelId,
       name: req.body.name,
       type: req.body.type,
       description: req.body.description,
@@ -103,7 +116,7 @@ exports.createRoom = async (req, res) => {
   }
 };
 
-// Update room (admin/staff/owner)
+// Update room (admin/owner)
 exports.updateRoom = async (req, res) => {
   try {
     console.log(`Đang cập nhật phòng ID: ${req.params.id}`);
@@ -132,7 +145,7 @@ exports.updateRoom = async (req, res) => {
   }
 };
 
-// Delete room (admin/staff/owner)
+// Delete room (admin/owner)
 exports.deleteRoom = async (req, res) => {
   try {
     console.log(`Đang xóa phòng ID: ${req.params.id}`);

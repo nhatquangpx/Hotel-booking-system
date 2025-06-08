@@ -123,7 +123,7 @@
             border: none;
 
             &:hover {
-              background: darken($blue, 10%);
+              background: $blue;
             }
           }
 
@@ -137,6 +137,77 @@
             }
           }
         }
+      }
+    }
+  }
+}
+
+.change-password-form {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+
+  .form-group {
+    margin-bottom: 30px;
+    position: relative;
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #4a90e2;
+      }
+
+      &.error {
+        border-color: #ff4d4f;
+      }
+    }
+
+    .error-message {
+      display: block;
+      color: #ff4d4f;
+      font-size: 12px;
+      margin-top: 4px;
+      position: relative;
+      bottom: auto;
+      left: auto;
+    }
+  }
+
+  .form-actions {
+    margin-top: 30px;
+    text-align: center;
+
+    .btn-primary {
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #357abd;
+      }
+
+      &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
       }
     }
   }

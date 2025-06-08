@@ -31,25 +31,38 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { fullName, email, password, phone, role} = req.body;
-        if (!fullName || !email || !password) {
-            return res.status(400).json({ message: 'Không được để trống!' });
+        const { name, email, password, phone, role} = req.body;
+        if (!name || !email || !password || !phone) {
+            return res.status(400).json({ message: 'Không được để trống các trường bắt buộc!' });
         }
 
-        const existingUser = await User.findOne({ $or: [{ email }] });
+        // Kiểm tra email và phone trùng lặp
+        const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
         if (existingUser) {
-            return res.status(400).json({ message: 'Email đã được sử dụng!' });
+            if (existingUser.email === email) {
+                return res.status(400).json({ message: 'Email đã được sử dụng!' });
+            }
+            if (existingUser.phone === phone) {
+                return res.status(400).json({ message: 'Số điện thoại đã được sử dụng!' });
+            }
+        }
+
+        // Validate role
+        const validRoles = ['guest', 'admin', 'owner'];
+        const userRole = role || 'guest';
+        if (!validRoles.includes(userRole)) {
+            return res.status(400).json({ message: 'Role không hợp lệ!' });
         }
 
         const saltRound = 10; // Số lần băm mật khẩu
         const hashedPassword = await bcrypt.hash(password, saltRound); 
 
         const newUser = new User({
-            fullName,
+            name,
             email,
             password: hashedPassword,
             phone,
-            role: role || 'user'
+            role: userRole
         });
         await newUser.save();
         res.status(201).json({ message: 'Người dùng đã được tạo thành công!', user: newUser });

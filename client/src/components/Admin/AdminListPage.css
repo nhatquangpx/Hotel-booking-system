@@ -1,0 +1,312 @@
+@charset "UTF-8";
+.admin-list-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+.admin-list-container .list-header {
+  padding: 20px 25px;
+  border-bottom: 1px solid #eee;
+}
+.admin-list-container .list-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #2c3e50;
+}
+.admin-list-container .filters-section {
+  padding: 15px 25px;
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+.admin-list-container .filters-section .filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+.admin-list-container .filters-section .filters-grid .filter-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+.admin-list-container .filters-section .filters-grid .filter-item select, .admin-list-container .filters-section .filters-grid .filter-item input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.admin-list-container .filters-section .filters-grid .filter-item select:focus, .admin-list-container .filters-section .filters-grid .filter-item input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+.admin-list-container .filters-section .filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+.admin-list-container .filters-section .filter-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+.admin-list-container .filters-section .filter-actions button.apply-btn {
+  background-color: #3498db;
+  color: white;
+}
+.admin-list-container .filters-section .filter-actions button.apply-btn:hover {
+  background-color: #2980b9;
+}
+.admin-list-container .filters-section .filter-actions button.reset-btn {
+  background-color: #95a5a6;
+  color: white;
+}
+.admin-list-container .filters-section .filter-actions button.reset-btn:hover {
+  background-color: #7f8c8d;
+}
+.admin-list-container .search-filter-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.admin-list-container .search-filter-container .search-box {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+.admin-list-container .search-filter-container .search-box input {
+  width: 100%;
+  padding: 10px 15px;
+  padding-left: 35px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+.admin-list-container .search-filter-container .search-box input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+.admin-list-container .search-filter-container .search-box::before {
+  content: "🔍";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #95a5a6;
+}
+.admin-list-container .search-filter-container .filter-box {
+  min-width: 150px;
+  max-width: 250px;
+}
+.admin-list-container .search-filter-container .filter-box select {
+  width: 100%;
+  padding: 10px 12px;
+  padding-right: 30px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  background-size: 20px;
+}
+.admin-list-container .search-filter-container .filter-box select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+.admin-list-container .list-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  border-top: 1px solid #eee;
+}
+.admin-list-container .list-pagination .pagination-info {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+.admin-list-container .list-pagination .pagination-controls {
+  display: flex;
+  gap: 10px;
+}
+.admin-list-container .list-pagination .pagination-controls .pagination-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.admin-list-container .list-pagination .pagination-controls .pagination-button:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+.admin-list-container .list-pagination .pagination-controls .pagination-button.active {
+  background-color: #3498db;
+  border-color: #3498db;
+  color: white;
+}
+.admin-list-container .list-pagination .pagination-controls .pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.admin-list-container .list-pagination .pagination-controls .pagination-button:disabled:hover {
+  border-color: #dcdfe6;
+  color: inherit;
+}
+.admin-list-container .bulk-actions {
+  display: flex;
+  align-items: center;
+  padding: 10px 25px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+.admin-list-container .bulk-actions .selected-count {
+  margin-right: 15px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+.admin-list-container .bulk-actions .bulk-action-buttons {
+  display: flex;
+  gap: 10px;
+}
+.admin-list-container .bulk-actions .bulk-action-buttons button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+.admin-list-container .bulk-actions .bulk-action-buttons button.delete-selected {
+  background-color: #e74c3c;
+  color: white;
+}
+.admin-list-container .bulk-actions .bulk-action-buttons button.delete-selected:hover {
+  background-color: #c0392b;
+}
+.admin-list-container .bulk-actions .bulk-action-buttons button.update-selected {
+  background-color: #3498db;
+  color: white;
+}
+.admin-list-container .bulk-actions .bulk-action-buttons button.update-selected:hover {
+  background-color: #2980b9;
+}
+.admin-list-container .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.admin-list-container .admin-table th, .admin-list-container .admin-table td {
+  padding: 15px 20px;
+  text-align: left;
+  vertical-align: middle;
+}
+.admin-list-container .admin-table th {
+  background-color: #f9f9f9;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #eee;
+}
+.admin-list-container .admin-table th.sortable {
+  cursor: pointer;
+  position: relative;
+  padding-right: 25px;
+}
+.admin-list-container .admin-table th.sortable::after {
+  content: "↕";
+  position: absolute;
+  right: 10px;
+  opacity: 0.5;
+}
+.admin-list-container .admin-table th.sortable.asc::after {
+  content: "↑";
+  opacity: 1;
+}
+.admin-list-container .admin-table th.sortable.desc::after {
+  content: "↓";
+  opacity: 1;
+}
+.admin-list-container .admin-table th.sortable:hover {
+  background-color: #eef2f7;
+}
+.admin-list-container .admin-table tr {
+  border-bottom: 1px solid #eee;
+}
+.admin-list-container .admin-table tr:hover {
+  background-color: #f5f7fa;
+}
+.admin-list-container .admin-table tr:last-child {
+  border-bottom: none;
+}
+.admin-list-container .admin-table td {
+  font-size: 0.95rem;
+  color: #34495e;
+}
+.admin-list-container .admin-table td.center {
+  text-align: center;
+}
+.admin-list-container .admin-table td.actions {
+  white-space: nowrap;
+}
+.admin-list-container .admin-table td .thumbnail {
+  width: 50px;
+  height: 50px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  border-radius: 4px;
+}
+.admin-list-container .admin-table .checkbox-cell {
+  width: 40px;
+  text-align: center;
+}
+.admin-list-container .admin-table .empty-message {
+  text-align: center;
+  padding: 50px 20px;
+  color: #7f8c8d;
+  font-style: italic;
+}
+.admin-list-container .list-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+}
+.admin-list-container .list-actions .create-button {
+  padding: 10px 18px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-list-container .list-actions .create-button:hover {
+  background-color: #2980b9;
+}
+.admin-list-container .list-actions .create-button::before {
+  content: "+";
+  font-size: 1.2rem;
+  font-weight: 700;
+}/*# sourceMappingURL=AdminListPage.css.map */

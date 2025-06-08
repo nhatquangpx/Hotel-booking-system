@@ -21,10 +21,8 @@ exports.verifyOwnerOrAdmin = async (req, res, next) => {
     
     if (!hotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
-    }
-
-    // Kiểm tra nếu người dùng là chủ sở hữu (staff)
-    if (hotel.owner.toString() === req.user.id) {
+    }    // Kiểm tra nếu người dùng là chủ sở hữu (staff)
+    if (hotel.ownerId.toString() === req.user.id) {
       // Lưu thông tin khách sạn vào request để sử dụng sau này nếu cần
       req.hotel = hotel;
       return next();
@@ -63,17 +61,15 @@ exports.verifyRoomOwnerOrAdmin = async (req, res, next) => {
     
     if (!room) {
       return res.status(404).json({ message: "Không tìm thấy phòng" });
-    }
-
-    // Lấy thông tin khách sạn
-    const hotel = await Hotel.findById(room.hotel);
+    }    // Lấy thông tin khách sạn
+    const hotel = await Hotel.findById(room.hotelId);
     
     if (!hotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn của phòng này" });
     }
 
     // Kiểm tra nếu người dùng là chủ sở hữu khách sạn (staff)
-    if (hotel.owner.toString() === req.user.id) {
+    if (hotel.ownerId.toString() === req.user.id) {
       // Lưu thông tin phòng và khách sạn vào request để sử dụng sau này nếu cần
       req.room = room;
       req.hotel = hotel;

@@ -34,10 +34,6 @@ const Account = () => {
     return <div>Vui lòng đăng nhập để xem thông tin tài khoản</div>;
   }
 
-  if (loading) {
-    return <div>Đang tải thông tin...</div>;
-  }
-
   return (
     <ProfileLayout>
       <div className="account-container">
@@ -85,10 +81,6 @@ const Account = () => {
               <div className="form-group">
                 <label>Số điện thoại</label>
                 <input type="tel" value={userData?.phone || 'Chưa cập nhật'} disabled />
-              </div>
-              <div className="form-group">
-                <label>Địa chỉ</label>
-                <input type="text" value={userData?.address || 'Chưa cập nhật'} disabled />
               </div>
             </div>
           </div>

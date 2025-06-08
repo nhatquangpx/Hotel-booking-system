@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { bookingAPI } from '../../../apis';
+import { adminBookingAPI } from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 
 const BookingList = () => {
@@ -21,7 +21,7 @@ const BookingList = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const data = await bookingAPI.getAllBookings();
+      const data = await adminBookingAPI.getAllBookings();
       setBookings(data);
       setError(null);
     } catch (err) {
@@ -41,7 +41,7 @@ const BookingList = () => {
     if (!bookingToUpdate) return;
     
     try {
-      await bookingAPI.updateBookingStatus(bookingToUpdate._id, { status: newStatus });
+      await adminBookingAPI.updateBookingStatus(bookingToUpdate._id, { status: newStatus });
       
       setBookings(bookings.map(booking => 
         booking._id === bookingToUpdate._id 
