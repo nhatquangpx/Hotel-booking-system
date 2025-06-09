@@ -15,7 +15,13 @@ exports.getAllHotels = async (req, res) => {
     if (starRating) {
       query.starRating = starRating;
     }
-      const hotels = await Hotel.find(query).select("-ownerId");
+    
+    const hotels = await Hotel.find(query)
+      .populate({
+        path: 'ownerId',
+        select: 'name email phone -_id'
+      });
+      
     res.status(200).json(hotels);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn:", error);
@@ -56,71 +62,28 @@ exports.getHotelsByOwner = async (req, res) => {
 // Create new hotel (admin only)
 exports.createHotel = async (req, res) => {
   try {
-    // Chỉ admin mới được tạo hotel
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ 
-        message: "Chỉ Admin mới có quyền tạo khách sạn" 
-      });
-    }
-
-    // Đã được validation qua middleware hotelValidation
-    console.log("Đang tạo khách sạn mới với dữ liệu:", JSON.stringify(req.body));
-    
-    // Validate ownerId được cung cấp
-    if (!req.body.ownerId) {
-      return res.status(400).json({ 
-        message: "Phải chỉ định ownerId cho khách sạn" 
-      });
-    }
-
-    // Kiểm tra user có tồn tại và có role = "owner"
-    const ownerUser = await User.findById(req.body.ownerId);
-    if (!ownerUser) {
-      return res.status(404).json({ 
-        message: "Không tìm thấy user với ID đã cung cấp" 
-      });
-    }
-
-    if (ownerUser.role !== "owner") {
-      return res.status(400).json({ 
-        message: "User được chỉ định phải có role là 'owner'" 
-      });
-    }
-
-    // Validate address structure
-    if (!req.body.address || !req.body.address.street || !req.body.address.city || !req.body.address.state || !req.body.address.zipCode) {
-      return res.status(400).json({ 
-        message: "Address phải có đầy đủ: street, city, state, zipCode" 
-      });
-    }
-
-    // Validate contactInfo structure
-    if (!req.body.contactInfo || !req.body.contactInfo.phone || !req.body.contactInfo.email) {
-      return res.status(400).json({ 
-        message: "ContactInfo phải có đầy đủ: phone, email" 
-      });
+    const { name, description, starRating, ownerId, status, address, contactInfo } = req.body;
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = req.files.map(file => `/uploads/hotels/${file.filename}`);
     }
 
     const newHotel = new Hotel({
-      name: req.body.name,
-      ownerId: req.body.ownerId,
-      description: req.body.description,
-      address: req.body.address,
-      contactInfo: req.body.contactInfo,
-      starRating: req.body.starRating,
-      policies: req.body.policies,
-      images: req.body.images,
-      status: req.body.status || 'active'
+      name,
+      description,
+      starRating,
+      ownerId,
+      status,
+      address,
+      contactInfo,
+      images: imageUrls
     });
-    
-    const savedHotel = await newHotel.save();
-    console.log("Đã tạo khách sạn thành công:", savedHotel._id);
-    console.log("Owner được chỉ định:", ownerUser.name, `(${ownerUser.email})`);
-    
-    res.status(201).json(savedHotel);
+
+    await newHotel.save();
+    res.status(201).json({ message: 'Khách sạn đã được tạo thành công!', hotel: newHotel });
   } catch (error) {
-    console.error("Lỗi khi tạo khách sạn:", error);
-    res.status(500).json({ message: "Lỗi khi tạo khách sạn", error: error.message });
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
 

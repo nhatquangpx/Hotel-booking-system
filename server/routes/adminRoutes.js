@@ -7,6 +7,8 @@ const hotelController = require("../controllers/hotelController");
 const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
 // const dashboardController = require("../controllers/dashboardController");
+const upload = require('../config/multerConfig'); 
+
 
 router.use(authenticate, isAdmin);
 
@@ -21,7 +23,7 @@ router.delete("/users/:id", userController.deleteUser);
 router.get("/hotels", hotelController.getAllHotels);
 router.get("/hotels/:id", hotelController.getHotelById);
 router.get("/hotels/owners/list", hotelController.getAllOwners);
-router.post("/hotels", hotelController.createHotel);
+router.post("/hotels", upload.array('images', 5), hotelController.createHotel);
 router.put("/hotels/:id", hotelController.updateHotel);
 router.delete("/hotels/:id", hotelController.deleteHotel);
 

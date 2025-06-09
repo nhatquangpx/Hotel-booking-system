@@ -79,6 +79,10 @@ exports.updateUser = async (req, res) => {
             return res.status(400).json({ message: 'ID người dùng không hợp lệ!' });
         }
 
+        if (req.body.status && !['active', 'inactive'].includes(req.body.status)) {
+            return res.status(400).json({ message: 'Trạng thái không hợp lệ!' });
+        }
+
         const updatedUser = await User.findByIdAndUpdate(userId, req.body, { new: true }).select('-password');
         if (!updatedUser) {
             return res.status(404).json({ message: 'Người dùng không tồn tại!' });

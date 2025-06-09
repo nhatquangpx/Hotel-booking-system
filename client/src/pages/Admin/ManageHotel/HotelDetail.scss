@@ -1,0 +1,135 @@
+// Biến màu dùng chung
+:root {
+  --admin-primary: #1976d2;
+  --admin-primary-hover: #1565c0;
+  --admin-danger: #d32f2f;
+  --admin-success: #388e3c;
+  --admin-bg: #f5f6fa;
+  --admin-sidebar: #fff;
+  --admin-text: #222;
+}
+
+.hotel-detail-container {
+  background: var(--admin-bg);
+  min-height: 100vh;
+  padding: 32px 0;
+
+  h1 {
+    color: var(--admin-primary);
+    font-weight: 700;
+    font-size: 2em;
+    margin-bottom: 32px;
+    text-align: left;
+  }
+
+  .detail-card {
+    background: var(--admin-sidebar);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 32px 32px 24px 32px;
+    max-width: 700px;
+    margin: 0 auto 32px auto;
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      h3 {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: var(--admin-primary);
+      }
+      .detail-actions {
+        display: flex;
+        gap: 8px;
+        .MuiIconButton-root {
+          color: var(--admin-primary);
+        }
+      }
+    }
+    .detail-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      .detail-row {
+        display: flex;
+        gap: 16px;
+        .detail-label {
+          font-weight: 500;
+          min-width: 120px;
+          color: var(--admin-text);
+        }
+        .detail-value {
+          color: var(--admin-text);
+        }
+      }
+      .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+
+        .detail-image-thumb {
+          width: 100px;
+          height: 100px;
+          object-fit: cover;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+        }
+      }
+    }
+  }
+
+  .section-title {
+    margin: 32px 0 12px 0;
+    h3 {
+      color: var(--admin-primary);
+      font-size: 1.2em;
+      font-weight: 700;
+    }
+  }
+
+  .room-table {
+    background: var(--admin-sidebar);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 0 0 8px 0;
+    margin-top: 12px;
+    overflow-x: auto;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      th, td {
+        padding: 12px 16px;
+        text-align: left;
+      }
+      th {
+        color: var(--admin-primary);
+        font-weight: 700;
+        background: #f3f6fa;
+        border-bottom: 2px solid #e0e0e0;
+      }
+      tr {
+        border-bottom: 1px solid #e0e0e0;
+        &:hover {
+          background: #f5f6fa;
+        }
+      }
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        .MuiIconButton-root {
+          padding: 4px;
+        }
+      }
+    }
+  }
+
+  .loading, .error-message {
+    text-align: center;
+    color: var(--admin-primary);
+    margin: 24px 0;
+    font-size: 1.1em;
+  }
+} 

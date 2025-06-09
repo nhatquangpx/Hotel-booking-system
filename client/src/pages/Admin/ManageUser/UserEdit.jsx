@@ -14,6 +14,7 @@ const UserEdit = () => {
     email: '',
     phone: '',
     role: 'guest',
+    status: 'active'
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,6 +30,7 @@ const UserEdit = () => {
           email: data.email,
           phone: data.phone,
           role: data.role,
+          status: data.status
         });
         setError(null);
       } catch (err) {
@@ -122,6 +124,20 @@ const UserEdit = () => {
               <option value="guest">Khách</option>
               <option value="owner">Chủ khách sạn</option>
               <option value="admin">Quản trị viên</option>
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="status">Trạng thái</label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              required
+            >
+              <option value="active">Hoạt động</option>
+              <option value="inactive">Ngừng hoạt động</option>
             </select>
           </div>
           

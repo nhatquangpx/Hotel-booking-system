@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaStar } from 'react-icons/fa';
+import { IconButton, Tooltip, Button, Paper, TextField } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import AdminLayout from '../../../components/Admin/AdminLayout';
 import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 import '../../../components/Admin/AdminListPage.scss';
+import './HotelList.scss';
 
 const HotelList = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchName, setSearchName] = useState('');
+  const [searchAddress, setSearchAddress] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState(null);
 
@@ -116,14 +123,11 @@ const HotelList = () => {
     setHotelToDelete(null);
   };
 
-  const filteredHotels = hotels.filter(hotel => {
-    const hotelAddress = formatAddress(hotel.address).toLowerCase();
-    return (
-      hotel.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hotelAddress.includes(searchTerm.toLowerCase()) ||
-      (hotel.address?.city || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  const filteredHotels = hotels.filter(hotel =>
+    hotel.name?.toLowerCase().includes(searchName.toLowerCase()) &&
+    formatAddress(hotel.address).toLowerCase().includes(searchAddress.toLowerCase()) &&
+    formatContact(hotel.contactInfo).includes(searchPhone)
+  );
 
   if (loading) return (
     <AdminLayout>
@@ -139,89 +143,125 @@ const HotelList = () => {
 
   return (
     <AdminLayout>
-      <div className="admin-list-container">
-        <div className="list-header">
-          <h2>Quản lý khách sạn</h2>
-        </div>
-        
-        <div className="list-actions">
-          <div className="search-filter-container">
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tên, địa chỉ, thành phố"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+      <h1>Danh sách khách sạn</h1>
+      <div className="hotel-list-container">
+        <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
+          <div className="search-bar-row">
+            <div className="search-bar-inputs">
+              <TextField
+                label="Tìm theo tên"
+                value={searchName}
+                onChange={e => setSearchName(e.target.value)}
+                size="small"
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
+              />
+              <TextField
+                label="Địa chỉ"
+                value={searchAddress}
+                onChange={e => setSearchAddress(e.target.value)}
+                size="small"
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
+              />
+              <TextField
+                label="Số điện thoại"
+                value={searchPhone}
+                onChange={e => setSearchPhone(e.target.value)}
+                size="small"
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
             </div>
+            <Link to="/admin/hotels/create" className="add-hotel-btn-link" style={{ textDecoration: 'none' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                sx={{ 
+                  backgroundColor: 'var(--admin-primary)',
+                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 }
+                }}
+              >
+                Thêm khách sạn
+              </Button>
+            </Link>
           </div>
-          <Link to="/admin/hotels/create">
-            <button className="create-button">Thêm khách sạn</button>
-          </Link>
-        </div>
-
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Tên khách sạn</th>
-              <th>Địa chỉ</th>
-              <th>Liên hệ</th>
-              <th>Đánh giá</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredHotels.length === 0 ? (
+        </Paper>
+        {error && <div className="error-message">{error}</div>}
+        <div className="hotel-table">
+          <table>
+            <thead>
               <tr>
-                <td colSpan="6" className="empty-message">Không tìm thấy khách sạn nào</td>
+                <th>Tên khách sạn</th>
+                <th>Địa chỉ</th>
+                <th>Liên hệ</th>
+                <th>Xếp hạng</th>
+                <th>Chủ khách sạn</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
-            ) : (
-              filteredHotels.map(hotel => (
+            </thead>
+            <tbody>
+              {filteredHotels.map((hotel) => (
                 <tr key={hotel._id}>
                   <td>{hotel.name}</td>
                   <td>{formatAddress(hotel.address)}</td>
                   <td>{formatContact(hotel.contactInfo)}</td>
-                  <td>{renderStarRating(hotel.starRating)}</td>
+                  <td>{hotel.starRating} sao</td>
+                  <td>{hotel.ownerId?.name || 'Chưa có'}</td>
                   <td>
-                    <span className={`status-badge ${hotel.status || 'unknown'}`}>
+                    <span className={`status-badge ${hotel.status}`}>
                       {getStatusLabel(hotel.status)}
                     </span>
                   </td>
-                  <td className="action-buttons">
-                    <Link to={`/admin/hotels/${hotel._id}`}>
-                      <button className="view-btn">Xem</button>
-                    </Link>
-                    <Link to={`/admin/hotels/edit/${hotel._id}`}>
-                      <button className="edit-btn">Sửa</button>
-                    </Link>
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDeleteClick(hotel)}
-                    >
-                      Xóa
-                    </button>
+                  <td>
+                    <div className="action-buttons">
+                      <Tooltip title="Xem chi tiết">
+                        <IconButton
+                          component={Link}
+                          to={`/admin/hotels/${hotel._id}`}
+                          size="small"
+                          color="primary"
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Chỉnh sửa">
+                        <IconButton
+                          component={Link}
+                          to={`/admin/hotels/${hotel._id}/edit`}
+                          size="small"
+                          color="black"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Xóa">
+                        <IconButton
+                          onClick={() => handleDeleteClick(hotel)}
+                          size="small"
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
+              ))}
+            </tbody>
+          </table>
+        </div>
         {showDeleteModal && (
-          <div className="modal-overlay">
+          <div className="delete-modal">
             <div className="modal-content">
-              <div className="modal-header">
-                <h2>Xác nhận xóa</h2>
-                <button className="close-button" onClick={handleCancelDelete}>&times;</button>
-              </div>
-              <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xóa khách sạn <strong>{hotelToDelete?.name}</strong>?</p>
-                <p>Tất cả phòng và thông tin liên quan sẽ bị xóa. Hành động này không thể hoàn tác.</p>
-                <div className="form-actions">
-                  <button className="cancel-btn" onClick={handleCancelDelete}>Hủy</button>
-                  <button className="submit-btn" onClick={handleConfirmDelete}>Xác nhận xóa</button>
-                </div>
+              <div className="modal-title">Xác nhận xóa</div>
+              <p>Bạn có chắc chắn muốn xóa khách sạn <strong>{hotelToDelete?.name}</strong>?</p>
+              <p>Hành động này không thể hoàn tác.</p>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={handleCancelDelete}>Hủy</button>
+                <button className="delete-btn" onClick={handleConfirmDelete}>Xác nhận xóa</button>
               </div>
             </div>
           </div>

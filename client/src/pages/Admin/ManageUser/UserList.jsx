@@ -172,7 +172,7 @@ const UserList = () => {
                         </Tooltip>
                         <Tooltip title="Chỉnh sửa">
                           <Link to={`/admin/users/edit/${user._id}`}>
-                            <IconButton size="small" color="primary">
+                            <IconButton size="small" color="black">
                               <EditIcon />
                             </IconButton>
                           </Link>

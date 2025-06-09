@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar } from 'react-icons/fa';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { IconButton, Tooltip } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AdminLayout from '../../../components/Admin/AdminLayout';
 import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 import '../../../components/Admin/AdminDetailPage.scss';
+import './HotelDetail.scss';
 
 const HotelDetail = () => {
   const { id } = useParams();
@@ -90,7 +94,7 @@ const HotelDetail = () => {
 
   if (loading) return (
     <AdminLayout>
-      <div>Đang tải...</div>
+      <div className="loading">Đang tải...</div>
     </AdminLayout>
   );
   
@@ -108,187 +112,101 @@ const HotelDetail = () => {
 
   return (
     <AdminLayout>
-      <div className="admin-detail-container">
-        <div className="detail-header">
-          <h2>{hotel.name}</h2>
-          <div className="detail-actions">
-            <button 
-              className="edit-btn"
-              onClick={() => navigate(`/admin/hotels/edit/${id}`)}
-            >
-              Chỉnh sửa
-            </button>
-            <button 
-              className="back-btn"
-              onClick={() => navigate('/admin/hotels')}
-            >
-              Quay lại
-            </button>
+      <div className="hotel-detail-container">
+        <h1>Chi tiết khách sạn</h1>
+        <div className="detail-card">
+          <div className="detail-header">
+            <h3>{hotel.name}</h3>
+            <div className="detail-actions">
+              <Tooltip title="Chỉnh sửa">
+                <IconButton 
+                  color="primary"
+                  onClick={() => navigate(`/admin/hotels/edit/${id}`)}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Quay lại">
+                <IconButton 
+                  color="primary"
+                  onClick={() => navigate('/admin/hotels')}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+              </Tooltip>
+            </div>
+          </div>
+          <div className="detail-body">
+            <div className="detail-row">
+              <div className="detail-label">Địa chỉ:</div>
+              <div className="detail-value">{formatAddress(hotel.address)}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Số điện thoại:</div>
+              <div className="detail-value">{hotel.contactInfo?.phone || 'Không có thông tin'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Email:</div>
+              <div className="detail-value">{hotel.contactInfo?.email || 'Không có thông tin'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Chủ khách sạn:</div>
+              <div className="detail-value">{hotel.owner || 'Không có thông tin'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Trạng thái:</div>
+              <div className="detail-value">{getStatusLabel(hotel.status)}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Xếp hạng:</div>
+              <div className="detail-value">{renderStarRating(hotel.starRating)}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Số phòng:</div>
+              <div className="detail-value">{rooms.length}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Mô tả:</div>
+              <div className="detail-value">{hotel.description}</div>
+            </div>
+            {hotel.images && hotel.images.length > 0 && (
+              <div className="detail-row">
+                <div className="detail-label">Ảnh khách sạn:</div>
+                <div className="detail-value image-gallery">
+                  {hotel.images.map((img, index) => (
+                    <img key={index} src={img} alt={`Hotel image ${index}`} className="detail-image-thumb" />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        
-        <div className="detail-content">
-          <div className="image-section">
-            {hotel.images && hotel.images.length > 0 ? (
-              <img src={hotel.images[0]} alt={hotel.name} className="main-image" />
-            ) : (
-              <div className="no-image">Không có hình ảnh</div>
-            )}
-            
-            {hotel.images && hotel.images.length > 1 && (
-              <div className="image-gallery">
-                {hotel.images.slice(1).map((image, index) => (
-                  <div key={index} className="gallery-item">
-                    <img src={image} alt={`${hotel.name} - Ảnh ${index + 1}`} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="detail-section">
-            <h3>Thông tin chung</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <span className="label">Trạng thái:</span>
-                <span className={`status-badge ${hotel.status || 'unknown'}`}>
-                  {getStatusLabel(hotel.status)}
-                </span>
-              </div>
-              <div className="info-item">
-                <span className="label">Xếp hạng:</span>
-                <span className="value">{renderStarRating(hotel.starRating)}</span>
-              </div>
-              <div className="info-item">
-                <span className="label">Địa chỉ:</span>
-                <span className="value">{formatAddress(hotel.address)}</span>
-              </div>
-              <div className="info-item">
-                <span className="label">Thành phố:</span>
-                <span className="value">{hotel.address?.city || 'Không có thông tin'}</span>
-              </div>
-              <div className="info-item">
-                <span className="label">Số phòng:</span>
-                <span className="value">{rooms.length}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="detail-section">
-            <h3>Mô tả</h3>
-            <p className="description">{hotel.description}</p>
-          </div>
-          
-          <div className="detail-section">
-            <h3>Thông tin liên hệ</h3>
-            <div className="info-grid">
-              {hotel.contactInfo && (
-                <>
-                  <div className="info-item">
-                    <span className="label">Điện thoại:</span>
-                    <span className="value">{hotel.contactInfo.phone || 'Không có thông tin'}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="label">Email:</span>
-                    <span className="value">{hotel.contactInfo.email || 'Không có thông tin'}</span>
-                  </div>
-                </>
+        <div className="section-title">
+          <h3>Danh sách phòng</h3>
+        </div>
+        <div className="room-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên phòng</th>
+                <th>Loại phòng</th>
+                <th>Giá</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rooms.length > 0 ? rooms.map(room => (
+                <tr key={room._id}>
+                  <td>{room.name}</td>
+                  <td>{room.type}</td>
+                  <td>{room.price?.regular ? room.price.regular.toLocaleString('vi-VN') : 0} VND</td>
+                  <td>{room.status === 'available' ? 'Còn trống' : room.status === 'booked' ? 'Đã đặt' : 'Không xác định'}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan={4} style={{ textAlign: 'center' }}>Chưa có phòng nào</td></tr>
               )}
-              {!hotel.contactInfo && (
-                <div className="info-item">
-                  <span className="value">Không có thông tin liên hệ</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {hotel.policies && (
-            <div className="detail-section">
-              <h3>Chính sách</h3>
-              <div className="info-grid">
-                <div className="info-item">
-                  <span className="label">Giờ nhận phòng:</span>
-                  <span className="value">{hotel.policies.checkInTime || '14:00'}</span>
-                </div>
-                <div className="info-item">
-                  <span className="label">Giờ trả phòng:</span>
-                  <span className="value">{hotel.policies.checkOutTime || '12:00'}</span>
-                </div>
-                <div className="info-item full-width">
-                  <span className="label">Chính sách hủy phòng:</span>
-                  <span className="value">{hotel.policies.cancellationPolicy || 'Không có thông tin'}</span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div className="detail-section">
-            <h3>Tiện nghi</h3>
-            <div className="facilities-list">
-              {hotel.facilities && hotel.facilities.map((facility, index) => (
-                <div key={index} className="facility-item">
-                  {facility}
-                </div>
-              ))}
-              {(!hotel.facilities || hotel.facilities.length === 0) && (
-                <p>Không có thông tin tiện nghi</p>
-              )}
-            </div>
-          </div>
-          
-          <div className="related-items">
-            <div className="section-header">
-              <h3>Danh sách phòng</h3>
-              <Link to={`/admin/rooms/create?hotelId=${id}`}>
-                <button className="add-button">Thêm phòng</button>
-              </Link>
-            </div>
-            
-            {rooms.length > 0 ? (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Tên phòng</th>
-                    <th>Loại phòng</th>
-                    <th>Giá (VND)</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rooms.map(room => (
-                    <tr key={room._id}>
-                      <td>{room.name}</td>
-                      <td>{room.type}</td>
-                      <td>
-                        {room.price?.regular ? room.price.regular.toLocaleString('vi-VN') : 0} VND
-                        {room.price?.discount > 0 && (
-                          <div className="discount">Giảm: {room.price.discount.toLocaleString('vi-VN')} VND</div>
-                        )}
-                      </td>
-                      <td>
-                        <span className={`status-badge ${room.status || 'unknown'}`}>
-                          {room.status === 'available' ? 'Còn trống' : 
-                           room.status === 'booked' ? 'Đã đặt' : 
-                           room.status === 'maintenance' ? 'Bảo trì' : 'Không xác định'}
-                        </span>
-                      </td>
-                      <td className="action-buttons">
-                        <Link to={`/admin/rooms/${room._id}`}>
-                          <button className="view-btn">Xem</button>
-                        </Link>
-                        <Link to={`/admin/rooms/edit/${room._id}`}>
-                          <button className="edit-btn">Sửa</button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>Khách sạn này chưa có phòng nào</p>
-            )}
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
     </AdminLayout>
