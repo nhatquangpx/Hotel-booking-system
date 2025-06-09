@@ -3,9 +3,9 @@ import authAPI from './auth/auth';
 
 // Guest APIs
 import userAPI from './guest/profile';
-import hotelAPI from './guest/hotel';
-import roomAPI from './guest/room';
-import bookingAPI from './guest/booking';
+import userHotelAPI from './guest/hotel';
+import userRoomAPI from './guest/room';
+import userBookingAPI from './guest/booking';
 
 // Owner APIs
 import ownerHotelAPI from './owner/hotel';
@@ -22,9 +22,9 @@ import adminBookingAPI from './admin/booking';
 export default {
   auth: authAPI,
   user: userAPI,
-  hotel: hotelAPI,
-  room: roomAPI,
-  booking: bookingAPI,
+  userHotel: userHotelAPI,
+  userRoom: userRoomAPI,
+  userBooking: userBookingAPI,
   ownerHotel: ownerHotelAPI,
   ownerRoom: ownerRoomAPI,
   ownerBooking: ownerBookingAPI,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { hotelAPI } from '../../../apis';
+import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
 import './HotelListPage.scss';
@@ -22,7 +22,7 @@ const HotelListPage = () => {
           Object.entries(filters).filter(([_, v]) => v !== '')
         );
         console.log('Active filters:', activeFilters);
-        const response = await hotelAPI.getAllHotels(activeFilters);
+        const response = await api.userHotel.getAllHotels(activeFilters);
         console.log('API Response:', response);
         setHotels(Array.isArray(response) ? response : []);
         setLoading(false);

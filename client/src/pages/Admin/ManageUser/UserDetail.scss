@@ -1,0 +1,159 @@
+:root {
+  --admin-primary: #1976d2;
+  --admin-primary-hover: #1565c0;
+  --admin-danger: #d32f2f;
+  --admin-success: #388e3c;
+  --admin-bg: #f5f6fa;
+  --admin-sidebar: #fff;
+  --admin-text: #222;
+}
+.user-detail-container {
+  background-color: var(--admin-bg);
+  min-height: 100vh;
+  padding: 1.5rem;
+  color: var(--admin-text);
+
+  h1 {
+    color: var(--admin-primary);
+    font-weight: 700;
+    font-size: 2.2em;
+    margin-bottom: 2rem;
+  }
+
+  .detail-card {
+    background-color: var(--admin-sidebar);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--admin-border);
+
+      h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--admin-text);
+      }
+
+      .detail-actions {
+        display: flex;
+        gap: 1rem;
+
+        button {
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          font-weight: 500;
+          transition: opacity 0.3s;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &.edit-btn {
+            background-color: var(--admin-primary);
+            color: white;
+
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+
+          &.back-btn {
+            background-color: var(--admin-border);
+            color: var(--admin-text);
+
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+        }
+      }
+    }
+
+    .detail-body {
+      padding: 1.5rem;
+
+      .detail-row {
+        display: flex;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--admin-border);
+
+        &:last-child {
+          margin-bottom: 0;
+          padding-bottom: 0;
+          border-bottom: none;
+        }
+
+        .detail-label {
+          width: 200px;
+          font-weight: 600;
+          color: var(--admin-text);
+        }
+
+        .detail-value {
+          flex: 1;
+          color: var(--admin-text);
+        }
+      }
+    }
+  }
+
+  .section-title {
+    margin: 2rem 0 1rem;
+
+    h3 {
+      color: var(--admin-primary);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+  }
+
+  .booking-table {
+    background-color: var(--admin-sidebar);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th {
+        background-color: var(--admin-header);
+        color: var(--admin-primary);
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      td {
+        padding: 1rem;
+        text-align: center;
+        color: var(--admin-text);
+        border-bottom: 1px solid var(--admin-border);
+      }
+
+      tr {
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: var(--admin-accent);
+        }
+      }
+    }
+  }
+
+  .no-bookings {
+    text-align: center;
+    padding: 2rem;
+    color: var(--admin-text);
+    background-color: var(--admin-sidebar);
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+} 

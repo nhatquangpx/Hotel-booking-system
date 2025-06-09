@@ -7,7 +7,7 @@ const {sendNewPasswordEmail} = require("../utils/emailService")
 // Đăng ký
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, phone, role } = req.body;
+        const { name, email, password, phone, role, status } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "Người dùng đã tồn tại!" });
@@ -16,7 +16,7 @@ exports.register = async (req, res) => {
         const hashPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name, email, password: hashPassword, phone, role: role || "guest"
+            name, email, password: hashPassword, phone, role: role || "guest", status: status || "active"
         });
 
         await newUser.save();
@@ -97,8 +97,3 @@ exports.resetPassword = async (req, res) => {
       res.status(500).json({ message: "Đã xảy ra lỗi khi đặt lại mật khẩu.", error: err.message });
     }
 };
-
-// Kiểm tra quyền truy cập
-exports.adminAccess = (req, res) => res.status(200).json({ message: "Chào mừng Admin!" });
-exports.staffAccess = (req, res) => res.status(200).json({ message: "Chào mừng Staff!" });
-exports.userAccess = (req, res) => res.status(200).json({ message: "Chào mừng User!" });

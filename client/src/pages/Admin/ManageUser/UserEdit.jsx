@@ -1,29 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { IconButton, Tooltip } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import api from '../../../apis';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { userAPI } from '../../../apis';
-import '../../../components/Admin/AdminComponents.scss';
+import './UserEdit.scss';
 
 const UserEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '',
     email: '',
     phone: '',
-    role: 'user',
+    role: 'guest',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const data = await userAPI.getUserById(id);
+        const data = await api.adminUser.getUserById(id);
         setFormData({
-          fullName: data.fullName,
+          name: data.name,
           email: data.email,
           phone: data.phone,
           role: data.role,
@@ -51,7 +53,7 @@ const UserEdit = () => {
     e.preventDefault();
     try {
       setSaving(true);
-      await userAPI.updateUser(id, formData);
+      await api.adminUser.updateUser(id, formData);
       navigate(`/admin/users/${id}`);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi cập nhật thông tin người dùng');
@@ -61,24 +63,24 @@ const UserEdit = () => {
 
   if (loading) return (
     <AdminLayout>
-      <div>Đang tải...</div>
+      <div className="loading">Đang tải...</div>
     </AdminLayout>
   );
 
   return (
     <AdminLayout>
-      <div className="admin-form-container">
-        <h2>Chỉnh sửa thông tin người dùng</h2>
+      <div className="user-edit-container">
+        <h1>Chỉnh sửa thông tin người dùng</h1>
         {error && <div className="error-message">{error}</div>}
         
-        <form onSubmit={handleSubmit}>
+        <form className="edit-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="fullName">Họ tên</label>
+            <label htmlFor="name">Họ tên</label>
             <input
               type="text"
-              id="fullName"
-              name="fullName"
-              value={formData.fullName}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
             />
@@ -117,26 +119,21 @@ const UserEdit = () => {
               onChange={handleChange}
               required
             >
-              <option value="user">Người dùng</option>
-              <option value="staff">Nhân viên</option>
+              <option value="guest">Khách</option>
+              <option value="owner">Chủ khách sạn</option>
               <option value="admin">Quản trị viên</option>
             </select>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="password">Mật khẩu mới (để trống nếu không đổi)</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              onChange={handleChange}
-            />
-          </div>
-          
           <div className="form-actions">
-            <button type="button" onClick={() => navigate(`/admin/users/${id}`)} className="cancel-btn">
-              Hủy
-            </button>
+            <Tooltip title="Quay lại">
+              <IconButton 
+                color="primary"
+                onClick={() => navigate('/admin/users')}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+            </Tooltip>
             <button type="submit" className="submit-btn" disabled={saving}>
               {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>

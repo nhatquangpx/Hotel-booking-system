@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import "./Login.scss"; 
-import { authAPI } from "../../../apis";
+import api from "../../../apis";
 import Slide from '../../../components/User/Slide/Slide';
 
 const sliderImages = [
@@ -20,7 +20,7 @@ const ForgotPasswordPage = () => {
     setErrorMessage("");
 
     try {
-      const res = await authAPI.forgotPassword(email);
+      const res = await api.auth.forgotPassword(email);
       setMessage(res.message);
     } catch (err) {
       setErrorMessage(err.message);

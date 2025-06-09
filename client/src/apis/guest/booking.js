@@ -1,10 +1,10 @@
 import api from '../config/axios';
 
-export const bookingAPI = {
+export const userBookingAPI = {
   // Lấy tất cả đặt phòng của người dùng
   getUserBookings: async () => {
     try {
-      const response = await api.get('/guests/bookings');
+      const response = await api.get('/guest/bookings');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -14,7 +14,7 @@ export const bookingAPI = {
   // Lấy thông tin chi tiết đặt phòng
   getBookingById: async (id) => {
     try {
-      const response = await api.get(`/guests/bookings/${id}`);
+      const response = await api.get(`/guest/bookings/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -24,7 +24,7 @@ export const bookingAPI = {
   // Tạo đặt phòng mới
   createBooking: async (bookingData) => {
     try {
-      const response = await api.post('/guests/bookings', bookingData);
+      const response = await api.post('/guest/bookings', bookingData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -34,7 +34,7 @@ export const bookingAPI = {
   // Hủy đặt phòng
   cancelBooking: async (id, reason) => {
     try {
-      const response = await api.put(`/guests/bookings/${id}/cancel`, { reason });
+      const response = await api.put(`/guest/bookings/${id}/cancel`, { reason });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -44,7 +44,7 @@ export const bookingAPI = {
   // Thêm đánh giá cho đặt phòng
   addReview: async (id, reviewData) => {
     try {
-      const response = await api.put(`/guests/bookings/${id}/review`, reviewData);
+      const response = await api.put(`/guest/bookings/${id}/review`, reviewData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -52,4 +52,4 @@ export const bookingAPI = {
   }
 };
 
-export default bookingAPI; 
+export default userBookingAPI; 

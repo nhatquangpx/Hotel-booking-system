@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ProfileLayout from '../../../components/User/ProfileLayout/ProfileLayout';
-import { userAPI } from '../../../apis';
+import api from '../../../apis';
 import './Account.scss';
 
 const ChangePassword = () => {
@@ -76,7 +76,7 @@ const ChangePassword = () => {
 
     setLoading(true);
     try {
-      await userAPI.changePassword(user.id, {
+      await api.user.changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });

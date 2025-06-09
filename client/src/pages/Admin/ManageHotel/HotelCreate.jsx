@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { hotelAPI } from '../../../apis';
+import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 
 const HotelCreate = () => {
@@ -74,7 +74,7 @@ const HotelCreate = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      await hotelAPI.createHotel(formData);
+      await api.adminHotel.createHotel(formData);
       navigate('/admin/hotels');
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tạo khách sạn');

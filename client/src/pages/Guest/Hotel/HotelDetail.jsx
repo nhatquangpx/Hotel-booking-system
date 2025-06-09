@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { hotelAPI, roomAPI } from '../../../apis';
+import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
 import './HotelDetailPage.scss';
@@ -22,7 +22,7 @@ const HotelDetailPage = () => {
     const fetchHotelDetails = async () => {
       try {
         setLoading(true);
-        const response = await hotelAPI.getHotelById(id);
+        const response = await api.userHotel.getHotelById(id);
         console.log('Hotel Detail Response:', response);
         setHotel(response);
         setLoading(false);
@@ -47,7 +47,7 @@ const HotelDetailPage = () => {
   const searchAvailableRooms = async () => {
     try {
       setLoading(true);
-      const response = await roomAPI.getRoomsByHotel(id, bookingDates);
+      const response = await api.userRoom.getRoomsByHotel(id, bookingDates);
       console.log('Rooms Response:', response);
       setRooms(Array.isArray(response) ? response : []);
       setSearchPerformed(true);

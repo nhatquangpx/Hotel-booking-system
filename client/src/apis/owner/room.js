@@ -4,7 +4,7 @@ export const ownerRoomAPI = {
   // Lấy danh sách phòng của khách sạn
   getHotelRooms: async (hotelId) => {
     try {
-      const response = await api.get(`/owners/hotels/${hotelId}/rooms`);
+      const response = await api.get(`/owner/hotels/${hotelId}/rooms`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -14,7 +14,7 @@ export const ownerRoomAPI = {
   // Lấy thông tin chi tiết phòng
   getRoomById: async (id) => {
     try {
-      const response = await api.get(`/owners/rooms/${id}`);
+      const response = await api.get(`/owner/rooms/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -24,7 +24,7 @@ export const ownerRoomAPI = {
   // Tạo phòng mới
   createRoom: async (hotelId, roomData) => {
     try {
-      const response = await api.post(`/owners/hotels/${hotelId}/rooms`, roomData);
+      const response = await api.post(`/owner/hotels/${hotelId}/rooms`, roomData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -34,7 +34,7 @@ export const ownerRoomAPI = {
   // Cập nhật thông tin phòng
   updateRoom: async (id, roomData) => {
     try {
-      const response = await api.put(`/owners/rooms/${id}`, roomData);
+      const response = await api.put(`/owner/rooms/${id}`, roomData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -44,7 +44,7 @@ export const ownerRoomAPI = {
   // Xóa phòng
   deleteRoom: async (id) => {
     try {
-      const response = await api.delete(`/owners/rooms/${id}`);
+      const response = await api.delete(`/owner/rooms/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

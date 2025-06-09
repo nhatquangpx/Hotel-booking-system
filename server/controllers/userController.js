@@ -31,7 +31,7 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, phone, role} = req.body;
+        const { name, email, password, phone, role, status} = req.body;
         if (!name || !email || !password || !phone) {
             return res.status(400).json({ message: 'Không được để trống các trường bắt buộc!' });
         }
@@ -62,7 +62,8 @@ exports.createUser = async (req, res) => {
             email,
             password: hashedPassword,
             phone,
-            role: userRole
+            role: userRole,
+            status: status || "active"
         });
         await newUser.save();
         res.status(201).json({ message: 'Người dùng đã được tạo thành công!', user: newUser });
@@ -106,3 +107,74 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ message: 'Lỗi khi xóa người dùng!', error: err.message });
     }
 }
+
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới'
+      });
+    }
+
+    // Kiểm tra độ dài mật khẩu mới
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu mới phải có ít nhất 6 ký tự'
+      });
+    }
+
+    // Tìm user trong database
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng'
+      });
+    }
+
+    // Kiểm tra mật khẩu hiện tại
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu hiện tại không chính xác'
+      });
+    }
+
+    // Kiểm tra mật khẩu mới không được trùng với mật khẩu cũ
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu mới không được trùng với mật khẩu cũ'
+      });
+    }
+
+    // Mã hóa mật khẩu mới
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Cập nhật mật khẩu mới
+    user.password = hashedPassword;
+    await user.save();
+
+    // Trả về thông báo thành công
+    return res.status(200).json({
+      success: true,
+      message: 'Đổi mật khẩu thành công'
+    });
+
+  } catch (error) {
+    console.error('Error in changePassword:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Có lỗi xảy ra khi thay đổi mật khẩu'
+    });
+  }
+};

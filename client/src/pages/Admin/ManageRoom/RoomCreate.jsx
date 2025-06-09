@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { roomAPI, hotelAPI } from '../../../apis';
+import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 
 const RoomCreate = () => {
@@ -42,7 +42,7 @@ const RoomCreate = () => {
     const fetchHotels = async () => {
       try {
         setFetchingHotels(true);
-        const data = await hotelAPI.getAllHotels();
+        const data = await api.adminHotel.getAllHotels();
         setHotels(data);
         
         // Nếu có khách sạn, thiết lập khách sạn đầu tiên làm mặc định
@@ -114,7 +114,7 @@ const RoomCreate = () => {
     
     try {
       setLoading(true);
-      await roomAPI.createRoom(formData);
+      await api.adminRoom.createRoom(formData);
       navigate('/admin/rooms');
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tạo phòng');

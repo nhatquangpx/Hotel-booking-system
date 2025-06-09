@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import "./Register.scss";
-import { authAPI } from "../../../apis";
+import api from "../../../apis";
 import Slide from '../../../components/User/Slide/Slide';
 
 const sliderImages = [
@@ -49,7 +49,7 @@ const RegisterPage = () => {
             return;
         }
         try {
-            await authAPI.register({
+            await api.auth.register({
                 name: formData.firstName + ' ' + formData.lastName,
                 email: formData.email,
                 password: formData.password,

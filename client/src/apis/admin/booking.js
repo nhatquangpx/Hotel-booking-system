@@ -4,7 +4,7 @@ export const adminBookingAPI = {
   // Lấy tất cả đặt phòng
   getAllBookings: async () => {
     try {
-      const response = await api.get('/admins/bookings');
+      const response = await api.get('/admin/bookings');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -14,7 +14,7 @@ export const adminBookingAPI = {
   // Lấy thông tin chi tiết đặt phòng
   getBookingById: async (id) => {
     try {
-      const response = await api.get(`/admins/bookings/${id}`);
+      const response = await api.get(`/adminbookings/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -24,7 +24,7 @@ export const adminBookingAPI = {
   // Cập nhật trạng thái đặt phòng
   updateBookingStatus: async (id, status) => {
     try {
-      const response = await api.put(`/admins/bookings/${id}/status`, { status });
+      const response = await api.put(`/admin/bookings/${id}/status`, { status });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -34,7 +34,7 @@ export const adminBookingAPI = {
   // Xóa đặt phòng
   deleteBooking: async (id) => {
     try {
-      const response = await api.delete(`/admins/bookings/${id}`);
+      const response = await api.delete(`/admin/bookings/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

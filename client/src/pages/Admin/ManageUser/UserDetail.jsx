@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { IconButton, Tooltip } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import api from '../../../apis';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { userAPI } from '../../../apis';
-import '../../../components/Admin/AdminComponents.scss';
+import './UserDetail.scss';
 
 const UserDetail = () => {
   const { id } = useParams();
@@ -15,7 +18,7 @@ const UserDetail = () => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const data = await userAPI.getUserById(id);
+        const data = await api.adminUser.getUserById(id);
         setUser(data);
         setError(null);
       } catch (err) {
@@ -30,7 +33,7 @@ const UserDetail = () => {
 
   if (loading) return (
     <AdminLayout>
-      <div>Đang tải...</div>
+      <div className="loading">Đang tải...</div>
     </AdminLayout>
   );
   
@@ -42,25 +45,29 @@ const UserDetail = () => {
 
   return (
     <AdminLayout>
-      <div className="admin-detail-container">
-        <h2>Chi tiết người dùng</h2>
+      <div className="user-detail-container">
+        <h1>Chi tiết người dùng</h1>
         
         <div className="detail-card">
           <div className="detail-header">
-            <h3>{user.fullName}</h3>
+            <h3>{user.name}</h3>
             <div className="detail-actions">
-              <button 
-                onClick={() => navigate(`/admin/users/edit/${id}`)}
-                className="edit-btn"
-              >
-                Sửa
-              </button>
-              <button 
-                onClick={() => navigate('/admin/users')}
-                className="back-btn"
-              >
-                Quay lại
-              </button>
+              <Tooltip title="Chỉnh sửa">
+                <IconButton 
+                  color="primary"
+                  onClick={() => navigate(`/admin/users/edit/${id}`)}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Quay lại">
+                <IconButton 
+                  color="primary"
+                  onClick={() => navigate('/admin/users')}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+              </Tooltip>
             </div>
           </div>
           
@@ -79,7 +86,7 @@ const UserDetail = () => {
               <div className="detail-label">Vai trò:</div>
               <div className="detail-value">
                 {user.role === 'admin' ? 'Quản trị viên' : 
-                 user.role === 'staff' ? 'Nhân viên' : 'Người dùng'}
+                 user.role === 'owner' ? 'Chủ khách sạn' : 'Khách'}
               </div>
             </div>
             
@@ -99,35 +106,43 @@ const UserDetail = () => {
           </div>
         </div>
         
-        <div className="section-title">
-          <h3>Lịch sử đặt phòng</h3>
-        </div>
-        
-        {user.bookings && user.bookings.length > 0 ? (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Mã đặt phòng</th>
-                <th>Khách sạn</th>
-                <th>Ngày nhận phòng</th>
-                <th>Ngày trả phòng</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {user.bookings.map(booking => (
-                <tr key={booking._id}>
-                  <td>{booking._id}</td>
-                  <td>{booking.hotelName}</td>
-                  <td>{new Date(booking.checkIn).toLocaleDateString('vi-VN')}</td>
-                  <td>{new Date(booking.checkOut).toLocaleDateString('vi-VN')}</td>
-                  <td>{booking.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Người dùng chưa có lịch sử đặt phòng nào.</p>
+        {user.role === 'guest' && (
+          <>
+            <div className="section-title">
+              <h3>Lịch sử đặt phòng</h3>
+            </div>
+            
+            {user.bookings && user.bookings.length > 0 ? (
+              <div className="booking-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mã đặt phòng</th>
+                      <th>Khách sạn</th>
+                      <th>Ngày nhận phòng</th>
+                      <th>Ngày trả phòng</th>
+                      <th>Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {user.bookings.map(booking => (
+                      <tr key={booking._id}>
+                        <td>{booking._id}</td>
+                        <td>{booking.hotelName}</td>
+                        <td>{new Date(booking.checkIn).toLocaleDateString('vi-VN')}</td>
+                        <td>{new Date(booking.checkOut).toLocaleDateString('vi-VN')}</td>
+                        <td>{booking.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="no-bookings">
+                Người dùng chưa có lịch sử đặt phòng nào.
+              </div>
+            )}
+          </>
         )}
       </div>
     </AdminLayout>

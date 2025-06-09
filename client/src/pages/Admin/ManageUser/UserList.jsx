@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { adminUserAPI } from '../../../apis';
-import '../../../components/Admin/AdminComponents.scss';
+import { IconButton, Tooltip, Button, Paper, TextField } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import AddIcon from '@mui/icons-material/Add';
+import api from '../../../apis';
 import AdminLayout from '../../../components/Admin/AdminLayout';
+import './UserList.scss';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -20,7 +27,7 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await adminUserAPI.getAllUsers();
+      const data = await api.adminUser.getAllUsers();
       setUsers(data);
       setError(null);
     } catch (err) {
@@ -39,7 +46,7 @@ const UserList = () => {
     if (!userToDelete) return;
     
     try {
-      await adminUserAPI.deleteUser(userToDelete._id);
+      await api.adminUser.deleteUser(userToDelete._id);
       setUsers(users.filter(user => user._id !== userToDelete._id));
       setShowDeleteModal(false);
       setUserToDelete(null);
@@ -58,128 +65,150 @@ const UserList = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone?.includes(searchTerm);
-    
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    
-    return matchesSearch && matchesRole;
+    const matchesName = user.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesEmail = user.email?.toLowerCase().includes(searchEmail.toLowerCase());
+    const matchesPhone = user.phone?.includes(searchPhone);
+    return matchesName && matchesEmail && matchesPhone;
   });
 
-  const content = () => {
-    if (loading) return <div>Đang tải...</div>;
-    if (error) return <div className="error-message">{error}</div>;
+  return (
+    <AdminLayout>
+      <h1>Danh sách người dùng</h1>
+      <div className="user-list-container">
+        <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
+          <div className="search-bar-row">
+            <div className="search-bar-inputs">
+              <TextField
+                label="Tìm theo tên"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size="small"
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
+              />
+              <TextField
+                label="Email"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                size="small"
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
+              />
+              <TextField
+                label="Số điện thoại"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+                size="small"
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
+              />
+            </div>
+            <Link to="/admin/users/create" className="add-user-btn-link" style={{ textDecoration: 'none' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                sx={{ 
+                  backgroundColor: 'var(--admin-primary)',
+                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 }
+                }}
+              >
+                Thêm người dùng
+              </Button>
+            </Link>
+          </div>
+        </Paper>
 
-    return (
-      <div>
-        <div className="action-bar">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo tên, email, hoặc số điện thoại"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="role-filter">
-            <select value={selectedRole} onChange={handleRoleFilter}>
-              <option value="all">Tất cả vai trò</option>
-              <option value="user">Người dùng</option>
-              <option value="staff">Nhân viên</option>
-              <option value="admin">Quản trị viên</option>
-            </select>
-          </div>
-          <Link to="/admin/users/create">
-            <button className="add-button">Thêm người dùng</button>
-          </Link>
+        {error && <div className="error-message">{error}</div>}
+        
+        <div className="user-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên người dùng</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="loading">Đang tải...</td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center">Không tìm thấy người dùng nào</td>
+                </tr>
+              ) : (
+                filteredUsers.map(user => (
+                  <tr key={user._id}>
+                    <td className="user-name">
+                      {user.name}
+                    </td>
+                    <td>{user.email}</td>
+                    <td>{user.phone || 'Chưa cập nhật'}</td>
+                    <td>
+                      <span className={`role-badge ${user.role}`}>
+                        {user.role === 'admin' ? 'Quản trị viên' : 
+                         user.role === 'owner' ? 'Chủ khách sạn' : 'Khách'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${user.status || 'active'}`}>
+                        {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <Tooltip title="Xem chi tiết">
+                          <Link to={`/admin/users/${user._id}`}>
+                            <IconButton size="small" color="primary">
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Link>
+                        </Tooltip>
+                        <Tooltip title="Chỉnh sửa">
+                          <Link to={`/admin/users/edit/${user._id}`}>
+                            <IconButton size="small" color="primary">
+                              <EditIcon />
+                            </IconButton>
+                          </Link>
+                        </Tooltip>
+                        <Tooltip title="Xóa">
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => handleDeleteClick(user)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Họ tên</th>
-              <th>Email</th>
-              <th>Số điện thoại</th>
-              <th>Vai trò</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.length === 0 ? (
-              <tr>
-                <td colSpan="6" style={{ textAlign: 'center' }}>Không tìm thấy người dùng nào</td>
-              </tr>
-            ) : (
-              filteredUsers.map(user => (
-                <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.phone || 'Chưa cập nhật'}</td>
-                  <td>
-                    <span className={`role-badge ${user.role}`}>
-                      {user.role === 'admin' ? 'Quản trị viên' : 
-                       user.role === 'owner' ? 'Chủ khách sạn' : 'Khách'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${user.status || 'active'}`}>
-                      {user.status === 'active' ? 'Hoạt động' :
-                       user.status === 'inactive' ? 'Không hoạt động' :
-                       user.status === 'banned' ? 'Bị cấm' : 'Hoạt động'}
-                    </span>
-                  </td>
-                  <td className="action-buttons">
-                    <Link to={`/admin/users/${user._id}`}>
-                      <button className="view-btn">
-                        <i className="fas fa-eye"></i>
-                      </button>
-                    </Link>
-                    <Link to={`/admin/users/edit/${user._id}`}>
-                      <button className="edit-btn">
-                        <i className="fas fa-edit"></i>
-                      </button>
-                    </Link>
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDeleteClick(user)}
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
         {showDeleteModal && (
-          <div className="modal-overlay">
+          <div className="delete-modal">
             <div className="modal-content">
-              <div className="modal-header">
-                <h2>Xác nhận xóa</h2>
-                <button className="close-button" onClick={handleCancelDelete}>&times;</button>
-              </div>
-              <div className="modal-body">
-                <p>Bạn có chắc chắn muốn xóa người dùng <strong>{userToDelete?.name}</strong>?</p>
-                <p>Hành động này không thể hoàn tác.</p>
-                <div className="form-actions">
-                  <button className="cancel-btn" onClick={handleCancelDelete}>Hủy</button>
-                  <button className="submit-btn" onClick={handleConfirmDelete}>Xác nhận xóa</button>
-                </div>
+              <div className="modal-title">Xác nhận xóa</div>
+              <p>Bạn có chắc chắn muốn xóa người dùng <strong>{userToDelete?.name}</strong>?</p>
+              <p>Hành động này không thể hoàn tác.</p>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={handleCancelDelete}>Hủy</button>
+                <button className="delete-btn" onClick={handleConfirmDelete}>Xác nhận xóa</button>
               </div>
             </div>
           </div>
         )}
       </div>
-    );
-  };
-
-  return (
-    <AdminLayout>
-      {content()}
     </AdminLayout>
   );
 };

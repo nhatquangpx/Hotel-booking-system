@@ -3,7 +3,7 @@ import "./Login.scss";
 import { setLogin } from '../../../redux/state';
 import { useDispatch } from "react-redux";
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from "../../../apis";
+import api from "../../../apis";
 import Slide from '../../../components/User/Slide/Slide';
 
 const sliderImages = [
@@ -46,7 +46,7 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const result = await authAPI.login(email, password);
+      const result = await api.auth.login({ email, password });
       
       if (!result) {
         throw new Error("Không nhận được phản hồi từ máy chủ");
@@ -55,7 +55,7 @@ const LoginPage = () => {
       if (result.token) {
         dispatch(setLogin({ user: result.user, token: result.token }));
 
-        if (rememberMe) {
+        if (rememberMe) { 
           localStorage.setItem("rememberedEmail", email);
           localStorage.setItem("rememberedPassword", password);
           localStorage.setItem("rememberMe", "true");

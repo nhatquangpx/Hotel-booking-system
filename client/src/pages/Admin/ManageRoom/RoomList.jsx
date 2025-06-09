@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { adminRoomAPI, adminHotelAPI } from '../../../apis';
+import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 
 const RoomList = () => {
@@ -22,7 +22,7 @@ const RoomList = () => {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const data = await adminRoomAPI.getAllRooms();
+      const data = await api.adminRoom.getAllRooms();
       setRooms(data);
       setError(null);
     } catch (err) {
@@ -34,7 +34,7 @@ const RoomList = () => {
 
   const fetchHotels = async () => {
     try {
-      const data = await adminHotelAPI.getAllHotels();
+      const data = await api.adminHotel.getAllHotels();
       setHotels(data);
     } catch (err) {
       console.error('Lỗi khi tải danh sách khách sạn:', err);
@@ -50,7 +50,7 @@ const RoomList = () => {
     if (!roomToDelete) return;
     
     try {
-      await adminRoomAPI.deleteRoom(roomToDelete._id);
+      await api.adminRoom.deleteRoom(roomToDelete._id);
       setRooms(rooms.filter(room => room._id !== roomToDelete._id));
       setShowDeleteModal(false);
       setRoomToDelete(null);

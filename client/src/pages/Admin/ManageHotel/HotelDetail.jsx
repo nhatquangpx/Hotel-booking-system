@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaStar } from 'react-icons/fa';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { hotelAPI, roomAPI } from '../../../apis';
+import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 import '../../../components/Admin/AdminDetailPage.scss';
 
@@ -19,12 +19,12 @@ const HotelDetail = () => {
     const fetchHotelData = async () => {
       try {
         setLoading(true);
-        const hotelData = await hotelAPI.getHotelById(id);
+        const hotelData = await api.adminHotel.getHotelById(id);
         console.log("Hotel details:", hotelData);
         setHotel(hotelData);
         
         // Tải danh sách phòng của khách sạn
-        const roomsData = await roomAPI.getRoomsByHotel(id);
+        const roomsData = await api.adminRoom.getRoomsByHotel(id);
         setRooms(roomsData);
         
         setError(null);

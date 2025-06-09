@@ -4,7 +4,7 @@ export const ownerHotelAPI = {
   // Lấy danh sách khách sạn của owner
   getOwnerHotels: async () => {
     try {
-      const response = await api.get('/owners/hotels');
+      const response = await api.get('/owner/hotels');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -14,7 +14,7 @@ export const ownerHotelAPI = {
   // Lấy thông tin chi tiết khách sạn
   getHotelById: async (id) => {
     try {
-      const response = await api.get(`/owners/hotels/${id}`);
+      const response = await api.get(`/owner/hotels/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -24,7 +24,7 @@ export const ownerHotelAPI = {
   // Tạo khách sạn mới
   createHotel: async (hotelData) => {
     try {
-      const response = await api.post('/owners/hotels', hotelData);
+      const response = await api.post('/owner/hotels', hotelData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -34,7 +34,7 @@ export const ownerHotelAPI = {
   // Cập nhật thông tin khách sạn
   updateHotel: async (id, hotelData) => {
     try {
-      const response = await api.put(`/owners/hotels/${id}`, hotelData);
+      const response = await api.put(`/owner/hotels/${id}`, hotelData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -44,7 +44,7 @@ export const ownerHotelAPI = {
   // Xóa khách sạn
   deleteHotel: async (id) => {
     try {
-      const response = await api.delete(`/owners/hotels/${id}`);
+      const response = await api.delete(`/owner/hotels/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -54,7 +54,7 @@ export const ownerHotelAPI = {
   // Cập nhật trạng thái khách sạn
   updateHotelStatus: async (id, status) => {
     try {
-      const response = await api.put(`/owners/hotels/${id}/status`, { status });
+      const response = await api.put(`/owner/hotels/${id}/status`, { status });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

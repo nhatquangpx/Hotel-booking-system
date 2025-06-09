@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ProfileLayout from '../../../components/User/ProfileLayout/ProfileLayout';
-import { userAPI } from '../../../apis';
+import api from '../../../apis';
 import './Account.scss';
 
 const AccountEdit = () => {
@@ -25,7 +25,7 @@ const AccountEdit = () => {
       if (!user) return;
       
       try {
-        const data = await userAPI.getUserProfile(user.id);
+        const data = await api.user.getUserProfile();
         setFormData({
           name: data.name || '',
           phone: data.phone || '',
@@ -55,7 +55,7 @@ const AccountEdit = () => {
     setLoading(true);
 
     try {
-      const response = await userAPI.updateUserProfile(user.id, formData);
+      const response = await api.user.updateUserProfile(formData);
       toast.success('Cập nhật thông tin thành công!');
       navigate(`/profile/${user.id}`);
     } catch (error) {

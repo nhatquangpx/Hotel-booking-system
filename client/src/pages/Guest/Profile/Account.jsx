@@ -3,13 +3,17 @@ import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ProfileLayout from '../../../components/User/ProfileLayout/ProfileLayout';
-import { userAPI } from '../../../apis';
+import api from '../../../apis';
 import './Account.scss';
 
 const Account = () => {
   const user = useSelector((state) => state.user.user);
   const location = useLocation();
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: ''
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,8 +21,11 @@ const Account = () => {
       if (!user) return;
       
       try {
-        const data = await userAPI.getUserProfile(user.id);
-        setUserData(data);
+        const data = await api.user.getUserProfile();
+        setUserData(prev => ({
+          ...prev,
+          ...data
+        }));
       } catch (error) {
         toast.error('Không thể tải thông tin người dùng!');
         console.error('Error fetching user data:', error);
@@ -72,15 +79,27 @@ const Account = () => {
               <h2>Thông tin cá nhân</h2>
               <div className="form-group">
                 <label>Họ và tên</label>
-                <input type="text" value={userData?.name || user.name} disabled />
+                <input 
+                  type="text" 
+                  value={userData.name} 
+                  disabled 
+                />
               </div>
               <div className="form-group">
                 <label>Email</label>
-                <input type="email" value={userData?.email || user.email} disabled />
+                <input 
+                  type="email" 
+                  value={userData.email} 
+                  disabled 
+                />
               </div>
               <div className="form-group">
                 <label>Số điện thoại</label>
-                <input type="tel" value={userData?.phone || 'Chưa cập nhật'} disabled />
+                <input 
+                  type="tel" 
+                  value={userData.phone || 'Chưa cập nhật'} 
+                  disabled 
+                />
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { hotelAPI, roomAPI, bookingAPI } from '../../../apis';
+import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
 import './BookingPage.scss';
@@ -43,11 +43,11 @@ const BookingPage = () => {
         setLoading(true);
         
         // Lấy thông tin khách sạn
-        const hotelResponse = await hotelAPI.getHotelById(bookingData.hotelId);
+        const hotelResponse = await api.userHotel.getHotelById(bookingData.hotelId);
         setHotel(hotelResponse.data);
         
         // Lấy thông tin phòng
-        const roomResponse = await roomAPI.getRoomById(bookingData.roomId);
+        const roomResponse = await api.userRoom.getRoomById(bookingData.roomId);
         setRoom(roomResponse.data);
         
         // Tính số đêm
@@ -114,7 +114,7 @@ const BookingPage = () => {
         ...formData
       };
       
-      const response = await bookingAPI.createBooking(bookingPayload);
+      const response = await api.userBooking.createBooking(bookingPayload);
       
       setSuccessMessage('Đặt phòng thành công!');
       setTimeout(() => {

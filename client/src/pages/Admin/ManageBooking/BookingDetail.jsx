@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { bookingAPI } from '../../../apis';
+import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 
 const BookingDetail = () => {
@@ -19,7 +19,7 @@ const BookingDetail = () => {
     const fetchBookingData = async () => {
       try {
         setLoading(true);
-        const data = await bookingAPI.getBookingById(id);
+        const data = await api.adminBooking.getBookingById(id);
         setBooking(data);
         setNewStatus(data.status);
         setError(null);
@@ -39,7 +39,7 @@ const BookingDetail = () => {
 
   const handleConfirmUpdate = async () => {
     try {
-      await bookingAPI.updateBookingStatus(id, { status: newStatus });
+      await api.adminBooking.updateBookingStatus(id, { status: newStatus });
       setBooking(prev => ({ ...prev, status: newStatus }));
       setShowUpdateModal(false);
     } catch (err) {

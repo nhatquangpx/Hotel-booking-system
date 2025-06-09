@@ -1,0 +1,222 @@
+:root {
+  --admin-primary: #1976d2;
+  --admin-primary-hover: #1565c0;
+  --admin-danger: #d32f2f;
+  --admin-success: #388e3c;
+  --admin-bg: #f5f6fa;
+  --admin-sidebar: #fff;
+  --admin-text: #222;
+}
+
+.user-list-container {
+  background-color: var(--admin-bg);
+  min-height: 100vh;
+  padding: 1.5rem;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h1 {
+      color: var(--admin-primary);
+      font-weight: 700;
+      font-size: 2.2em;
+      margin-bottom: 2rem;
+    }
+
+    .add-user-btn-link {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      .MuiButton-root {
+        white-space: nowrap;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 8px 18px;
+        background-color: var(--admin-primary) !important;
+        color: #fff !important;
+        &:hover {
+          background-color: var(--admin-primary-hover) !important;
+        }
+      }
+    }
+  }
+
+  .search-bar {
+    background-color: var(--admin-sidebar);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+
+    .search-bar-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .search-bar-inputs {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      max-width: 600px;
+      .MuiTextField-root {
+        flex: 1;
+        min-width: 120px;
+        max-width: 200px;
+      }
+    }
+
+    .add-user-btn-link {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      .MuiButton-root {
+        white-space: nowrap;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 8px 18px;
+        background-color: var(--admin-primary) !important;
+        color: #fff !important;
+        &:hover {
+          background-color: var(--admin-primary-hover) !important;
+        }
+      }
+    }
+  }
+
+  .user-table {
+    background-color: var(--admin-sidebar);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th {
+        background-color: var(--admin-header);
+        color: var(--admin-primary);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+      }
+
+      td {
+        padding: 1rem;
+        text-align: left;
+        color: var(--admin-text);
+        border-bottom: 1px solid var(--admin-border);
+
+        &.user-name {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          justify-content: left;
+
+          .user-icon {
+            color: var(--admin-primary);
+          }
+        }
+      }
+
+      tr {
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: var(--admin-accent);
+        }
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: left;
+
+      button {
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+
+        &.view-btn {
+          color: var(--admin-primary);
+        }
+
+        &.edit-btn {
+          color: var(--admin-text);
+        }
+
+        &.delete-btn {
+          color: #d32f2f;
+        }
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    &.active {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    &.inactive {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+  }
+
+  .delete-modal {
+    .modal-content {
+      background-color: var(--admin-sidebar);
+      color: var(--admin-text);
+      border-radius: 8px;
+      padding: 1.5rem;
+
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        button {
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          transition: opacity 0.3s;
+
+          &.cancel-btn {
+            background-color: var(--admin-border);
+            color: var(--admin-text);
+          }
+
+          &.delete-btn {
+            background-color: #d32f2f;
+            color: white;
+          }
+
+          &:hover {
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+  }
+} 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaStar } from 'react-icons/fa';
 import AdminLayout from '../../../components/Admin/AdminLayout';
-import { hotelAPI } from '../../../apis';
+import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
 import '../../../components/Admin/AdminListPage.scss';
 
@@ -21,7 +21,7 @@ const HotelList = () => {
   const fetchHotels = async () => {
     try {
       setLoading(true);
-      const data = await hotelAPI.getAllHotels();
+      const data = await api.adminHotel.getAllHotels();
       console.log("Hotel data:", data);
       setHotels(data);
       setError(null);
@@ -102,7 +102,7 @@ const HotelList = () => {
     if (!hotelToDelete) return;
     
     try {
-      await hotelAPI.deleteHotel(hotelToDelete._id);
+      await api.adminHotel.deleteHotel(hotelToDelete._id);
       setHotels(hotels.filter(hotel => hotel._id !== hotelToDelete._id));
       setShowDeleteModal(false);
       setHotelToDelete(null);

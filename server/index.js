@@ -21,8 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // General routes
 app.use("/api/auth", authRoutes);
-app.use("/api/guests", guestRoutes);
-app.use("/api/admins", adminRoutes);
-app.use("/api/owners", ownerRoutes);
+app.use("/api/guest", guestRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/owner", ownerRoutes);
 
 app.listen(PORT, () => console.log(`Server chạy tại port: ${PORT}`));

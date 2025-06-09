@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { bookingAPI } from '../../../apis';
+import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
 import './MyBookingsPage.scss';
@@ -26,7 +26,7 @@ const MyBookingsPage = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const response = await bookingAPI.getUserBookings();
+        const response = await api.userBooking.getUserBookings();
         if (response && Array.isArray(response)) {
           setBookings(response);
         } else {
@@ -59,7 +59,7 @@ const MyBookingsPage = () => {
 
     try {
       setCancelling(true);
-      await bookingAPI.cancelBooking(cancelBookingId, cancelReason);
+      await api.userBooking.cancelBooking(cancelBookingId, cancelReason);
       
       // Cập nhật trạng thái đặt phòng trong danh sách
       setBookings(prevBookings => 
