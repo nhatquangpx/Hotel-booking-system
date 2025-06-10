@@ -49,6 +49,18 @@ export const userBookingAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  // Lấy danh sách phòng trống theo ngày và khách sạn
+  getAvailableRooms: async (hotelId, checkInDate, checkOutDate) => {
+    try {
+      const response = await api.get('/guest/bookings/available-rooms', {
+        params: { hotelId, checkInDate, checkOutDate }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

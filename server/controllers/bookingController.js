@@ -209,13 +209,17 @@ exports.getBookingById = async (req, res) => {
       .populate({
         path: "room",
         select: "name type price images"
+      })
+      .populate({
+        path: "guest",
+        select: "name email phone"
       });
 
     if (!booking) {
       console.log(`Không tìm thấy đặt phòng với ID: ${req.params.id}`);
       return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
     }    // Kiểm tra quyền truy cập: admin hoặc chủ booking
-    if (booking.guest.toString() !== req.user.id && req.user.role !== "admin") {
+    if (booking.guest._id.toString() !== req.user.id && req.user.role !== "admin") {
       console.log(`Người dùng ${req.user.id} không có quyền xem đặt phòng ${req.params.id}`);
       return res.status(403).json({ message: "Bạn không có quyền xem đơn đặt phòng này" });
     }
@@ -225,6 +229,56 @@ exports.getBookingById = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi lấy thông tin đơn đặt phòng:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin đơn đặt phòng", error: error.message });
+  }
+};
+
+// Get available rooms for a hotel by date range
+exports.getAvailableRooms = async (req, res) => {
+  try {
+    const { hotelId, checkInDate, checkOutDate } = req.query;
+
+    if (!hotelId || !checkInDate || !checkOutDate) {
+      return res.status(400).json({ message: "Vui lòng cung cấp đầy đủ hotelId, checkInDate và checkOutDate" });
+    }
+
+    const startDate = new Date(checkInDate);
+    const endDate = new Date(checkOutDate);
+
+    console.log(`[getAvailableRooms] Nhận request: hotelId=${hotelId}, checkInDate=${checkInDate}, checkOutDate=${checkOutDate}`);
+    console.log(`[getAvailableRooms] Đã parse ngày: startDate=${startDate.toISOString()}, endDate=${endDate.toISOString()}`);
+
+    // Tìm tất cả các phòng thuộc khách sạn này
+    const allRooms = await Room.find({ hotelId: hotelId });
+    console.log(`[getAvailableRooms] Tìm thấy ${allRooms.length} phòng cho khách sạn ${hotelId}`);
+
+    const availableRooms = [];
+
+    for (const room of allRooms) {
+      // Kiểm tra xem phòng này có bất kỳ booking nào bị trùng lặp với khoảng thời gian yêu cầu không
+      const conflictingBookings = await BookingHistory.find({
+        room: room._id,
+        $or: [
+          { 
+            checkInDate: { $lt: endDate }, // Booking bắt đầu trước khi yêu cầu kết thúc
+            checkOutDate: { $gt: startDate } // Booking kết thúc sau khi yêu cầu bắt đầu
+          },
+        ],
+        paymentStatus: { $in: ["pending", "paid"] } // Chỉ xem xét các booking chưa hủy hoặc đã thanh toán
+      });
+
+      console.log(`[getAvailableRooms] Phòng ${room._id} (${room.name}): ${conflictingBookings.length} booking trùng lặp.`);
+
+      if (conflictingBookings.length === 0) {
+        // Nếu không có booking nào trùng lặp, phòng này là có sẵn
+        availableRooms.push(room);
+      }
+    }
+
+    console.log(`[getAvailableRooms] Tổng số phòng trống tìm thấy: ${availableRooms.length}`);
+    res.status(200).json(availableRooms);
+  } catch (error) {
+    console.error("Lỗi khi tìm kiếm phòng trống:", error);
+    res.status(500).json({ message: "Lỗi khi tìm kiếm phòng trống", error: error.message });
   }
 };
 

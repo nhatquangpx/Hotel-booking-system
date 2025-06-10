@@ -9,6 +9,7 @@ const HomePage = () => {
   return (
     <div className="homepage-container">
        <Navbar/>
+       <div style={{ height: '100px' }}></div>
        <div className="homepage-content">
          <Slide/>
          <Categories/>

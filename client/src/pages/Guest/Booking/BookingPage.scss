@@ -1,214 +1,310 @@
 .booking-container {
+  padding: 20px;
   max-width: 1200px;
-  margin: 30px auto;
-  padding: 0 20px;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 50px;
+}
 
-  h1 {
-    font-size: 2rem;
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-  }
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  font-weight: 700;
+}
 
-  .loading, .error-message, .success-message {
-    text-align: center;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    font-size: 1.2rem;
-  }
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.1em;
+}
 
-  .error-message {
-    background-color: #fdeded;
-    color: #e74c3c;
-    border: 1px solid #fadbd8;
-  }
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.1em;
+}
 
-  .success-message {
-    background-color: #edfff2;
-    color: #27ae60;
-    border: 1px solid #d4efdf;
-  }
+.booking-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Hai cột: 1 phần cho ảnh, 2 phần cho thông tin */
+  gap: 30px; /* Khoảng cách giữa các cột */
+  align-items: flex-start;
+}
 
-  .back-btn {
-    display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.booking-images {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%; /* Đảm bảo chiếm hết chiều rộng của cột */
+}
 
-    &:hover {
-      background-color: #2980b9;
-    }
-  }
+.hotel-image-section,
+.room-image-section {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  padding-bottom: 15px; /* Khoảng đệm dưới cùng */
+}
 
+.hotel-image-section h3,
+.room-image-section h3 {
+  font-size: 1.3em;
+  color: #555;
+  padding: 15px;
+  margin-top: 0; /* Loại bỏ margin trên cùng */
+  border-bottom: 1px solid #eee;
+  background-color: #f2f2f2;
+}
+
+.hotel-photo,
+.room-photo {
+  width: calc(100% - 30px); /* Điều chỉnh để có padding */
+  height: 200px; /* Chiều cao cố định cho ảnh */
+  object-fit: cover;
+  display: block;
+  margin: 15px auto 0; /* Căn giữa ảnh */
+  border-radius: 5px;
+}
+
+.booking-details {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: sticky; /* Giữ cột thông tin khi cuộn */
+  top: 130px; /* Điều chỉnh vị trí cố định */
+}
+
+.booking-summary h2 {
+  font-size: 1.8em;
+  color: #007bff;
+  margin-bottom: 25px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px dotted #eee;
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.summary-item .label {
+  font-weight: 600;
+  color: #555;
+  flex-basis: 40%; /* Tỉ lệ cho label */
+}
+
+.summary-item .value {
+  color: #333;
+  text-align: right;
+  flex-basis: 60%; /* Tỉ lệ cho value */
+}
+
+.summary-item.total {
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 2px solid #007bff;
+  font-size: 1.4em;
+}
+
+.summary-item.total .value.price {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.booking-actions-confirm {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+  min-height: 90px;
+  resize: vertical;
+}
+
+.form-group textarea::placeholder {
+  color: #aaa;
+}
+
+.submit-btn,
+.cancel-btn {
+  padding: 14px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  width: 100%; /* Nút chiếm hết chiều rộng */
+}
+
+.submit-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: #218838;
+}
+
+.submit-btn:disabled {
+  background-color: #94d3a2;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  margin-bottom: 10px; /* Khoảng cách với nút submit */
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+.payment-qr-code-section {
+  background-color: #e9f7ef;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.payment-qr-code-section h2 {
+  color: #28a745;
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+.payment-instructions {
+  font-size: 1.1em;
+  color: #333;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.qr-code-image {
+  width: 250px;
+  height: 250px;
+  border: 5px solid #28a745;
+  border-radius: 10px;
+  margin-bottom: 25px;
+}
+
+.payment-note {
+  font-size: 0.95em;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.back-to-bookings-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.back-to-bookings-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
   .booking-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
+    grid-template-columns: 1fr; /* Chuyển sang một cột trên màn hình nhỏ hơn */
   }
 
-  .booking-details, .booking-form {
-    flex: 1;
-    min-width: 300px;
+  .booking-details {
+    position: static; /* Hủy bỏ sticky trên màn hình nhỏ */
+    top: auto;
   }
 
-  .booking-summary {
-    background-color: #f8f9fa;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    h2 {
-      font-size: 1.5rem;
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: #333;
-      border-bottom: 2px solid #f39c12;
-      padding-bottom: 10px;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;
-      font-size: 1.1rem;
-
-      &.total {
-        margin-top: 20px;
-        padding-top: 15px;
-        border-top: 1px solid #ddd;
-        font-weight: 600;
-
-        .price {
-          color: #e74c3c;
-          font-size: 1.3rem;
-        }
-      }
-
-      .label {
-        color: #555;
-      }
-
-      .value {
-        font-weight: 500;
-        color: #333;
-      }
-    }
-  }
-
-  .booking-form {
-    h2 {
-      font-size: 1.5rem;
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: #333;
-      border-bottom: 2px solid #f39c12;
-      padding-bottom: 10px;
-    }
-
-    form {
-      .form-group {
-        margin-bottom: 20px;
-
-        label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 500;
-          color: #333;
-        }
-
-        input, select, textarea {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 1rem;
-          transition: border-color 0.3s ease;
-
-          &:focus {
-            border-color: #3498db;
-            outline: none;
-          }
-        }
-
-        textarea {
-          resize: vertical;
-          min-height: 100px;
-        }
-      }
-
-      .form-row {
-        display: flex;
-        gap: 20px;
-
-        .form-group {
-          flex: 1;
-        }
-      }
-
-      .form-actions {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 30px;
-
-        .cancel-btn, .submit-btn {
-          padding: 12px 25px;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .cancel-btn {
-          background-color: #95a5a6;
-          color: white;
-
-          &:hover {
-            background-color: #7f8c8d;
-          }
-        }
-
-        .submit-btn {
-          background-color: #2ecc71;
-          color: white;
-
-          &:hover {
-            background-color: #27ae60;
-          }
-
-          &:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-          }
-        }
-      }
-    }
+  .booking-images {
+    order: -1; /* Đẩy ảnh lên đầu */
   }
 }
 
 @media (max-width: 768px) {
   .booking-container {
-    padding: 0 15px;
+    padding: 15px;
+  }
 
-    .booking-content {
-      flex-direction: column;
-    }
+  h1 {
+    font-size: 2em;
+  }
 
-    .booking-summary {
-      margin-bottom: 30px;
-    }
+  .booking-details {
+    padding: 20px;
+  }
 
-    .form-row {
-      flex-direction: column;
-      gap: 0;
-    }
+  .summary-item .label,
+  .summary-item .value {
+    flex-basis: auto;
+    text-align: left;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    padding: 12px 20px;
+    font-size: 1em;
+  }
+
+  .qr-code-image {
+    width: 200px;
+    height: 200px;
   }
 } 

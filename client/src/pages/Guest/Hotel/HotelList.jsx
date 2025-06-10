@@ -48,6 +48,7 @@ const HotelListPage = () => {
   return (
     <>
       <Navbar />
+      <div style={{ height: '100px' }}></div>
       <div className="hotel-list-container">
         <div className="filter-section">
           <h2>Tìm kiếm khách sạn</h2>

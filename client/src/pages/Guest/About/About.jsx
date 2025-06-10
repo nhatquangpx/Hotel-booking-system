@@ -7,6 +7,7 @@ const AboutPage = () => {
   return (
     <>
       <Navbar />
+      <div style={{ height: '100px' }}></div>
       <div className="about-container">
         <div className="about-hero">
           <div className="hero-content">

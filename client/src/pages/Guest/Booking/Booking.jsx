@@ -9,64 +9,64 @@ import './BookingPage.scss';
 const BookingPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useSelector(state => state.auth?.user);
   const bookingData = location.state || {};
   
   const [hotel, setHotel] = useState(null);
   const [room, setRoom] = useState(null);
+  const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    guestDetails: {
-      fullName: user?.fullName || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      adults: 1,
-      children: 0
-    },
     paymentMethod: 'qr_code',
     specialRequests: ''
   });
   const [totalAmount, setTotalAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPaymentQRCode, setShowPaymentQRCode] = useState(false);
 
   useEffect(() => {
+    if (bookingData.bookingId) {
+      const fetchBooking = async () => {
+        try {
+          setLoading(true);
+          const bookingRes = await api.userBooking.getBookingById(bookingData.bookingId);
+          setBooking(bookingRes);
+          setHotel(bookingRes.hotel);
+          setRoom(bookingRes.room);
+          setTotalAmount(bookingRes.totalAmount);
+          setLoading(false);
+        } catch (err) {
+          setError('Không thể tải thông tin đặt phòng');
+          setLoading(false);
+        }
+      };
+      fetchBooking();
+      return;
+    }
     if (!bookingData.hotelId || !bookingData.roomId || !bookingData.checkInDate || !bookingData.checkOutDate) {
       setError('Thông tin đặt phòng không đầy đủ');
       setLoading(false);
       return;
     }
-
     const fetchBookingDetails = async () => {
       try {
         setLoading(true);
-        
-        // Lấy thông tin khách sạn
         const hotelResponse = await api.userHotel.getHotelById(bookingData.hotelId);
-        setHotel(hotelResponse.data);
-        
-        // Lấy thông tin phòng
+        setHotel(hotelResponse);
         const roomResponse = await api.userRoom.getRoomById(bookingData.roomId);
-        setRoom(roomResponse.data);
-        
-        // Tính số đêm
+        setRoom(roomResponse);
         const checkInDate = new Date(bookingData.checkInDate);
         const checkOutDate = new Date(bookingData.checkOutDate);
         const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-        
-        // Tính tổng tiền
-        const total = roomResponse.data.price.regular * nights;
+        const total = roomResponse.price.regular * nights;
         setTotalAmount(total);
-        
         setLoading(false);
       } catch (err) {
         setError('Không thể tải thông tin đặt phòng');
         setLoading(false);
-        console.error(err);
       }
     };
-
     fetchBookingDetails();
   }, [bookingData]);
 
@@ -90,42 +90,37 @@ const BookingPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!user) {
-      navigate('/login', { 
-        state: { 
-          redirectUrl: '/booking/new',
-          bookingData
-        } 
-      });
-      return;
-    }
-    
-    try {
-      setSubmitting(true);
-      
-      const bookingPayload = {
-        hotelId: bookingData.hotelId,
-        roomId: bookingData.roomId,
-        checkInDate: bookingData.checkInDate,
-        checkOutDate: bookingData.checkOutDate,
-        ...formData
-      };
-      
-      const response = await api.userBooking.createBooking(bookingPayload);
-      
-      setSuccessMessage('Đặt phòng thành công!');
-      setTimeout(() => {
-        navigate('/my-bookings');
-      }, 2000);
-      
-      setSubmitting(false);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đã xảy ra lỗi khi đặt phòng');
-      setSubmitting(false);
-      console.error(err);
+  const handleSubmit = async () => {
+    if (!bookingData.bookingId) {
+      try {
+        setSubmitting(true);
+        
+        const bookingPayload = {
+          guest: bookingData.guest,
+          hotel: bookingData.hotelId,
+          room: bookingData.roomId,
+          checkInDate: bookingData.checkInDate,
+          checkOutDate: bookingData.checkOutDate,
+          totalAmount: totalAmount,
+          paymentMethod: formData.paymentMethod,
+          specialRequests: formData.specialRequests || ''
+        };
+        
+        const response = await api.userBooking.createBooking(bookingPayload);
+        
+        setSuccessMessage('Đặt phòng thành công! Vui lòng quét mã QR để thanh toán.');
+        setShowPaymentQRCode(true);
+
+        setTimeout(() => {
+          navigate('/my-bookings');
+        }, 5000);
+        
+        setSubmitting(false);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Đã xảy ra lỗi khi đặt phòng');
+        setSubmitting(false);
+        console.error(err);
+      }
     }
   };
 
@@ -162,27 +157,51 @@ const BookingPage = () => {
   return (
     <>
       <Navbar />
+      <div style={{ height: '100px' }}></div>
       <div className="booking-container">
         <h1>Đặt phòng</h1>
         
-        {successMessage && (
+        {successMessage && !showPaymentQRCode && (
           <div className="success-message">
             {successMessage}
           </div>
         )}
         
         <div className="booking-content">
+          <div className="booking-images">
+            {hotel && hotel.images && hotel.images.length > 0 && (
+              <div className="hotel-image-section">
+                <h3>Khách sạn</h3>
+                <img src={`${import.meta.env.VITE_API_URL}${hotel.images[0]}`} alt={hotel.name} className="hotel-photo" />
+              </div>
+            )}
+            {room && room.images && room.images.length > 0 && (
+              <div className="room-image-section">
+                <h3>Phòng đã đặt</h3>
+                <img src={`${import.meta.env.VITE_API_URL}${room.images[0]}`} alt={room.name} className="room-photo" />
+              </div>
+            )}
+          </div>
+
           <div className="booking-details">
             {hotel && room && (
               <div className="booking-summary">
                 <h2>Thông tin đặt phòng</h2>
+                <div className="summary-item">
+                  <span className="label">Tên khách hàng:</span>
+                  <span className="value">{booking?.guest?.name || ''}</span>
+                </div>
                 <div className="summary-item">
                   <span className="label">Khách sạn:</span>
                   <span className="value">{hotel.name}</span>
                 </div>
                 <div className="summary-item">
                   <span className="label">Phòng:</span>
-                  <span className="value">{room.name} ({room.type})</span>
+                  <span className="value">{room.name}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="label">Số phòng:</span>
+                  <span className="value">{room.roomNumber}</span>
                 </div>
                 <div className="summary-item">
                   <span className="label">Ngày nhận phòng:</span>
@@ -192,12 +211,7 @@ const BookingPage = () => {
                   <span className="label">Ngày trả phòng:</span>
                   <span className="value">{new Date(bookingData.checkOutDate).toLocaleDateString('vi-VN')}</span>
                 </div>
-                <div className="summary-item">
-                  <span className="label">Số đêm:</span>
-                  <span className="value">
-                    {Math.ceil((new Date(bookingData.checkOutDate) - new Date(bookingData.checkInDate)) / (1000 * 60 * 60 * 24))}
-                  </span>
-                </div>
+
                 <div className="summary-item total">
                   <span className="label">Tổng tiền:</span>
                   <span className="value price">{totalAmount.toLocaleString('vi-VN')} VNĐ</span>
@@ -206,110 +220,49 @@ const BookingPage = () => {
             )}
           </div>
           
-          <div className="booking-form">
-            <h2>Thông tin khách hàng</h2>
-            <form onSubmit={handleSubmit}>
+          {!showPaymentQRCode ? (
+            <div className="booking-actions-confirm">
               <div className="form-group">
-                <label htmlFor="fullName">Họ tên</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="guestDetails.fullName"
-                  value={formData.guestDetails.fullName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="guestDetails.email"
-                  value={formData.guestDetails.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="phone">Số điện thoại</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="guestDetails.phone"
-                  value={formData.guestDetails.phone}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="adults">Số người lớn</label>
-                  <input
-                    type="number"
-                    id="adults"
-                    name="guestDetails.adults"
-                    min="1"
-                    value={formData.guestDetails.adults}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="children">Số trẻ em</label>
-                  <input
-                    type="number"
-                    id="children"
-                    name="guestDetails.children"
-                    min="0"
-                    value={formData.guestDetails.children}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="paymentMethod">Phương thức thanh toán</label>
-                <div className="payment-method-info">
-                  <p>Thanh toán qua mã QR</p>
-                  <img src="/assets/qr-code.png" alt="QR Code" style={{ width: '200px', height: '200px' }} />
-                  <p className="payment-note">Vui lòng quét mã QR để thanh toán</p>
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="specialRequests">Yêu cầu đặc biệt</label>
+                <label htmlFor="specialRequests">Yêu cầu đặc biệt (tùy chọn)</label>
                 <textarea
                   id="specialRequests"
                   name="specialRequests"
                   value={formData.specialRequests}
                   onChange={handleInputChange}
-                  rows="4"
+                  rows="3"
+                  placeholder="Ví dụ: Yêu cầu setup trước như thế nào, hoặc cần đồ dùng đặc biệt..."
                 ></textarea>
               </div>
-              
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => navigate(-1)}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="submit-btn"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Đang xử lý...' : 'Xác nhận đặt phòng'}
-                </button>
-              </div>
-            </form>
-          </div>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => navigate(-1)}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="submit-btn"
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? 'Đang xử lý...' : 'Xác nhận đặt phòng và Thanh toán'}
+              </button>
+            </div>
+          ) : (
+            <div className="payment-qr-code-section">
+              <h2>Thanh toán</h2>
+              <p className="payment-instructions">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán. Đơn đặt phòng của bạn sẽ được xác nhận sau khi nhận được thanh toán.</p>
+              <img src="/assets/qr-code.png" alt="QR Code Thanh Toán" className="qr-code-image" />
+              <p className="payment-note">Sau khi thanh toán thành công, bạn sẽ được chuyển hướng đến trang đặt phòng của tôi.</p>
+              <button 
+                className="back-to-bookings-btn" 
+                onClick={() => navigate('/my-bookings')}
+              >
+                Xem đơn đặt phòng của tôi
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <Footer />

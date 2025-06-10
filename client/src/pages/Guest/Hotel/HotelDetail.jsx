@@ -17,6 +17,10 @@ const HotelDetailPage = () => {
     checkOutDate: ''
   });
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [mainImage, setMainImage] = useState('');
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchHotelDetails = async () => {
@@ -25,6 +29,9 @@ const HotelDetailPage = () => {
         const response = await api.userHotel.getHotelById(id);
         console.log('Hotel Detail Response:', response);
         setHotel(response);
+        if (response.images && response.images.length > 0) {
+          setMainImage(`${import.meta.env.VITE_API_URL}${response.images[0]}`);
+        }
         setLoading(false);
       } catch (err) {
         setError('Không thể tải thông tin khách sạn');
@@ -47,7 +54,7 @@ const HotelDetailPage = () => {
   const searchAvailableRooms = async () => {
     try {
       setLoading(true);
-      const response = await api.userRoom.getRoomsByHotel(id, bookingDates);
+      const response = await api.userBooking.getAvailableRooms(id, bookingDates.checkInDate, bookingDates.checkOutDate);
       console.log('Rooms Response:', response);
       setRooms(Array.isArray(response) ? response : []);
       setSearchPerformed(true);
@@ -59,15 +66,49 @@ const HotelDetailPage = () => {
     }
   };
 
-  const handleRoomSelect = (roomId) => {
-    navigate(`/booking/new`, {
-      state: {
-        hotelId: id,
-        roomId,
-        checkInDate: bookingDates.checkInDate,
-        checkOutDate: bookingDates.checkOutDate
-      }
-    });
+  const handleRoomSelect = (room) => {
+    setSelectedRoom(room);
+    setCurrentImageIndex(0);
+    setShowBookingModal(true);
+  };
+
+  const handleConfirmBooking = () => {
+    if (selectedRoom) {
+      navigate(`/booking/new`, {
+        state: {
+          hotelId: id,
+          roomId: selectedRoom._id,
+          checkInDate: bookingDates.checkInDate,
+          checkOutDate: bookingDates.checkOutDate
+        }
+      });
+    }
+    setSelectedRoom(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowBookingModal(false);
+    setSelectedRoom(null);
+  };
+
+  const handleNextImage = () => {
+    if (selectedRoom && selectedRoom.images.length > 0) {
+      setCurrentImageIndex((prevIndex) => 
+        (prevIndex + 1) % selectedRoom.images.length
+      );
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (selectedRoom && selectedRoom.images.length > 0) {
+      setCurrentImageIndex((prevIndex) => 
+        (prevIndex - 1 + selectedRoom.images.length) % selectedRoom.images.length
+      );
+    }
+  };
+
+  const handleSubImageClick = (imageSrc) => {
+    setMainImage(`${import.meta.env.VITE_API_URL}${imageSrc}`);
   };
 
   if (loading && !hotel) {
@@ -97,6 +138,7 @@ const HotelDetailPage = () => {
   return (
     <>
       <Navbar />
+      <div style={{ height: '100px' }}></div>
       <div className="hotel-detail-container">
         {hotel && (
           <>
@@ -114,13 +156,22 @@ const HotelDetailPage = () => {
 
             <div className="hotel-gallery">
               {hotel.images && hotel.images.length > 0 ? (
-                hotel.images.map((image, index) => (
-                  <div className="gallery-item" key={index}>
-                    <img src={`${process.env.REACT_APP_API_URL}${image}`} alt={`${hotel.name} - Ảnh ${index + 1}`} />
+                <>
+                  <div className="main-image">
+                    <img src={mainImage} alt={`${hotel.name} - Ảnh chính`} />
                   </div>
-                ))
+                  {hotel.images.length > 0 && (
+                    <div className="sub-images">
+                      {hotel.images.filter(image => `${import.meta.env.VITE_API_URL}${image}` !== mainImage).map((image, index) => (
+                        <div className="sub-image-item" key={index} onClick={() => handleSubImageClick(image)}>
+                          <img src={`${import.meta.env.VITE_API_URL}${image}`} alt={`${hotel.name} - Ảnh phụ ${index + 2}`} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="gallery-item">
+                <div className="main-image">
                   <img 
                     src="https://via.placeholder.com/800x500?text=Không+có+hình" 
                     alt={hotel.name} 
@@ -144,10 +195,6 @@ const HotelDetailPage = () => {
                 <div className="policy-item">
                   <h3>Trả phòng</h3>
                   <p>{hotel.policies.checkOutTime}</p>
-                </div>
-                <div className="policy-item">
-                  <h3>Hủy phòng</h3>
-                  <p>{hotel.policies.cancellationPolicy}</p>
                 </div>
               </div>
             </div>
@@ -202,7 +249,7 @@ const HotelDetailPage = () => {
                       <div className="room-card" key={room._id}>
                         <div className="room-image">
                           <img 
-                            src={room.images && room.images[0] ? `${process.env.REACT_APP_API_URL}${room.images[0]}` : 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
+                            src={room.images && room.images[0] ? `${import.meta.env.VITE_API_URL}${room.images[0]}` : 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
                             alt={room.name} 
                           />
                         </div>
@@ -215,7 +262,7 @@ const HotelDetailPage = () => {
                           </div>
                           <button 
                             className="book-btn"
-                            onClick={() => handleRoomSelect(room._id)}
+                            onClick={() => handleRoomSelect(room)}
                           >
                             Đặt phòng
                           </button>
@@ -224,6 +271,51 @@ const HotelDetailPage = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Booking Confirmation Modal */}
+            {showBookingModal && selectedRoom && (
+              <div className="booking-modal-overlay" onClick={handleCloseModal}>
+                <div className="booking-modal-content" onClick={(e) => e.stopPropagation()}>
+                  <h2>Xác nhận đặt phòng</h2>
+                  <div className="modal-room-details">
+                    {selectedRoom.images && selectedRoom.images.length > 0 ? (
+                      <div className="modal-image-container">
+                        <img 
+                          src={`${import.meta.env.VITE_API_URL}${selectedRoom.images[currentImageIndex]}`} 
+                          alt={selectedRoom.name} 
+                          className="modal-room-image"
+                        />
+                        {selectedRoom.images.length > 1 && (
+                          <>
+                            <button className="prev-image-btn" onClick={handlePrevImage}>&lt;</button>
+                            <button className="next-image-btn" onClick={handleNextImage}>&gt;</button>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <img 
+                        src="https://via.placeholder.com/400x250?text=Không+có+hình" 
+                        alt={selectedRoom.name} 
+                        className="modal-room-image"
+                      />
+                    )}
+                    <h3>{selectedRoom.name}</h3>
+                    <p><strong>Số phòng:</strong> {selectedRoom.roomNumber}</p>
+                    <p><strong>Loại phòng:</strong> {selectedRoom.type}</p>
+                    <p><strong>Giá:</strong> {selectedRoom.price.regular.toLocaleString('vi-VN')} VNĐ / đêm</p>
+                    <p><strong>Số lượng người tối đa:</strong> {selectedRoom.maxPeople} người</p>
+                    <p><strong>Tiện ích:</strong> {selectedRoom.facilities.join(', ')}</p>
+                    <p><strong>Mô tả:</strong> {selectedRoom.description}</p>
+                    <p><strong>Ngày nhận phòng:</strong> {bookingDates.checkInDate}</p>
+                    <p><strong>Ngày trả phòng:</strong> {bookingDates.checkOutDate}</p>
+                  </div>
+                  <div className="modal-actions">
+                    <button className="cancel-btn" onClick={handleCloseModal}>Hủy</button>
+                    <button className="confirm-btn" onClick={handleConfirmBooking}>Tiếp tục (Đặt phòng)</button>
+                  </div>
+                </div>
               </div>
             )}
 

@@ -103,6 +103,7 @@ const ChangePassword = () => {
 
   return (
     <ProfileLayout>
+      <div style={{ height: '100px' }}></div>
       <div className="account-container">
         <div className="account-header">
           <h1>Đổi mật khẩu</h1>

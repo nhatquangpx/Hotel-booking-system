@@ -72,6 +72,7 @@ const AccountEdit = () => {
 
   return (
     <ProfileLayout>
+      <div style={{ height: '100px' }}></div>
       <div className="account-container">
         <div className="account-header">
           <h1>Chỉnh sửa thông tin</h1>

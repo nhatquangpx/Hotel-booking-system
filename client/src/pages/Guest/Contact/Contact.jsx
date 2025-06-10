@@ -7,6 +7,7 @@ const ContactPage = () => {
   return (
     <>
       <Navbar />
+      <div style={{ height: '100px' }}></div>
       <div className="contact-container">
         <div className="contact-hero">
           <div className="hero-content">

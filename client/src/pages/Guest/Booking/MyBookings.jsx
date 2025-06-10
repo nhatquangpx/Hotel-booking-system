@@ -112,6 +112,7 @@ const MyBookingsPage = () => {
   return (
     <>
       <Navbar />
+      <div style={{ height: '100px' }}></div>
       <div className="my-bookings-container">
         <h1>Danh sách đặt phòng của tôi</h1>
         
