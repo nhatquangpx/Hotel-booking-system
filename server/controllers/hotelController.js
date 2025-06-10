@@ -59,31 +59,26 @@ exports.getHotelsByOwner = async (req, res) => {
   }
 };
 
-// Create new hotel (admin only)
+// Create new hotel
 exports.createHotel = async (req, res) => {
   try {
-    const { name, description, starRating, ownerId, status, address, contactInfo } = req.body;
-    let imageUrls = [];
-    if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map(file => `/uploads/hotels/${file.filename}`);
-    }
+    console.log("Dữ liệu khách sạn:", req.body);
+    console.log("Files:", req.files);
+
+    // Lấy đường dẫn ảnh từ req.files và chuyển thành URL
+    const images = req.files ? req.files.map(file => `/uploads/hotels/${file.filename}`) : [];
 
     const newHotel = new Hotel({
-      name,
-      description,
-      starRating,
-      ownerId,
-      status,
-      address,
-      contactInfo,
-      images: imageUrls
+      ...req.body,
+      images: images
     });
 
-    await newHotel.save();
-    res.status(201).json({ message: 'Khách sạn đã được tạo thành công!', hotel: newHotel });
+    const savedHotel = await newHotel.save();
+    console.log("Đã tạo khách sạn thành công:", savedHotel);
+    res.status(201).json(savedHotel);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error("Lỗi khi tạo khách sạn:", error);
+    res.status(500).json({ message: "Lỗi khi tạo khách sạn", error: error.message });
   }
 };
 
@@ -92,9 +87,18 @@ exports.updateHotel = async (req, res) => {
   try {
     // Đã được validation qua middleware hotelValidation
     console.log("Đang cập nhật khách sạn với ID:", req.params.id);
-    console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));    // Không cho phép thay đổi trường ownerId
+    console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
+    console.log("Files:", req.files);
+
+    // Không cho phép thay đổi trường ownerId
     if (req.body.ownerId) {
       delete req.body.ownerId;
+    }
+
+    // Xử lý ảnh mới nếu có
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => `/uploads/hotels/${file.filename}`);
+      req.body.images = newImages;
     }
 
     const updatedHotel = await Hotel.findByIdAndUpdate(

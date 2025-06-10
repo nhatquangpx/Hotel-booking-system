@@ -1,4 +1,3 @@
-// Biến màu dùng chung
 :root {
   --admin-primary: #1976d2;
   --admin-primary-hover: #1565c0;
@@ -9,12 +8,12 @@
   --admin-text: #222;
 }
 
-.hotel-create-container {
+.admin-form-container {
   background: var(--admin-bg);
   min-height: 100vh;
   padding: 32px 0;
 
-  h1 {
+  h2 {
     color: var(--admin-primary);
     font-weight: 700;
     font-size: 2em;
@@ -22,13 +21,13 @@
     margin-bottom: 32px;
   }
 
-  .create-form {
+  form {
     background: var(--admin-sidebar);
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 32px 32px 24px 32px;
+    padding: 32px;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -37,10 +36,12 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+
       label {
         font-weight: 500;
         color: var(--admin-text);
       }
+
       input, select, textarea {
         padding: 10px 12px;
         border-radius: 6px;
@@ -48,86 +49,108 @@
         background: var(--admin-bg);
         color: var(--admin-text);
         font-size: 1rem;
+
         &:focus {
           outline: none;
           border-color: var(--admin-primary);
         }
       }
-      .image-previews {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 10px;
-        margin-top: 10px;
+    }
 
-        .image-preview-item {
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .facilities-container, .images-container {
+      .facilities-list, .images-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 10px 0;
+
+        .facility-tag {
+          background: var(--admin-bg);
+          padding: 6px 12px;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.9rem;
+
+          button {
+            background: none;
+            border: none;
+            color: var(--admin-danger);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 4px;
+
+            &:hover {
+              color: var(--admin-danger);
+            }
+          }
+        }
+
+        .image-item {
           position: relative;
-          width: 100%;
-          padding-bottom: 100%;
-          border: 1px solid #ddd;
+          width: 120px;
+          height: 120px;
           border-radius: 8px;
           overflow: hidden;
 
           img {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
           }
 
-          .remove-image-btn {
+          button {
             position: absolute;
             top: 5px;
             right: 5px;
-            background-color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
             border-radius: 50%;
             width: 24px;
             height: 24px;
-            min-width: unset;
-            padding: 0;
             color: var(--admin-danger);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            border: none;
-            z-index: 1;
+            font-size: 1.2rem;
+
             &:hover {
-              background-color: rgba(255, 255, 255, 0.9);
-            }
-            span {
-              font-size: 1rem;
-              line-height: 1;
+              background: rgba(255, 255, 255, 0.9);
             }
           }
         }
       }
-    }
 
-    .form-group-policies {
-      margin-bottom: 20px;
-
-      .policies-inputs {
+      .facility-input, .image-input {
         display: flex;
-        gap: 20px;
+        gap: 10px;
         margin-top: 10px;
 
-        .policy-item {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
+        input, select {
+          flex: 1;
+          padding: 8px 12px;
+          border-radius: 6px;
+          border: 1px solid #e0e0e0;
+        }
 
-          input[type="time"] {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-          }
+        button {
+          padding: 8px 16px;
+          background: var(--admin-primary);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
 
-          label {
-            font-size: 0.9em;
-            color: #666;
+          &:hover {
+            background: var(--admin-primary-hover);
           }
         }
       }
@@ -137,31 +160,49 @@
       display: flex;
       justify-content: flex-end;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 24px;
+
       .submit-btn {
         background: var(--admin-primary);
-        color: #fff;
-        font-weight: 600;
-        padding: 8px 20px;
-        border-radius: 6px;
+        color: white;
+        padding: 10px 24px;
         border: none;
+        border-radius: 6px;
+        font-weight: 500;
         cursor: pointer;
+
         &:hover {
           background: var(--admin-primary-hover);
         }
+
+        &:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
       }
+
       .cancel-btn {
         background: #eee;
         color: var(--admin-text);
-        font-weight: 500;
-        padding: 8px 20px;
-        border-radius: 6px;
+        padding: 10px 24px;
         border: none;
+        border-radius: 6px;
+        font-weight: 500;
         cursor: pointer;
+
         &:hover {
           background: #ddd;
         }
       }
     }
+  }
+
+  .error-message {
+    background: #ffebee;
+    color: var(--admin-danger);
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
   }
 } 

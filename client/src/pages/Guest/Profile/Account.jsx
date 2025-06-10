@@ -21,7 +21,7 @@ const Account = () => {
       if (!user) return;
       
       try {
-        const data = await api.user.getUserProfile();
+        const data = await api.user.getUserProfile(user.id);
         setUserData(prev => ({
           ...prev,
           ...data

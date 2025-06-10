@@ -114,7 +114,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.params.id;
     const { currentPassword, newPassword } = req.body;
 
     // Validate input

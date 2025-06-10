@@ -76,43 +76,75 @@ exports.getRoomById = async (req, res) => {
 // Create new room (admin/owner)
 exports.createRoom = async (req, res) => {
   try {
-    const { hotelId } = req.params;
-    
-    // Đã được validation qua middleware roomValidation
-    console.log(`Đang tạo phòng mới cho khách sạn ID: ${hotelId}`);
-    console.log("Dữ liệu phòng:", JSON.stringify(req.body));
+    console.log("Dữ liệu phòng:", req.body);
+    console.log("Files:", req.files);
+
+    // Lấy đường dẫn ảnh từ req.files và chuyển thành URL
+    const images = req.files ? req.files.map(file => `/uploads/rooms/${file.filename}`) : [];
+
+    const { hotelId, name, roomNumber, type, price, maxPeople, description, facilities, quantity } = req.body;
     
     // Validate type enum
-    const validTypes = ['single', 'double', 'vip', 'family'];
-    if (!validTypes.includes(req.body.type)) {
+    const validTypes = ['standard', 'deluxe', 'suite', 'family', 'executive'];
+    if (!validTypes.includes(type)) {
       return res.status(400).json({ 
-        message: `Type phải là một trong: ${validTypes.join(', ')}` 
+        message: `Loại phòng không hợp lệ. Loại phòng phải là một trong: ${validTypes.join(', ')}` 
       });
     }
 
-    // Validate price structure
-    if (!req.body.price || typeof req.body.price.base !== 'number' || req.body.price.base <= 0) {
+    // Validate price
+    const priceNumber = Number(price);
+    if (isNaN(priceNumber) || priceNumber <= 0) {
       return res.status(400).json({ 
-        message: "Price phải có trường base với giá trị số dương" 
+        message: "Giá phòng phải là một số dương hợp lệ"
+      });
+    }
+
+    // Parse facilities từ JSON string nếu cần
+    let parsedFacilities = facilities;
+    if (typeof facilities === 'string') {
+      try {
+        parsedFacilities = JSON.parse(facilities);
+      } catch (e) {
+        parsedFacilities = [];
+      }
+    }
+
+    // Kiểm tra số phòng đã tồn tại trong khách sạn chưa
+    const existingRoom = await Room.findOne({ 
+      hotelId: hotelId,
+      roomNumber: roomNumber 
+    });
+
+    if (existingRoom) {
+      return res.status(400).json({
+        message: "Số phòng này đã tồn tại trong khách sạn"
       });
     }
     
     const newRoom = new Room({
-      hotelId: hotelId,
-      name: req.body.name,
-      type: req.body.type,
-      description: req.body.description,
-      price: req.body.price,
-      images: req.body.images,
-      status: req.body.status || 'available'
+      hotelId,
+      name,
+      roomNumber,
+      type,
+      description,
+      price: { 
+        regular: priceNumber,
+        discount: 0 
+      },
+      maxPeople: Number(maxPeople),
+      quantity: Number(quantity),
+      facilities: parsedFacilities,
+      images: images,
+      status: 'available'
     });
     
     const savedRoom = await newRoom.save();
-    console.log(`Đã tạo phòng thành công, ID: ${savedRoom._id}`);
+    console.log("Đã tạo phòng thành công:", savedRoom);
     res.status(201).json(savedRoom);
   } catch (error) {
-    console.error("Lỗi khi tạo phòng mới:", error);
-    res.status(500).json({ message: "Lỗi khi tạo phòng mới", error: error.message });
+    console.error("Lỗi khi tạo phòng:", error);
+    res.status(500).json({ message: "Lỗi khi tạo phòng", error: error.message });
   }
 };
 
@@ -121,22 +153,56 @@ exports.updateRoom = async (req, res) => {
   try {
     console.log(`Đang cập nhật phòng ID: ${req.params.id}`);
     console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
-    
+
+    // Parse price nếu là string (từ FormData)
+    if (typeof req.body.price === 'string') {
+      try {
+        req.body.price = JSON.parse(req.body.price);
+      } catch (e) {
+        req.body.price = { regular: 0, discount: 0 };
+      }
+    }
+
+    // Parse facilities nếu là string
+    if (typeof req.body.facilities === 'string') {
+      try {
+        req.body.facilities = JSON.parse(req.body.facilities);
+      } catch (e) {
+        req.body.facilities = [];
+      }
+    }
+
+    // Parse existingImages nếu là string
+    let existingImages = [];
+    if (req.body.existingImages) {
+      try {
+        existingImages = JSON.parse(req.body.existingImages);
+      } catch (e) {
+        existingImages = [];
+      }
+    }
+
+    // Lấy đường dẫn ảnh mới từ req.files
+    const newImages = req.files ? req.files.map(file => `/uploads/rooms/${file.filename}`) : [];
+
+    // Gộp ảnh cũ và mới
+    req.body.images = [...existingImages, ...newImages];
+
     const room = await Room.findById(req.params.id);
-    
+
     if (!room) {
       console.log(`Không tìm thấy phòng với ID: ${req.params.id}`);
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
-    
+
     // Không cần kiểm tra quyền sở hữu vì đã có middleware verifyOwner cho khách sạn
-    
+
     const updatedRoom = await Room.findByIdAndUpdate(
       req.params.id,
       { $set: req.body },
       { new: true, runValidators: true }
     );
-    
+
     console.log(`Đã cập nhật phòng thành công: ${updatedRoom.name}`);
     res.status(200).json(updatedRoom);
   } catch (error) {

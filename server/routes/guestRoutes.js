@@ -9,9 +9,9 @@ const bookingController = require('../controllers/bookingController');
 router.use(authenticate);
 
 // Quản lý thông tin cá nhân
-router.get('/profile', userController.getUserById);
-router.put('/profile', userController.updateUser);
-router.put('/profile/changepassword', userController.changePassword);
+router.get('/profile/:id', userController.getUserById);
+router.put('/profile/:id', userController.updateUser);
+router.put('/profile/:id/changepassword', userController.changePassword);
 
 // Xem danh sách khách sạn
 router.get('/hotels', hotelController.getAllHotels);

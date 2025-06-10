@@ -7,6 +7,11 @@ const RoomSchema = new mongoose.Schema(
       ref: "Hotel",
       required: true
     },
+    roomNumber: {
+      type: String,
+      required: true,
+      trim: true
+    },
     name: {
       type: String,
       required: true,
@@ -15,7 +20,7 @@ const RoomSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["single", "double", "family", "vip"]
+      enum: ["standard", "deluxe", "suite", "family", "executive"]
     },
     description: {
       type: String,
@@ -25,6 +30,17 @@ const RoomSchema = new mongoose.Schema(
       regular: { type: Number, required: true },
       discount: { type: Number, default: 0 }
     },
+    maxPeople: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    facilities: [String],
     images: [String],
     status: {
       type: String,

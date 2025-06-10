@@ -151,7 +151,7 @@ const HotelDetail = () => {
             </div>
             <div className="detail-row">
               <div className="detail-label">Chủ khách sạn:</div>
-              <div className="detail-value">{hotel.owner || 'Không có thông tin'}</div>
+              <div className="detail-value">{hotel.ownerId?.name || 'Không có thông tin'}</div>
             </div>
             <div className="detail-row">
               <div className="detail-label">Trạng thái:</div>
@@ -174,7 +174,12 @@ const HotelDetail = () => {
                 <div className="detail-label">Ảnh khách sạn:</div>
                 <div className="detail-value image-gallery">
                   {hotel.images.map((img, index) => (
-                    <img key={index} src={img} alt={`Hotel image ${index}`} className="detail-image-thumb" />
+                    <img 
+                      key={index} 
+                      src={`${import.meta.env.VITE_API_URL}${img}`} 
+                      alt={`Hotel image ${index}`} 
+                      className="detail-image-thumb" 
+                    />
                   ))}
                 </div>
               </div>
@@ -188,6 +193,7 @@ const HotelDetail = () => {
           <table>
             <thead>
               <tr>
+                <th>Ảnh</th>
                 <th>Tên phòng</th>
                 <th>Loại phòng</th>
                 <th>Giá</th>
@@ -197,13 +203,24 @@ const HotelDetail = () => {
             <tbody>
               {rooms.length > 0 ? rooms.map(room => (
                 <tr key={room._id}>
+                  <td>
+                    {room.images && room.images.length > 0 ? (
+                      <img 
+                        src={`${import.meta.env.VITE_API_URL}${room.images[0]}`} 
+                        alt={room.name} 
+                        className="room-image-thumb"
+                      />
+                    ) : (
+                      <div className="no-image">Không có ảnh</div>
+                    )}
+                  </td>
                   <td>{room.name}</td>
                   <td>{room.type}</td>
                   <td>{room.price?.regular ? room.price.regular.toLocaleString('vi-VN') : 0} VND</td>
                   <td>{room.status === 'available' ? 'Còn trống' : room.status === 'booked' ? 'Đã đặt' : 'Không xác định'}</td>
                 </tr>
               )) : (
-                <tr><td colSpan={4} style={{ textAlign: 'center' }}>Chưa có phòng nào</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center' }}>Chưa có phòng nào</td></tr>
               )}
             </tbody>
           </table>

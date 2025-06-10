@@ -24,7 +24,11 @@ export const adminHotelAPI = {
   // Tạo khách sạn mới
   createHotel: async (hotelData) => {
     try {
-      const response = await api.post('/admin/hotels', hotelData);
+      const response = await api.post('/admin/hotels', hotelData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -34,7 +38,11 @@ export const adminHotelAPI = {
   // Cập nhật thông tin khách sạn
   updateHotel: async (id, hotelData) => {
     try {
-      const response = await api.put(`/admin/hotels/${id}`, hotelData);
+      const response = await api.put(`/admin/hotels/${id}`, hotelData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

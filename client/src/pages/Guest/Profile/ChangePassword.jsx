@@ -76,7 +76,7 @@ const ChangePassword = () => {
 
     setLoading(true);
     try {
-      await api.user.changePassword({
+      await api.user.changePassword(user.id, {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });

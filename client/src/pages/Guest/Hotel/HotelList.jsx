@@ -98,7 +98,7 @@ const HotelListPage = () => {
               <div className="hotel-card" key={hotel._id}>
                 <div className="hotel-image">
                   <img 
-                    src={hotel.images && hotel.images[0] || 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
+                    src={hotel.images && hotel.images[0] ? `${import.meta.env.VITE_API_URL}${hotel.images[0]}` : 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
                     alt={hotel.name} 
                   />
                 </div>

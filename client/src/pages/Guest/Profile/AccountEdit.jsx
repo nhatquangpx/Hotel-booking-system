@@ -25,7 +25,7 @@ const AccountEdit = () => {
       if (!user) return;
       
       try {
-        const data = await api.user.getUserProfile();
+        const data = await api.user.getUserProfile(user.id);
         setFormData({
           name: data.name || '',
           phone: data.phone || '',
@@ -55,7 +55,7 @@ const AccountEdit = () => {
     setLoading(true);
 
     try {
-      const response = await api.user.updateUserProfile(formData);
+      const response = await api.user.updateUserProfile(user.id, formData);
       toast.success('Cập nhật thông tin thành công!');
       navigate(`/profile/${user.id}`);
     } catch (error) {

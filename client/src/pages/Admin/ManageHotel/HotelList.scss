@@ -10,12 +10,14 @@
   --admin-header: #f3f6fa;
   --admin-border: #e0e0e0;
   --admin-accent: #f5f6fa;
+  --admin-bg-light: #f0f0f0;
 }
 
 .hotel-list-container {
   background-color: var(--admin-bg);
   min-height: 100vh;
   padding: 1.5rem;
+  max-width: 100%;
 
   h1 {
     color: var(--admin-primary);
@@ -31,9 +33,6 @@
     margin-bottom: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
     .search-bar-row {
       display: flex;
       align-items: center;
@@ -74,9 +73,6 @@
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
     margin-top: 12px;
     padding: 0 0 8px 0;
     table {
@@ -196,4 +192,65 @@
     margin: 24px 0;
     font-size: 1.1em;
   }
+}
+
+.rooms-expand {
+  padding: 0 !important;
+  background-color: var(--admin-bg-light);
+}
+
+.rooms-list {
+  padding: 1rem;
+  
+  h3 {
+    margin: 0 0 1rem 0;
+    color: var(--admin-text);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    background-color: var(--admin-bg);
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--admin-border);
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--admin-text);
+      background-color: var(--admin-bg-light);
+    }
+
+    td {
+      color: var(--admin-text);
+    }
+
+    .status-badge {
+      &.available {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      &.booked {
+        background-color: #ffebee;
+        color: #c62828;
+      }
+    }
+  }
+
+  p {
+    text-align: center;
+    color: var(--admin-text);
+    padding: 1rem;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
 } 

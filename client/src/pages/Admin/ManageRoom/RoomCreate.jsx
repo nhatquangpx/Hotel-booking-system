@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
 import api from '../../../apis';
-import '../../../components/Admin/AdminComponents.scss';
+import './RoomCreate.scss';
 
 const RoomCreate = () => {
   const navigate = useNavigate();
   const [hotels, setHotels] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
+    roomNumber: '',
     hotelId: '',
     type: 'standard',
     price: 500000,
@@ -22,7 +23,7 @@ const RoomCreate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [facilityInput, setFacilityInput] = useState('');
-  const [imageInput, setImageInput] = useState('');
+  const [selectedImages, setSelectedImages] = useState([]);
   const [fetchingHotels, setFetchingHotels] = useState(true);
 
   const roomTypes = [
@@ -45,7 +46,6 @@ const RoomCreate = () => {
         const data = await api.adminHotel.getAllHotels();
         setHotels(data);
         
-        // Nếu có khách sạn, thiết lập khách sạn đầu tiên làm mặc định
         if (data && data.length > 0) {
           setFormData(prev => ({
             ...prev,
@@ -87,21 +87,13 @@ const RoomCreate = () => {
     }));
   };
 
-  const handleAddImage = () => {
-    if (imageInput && !formData.images.includes(imageInput)) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, imageInput],
-      }));
-      setImageInput('');
-    }
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedImages(prev => [...prev, ...files]);
   };
 
-  const handleRemoveImage = (image) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter(img => img !== image),
-    }));
+  const handleRemoveImage = (index) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -114,8 +106,24 @@ const RoomCreate = () => {
     
     try {
       setLoading(true);
-      await api.adminRoom.createRoom(formData);
-      navigate('/admin/rooms');
+      const submitData = new FormData();
+
+      // Thêm các trường dữ liệu vào FormData
+      Object.keys(formData).forEach(key => {
+        if (key === 'facilities') {
+          submitData.append(key, JSON.stringify(formData[key]));
+        } else {
+          submitData.append(key, formData[key]);
+        }
+      });
+
+      // Thêm các file ảnh vào FormData
+      selectedImages.forEach((image, index) => {
+        submitData.append('images', image);
+      });
+
+      await api.adminRoom.createRoom(submitData);
+      navigate(`/admin/hotels/${formData.hotelId}`);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tạo phòng');
     } finally {
@@ -125,7 +133,9 @@ const RoomCreate = () => {
 
   if (fetchingHotels) return (
     <AdminLayout>
-      <div>Đang tải danh sách khách sạn...</div>
+      <div className="admin-form-container">
+        <div>Đang tải danh sách khách sạn...</div>
+      </div>
     </AdminLayout>
   );
 
@@ -154,16 +164,31 @@ const RoomCreate = () => {
             </select>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="name">Tên phòng</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="roomNumber">Số phòng</label>
+              <input
+                type="text"
+                id="roomNumber"
+                name="roomNumber"
+                value={formData.roomNumber}
+                onChange={handleChange}
+                placeholder="Ví dụ: 701"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="name">Tên phòng</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
           
           <div className="form-group">
@@ -238,9 +263,17 @@ const RoomCreate = () => {
             />
           </div>
           
-          <div className="form-group">
+          <div className="facilities-container">
             <label>Tiện nghi phòng</label>
-            <div className="input-group">
+            <div className="facilities-list">
+              {formData.facilities.map((facility, index) => (
+                <div key={index} className="facility-tag">
+                  {facility}
+                  <button type="button" onClick={() => handleRemoveFacility(facility)}>×</button>
+                </div>
+              ))}
+            </div>
+            <div className="facility-input">
               <select
                 value={facilityInput}
                 onChange={(e) => setFacilityInput(e.target.value)}
@@ -252,60 +285,34 @@ const RoomCreate = () => {
               </select>
               <button type="button" onClick={handleAddFacility}>Thêm</button>
             </div>
-            <div className="tags-container">
-              {formData.facilities.map((facility, index) => (
-                <div key={index} className="tag">
-                  <span>{facility}</span>
-                  <button type="button" onClick={() => handleRemoveFacility(facility)}>×</button>
-                </div>
-              ))}
-            </div>
           </div>
           
-          <div className="form-group">
+          <div className="images-container">
             <label>Hình ảnh phòng</label>
-            <div className="input-group">
-              <input
-                type="text"
-                value={imageInput}
-                onChange={(e) => setImageInput(e.target.value)}
-                placeholder="URL ảnh"
-              />
-              <button type="button" onClick={handleAddImage}>Thêm</button>
-            </div>
-            <div className="tags-container">
-              {formData.images.map((image, index) => (
-                <div key={index} className="tag">
-                  <span>{image.slice(0, 30)}...</span>
-                  <button type="button" onClick={() => handleRemoveImage(image)}>×</button>
+            <div className="images-list">
+              {selectedImages.map((image, index) => (
+                <div key={index} className="image-item">
+                  <img src={URL.createObjectURL(image)} alt={`Phòng ${index + 1}`} />
+                  <button type="button" onClick={() => handleRemoveImage(index)}>×</button>
                 </div>
               ))}
             </div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="available">Trạng thái</label>
-            <select
-              id="available"
-              name="available"
-              value={formData.available.toString()}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                available: e.target.value === 'true'
-              }))}
-              required
-            >
-              <option value="true">Có sẵn</option>
-              <option value="false">Không có sẵn</option>
-            </select>
+            <div className="image-input">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+              />
+            </div>
           </div>
           
           <div className="form-actions">
-            <button type="button" onClick={() => navigate('/admin/rooms')} className="cancel-btn">
-              Hủy
-            </button>
             <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? 'Đang xử lý...' : 'Tạo phòng'}
+              {loading ? 'Đang tạo...' : 'Tạo phòng'}
+            </button>
+            <button type="button" className="cancel-btn" onClick={() => navigate(-1)}>
+              Hủy
             </button>
           </div>
         </form>

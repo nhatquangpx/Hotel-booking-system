@@ -7,7 +7,9 @@ const hotelController = require("../controllers/hotelController");
 const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
 // const dashboardController = require("../controllers/dashboardController");
-const upload = require('../config/multerConfig'); 
+const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
+// const { roomValidation, validate } = require('../validations/roomValidation');
+
 
 
 router.use(authenticate, isAdmin);
@@ -23,15 +25,15 @@ router.delete("/users/:id", userController.deleteUser);
 router.get("/hotels", hotelController.getAllHotels);
 router.get("/hotels/:id", hotelController.getHotelById);
 router.get("/hotels/owners/list", hotelController.getAllOwners);
-router.post("/hotels", upload.array('images', 5), hotelController.createHotel);
-router.put("/hotels/:id", hotelController.updateHotel);
+router.post("/hotels",  uploadHotelImages, hotelController.createHotel);
+router.put("/hotels/:id",uploadHotelImages, hotelController.updateHotel);
 router.delete("/hotels/:id", hotelController.deleteHotel);
 
 // Quản lý phòng
 router.get("/rooms/hotel/:hotelId", roomController.getRoomsByHotel);
 router.get("/rooms/:id", roomController.getRoomById);
-router.post("/rooms", roomController.createRoom);
-router.put("/rooms/:id", roomController.updateRoom);
+router.post("/rooms", uploadRoomImages, roomController.createRoom);
+router.put("/rooms/:id", uploadRoomImages, roomController.updateRoom);
 router.delete("/rooms/:id", roomController.deleteRoom);
 
 // Quản lý đặt phòng

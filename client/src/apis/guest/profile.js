@@ -2,9 +2,9 @@ import api from '../config/axios';
 
 export const userAPI = {
   // Lấy thông tin người dùng
-  getUserProfile: async () => {
+  getUserProfile: async (id) => {
     try {
-      const response = await api.get('/guest/profile');
+      const response = await api.get(`/guest/profile/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -12,9 +12,9 @@ export const userAPI = {
   },
 
   // Cập nhật thông tin người dùng
-  updateUserProfile: async (userData) => {
+  updateUserProfile: async (id, userData) => {
     try {
-      const response = await api.put('/guest/profile', userData);
+      const response = await api.put(`/guest/profile/${id}`, userData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -22,9 +22,9 @@ export const userAPI = {
   },
 
   // Đổi mật khẩu
-  changePassword: async (userData) => {
+  changePassword: async (id, userData) => {
     try {
-      const response = await api.put('/guest/profile/changepassword', userData);
+      const response = await api.put(`/guest/profile/${id}/changepassword`, userData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

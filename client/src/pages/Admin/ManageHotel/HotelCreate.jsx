@@ -23,6 +23,10 @@ const HotelCreate = () => {
     starRating: 3,
     ownerId: '',
     status: 'active',
+    policies: {
+      checkInTime: '14:00',
+      checkOutTime: '12:00'
+    }
   });
   const [owners, setOwners] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -263,7 +267,33 @@ const HotelCreate = () => {
             >
               <option value="active">Hoạt động</option>
               <option value="inactive">Ngừng hoạt động</option>
+              <option value="maintenance">Bảo trì</option>
             </select>
+          </div>
+          <div className="form-group-policies">
+            <label>Chính sách</label>
+            <div className="policies-inputs">
+              <div className="policy-item">
+                <input
+                  type="time"
+                  id="policies.checkInTime"
+                  name="policies.checkInTime"
+                  value={formData.policies.checkInTime}
+                  onChange={handleChange}
+                />
+                <label htmlFor="policies.checkInTime">Giờ nhận phòng</label>
+              </div>
+              <div className="policy-item">
+                <input
+                  type="time"
+                  id="policies.checkOutTime"
+                  name="policies.checkOutTime"
+                  value={formData.policies.checkOutTime}
+                  onChange={handleChange}
+                />
+                <label htmlFor="policies.checkOutTime">Giờ trả phòng</label>
+              </div>
+            </div>
           </div>
           <div className="form-actions">
             <button type="button" className="cancel-btn" onClick={() => navigate('/admin/hotels')}>Hủy</button>

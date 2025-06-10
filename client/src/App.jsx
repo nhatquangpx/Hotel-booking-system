@@ -20,20 +20,26 @@ import ChangePassword from "./pages/Guest/Profile/ChangePassword.jsx";
 
 // Admin Pages
 import AdminHomePage from "./pages/Admin/Home/AdminHome.jsx";
-import UserList from "./pages/Admin/ManageUser/UserList.jsx";
-import UserCreate from "./pages/Admin/ManageUser/UserCreate.jsx";
-import UserDetail from "./pages/Admin/ManageUser/UserDetail.jsx";
-import UserEdit from "./pages/Admin/ManageUser/UserEdit.jsx";
-import HotelList from "./pages/Admin/ManageHotel/HotelList.jsx";
-import HotelCreate from "./pages/Admin/ManageHotel/HotelCreate.jsx";
-import HotelDetail from "./pages/Admin/ManageHotel/HotelDetail.jsx";
-import RoomList from "./pages/Admin/ManageRoom/RoomList.jsx";
-import RoomCreate from "./pages/Admin/ManageRoom/RoomCreate.jsx";
+import AdminUserList from "./pages/Admin/ManageUser/UserList.jsx";
+import AdminUserCreate from "./pages/Admin/ManageUser/UserCreate.jsx";
+import AdminUserDetail from "./pages/Admin/ManageUser/UserDetail.jsx";
+import AdminUserEdit from "./pages/Admin/ManageUser/UserEdit.jsx";
+import AdminHotelList from "./pages/Admin/ManageHotel/HotelList.jsx";
+import AdminHotelCreate from "./pages/Admin/ManageHotel/HotelCreate.jsx";
+import AdminHotelEdit from "./pages/Admin/ManageHotel/HotelEdit.jsx";
+import AdminHotelDetail from "./pages/Admin/ManageHotel/HotelDetail.jsx";
+import AdminRoomCreate from "./pages/Admin/ManageRoom/RoomCreate.jsx";
+import AdminRoomEdit from "./pages/Admin/ManageRoom/RoomEdit.jsx";
+import AdminRoomDetail from "./pages/Admin/ManageRoom/RoomDetail.jsx";
+
 import BookingList from "./pages/Admin/ManageBooking/BookingList.jsx";
 import BookingDetail from "./pages/Admin/ManageBooking/BookingDetail.jsx";
 
 // Owner Pages
 import OwnerHomePage from "./pages/Owner/Home/OwnerHomePage.jsx";
+// import OwnerRoomCreate from "./pages/Owner/ManageRoom/RoomCreate.jsx";
+// import OwnerRoomEdit from "./pages/Owner/ManageRoom/RoomEdit.jsx";
+// import OwnerRoomDetail from "./pages/Owner/ManageRoom/RoomDetail.jsx";
 
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import "./App.scss";
@@ -55,6 +61,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
 
+        {/* Guest Routes */}
         {/* Profile Routes */}
         <Route path="/profile/:id" element={<Account />} />
         <Route path="/profile/:id/edit" element={<AccountEdit />} />
@@ -81,27 +88,33 @@ function App() {
           }
         />
 
+        {/* Admin Routes */}
         <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
          <Route path="/admin/*" element={<AdminHomePage />} />
          {/* Quản lý người dùng */}
-         <Route path="/admin/users" element={<UserList />} />
-         <Route path="/admin/users/create" element={<UserCreate />} />
-         <Route path="/admin/users/:id" element={<UserDetail />} />
-         <Route path="/admin/users/edit/:id" element={<UserEdit />} />
+         <Route path="/admin/users" element={<AdminUserList />} />
+         <Route path="/admin/users/create" element={<AdminUserCreate />} />
+         <Route path="/admin/users/:id" element={<AdminUserDetail />} />
+         <Route path="/admin/users/edit/:id" element={<AdminUserEdit />} />
          {/* Quản lý khách sạn */}
-         <Route path="/admin/hotels" element={<HotelList />} />
-         <Route path="/admin/hotels/create" element={<HotelCreate />} />
-         <Route path="/admin/hotels/:id" element={<HotelDetail />} />
-         {/* Quản lý phòng (được truy cập từ trang chi tiết khách sạn) */}
-         <Route path="/admin/hotels/:hotelId/rooms" element={<RoomList />} />
-         <Route path="/admin/hotels/:hotelId/rooms/create" element={<RoomCreate />} />
+         <Route path="/admin/hotels" element={<AdminHotelList />} />
+         <Route path="/admin/hotels/create" element={<AdminHotelCreate />} />
+         <Route path="/admin/hotels/:id" element={<AdminHotelDetail />} />
+         <Route path="/admin/hotels/:id/edit" element={<AdminHotelEdit />} />
+         <Route path="/admin/hotels/:id/rooms/create" element={<AdminRoomCreate />} />
+         <Route path="/admin/rooms/:id" element={<AdminRoomDetail />} />
+         <Route path="/admin/rooms/:id/edit" element={<AdminRoomEdit />} />
          {/* Quản lý đặt phòng */}
          <Route path="/admin/bookings" element={<BookingList />} />
          <Route path="/admin/bookings/:id" element={<BookingDetail />} />
         </Route>
 
+        {/* Owner Routes */}
         <Route element={<PrivateRoute allowedRoles={["owner"]} />}>
           <Route path="/owner/*" element={<OwnerHomePage />} />
+          {/* <Route path="/owner/hotels/:id/rooms/create" element={<OwnerRoomCreate />} />
+          <Route path="/owner/hotels/:id/rooms/:id" element={<OwnerRoomDetail />} />
+          <Route path="/owner/hotels/:id/rooms/:id/edit" element={<OwnerRoomEdit />} /> */}
         </Route>
       </Routes>
     </BrowserRouter>

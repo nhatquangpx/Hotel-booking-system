@@ -60,7 +60,6 @@ const HotelDetailPage = () => {
   };
 
   const handleRoomSelect = (roomId) => {
-    // Chuyển đến trang đặt phòng với thông tin đã chọn
     navigate(`/booking/new`, {
       state: {
         hotelId: id,
@@ -117,7 +116,7 @@ const HotelDetailPage = () => {
               {hotel.images && hotel.images.length > 0 ? (
                 hotel.images.map((image, index) => (
                   <div className="gallery-item" key={index}>
-                    <img src={image} alt={`${hotel.name} - Ảnh ${index + 1}`} />
+                    <img src={`${process.env.REACT_APP_API_URL}${image}`} alt={`${hotel.name} - Ảnh ${index + 1}`} />
                   </div>
                 ))
               ) : (
@@ -203,7 +202,7 @@ const HotelDetailPage = () => {
                       <div className="room-card" key={room._id}>
                         <div className="room-image">
                           <img 
-                            src={room.images && room.images[0] || 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
+                            src={room.images && room.images[0] ? `${process.env.REACT_APP_API_URL}${room.images[0]}` : 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
                             alt={room.name} 
                           />
                         </div>
