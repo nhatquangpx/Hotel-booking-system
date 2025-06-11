@@ -35,9 +35,12 @@ exports.getRoomsByHotel = async (req, res) => {
         paymentStatus: { $in: ["pending", "paid"] }
       });
       
-      // Filter out booked rooms
+      // Filter out booked rooms and rooms that are not operational
       const bookedRoomIds = bookings.map(booking => booking.room.toString());
-      const availableRooms = rooms.filter(room => !bookedRoomIds.includes(room._id.toString()));
+      const availableRooms = rooms.filter(room => 
+        !bookedRoomIds.includes(room._id.toString()) && 
+        room.status === "active"
+      );
       
       console.log(`Tìm thấy ${availableRooms.length} phòng trống trong khoảng thời gian yêu cầu`);
       return res.status(200).json(availableRooms);
@@ -136,7 +139,7 @@ exports.createRoom = async (req, res) => {
       quantity: Number(quantity),
       facilities: parsedFacilities,
       images: images,
-      status: 'available'
+      status: 'active'
     });
     
     const savedRoom = await newRoom.save();

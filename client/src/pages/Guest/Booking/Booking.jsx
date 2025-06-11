@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
-import './BookingPage.scss';
+import './Booking.scss';
 
 const BookingPage = () => {
   const location = useLocation();
@@ -24,6 +24,11 @@ const BookingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showPaymentQRCode, setShowPaymentQRCode] = useState(false);
+  const [countdown, setCountdown] = useState(900); // 15 phút = 900 giây
+  const countdownRef = useRef();
+  const [guest, setGuest] = useState(null);
+  const user = useSelector((state) => state.user.user);
+
 
   useEffect(() => {
     if (bookingData.bookingId) {
@@ -32,6 +37,7 @@ const BookingPage = () => {
           setLoading(true);
           const bookingRes = await api.userBooking.getBookingById(bookingData.bookingId);
           setBooking(bookingRes);
+          setGuest(bookingRes.guest);
           setHotel(bookingRes.hotel);
           setRoom(bookingRes.room);
           setTotalAmount(bookingRes.totalAmount);
@@ -52,6 +58,8 @@ const BookingPage = () => {
     const fetchBookingDetails = async () => {
       try {
         setLoading(true);
+        const guestResponse = await api.user.getUserProfile(user.id);
+        setGuest(guestResponse);
         const hotelResponse = await api.userHotel.getHotelById(bookingData.hotelId);
         setHotel(hotelResponse);
         const roomResponse = await api.userRoom.getRoomById(bookingData.roomId);
@@ -69,6 +77,28 @@ const BookingPage = () => {
     };
     fetchBookingDetails();
   }, [bookingData]);
+
+  useEffect(() => {
+    if (showPaymentQRCode) {
+      setCountdown(900);
+      countdownRef.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(countdownRef.current);
+    }
+  }, [showPaymentQRCode]);
+
+  useEffect(() => {
+    if (showPaymentQRCode && countdown === 0) {
+      navigate('/my-bookings');
+    }
+  }, [showPaymentQRCode, countdown, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -113,7 +143,7 @@ const BookingPage = () => {
 
         setTimeout(() => {
           navigate('/my-bookings');
-        }, 5000);
+        }, 900000);
         
         setSubmitting(false);
       } catch (err) {
@@ -181,88 +211,139 @@ const BookingPage = () => {
                 <img src={`${import.meta.env.VITE_API_URL}${room.images[0]}`} alt={room.name} className="room-photo" />
               </div>
             )}
+            {showPaymentQRCode && (
+              <div className="payment-qr-code-section">
+                <h2>Thanh toán</h2>
+                <p className="payment-instructions">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán. Đơn đặt phòng của bạn sẽ được xác nhận sau khi nhận được thanh toán.</p>
+                <img src="/assets/qr-code.png" alt="QR Code Thanh Toán" className="qr-code-image" />
+                <p className="payment-note">Sau khi thanh toán thành công, bạn sẽ được chuyển hướng đến trang đặt phòng của tôi.</p>
+                <div className="countdown-timer">
+                  Tự động chuyển hướng sau: <span className="countdown-value">{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</span> phút
+                </div>
+                <button 
+                  className="back-to-bookings-btn" 
+                  onClick={() => navigate('/my-bookings')}
+                >
+                  Xem đơn đặt phòng của tôi
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="booking-details">
             {hotel && room && (
-              <div className="booking-summary">
-                <h2>Thông tin đặt phòng</h2>
-                <div className="summary-item">
-                  <span className="label">Tên khách hàng:</span>
-                  <span className="value">{booking?.guest?.name || ''}</span>
+              <>
+                <div className="room-info-section">
+                  <h2>Thông tin phòng</h2>
+                  <div className="room-details">
+                    <div className="detail-item">
+                      <span className="label">Tên phòng:</span>
+                      <span className="value">{room.name}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Số phòng:</span>
+                      <span className="value">{room.roomNumber}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Loại phòng:</span>
+                      <span className="value">{room.type}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Giá phòng:</span>
+                      <span className="value price">{room.price?.regular?.toLocaleString('vi-VN')} VNĐ/đêm</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Số người tối đa:</span>
+                      <span className="value">{room.maxPeople} người</span>
+                    </div>
+                    <div className="detail-item description">
+                      <span className="label">Mô tả:</span>
+                      <p className="value">{room.description}</p>
+                    </div>
+                    <div className="detail-item facilities">
+                      <span className="label">Tiện nghi:</span>
+                      <div className="facilities-list">
+                        {room.facilities?.map((facility, index) => (
+                          <span key={index} className="facility-tag">{facility}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="summary-item">
-                  <span className="label">Khách sạn:</span>
-                  <span className="value">{hotel.name}</span>
+                <div className="booking-summary">
+                  <h2>Thông tin đặt phòng</h2>
+                  <div className="summary-item">
+                    <span className="label">Tên khách hàng:</span>
+                    <span className="value">{guest.name || ''}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="label">Khách sạn:</span>
+                    <span className="value">{hotel.name}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="label">Phòng:</span>
+                    <span className="value">{room.name}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="label">Số phòng:</span>
+                    <span className="value">{room.roomNumber}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="label">Ngày nhận phòng:</span>
+                    <span className="value">{new Date(bookingData.checkInDate).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="label">Ngày trả phòng:</span>
+                    <span className="value">{new Date(bookingData.checkOutDate).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                  <div className="summary-item total">
+                    <span className="label">Tổng tiền:</span>
+                    <span className="value price">{totalAmount.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
                 </div>
-                <div className="summary-item">
-                  <span className="label">Phòng:</span>
-                  <span className="value">{room.name}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="label">Số phòng:</span>
-                  <span className="value">{room.roomNumber}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="label">Ngày nhận phòng:</span>
-                  <span className="value">{new Date(bookingData.checkInDate).toLocaleDateString('vi-VN')}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="label">Ngày trả phòng:</span>
-                  <span className="value">{new Date(bookingData.checkOutDate).toLocaleDateString('vi-VN')}</span>
-                </div>
-
-                <div className="summary-item total">
-                  <span className="label">Tổng tiền:</span>
-                  <span className="value price">{totalAmount.toLocaleString('vi-VN')} VNĐ</span>
-                </div>
-              </div>
+                {showPaymentQRCode && (
+                  <div className="payment-guide-section">
+                    <h2>Hướng dẫn thanh toán</h2>
+                    <p>Vui lòng chuyển khoản qua tài khoản sau:</p>
+                    <p>Chủ tài khoản: <span className="account-name">DOAN NHAT QUANG</span></p>
+                    <p>Số tài khoản: <span className="account-number">0334978774</span></p>
+                    <p>Ngân hàng: <span className="bank-name">Ngân hàng MB Bank</span></p>
+                    <p>Nội dung chuyển khoản: <span className="transfer-note">TEN_NGUOI_DUNG - KHACH_SAN - SO_PHONG_DA_DAT - NGAY_CHECKIN - NGAY_CHECKOUT</span></p>
+                  </div>
+                )}
+                {!showPaymentQRCode && (
+                  <div className="booking-actions-confirm">
+                    <div className="form-group">
+                      <label htmlFor="specialRequests">Yêu cầu đặc biệt (tùy chọn)</label>
+                      <textarea
+                        id="specialRequests"
+                        name="specialRequests"
+                        value={formData.specialRequests}
+                        onChange={handleInputChange}
+                        rows="3"
+                        placeholder="Ví dụ: Yêu cầu setup trước như thế nào, hoặc cần đồ dùng đặc biệt..."
+                      ></textarea>
+                    </div>
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => navigate(-1)}
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="button"
+                      className="submit-btn"
+                      onClick={handleSubmit}
+                      disabled={submitting}
+                    >
+                      {submitting ? 'Đang xử lý...' : 'Xác nhận đặt phòng và Thanh toán'}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
-          
-          {!showPaymentQRCode ? (
-            <div className="booking-actions-confirm">
-              <div className="form-group">
-                <label htmlFor="specialRequests">Yêu cầu đặc biệt (tùy chọn)</label>
-                <textarea
-                  id="specialRequests"
-                  name="specialRequests"
-                  value={formData.specialRequests}
-                  onChange={handleInputChange}
-                  rows="3"
-                  placeholder="Ví dụ: Yêu cầu setup trước như thế nào, hoặc cần đồ dùng đặc biệt..."
-                ></textarea>
-              </div>
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => navigate(-1)}
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                className="submit-btn"
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? 'Đang xử lý...' : 'Xác nhận đặt phòng và Thanh toán'}
-              </button>
-            </div>
-          ) : (
-            <div className="payment-qr-code-section">
-              <h2>Thanh toán</h2>
-              <p className="payment-instructions">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán. Đơn đặt phòng của bạn sẽ được xác nhận sau khi nhận được thanh toán.</p>
-              <img src="/assets/qr-code.png" alt="QR Code Thanh Toán" className="qr-code-image" />
-              <p className="payment-note">Sau khi thanh toán thành công, bạn sẽ được chuyển hướng đến trang đặt phòng của tôi.</p>
-              <button 
-                className="back-to-bookings-btn" 
-                onClick={() => navigate('/my-bookings')}
-              >
-                Xem đơn đặt phòng của tôi
-              </button>
-            </div>
-          )}
         </div>
       </div>
       <Footer />

@@ -34,7 +34,7 @@ export const userBookingAPI = {
   // Hủy đặt phòng
   cancelBooking: async (id, reason) => {
     try {
-      const response = await api.put(`/guest/bookings/${id}/cancel`, { reason });
+      const response = await api.put(`/guest/bookings/${id}/cancel`, { cancellationReason: reason });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

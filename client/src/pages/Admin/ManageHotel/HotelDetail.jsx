@@ -217,7 +217,13 @@ const HotelDetail = () => {
                   <td>{room.name}</td>
                   <td>{room.type}</td>
                   <td>{room.price?.regular ? room.price.regular.toLocaleString('vi-VN') : 0} VND</td>
-                  <td>{room.status === 'available' ? 'Còn trống' : room.status === 'booked' ? 'Đã đặt' : 'Không xác định'}</td>
+                  <td>
+                    <span className={`status-badge ${room.status}`}>
+                      {room.status === 'active' ? 'Hoạt động' : 
+                       room.status === 'maintenance' ? 'Bảo trì' : 
+                       room.status === 'inactive' ? 'Tạm ngưng' : room.status}
+                    </span>
+                  </td>
                 </tr>
               )) : (
                 <tr><td colSpan={5} style={{ textAlign: 'center' }}>Chưa có phòng nào</td></tr>

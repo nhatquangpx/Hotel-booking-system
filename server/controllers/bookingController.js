@@ -11,7 +11,6 @@ exports.createBooking = async (req, res) => {
       room: roomId,
       checkInDate,
       checkOutDate,
-      guestDetails,
       paymentMethod,
       totalAmount,
       specialRequests
@@ -34,7 +33,7 @@ exports.createBooking = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
 
-    if (room.status !== "available") {
+    if (room.status !== "active") {
       console.log(`Phòng ${roomId} không khả dụng, trạng thái hiện tại: ${room.status}`);
       return res.status(400).json({ message: "Phòng không khả dụng cho đặt chỗ" });
     }
@@ -51,8 +50,8 @@ exports.createBooking = async (req, res) => {
       room: roomId,
       $or: [
         { 
-          checkInDate: { $lte: endDate },
-          checkOutDate: { $gte: startDate }
+          checkInDate: { $lt: endDate },
+          checkOutDate: { $gt: startDate }
         }
       ],
       paymentStatus: { $in: ["pending", "paid"] }
@@ -83,16 +82,13 @@ exports.createBooking = async (req, res) => {
       totalAmount: calculatedAmount,
       paymentMethod,
       specialRequests,
+      cancellationReason: "",
       paymentStatus: "pending" // Mặc định
     });
 
     // Save booking to database
     const savedBooking = await newBooking.save();
     console.log(`Đã tạo đặt phòng thành công, ID: ${savedBooking._id}`);
-
-    // Update room status to booked
-    await Room.findByIdAndUpdate(roomId, { status: "booked" });
-    console.log(`Đã cập nhật trạng thái phòng ${roomId} thành "booked"`);
 
     res.status(201).json(savedBooking);
   } catch (error) {
@@ -374,10 +370,6 @@ exports.cancelBooking = async (req, res) => {
     );
 
     console.log(`Đã hủy đặt phòng ${id} thành công`);
-
-    // Update room status back to available
-    await Room.findByIdAndUpdate(booking.room, { status: "available" });
-    console.log(`Đã cập nhật trạng thái phòng ${booking.room} thành "available"`);
 
     res.status(200).json({ 
       message: "Đã hủy đơn đặt phòng thành công", 

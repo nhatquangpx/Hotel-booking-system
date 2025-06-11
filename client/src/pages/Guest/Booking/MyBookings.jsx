@@ -115,6 +115,9 @@ const MyBookingsPage = () => {
       <div style={{ height: '100px' }}></div>
       <div className="my-bookings-container">
         <h1>Danh sách đặt phòng của tôi</h1>
+        <div className="cancel-policy-reminder">
+          <strong>Lưu ý:</strong> Bạn chỉ có thể hủy đơn đặt phòng nếu đơn chưa thanh toán và còn cách ngày nhận phòng ít nhất <strong>2 ngày</strong>. Nếu đơn đã thanh toán, vui lòng liên hệ hotline <a href="tel:0332915004">0332915004</a> để được hỗ trợ.
+        </div>
         
         {loading && <div className="loading">Đang tải...</div>}
         
@@ -151,17 +154,20 @@ const MyBookingsPage = () => {
                 <div className="booking-details">
                   <div className="room-info">
                     <div className="room-image">
-                      <img 
-                        src={booking.room?.images?.[0] || 'https://via.placeholder.com/300x200?text=Không+có+hình'} 
-                        alt={booking.room?.name || 'Không có tên phòng'} 
-                      />
+                      {booking.room?.images?.[0] ? (
+                        <img 
+                          src={`${import.meta.env.VITE_API_URL}${booking.room.images[0]}`}
+                          alt={booking.room?.name || 'Không có tên phòng'} 
+                        />
+                      ) : (
+                        <div className="no-image">Không có ảnh</div>
+                      )}
                     </div>
                     <div className="room-details">
                       <h3>{booking.room?.name || 'Không có tên phòng'}</h3>
                       <p className="room-type">{booking.room?.type || 'Không có loại phòng'}</p>
-                      <p className="guest-info">
-                        {booking.guestDetails?.adults || 0} người lớn
-                        {booking.guestDetails?.children > 0 && `, ${booking.guestDetails.children} trẻ em`}
+                      <p className="room-price">
+                        {(booking.room?.price?.regular || 0).toLocaleString('vi-VN')} VNĐ/đêm
                       </p>
                     </div>
                   </div>
@@ -172,15 +178,22 @@ const MyBookingsPage = () => {
                         {(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ
                       </span>
                     </div>
-                    
-                    {canCancelBooking(booking) && (
+                    <div className="action-buttons">
                       <button 
-                        className="cancel-booking-btn"
-                        onClick={() => openCancelModal(booking._id)}
+                        className="view-details-btn"
+                        onClick={() => navigate(`/booking/${booking._id}`)}
                       >
-                        Hủy đặt phòng
+                        Xem chi tiết
                       </button>
-                    )}
+                      {canCancelBooking(booking) && (
+                        <button 
+                          className="cancel-booking-btn"
+                          onClick={() => openCancelModal(booking._id)}
+                        >
+                          Hủy đặt phòng
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

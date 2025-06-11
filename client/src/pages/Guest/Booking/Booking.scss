@@ -89,50 +89,48 @@ h1 {
   top: 130px; /* Điều chỉnh vị trí cố định */
 }
 
-.booking-summary h2 {
-  font-size: 1.8em;
-  color: #007bff;
-  margin-bottom: 25px;
-  text-align: center;
-  font-weight: 600;
-}
+.booking-summary {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
 
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px dotted #eee;
-}
+  h2 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 18px;
+  }
 
-.summary-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
+  .summary-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
 
-.summary-item .label {
-  font-weight: 600;
-  color: #555;
-  flex-basis: 40%; /* Tỉ lệ cho label */
-}
-
-.summary-item .value {
-  color: #333;
-  text-align: right;
-  flex-basis: 60%; /* Tỉ lệ cho value */
-}
-
-.summary-item.total {
-  margin-top: 25px;
-  padding-top: 15px;
-  border-top: 2px solid #007bff;
-  font-size: 1.4em;
-}
-
-.summary-item.total .value.price {
-  color: #dc3545;
-  font-weight: 700;
+    .label {
+      font-weight: 500;
+      color: #666;
+      font-size: 0.95rem;
+      min-width: 120px;
+    }
+    .value {
+      color: #333;
+      font-size: 1rem;
+      flex: 1;
+      text-align: right;
+      &.price {
+        color: #e74c3c;
+        font-weight: 600;
+      }
+    }
+  }
+  .total {
+    .label, .value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+  }
 }
 
 .booking-actions-confirm {
@@ -307,4 +305,123 @@ h1 {
     width: 200px;
     height: 200px;
   }
-} 
+}
+
+.room-info-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+
+  h2 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 18px;
+  }
+
+  .room-details {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    .detail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+
+      .label {
+        font-weight: 500;
+        color: #666;
+        font-size: 0.95rem;
+        min-width: 120px;
+      }
+      .value {
+        color: #333;
+        font-size: 1rem;
+        flex: 1;
+        text-align: right;
+        &.price {
+          color: #e74c3c;
+          font-weight: 600;
+        }
+      }
+      &.description {
+        .value {
+          line-height: 1.5;
+        }
+      }
+      &.facilities {
+        .facilities-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: flex-end;
+          flex: 1;
+          .facility-tag {
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #555;
+          }
+        }
+      }
+    }
+  }
+}
+
+.payment-guide-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  background: #f8fafc;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 24px 18px 18px 18px;
+  margin-top: 12px;
+  margin-bottom: 0;
+  h2 {
+    font-size: 1.2rem;
+    color: #3498db;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-align: center;
+  }
+  p {
+    margin: 6px 0;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: #333;
+    text-align: left;
+    width: 100%;
+    max-width: 100%;
+  }
+  .account-name {
+    font-weight: 600;
+    color: #222;
+  }
+  .account-number {
+    font-weight: 700;
+    color: #e67e22;
+    letter-spacing: 1px;
+    font-size: 1.1rem;
+  }
+  .bank-name {
+    font-weight: 600;
+    color: #16a085;
+  }
+  .transfer-note {
+    font-weight: 700;
+    color: #e74c3c;
+    background: #fff3cd;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 1rem;
+    display: inline-block;
+    text-align: left;
+    margin-top: 2px;
+  }
+}
+ 

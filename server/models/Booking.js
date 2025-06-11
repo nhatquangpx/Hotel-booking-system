@@ -44,9 +44,6 @@ const BookingSchema = new mongoose.Schema(
     },
     cancellationReason: {
       type: String
-    },
-    transactionId: {
-      type: String
     }
   },
   { timestamps: true }

@@ -17,6 +17,7 @@ import MyBookingsPage from "./pages/Guest/Booking/MyBookings.jsx";
 import Account from "./pages/Guest/Profile/Account.jsx";
 import AccountEdit from "./pages/Guest/Profile/AccountEdit.jsx";
 import ChangePassword from "./pages/Guest/Profile/ChangePassword.jsx";
+import BookingDetail from "./pages/Guest/Booking/BookingDetail.jsx";
 
 // Admin Pages
 import AdminHomePage from "./pages/Admin/Home/AdminHome.jsx";
@@ -32,8 +33,8 @@ import AdminRoomCreate from "./pages/Admin/ManageRoom/RoomCreate.jsx";
 import AdminRoomEdit from "./pages/Admin/ManageRoom/RoomEdit.jsx";
 import AdminRoomDetail from "./pages/Admin/ManageRoom/RoomDetail.jsx";
 
-import BookingList from "./pages/Admin/ManageBooking/BookingList.jsx";
-import BookingDetail from "./pages/Admin/ManageBooking/BookingDetail.jsx";
+import AdminBookingList from "./pages/Admin/ManageBooking/BookingList.jsx";
+import AdminBookingDetail from "./pages/Admin/ManageBooking/BookingDetail.jsx";
 
 // Owner Pages
 import OwnerHomePage from "./pages/Owner/Home/OwnerHomePage.jsx";
@@ -74,6 +75,7 @@ function App() {
         {/* Booking Routes */}
         <Route path="/booking/new" element={<BookingPage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
+        <Route path="/booking/:id" element={<BookingDetail />} />
 
         <Route
           path="/dashboard"
@@ -105,8 +107,8 @@ function App() {
          <Route path="/admin/rooms/:id" element={<AdminRoomDetail />} />
          <Route path="/admin/rooms/:id/edit" element={<AdminRoomEdit />} />
          {/* Quản lý đặt phòng */}
-         <Route path="/admin/bookings" element={<BookingList />} />
-         <Route path="/admin/bookings/:id" element={<BookingDetail />} />
+         <Route path="/admin/bookings" element={<AdminBookingList />} />
+         <Route path="/admin/bookings/:id" element={<AdminBookingDetail />} />
         </Route>
 
         {/* Owner Routes */}

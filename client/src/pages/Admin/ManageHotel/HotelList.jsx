@@ -348,9 +348,9 @@ const HotelList = () => {
                                     <td>{room.maxPeople} người</td>
                                     <td>
                                       <span className={`status-badge ${room.status}`}>
-                                        {room.status === 'available' ? 'Còn trống' : 
-                                         room.status === 'booked' ? 'Đã đặt' : 
-                                         room.status === 'maintenance' ? 'Bảo trì' : room.status}
+                                        {room.status === 'active' ? 'Hoạt động' : 
+                                         room.status === 'maintenance' ? 'Bảo trì' : 
+                                         room.status === 'inactive' ? 'Tạm ngưng' : room.status}
                                       </span>
                                     </td>
                                     <td>

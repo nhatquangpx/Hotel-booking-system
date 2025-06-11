@@ -19,7 +19,7 @@ const RoomEdit = () => {
     facilities: [],
     images: [],
     quantity: 1,
-    available: true,
+    status: 'active'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -61,7 +61,7 @@ const RoomEdit = () => {
           description: roomData.description,
           facilities: roomData.facilities,
           quantity: roomData.quantity,
-          available: roomData.status === 'available'
+          status: roomData.status
         });
         setExistingImages(roomData.images);
       } catch (err) {
@@ -134,6 +134,7 @@ const RoomEdit = () => {
       submitData.append('maxPeople', formData.maxPeople);
       submitData.append('quantity', formData.quantity);
       submitData.append('facilities', JSON.stringify(formData.facilities));
+      submitData.append('status', formData.status);
 
       // Đảm bảo price là object {regular, discount}
       submitData.append('price', JSON.stringify({
@@ -271,6 +272,21 @@ const RoomEdit = () => {
                 min="1"
                 required
               />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="status">Trạng thái phòng</label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                required
+              >
+                <option value="active">Hoạt động</option>
+                <option value="maintenance">Bảo trì</option>
+                <option value="inactive">Tạm ngưng</option>
+              </select>
             </div>
           </div>
           

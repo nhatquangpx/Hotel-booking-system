@@ -61,9 +61,9 @@ const RoomDetail = () => {
 
   const formatRoomStatus = (status) => {
     const statuses = {
-      available: 'Còn trống',
-      booked: 'Đã đặt',
-      maintenance: 'Bảo trì'
+      active: 'Hoạt động',
+      maintenance: 'Bảo trì',
+      inactive: 'Tạm ngưng'
     };
     return statuses[status] || status;
   };
