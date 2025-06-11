@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import AdminLayout from '../../../components/Admin/AdminLayout';
 import api from '../../../apis';
 import '../../../components/Admin/AdminComponents.scss';
+import './BookingDetail.scss';
 
 const BookingDetail = () => {
   const { id } = useParams();
@@ -91,126 +92,56 @@ const BookingDetail = () => {
   return (
     <AdminLayout>
       <div className="admin-detail-container">
-        <div className="detail-header">
-          <h2>Chi tiết đặt phòng #{booking._id.slice(-6).toUpperCase()}</h2>
-          <div className="detail-actions">
-            <button 
-              className="edit-btn"
-              onClick={handleUpdateClick}
-            >
-              Cập nhật trạng thái
-            </button>
-            <button 
-              className="back-btn"
-              onClick={() => navigate('/admin/bookings')}
-            >
-              Quay lại
-            </button>
-          </div>
-        </div>
-        
-        <div className="booking-status-bar">
-          <div className="status-label">Trạng thái:</div>
-          <div className={`status-badge ${booking.status}`}>
-            {booking.status === 'pending' && 'Chờ xác nhận'}
-            {booking.status === 'confirmed' && 'Đã xác nhận'}
-            {booking.status === 'cancelled' && 'Đã hủy'}
-            {booking.status === 'completed' && 'Hoàn thành'}
-          </div>
-        </div>
-        
+        <h2>Chi tiết đơn đặt phòng</h2>
+        <table className="booking-detail-table">
+          <tbody>
+            <tr>
+              <td className="label">Mã đặt phòng:</td>
+              <td className="value">{booking._id}</td>
+            </tr>
+            <tr>
+              <td className="label">Ngày đặt hàng:</td>
+              <td className="value">{formatDateTime(booking.createdAt)}</td>
+            </tr>
+            <tr>
+              <td className="label">Khách hàng:</td>
+              <td className="value">{booking.guest?.name || booking.userName || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td className="label">Email:</td>
+              <td className="value">{booking.guest?.email || booking.userEmail || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td className="label">Khách sạn:</td>
+              <td className="value">
+                {booking.hotel?._id ? (
+                  <Link to={`/admin/hotels/${booking.hotel._id}`}>{booking.hotel?.name || booking.hotelName}</Link>
+                ) : (booking.hotelName || 'N/A')}
+              </td>
+            </tr>
+            <tr>
+              <td className="label">Phòng:</td>
+              <td className="value">
+                {booking.room?._id ? (
+                  <Link to={`/admin/rooms/${booking.room._id}`}>{booking.room?.roomNumber || booking.roomName}</Link>
+                ) : (booking.roomName || 'N/A')}
+              </td>
+            </tr>
+            <tr>
+              <td className="label">Nhận phòng:</td>
+              <td className="value">{formatDate(booking.checkInDate || booking.checkIn)}</td>
+            </tr>
+            <tr>
+              <td className="label">Trả phòng:</td>
+              <td className="value">{formatDate(booking.checkOutDate || booking.checkOut)}</td>
+            </tr>
+            <tr>
+              <td className="label">Tổng tiền:</td>
+              <td className="value">{booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('vi-VN') + ' VND' : 'N/A'}</td>
+            </tr>
+          </tbody>
+        </table>      
         <div className="booking-info">
-          <div className="info-card">
-            <h3>Thông tin đặt phòng</h3>
-            <div className="info-item">
-              <span className="label">Mã đặt phòng:</span>
-              <span className="value">{booking._id}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Ngày đặt:</span>
-              <span className="value">{formatDateTime(booking.createdAt)}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Nhận phòng:</span>
-              <span className="value">{formatDate(booking.checkIn)}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Trả phòng:</span>
-              <span className="value">{formatDate(booking.checkOut)}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Số đêm:</span>
-              <span className="value">{booking.nights}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Số lượng khách:</span>
-              <span className="value">{booking.guests} người</span>
-            </div>
-          </div>
-          
-          <div className="info-card">
-            <h3>Thông tin khách hàng</h3>
-            <div className="info-item">
-              <span className="label">Họ tên:</span>
-              <span className="value">{booking.userName}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Email:</span>
-              <span className="value">{booking.userEmail}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Số điện thoại:</span>
-              <span className="value">{booking.userPhone}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Ghi chú đặc biệt:</span>
-              <span className="value">{booking.specialRequests || 'Không có'}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="booking-details">
-          <h3>Chi tiết phòng đã đặt</h3>
-          <div className="room-card">
-            <div className="room-info">
-              <h4>{booking.roomName}</h4>
-              <p>Tại {booking.hotelName}</p>
-              <div className="room-detail">
-                <span className="label">Loại phòng:</span>
-                <span className="value">{booking.roomType}</span>
-              </div>
-              <div className="room-detail">
-                <span className="label">Giá phòng:</span>
-                <span className="value">{booking.roomPrice?.toLocaleString('vi-VN')} VND / đêm</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="payment-info">
-          <h3>Chi tiết thanh toán</h3>
-          <div className="price-details">
-            <div className="price-item">
-              <span>Giá phòng ({booking.nights} đêm):</span>
-              <span>{(booking.roomPrice * booking.nights).toLocaleString('vi-VN')} VND</span>
-            </div>
-            {booking.taxFee > 0 && (
-              <div className="price-item">
-                <span>Thuế và phí:</span>
-                <span>{booking.taxFee.toLocaleString('vi-VN')} VND</span>
-              </div>
-            )}
-            {booking.discount > 0 && (
-              <div className="price-item discount">
-                <span>Giảm giá:</span>
-                <span>-{booking.discount.toLocaleString('vi-VN')} VND</span>
-              </div>
-            )}
-            <div className="price-total">
-              <span>Tổng thanh toán:</span>
-              <span>{booking.totalPrice.toLocaleString('vi-VN')} VND</span>
-            </div>
-          </div>
           <div className="payment-status">
             <span className="label">Trạng thái thanh toán:</span>
             <span className={`status-badge ${booking.paymentStatus}`}>

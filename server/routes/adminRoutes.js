@@ -6,7 +6,7 @@ const userController = require("../controllers/userController");
 const hotelController = require("../controllers/hotelController");
 const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
-// const dashboardController = require("../controllers/dashboardController");
+const dashboardController = require('../controllers/dashboardController');
 const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
 // const { roomValidation, validate } = require('../validations/roomValidation');
 
@@ -38,12 +38,12 @@ router.delete("/rooms/:id", roomController.deleteRoom);
 
 // Quản lý đặt phòng
 router.get("/bookings", bookingController.getAllBookings);
+router.get("/bookings/user/:userId", bookingController.getUserBookings);
 router.get("/bookings/:id", bookingController.getBookingById);
 router.put("/bookings/:id/status", bookingController.updateBookingStatus);
 
 // Thống kê
-// router.get("/dashboard/stats", dashboardController.getDashboardStats);
-// router.get("/dashboard/revenue", dashboardController.getRevenueStats);
-// router.get("/dashboard/bookings", dashboardController.getBookingStats);
+router.get('/dashboard/stats', dashboardController.getAdminStats);
+router.get('/dashboard/recent-activities', dashboardController.getRecentActivities);
 
 module.exports = router;

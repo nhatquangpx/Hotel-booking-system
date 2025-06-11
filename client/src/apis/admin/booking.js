@@ -14,7 +14,17 @@ export const adminBookingAPI = {
   // Lấy thông tin chi tiết đặt phòng
   getBookingById: async (id) => {
     try {
-      const response = await api.get(`/adminbookings/${id}`);
+      const response = await api.get(`/admin/bookings/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy danh sách đặt phòng của người dùng
+  getUserBookings: async (userId) => {
+    try {
+      const response = await api.get(`/admin/bookings/user/${userId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

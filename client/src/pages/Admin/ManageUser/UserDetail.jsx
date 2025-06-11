@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -13,6 +13,7 @@ const UserDetail = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,7 +29,13 @@ const UserDetail = () => {
       }
     };
 
+    const fetchBookings = async () => {
+      const data = await api.adminBooking.getUserBookings(id);
+      setBookings(data);
+    };
+
     fetchUser();
+    fetchBookings();
   }, [id]);
 
   if (loading) return (
@@ -112,26 +119,45 @@ const UserDetail = () => {
               <h3>Lịch sử đặt phòng</h3>
             </div>
             
-            {user.bookings && user.bookings.length > 0 ? (
+            {bookings && bookings.length > 0 ? (
               <div className="booking-table">
                 <table>
                   <thead>
                     <tr>
                       <th>Mã đặt phòng</th>
                       <th>Khách sạn</th>
+                      <th>Phòng</th>
                       <th>Ngày nhận phòng</th>
                       <th>Ngày trả phòng</th>
                       <th>Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {user.bookings.map(booking => (
+                    {bookings.map(booking => (
                       <tr key={booking._id}>
                         <td>{booking._id}</td>
-                        <td>{booking.hotelName}</td>
-                        <td>{new Date(booking.checkIn).toLocaleDateString('vi-VN')}</td>
-                        <td>{new Date(booking.checkOut).toLocaleDateString('vi-VN')}</td>
-                        <td>{booking.status}</td>
+                        <td>{booking.hotelId ? (
+                          <Link to={`/admin/hotels/${booking.hotelId}`}>{booking.hotelName || booking.hotelId}</Link>
+                        ) : (booking.hotelName || 'N/A')}</td>
+                        <td>{booking.roomId ? (
+                          <Link to={`/admin/rooms/${booking.roomId}`}>{booking.roomNumber || booking.roomId}</Link>
+                        ) : (booking.roomNumber || 'N/A')}</td>
+                        <td>{booking.checkIn ? new Date(booking.checkIn).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                        <td>{booking.checkOut ? new Date(booking.checkOut).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                        <td>
+                          {booking.status === 'pending' && (
+                            <span className="status-badge pending">Chưa thanh toán</span>
+                          )}
+                          {booking.status === 'paid' && (
+                            <span className="status-badge paid">Đã thanh toán</span>
+                          )}
+                          {booking.status === 'cancelled' && (
+                            <span className="status-badge cancelled">Đã hủy</span>
+                          )}
+                          {booking.status === 'refunded' && (
+                            <span className="status-badge refunded">Đã hoàn tiền</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

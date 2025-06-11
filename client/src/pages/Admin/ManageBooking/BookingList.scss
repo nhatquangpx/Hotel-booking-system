@@ -1,0 +1,237 @@
+:root {
+  --admin-primary: #1976d2;
+  --admin-primary-hover: #1565c0;
+  --admin-danger: #d32f2f;
+  --admin-success: #388e3c;
+  --admin-bg: #f5f6fa;
+  --admin-sidebar: #fff;
+  --admin-text: #222;
+  --admin-header: #f3f6fa;
+  --admin-border: #e0e0e0;
+  --admin-accent: #f5f6fa;
+}
+
+.booking-list-container {
+  background-color: var(--admin-bg);
+  min-height: 100vh;
+  padding: 20px;
+
+  h1 {
+    color: var(--admin-primary);
+    font-weight: 700;
+    font-size: 2em;
+    margin-bottom: 32px;
+    text-align: left;
+  }
+
+  .search-bar {
+    background-color: var(--admin-sidebar);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    .search-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .search-bar-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      .MuiTextField-root {
+        width: 100%;
+        min-width: 250px;
+      }
+    }
+  }
+
+  .booking-table {
+    background-color: var(--admin-sidebar);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 12px;
+    overflow-x: auto;
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: var(--admin-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--admin-border);
+      }
+      th {
+        background: var(--admin-sidebar);
+        color: var(--admin-text);
+        font-weight: 600;
+      }
+      tr:hover {
+        background: var(--admin-hover);
+      }
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        
+        &.pending {
+          background: #fff3cd;
+          color: #856404;
+        }
+        
+        &.paid {
+          background: #d4edda;
+          color: #155724;
+        }
+        
+        &.cancelled {
+          background: #f8d7da;
+          color: #721c24;
+        }
+      }
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+    }
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    &.pending {
+      background-color: #fffde7;
+      color: #fbc02d;
+    }
+    &.paid {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    &.cancelled {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+  }
+
+  .error-message {
+    color: var(--admin-danger);
+    text-align: center;
+    margin: 1rem 0;
+    font-size: 1.1em;
+  }
+  .loading {
+    color: var(--admin-primary);
+    text-align: center;
+    margin: 1.5rem 0;
+    font-size: 1.1em;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+
+    .modal-content {
+      background: var(--admin-bg);
+      padding: 20px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+
+        h2 {
+          margin: 0;
+          color: var(--admin-text);
+        }
+
+        .close-button {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: var(--admin-text);
+        }
+      }
+
+      .modal-body {
+        .form-group {
+          margin-bottom: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+
+          label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--admin-text);
+            font-weight: 500;
+          }
+
+          select {
+            width: 100%;
+            min-width: 250px;
+            padding: 10px;
+            border: 1px solid var(--admin-border);
+            border-radius: 4px;
+            background: var(--admin-bg);
+            color: var(--admin-text);
+            font-size: 1rem;
+            margin-top: 4px;
+          }
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: center;
+          gap: 0;
+          width: 100%;
+
+          button {
+            min-width: 120px;
+            padding: 10px 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background 0.2s;
+          }
+          .submit-btn {
+            background: var(--admin-success, #28a745);
+            color: white;
+            order: 1;
+          }
+          .submit-btn:hover {
+            background: #218838;
+          }
+          .cancel-btn {
+            background: #6c757d;
+            color: white;
+            margin-left: 20px;
+            order: 2;
+          }
+        }
+      }
+    }
+  }
+} 

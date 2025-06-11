@@ -100,22 +100,32 @@ exports.createBooking = async (req, res) => {
 // Get all bookings for the current user
 exports.getUserBookings = async (req, res) => {
   try {
-    console.log(`Lấy danh sách đặt phòng của người dùng ID: ${req.user.id}`);
-      const bookings = await BookingHistory.find({ guest: req.user.id })
+    const userId = req.params.userId;
+    const bookings = await BookingHistory.find({ guest: userId })
       .populate({
         path: "hotel",
-        select: "name address images starRating"
+        select: "name"
       })
       .populate({
         path: "room",
-        select: "roomNumber type price images"
+        select: "roomNumber"
       })
       .sort({ createdAt: -1 });
 
-    console.log(`Đã tìm thấy ${bookings.length} đặt phòng của người dùng`);
-    res.status(200).json(bookings);
+    // Định dạng lại dữ liệu trả về cho frontend
+    const formatted = bookings.map(b => ({
+      _id: b._id,
+      hotelId: b.hotel?._id,
+      hotelName: b.hotel?.name,
+      roomId: b.room?._id,
+      roomNumber: b.room?.roomNumber,
+      checkIn: b.checkInDate,
+      checkOut: b.checkOutDate,
+      status: b.paymentStatus 
+    }));
+
+    res.status(200).json(formatted);
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách đặt phòng:", error);
     res.status(500).json({ message: "Lỗi khi lấy danh sách đặt phòng", error: error.message });
   }
 };
@@ -146,8 +156,8 @@ exports.getAllBookings = async (req, res) => {
         select: "roomNumber type"
       })
       .populate({
-        path: "user",
-        select: "fullName email phone"
+        path: "guest",
+        select: "name email phone"
       })
       .sort({ createdAt: -1 });
 
@@ -280,13 +290,13 @@ exports.getAvailableRooms = async (req, res) => {
 
 // Update booking status (admin only)
 exports.updateBookingStatus = async (req, res) => {
-  const { bookingId } = req.params;
+  const { id } = req.params;
   const { status } = req.body;
   const { role, _id: userId } = req.user; // Lấy thông tin người dùng từ middleware xác thực
 
   try {
     // Tìm đơn đặt phòng
-    const booking = await BookingHistory.findById(bookingId);
+    const booking = await BookingHistory.findById(id);
     if (!booking) {
       return res.status(404).json({ message: "Đơn đặt phòng không tồn tại" });
     }

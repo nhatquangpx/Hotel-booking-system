@@ -3,28 +3,37 @@ import { Link, Routes, Route, Outlet } from 'react-router-dom'
 import AdminLayout from '../../../components/Admin/AdminLayout'
 import UserList from '../ManageUser/UserList'
 import '../../../components/Admin/AdminComponents.scss'
+import { adminDashboardAPI, adminRecentActivitiesAPI } from '../../../apis/admin/dashboard'
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalRooms: 0,
+    totalHotels: 0,
     totalBookings: 0,
     revenue: 0
   });
+  const [activities, setActivities] = useState([]);
   
-  // Trong thực tế, bạn sẽ cần gọi API để lấy các thống kê này
   useEffect(() => {
     const fetchStats = async () => {
-      // Giả lập dữ liệu thống kê
-      setStats({
-        totalUsers: 24,
-        totalRooms: 42,
-        totalBookings: 85,
-        revenue: 158750000
-      });
+      try {
+        const data = await adminDashboardAPI.getStats();
+        setStats(data);
+      } catch (err) {
+        // Xử lý lỗi nếu cần
+      }
     };
-    
+    const fetchActivities = async () => {
+      try {
+        const data = await adminRecentActivitiesAPI.getRecentActivities();
+        setActivities(data);
+      } catch (err) {
+        // Xử lý lỗi nếu cần
+      }
+    };
     fetchStats();
+    fetchActivities();
   }, []);
   
   // Format số tiền VND
@@ -44,6 +53,12 @@ const AdminDashboard = () => {
           <div className="stat-title">Tổng người dùng</div>
           <div className="stat-value">{stats.totalUsers}</div>
           <div className="stat-description">Tổng số tài khoản đã đăng ký</div>
+        </div>
+        
+        <div className="stat-card hotels">
+          <div className="stat-title">Tổng số khách sạn</div>
+          <div className="stat-value">{stats.totalHotels}</div>
+          <div className="stat-description">Khách sạn có trong hệ thống</div>
         </div>
         
         <div className="stat-card rooms">
@@ -85,12 +100,6 @@ const AdminDashboard = () => {
           <div className="card-title">Quản lý đặt phòng</div>
           <div className="card-description">Xem và quản lý các đơn đặt phòng</div>
         </Link>
-        
-        <Link to="/admin/settings" className="quick-access-card">
-          <div className="card-icon">⚙️</div>
-          <div className="card-title">Cài đặt hệ thống</div>
-          <div className="card-description">Thay đổi cài đặt hệ thống</div>
-        </Link>
       </div>
       
       <h2>Hoạt động gần đây</h2>
@@ -104,21 +113,17 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>10:30 18/07/2023</td>
-              <td>Nguyễn Văn A</td>
-              <td>Đặt phòng Deluxe từ 20/07 đến 25/07</td>
-            </tr>
-            <tr>
-              <td>09:15 18/07/2023</td>
-              <td>Trần Thị B</td>
-              <td>Hủy đặt phòng #00123</td>
-            </tr>
-            <tr>
-              <td>18:45 17/07/2023</td>
-              <td>Lê Văn C</td>
-              <td>Đăng ký tài khoản mới</td>
-            </tr>
+            {activities.length > 0 ? activities.map((act, idx) => (
+              <tr key={idx}>
+                <td>{act.time ? new Date(act.time).toLocaleString('vi-VN') : ''}</td>
+                <td>{act.user || ''}</td>
+                <td>{act.action || ''}</td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan="3" style={{textAlign: 'center'}}>Không có hoạt động gần đây</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
