@@ -58,9 +58,9 @@ exports.getRoomsByHotel = async (req, res) => {
 exports.getRoomById = async (req, res) => {
   try {
     console.log(`Lấy thông tin phòng ID: ${req.params.id}`);
-      const room = await Room.findById(req.params.id).populate({
+    const room = await Room.findById(req.params.id).populate({
       path: "hotelId",
-      select: "name address starRating images"
+      select: "address starRating images"
     });
     
     if (!room) {
@@ -68,7 +68,7 @@ exports.getRoomById = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
     
-    console.log(`Đã tìm thấy phòng: ${room.name} thuộc khách sạn: ${room.hotelId.name}`);
+    console.log(`Đã tìm thấy phòng thuộc khách sạn: ${room.hotelId? room.hotelId._id : ''}`);
     res.status(200).json(room);
   } catch (error) {
     console.error("Lỗi khi lấy thông tin phòng:", error);
@@ -85,7 +85,7 @@ exports.createRoom = async (req, res) => {
     // Lấy đường dẫn ảnh từ req.files và chuyển thành URL
     const images = req.files ? req.files.map(file => `/uploads/rooms/${file.filename}`) : [];
 
-    const { hotelId, name, roomNumber, type, price, maxPeople, description, facilities, quantity } = req.body;
+    const { hotelId, roomNumber, type, price, maxPeople, description, facilities } = req.body;
     
     // Validate type enum
     const validTypes = ['standard', 'deluxe', 'suite', 'family', 'executive'];
@@ -127,7 +127,6 @@ exports.createRoom = async (req, res) => {
     
     const newRoom = new Room({
       hotelId,
-      name,
       roomNumber,
       type,
       description,
@@ -136,7 +135,6 @@ exports.createRoom = async (req, res) => {
         discount: 0 
       },
       maxPeople: Number(maxPeople),
-      quantity: Number(quantity),
       facilities: parsedFacilities,
       images: images,
       status: 'active'
@@ -206,7 +204,7 @@ exports.updateRoom = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    console.log(`Đã cập nhật phòng thành công: ${updatedRoom.name}`);
+    console.log(`Đã cập nhật phòng thành công: ${updatedRoom.roomNumber}`);
     res.status(200).json(updatedRoom);
   } catch (error) {
     console.error("Lỗi khi cập nhật phòng:", error);

@@ -164,7 +164,7 @@ const MyBookingsPage = () => {
                       )}
                     </div>
                     <div className="room-details">
-                      <h3>{booking.room?.name || 'Không có tên phòng'}</h3>
+                      <h3>{booking.room?.roomNumber || 'Không có số phòng'}</h3>
                       <p className="room-type">{booking.room?.type || 'Không có loại phòng'}</p>
                       <p className="room-price">
                         {(booking.room?.price?.regular || 0).toLocaleString('vi-VN')} VNĐ/đêm

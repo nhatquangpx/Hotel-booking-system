@@ -8,7 +8,6 @@ const RoomCreate = () => {
   const navigate = useNavigate();
   const [hotels, setHotels] = useState([]);
   const [formData, setFormData] = useState({
-    name: '',
     roomNumber: '',
     hotelId: '',
     type: 'standard',
@@ -17,7 +16,6 @@ const RoomCreate = () => {
     description: '',
     facilities: [],
     images: [],
-    quantity: 1,
     available: true,
   });
   const [loading, setLoading] = useState(false);
@@ -177,18 +175,6 @@ const RoomCreate = () => {
                 required
               />
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="name">Tên phòng</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
           </div>
           
           <div className="form-group">
@@ -236,19 +222,7 @@ const RoomCreate = () => {
                 required
               />
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="quantity">Số lượng phòng</label>
-              <input
-                type="number"
-                id="quantity"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleChange}
-                min="1"
-                required
-              />
-            </div>
+          
           </div>
           
           <div className="form-group">

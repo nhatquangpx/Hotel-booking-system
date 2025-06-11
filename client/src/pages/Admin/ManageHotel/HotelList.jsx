@@ -330,7 +330,6 @@ const HotelList = () => {
                               <thead>
                                 <tr>
                                   <th>Số phòng</th>
-                                  <th>Tên phòng</th>
                                   <th>Loại phòng</th>
                                   <th>Giá</th>
                                   <th>Số người</th>
@@ -342,7 +341,6 @@ const HotelList = () => {
                                 {rooms[hotel._id].map(room => (
                                   <tr key={room._id}>
                                     <td>{room.roomNumber}</td>
-                                    <td>{room.name}</td>
                                     <td>{formatRoomType(room.type)}</td>
                                     <td>{formatPrice(room.price)}</td>
                                     <td>{room.maxPeople} người</td>

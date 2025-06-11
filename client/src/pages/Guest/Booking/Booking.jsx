@@ -237,10 +237,6 @@ const BookingPage = () => {
                   <h2>Thông tin phòng</h2>
                   <div className="room-details">
                     <div className="detail-item">
-                      <span className="label">Tên phòng:</span>
-                      <span className="value">{room.name}</span>
-                    </div>
-                    <div className="detail-item">
                       <span className="label">Số phòng:</span>
                       <span className="value">{room.roomNumber}</span>
                     </div>
@@ -279,10 +275,6 @@ const BookingPage = () => {
                   <div className="summary-item">
                     <span className="label">Khách sạn:</span>
                     <span className="value">{hotel.name}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span className="label">Phòng:</span>
-                    <span className="value">{room.name}</span>
                   </div>
                   <div className="summary-item">
                     <span className="label">Số phòng:</span>

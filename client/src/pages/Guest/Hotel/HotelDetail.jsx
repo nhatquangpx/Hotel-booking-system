@@ -254,7 +254,7 @@ const HotelDetailPage = () => {
                           />
                         </div>
                         <div className="room-info">
-                          <h3>{room.name}</h3>
+                          <h3>{room.roomNumber} </h3>
                           <p className="room-type">{room.type}</p>
                           <div className="room-price">
                             <span className="price">{room.price.regular.toLocaleString('vi-VN')} VNĐ</span>

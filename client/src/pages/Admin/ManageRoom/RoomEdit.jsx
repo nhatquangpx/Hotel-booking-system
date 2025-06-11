@@ -9,7 +9,6 @@ const RoomEdit = () => {
   const { id } = useParams();
   const [hotels, setHotels] = useState([]);
   const [formData, setFormData] = useState({
-    name: '',
     roomNumber: '',
     hotelId: '',
     type: 'standard',
@@ -18,7 +17,6 @@ const RoomEdit = () => {
     description: '',
     facilities: [],
     images: [],
-    quantity: 1,
     status: 'active'
   });
   const [loading, setLoading] = useState(false);
@@ -52,7 +50,6 @@ const RoomEdit = () => {
         setFetchingRoom(true);
         const roomData = await api.adminRoom.getRoomById(id);
         setFormData({
-          name: roomData.name,
           roomNumber: roomData.roomNumber,
           hotelId: typeof roomData.hotelId === 'object' ? roomData.hotelId._id : roomData.hotelId,
           type: roomData.type,
@@ -60,7 +57,6 @@ const RoomEdit = () => {
           maxPeople: roomData.maxPeople,
           description: roomData.description,
           facilities: roomData.facilities,
-          quantity: roomData.quantity,
           status: roomData.status
         });
         setExistingImages(roomData.images);
@@ -128,11 +124,9 @@ const RoomEdit = () => {
       // Thêm các trường dữ liệu vào FormData
       submitData.append('hotelId', formData.hotelId);
       submitData.append('roomNumber', formData.roomNumber);
-      submitData.append('name', formData.name);
       submitData.append('type', formData.type);
       submitData.append('description', formData.description);
       submitData.append('maxPeople', formData.maxPeople);
-      submitData.append('quantity', formData.quantity);
       submitData.append('facilities', JSON.stringify(formData.facilities));
       submitData.append('status', formData.status);
 
@@ -201,18 +195,6 @@ const RoomEdit = () => {
                 required
               />
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="name">Tên phòng</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
           </div>
           
           <div className="form-group">
@@ -257,19 +239,6 @@ const RoomEdit = () => {
                 onChange={handleChange}
                 min="1"
                 max="10"
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="quantity">Số lượng phòng</label>
-              <input
-                type="number"
-                id="quantity"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleChange}
-                min="1"
                 required
               />
             </div>

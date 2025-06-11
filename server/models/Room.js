@@ -12,11 +12,6 @@ const RoomSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    name: {
-      type: String,
-      required: true,
-      trim: true
-    },
     type: {
       type: String,
       required: true,
@@ -31,11 +26,6 @@ const RoomSchema = new mongoose.Schema(
       discount: { type: Number, default: 0 }
     },
     maxPeople: {
-      type: Number,
-      required: true,
-      min: 1
-    },
-    quantity: {
       type: Number,
       required: true,
       min: 1

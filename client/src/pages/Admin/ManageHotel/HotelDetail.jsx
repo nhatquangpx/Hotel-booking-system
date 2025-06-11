@@ -194,7 +194,7 @@ const HotelDetail = () => {
             <thead>
               <tr>
                 <th>Ảnh</th>
-                <th>Tên phòng</th>
+                <th>Số phòng</th>
                 <th>Loại phòng</th>
                 <th>Giá</th>
                 <th>Trạng thái</th>
@@ -207,14 +207,14 @@ const HotelDetail = () => {
                     {room.images && room.images.length > 0 ? (
                       <img 
                         src={`${import.meta.env.VITE_API_URL}${room.images[0]}`} 
-                        alt={room.name} 
+                        alt={room.roomNumber} 
                         className="room-image-thumb"
                       />
                     ) : (
                       <div className="no-image">Không có ảnh</div>
                     )}
                   </td>
-                  <td>{room.name}</td>
+                  <td>{room.roomNumber}</td>
                   <td>{room.type}</td>
                   <td>{room.price?.regular ? room.price.regular.toLocaleString('vi-VN') : 0} VND</td>
                   <td>

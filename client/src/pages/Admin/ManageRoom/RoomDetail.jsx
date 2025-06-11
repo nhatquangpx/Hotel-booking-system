@@ -99,7 +99,7 @@ const RoomDetail = () => {
         <h1>Chi tiết phòng</h1>
         <div className="detail-card">
           <div className="detail-header">
-            <h3>{room.name}</h3>
+            <h3>{room.roomNumber}</h3>
             <div className="detail-actions">
               <Tooltip title="Chỉnh sửa">
                 <IconButton 
@@ -134,10 +134,6 @@ const RoomDetail = () => {
               </div>
             </div>
             <div className="detail-row">
-              <div className="detail-label">Số phòng:</div>
-              <div className="detail-value">{room.roomNumber}</div>
-            </div>
-            <div className="detail-row">
               <div className="detail-label">Loại phòng:</div>
               <div className="detail-value">{formatRoomType(room.type)}</div>
             </div>
@@ -156,10 +152,6 @@ const RoomDetail = () => {
             <div className="detail-row">
               <div className="detail-label">Số người tối đa:</div>
               <div className="detail-value">{room.maxPeople} người</div>
-            </div>
-            <div className="detail-row">
-              <div className="detail-label">Số lượng phòng:</div>
-              <div className="detail-value">{room.quantity} phòng</div>
             </div>
             <div className="detail-row">
               <div className="detail-label">Trạng thái:</div>

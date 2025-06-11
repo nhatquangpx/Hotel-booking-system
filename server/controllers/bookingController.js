@@ -108,7 +108,7 @@ exports.getUserBookings = async (req, res) => {
       })
       .populate({
         path: "room",
-        select: "name type price images"
+        select: "roomNumber type price images"
       })
       .sort({ createdAt: -1 });
 
@@ -143,7 +143,7 @@ exports.getAllBookings = async (req, res) => {
       })
       .populate({
         path: "room",
-        select: "name type"
+        select: "roomNumber type"
       })
       .populate({
         path: "user",
@@ -175,7 +175,7 @@ exports.getBookingsByOwner = async (req, res) => {
       })
       .populate({
         path: "room",
-        select: "name type"
+        select: "roomNumber type"
       })
       .populate({
         path: "guest",
@@ -204,7 +204,7 @@ exports.getBookingById = async (req, res) => {
       })
       .populate({
         path: "room",
-        select: "name type price images"
+        select: "roomNumber type price images"
       })
       .populate({
         path: "guest",
@@ -262,7 +262,7 @@ exports.getAvailableRooms = async (req, res) => {
         paymentStatus: { $in: ["pending", "paid"] } // Chỉ xem xét các booking chưa hủy hoặc đã thanh toán
       });
 
-      console.log(`[getAvailableRooms] Phòng ${room._id} (${room.name}): ${conflictingBookings.length} booking trùng lặp.`);
+      console.log(`[getAvailableRooms] Phòng ${room._id} (${room.roomNumber}): ${conflictingBookings.length} booking trùng lặp.`);
 
       if (conflictingBookings.length === 0) {
         // Nếu không có booking nào trùng lặp, phòng này là có sẵn

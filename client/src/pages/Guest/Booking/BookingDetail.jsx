@@ -190,10 +190,6 @@ const BookingDetail = () => {
               <h2>Thông tin phòng</h2>
               <div className="room-details">
                 <div className="detail-item">
-                  <span className="label">Tên phòng:</span>
-                  <span className="value">{booking.room?.name}</span>
-                </div>
-                <div className="detail-item">
                   <span className="label">Số phòng:</span>
                   <span className="value">{booking.room?.roomNumber}</span>
                 </div>
