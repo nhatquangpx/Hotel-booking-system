@@ -26,7 +26,7 @@ const MyBookingsPage = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const response = await api.userBooking.getUserBookings();
+        const response = await api.userBooking.getMyBookings();
         if (response && Array.isArray(response)) {
           setBookings(response);
         } else {

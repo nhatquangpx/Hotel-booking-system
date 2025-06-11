@@ -2,7 +2,7 @@ import api from '../config/axios';
 
 export const userBookingAPI = {
   // Lấy tất cả đặt phòng của người dùng
-  getUserBookings: async () => {
+  getMyBookings: async () => {
     try {
       const response = await api.get('/guest/bookings');
       return response.data;

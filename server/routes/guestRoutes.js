@@ -22,7 +22,7 @@ router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
 router.get('/rooms/:id', roomController.getRoomById);
 
 // Quản lý đặt phòng
-router.get('/bookings', bookingController.getUserBookings);
+router.get('/bookings', bookingController.getMyBookings);
 router.get('/bookings/available-rooms', bookingController.getAvailableRooms);
 router.get('/bookings/:id', bookingController.getBookingById);
 router.post('/bookings', bookingController.createBooking);

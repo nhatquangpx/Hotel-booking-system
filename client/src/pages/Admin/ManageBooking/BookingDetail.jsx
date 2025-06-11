@@ -147,7 +147,7 @@ const BookingDetail = () => {
             <span className={`status-badge ${booking.paymentStatus}`}>
               {booking.paymentStatus === 'pending' && 'Chưa thanh toán'}
               {booking.paymentStatus === 'paid' && 'Đã thanh toán'}
-              {booking.paymentStatus === 'refunded' && 'Đã hoàn tiền'}
+              {booking.paymentStatus === 'cancelled' && 'Đã hủy'}
             </span>
           </div>
           <div className="payment-method">

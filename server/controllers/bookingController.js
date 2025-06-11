@@ -97,6 +97,28 @@ exports.createBooking = async (req, res) => {
   }
 };
 
+exports.getMyBookings = async (req, res) => {
+  try {
+    console.log(`Lấy danh sách đặt phòng của người dùng ID: ${req.user.id}`);
+      const bookings = await BookingHistory.find({ guest: req.user.id })
+      .populate({
+        path: "hotel",
+        select: "name address images starRating"
+      })
+      .populate({
+        path: "room",
+        select: "roomNumber type price images"
+      })
+      .sort({ createdAt: -1 });
+
+    console.log(`Đã tìm thấy ${bookings.length} đặt phòng của người dùng`);
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách đặt phòng:", error);
+    res.status(500).json({ message: "Lỗi khi lấy danh sách đặt phòng", error: error.message });
+  }
+};
+
 // Get all bookings for the current user
 exports.getUserBookings = async (req, res) => {
   try {
@@ -214,7 +236,7 @@ exports.getBookingById = async (req, res) => {
       })
       .populate({
         path: "room",
-        select: "roomNumber type price images"
+        select: "roomNumber type price images maxPeople description facilities"
       })
       .populate({
         path: "guest",
