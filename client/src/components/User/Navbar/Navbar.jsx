@@ -1,8 +1,8 @@
-import { IconButton } from "@mui/material"
+import { IconButton, MenuItem, Select, FormControl, InputLabel } from "@mui/material"
 import { useState } from 'react'
 import { Search, Person, Menu } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { setLogout } from '../../../redux/state'
 import "./Navbar.scss"
 
@@ -10,12 +10,23 @@ const pinkred = '#fa002a';
 const darkgrey = '#969393';
 
 export const Navbar = () => {
-  const [dropdownMenu, setDropdownMenu] = useState(false)
+  const [dropdownMenu, setDropdownMenu] = useState(false);
+  const [searchType, setSearchType] = useState('hotel');
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const userState = useSelector((state) => state.user || {}); 
   const user = userState?.user || null; 
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    // Tìm kiếm đồng thời theo tên khách sạn và địa danh
+    navigate(`/hotels?search=${encodeURIComponent(searchQuery)}`);
+  };
 
   return (
     <div className='navbar'>
@@ -30,12 +41,17 @@ export const Navbar = () => {
         <Link to="/contact" className="menu-item">Liên hệ</Link>
       </div>
 
-      <div className='navbar_search'>
-        <input type="text" placeholder='Tìm kiếm ...' />
-        <IconButton>
+      <form className='navbar_search' onSubmit={handleSearch}>
+        <input 
+          type="text" 
+          placeholder='Tìm khách sạn hoặc địa danh...' 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <IconButton type="submit">
           <Search sx={{ color: pinkred }} />
         </IconButton>
-      </div>
+      </form>
 
       <div className='navbar_right'>
         <button className='navbar_right_account' onClick={() => setDropdownMenu(!dropdownMenu)}>

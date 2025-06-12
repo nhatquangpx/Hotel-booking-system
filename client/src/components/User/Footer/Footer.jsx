@@ -1,8 +1,16 @@
 import React from "react";
 import "./Footer.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from "react-redux";
 
 function Footer() {
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user);
+
+  const handleCityClick = (cityName) => {
+    navigate(`/hotels?city=${encodeURIComponent(cityName)}`);
+  };
+
   return (
     <footer className="footer">
       <div className="footer__main">
@@ -21,34 +29,40 @@ function Footer() {
           <div className="footer__col">
             <div className="footer__col-title">Điểm đến</div>
             <ul>
-              <li>Hà Nội</li>
-              <li>Đà Nẵng</li>
-              <li>TP. Hồ Chí Minh</li>
-              <li>Hội An</li>
+              <li onClick={() => handleCityClick('Hà Nội')}>Hà Nội</li>
+              <li onClick={() => handleCityClick('Đà Nẵng')}>Đà Nẵng</li>
+              <li onClick={() => handleCityClick('TP. Hồ Chí Minh')}>TP. Hồ Chí Minh</li>
+              <li onClick={() => handleCityClick('Hội An')}>Hội An</li>
             </ul>
           </div>
           <div className="footer__col">
             <div className="footer__col-title">Hỗ trợ</div>
             <ul>
-              <li>Câu hỏi thường gặp</li>
-              <li>Chính sách hủy phòng</li>
-              <li>Trung tâm trợ giúp</li>
-              <li>Dịch vụ khách hàng</li>
+              <Link to="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <li>Câu hỏi thường gặp</li>
+              </Link>
+              <Link to="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <li>Trung tâm trợ giúp</li>
+              </Link>
             </ul>
           </div>
           <div className="footer__col">
             <div className="footer__col-title">Dành cho khách hàng</div>
             <ul>
-              <li>Đặt phòng của tôi</li>
-              <li>Tài khoản</li>
-              <li>Khuyến mãi</li>
-              <li>Blog du lịch</li>
+              <Link to="/my-bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <li>Đặt phòng của tôi</li>
+              </Link>
+              <Link to={`/profile/${user?.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <li>Tài khoản</li>
+              </Link>
             </ul>
           </div>
           <div className="footer__col">
             <div className="footer__col-title">Về chúng tôi</div>
             <ul>
-              <Link to="/about" style={{ textDecoration: 'none', color: 'inherit' }}><li>Giới thiệu</li></Link>
+              <Link to="/about" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <li>Giới thiệu</li>
+              </Link>
             </ul>
           </div>
           <div className="footer__col">

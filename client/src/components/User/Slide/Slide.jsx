@@ -55,9 +55,16 @@ const Slide = ({
             }}
           >
             {showTitle && (
-              <h1>
-                Khám phá thế giới theo cách của bạn <br /> Đặt phòng dễ dàng, trải nghiệm đáng nhớ!
-              </h1>
+              <div className="slide-content">
+                <h1>
+                  Chào mừng đến với Hotel Booking
+                </h1>
+                <p>
+                  Khám phá và đặt phòng tại những khách sạn tốt nhất Việt Nam. 
+                  Với hơn 1000+ khách sạn chất lượng, chúng tôi cam kết mang đến 
+                  cho bạn trải nghiệm nghỉ dưỡng tuyệt vời nhất.
+                </p>
+              </div>
             )}
           </div>
         ))}

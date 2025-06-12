@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
-import './HotelDetailPage.scss';
+import './HotelDetail.scss';
 
 const HotelDetailPage = () => {
   const { id } = useParams();

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import api from '../../../apis';
 import Navbar from "../../../components/User/Navbar/Navbar";
 import Footer from "../../../components/User/Footer/Footer";
-import './MyBookingsPage.scss';
+import './MyBookings.scss';
 
 const MyBookingsPage = () => {
   const navigate = useNavigate();

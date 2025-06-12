@@ -121,7 +121,7 @@ const HotelDetail = () => {
               <Tooltip title="Chỉnh sửa">
                 <IconButton 
                   color="primary"
-                  onClick={() => navigate(`/admin/hotels/edit/${id}`)}
+                  onClick={() => navigate(`/admin/hotels/${id}/edit`)}
                 >
                   <EditIcon />
                 </IconButton>

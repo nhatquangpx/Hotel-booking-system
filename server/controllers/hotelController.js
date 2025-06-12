@@ -149,3 +149,69 @@ exports.getAllOwners = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lấy danh sách owners", error: error.message });
   }
 };
+
+// Get featured hotels (5-star hotels)
+exports.getFeaturedHotels = async (req, res) => {
+  try {
+    const featuredHotels = await Hotel.find({ 
+      starRating: 5,
+      status: "active" 
+    })
+    .populate({
+      path: 'ownerId',
+      select: 'name email phone -_id'
+    })
+    .limit(6); // Giới hạn 6 khách sạn nổi bật
+    
+    res.status(200).json(featuredHotels);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách khách sạn nổi bật:", error);
+    res.status(500).json({ 
+      message: "Lỗi khi lấy danh sách khách sạn nổi bật", 
+      error: error.message 
+    });
+  }
+};
+
+// Get hotels by filter
+exports.getHotelByFilter = async (req, res) => {
+  try {
+    const { city, starRating, name, search } = req.query;
+    let query = {};
+
+    // Apply filters if they exist
+    if (city) {
+      query["address.city"] = { $regex: city, $options: "i" };
+    }
+    
+    if (starRating) {
+      query.starRating = parseInt(starRating);
+    }
+
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+
+    // Tìm kiếm đồng thời theo tên khách sạn và địa danh
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { "address.city": { $regex: search, $options: "i" } }
+      ];
+    }
+    
+    const hotels = await Hotel.find(query)
+      .populate({
+        path: 'ownerId',
+        select: 'name email phone -_id'
+      });
+      
+    res.status(200).json(hotels);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách khách sạn theo bộ lọc:", error);
+    res.status(500).json({ 
+      message: "Lỗi khi lấy danh sách khách sạn theo bộ lọc", 
+      error: error.message 
+    });
+  }
+};

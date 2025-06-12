@@ -1,7 +1,7 @@
 import Navbar from "../../../components/User/Navbar/Navbar"
 import Footer from "../../../components/User/Footer/Footer"
 import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaHeart, FaThumbsUp, FaGlobe, FaStar } from "react-icons/fa"
-import "./AboutPage.scss"
+import "./About.scss"
 
 const AboutPage = () => {
   return (

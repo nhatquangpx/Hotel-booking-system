@@ -8,9 +8,9 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 0 0 0;
+    width: 100%;
+    max-width: unset;
+    padding: 32px 60px 0 60px;
     background: #8fdacb;
     @media (max-width: 900px) {
       flex-direction: column;
@@ -36,7 +36,7 @@
       height: 200px;
     }
     margin-top: -70px;
-    margin-left: -70px;
+    margin-left: 20px;
   }
   &__socials {
     display: flex;

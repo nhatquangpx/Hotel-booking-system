@@ -15,6 +15,8 @@ router.put('/profile/:id/changepassword', userController.changePassword);
 
 // Xem danh sách khách sạn
 router.get('/hotels', hotelController.getAllHotels);
+router.get('/hotels/filter', hotelController.getHotelByFilter);
+router.get('/hotels/featured', hotelController.getFeaturedHotels);
 router.get('/hotels/:id', hotelController.getHotelById);
 
 // Xem danh sách phòng

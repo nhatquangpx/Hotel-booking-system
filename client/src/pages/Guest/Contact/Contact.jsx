@@ -1,7 +1,7 @@
 import Navbar from "../../../components/User/Navbar/Navbar"
 import Footer from "../../../components/User/Footer/Footer"
 import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaClock, FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn } from "react-icons/fa";
-import "./ContactPage.scss"
+import "./Contact.scss"
 
 const ContactPage = () => {
   return (

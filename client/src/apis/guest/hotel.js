@@ -11,10 +11,30 @@ export const userHotelAPI = {
     }
   },
 
+  // Lấy khách sạn theo bộ lọc
+  getHotelByFilter: async (filters) => {
+    try {
+      const response = await api.get('/guest/hotels/filter', { params: filters });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Lấy thông tin chi tiết khách sạn
   getHotelById: async (id) => {
     try {
       const response = await api.get(`/guest/hotels/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Lấy danh sách khách sạn nổi bật
+  getFeaturedHotels: async () => {
+    try {
+      const response = await api.get('/guest/hotels/featured');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
