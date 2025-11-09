@@ -1,0 +1,12 @@
+.profile-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .profile-content {
+    flex: 1;
+    padding-top: 70px; // Để tránh bị Navbar che mất nội dung
+    background-color: #f5f6fa;
+  }
+}
+

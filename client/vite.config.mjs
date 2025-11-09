@@ -13,6 +13,13 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        silenceDeprecations: ['legacy-js-api'],
+      },
+    },
+  },
   server: {
     port: 3000,
   },

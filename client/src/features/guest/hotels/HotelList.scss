@@ -1,0 +1,41 @@
+.hotel-list-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.hotel-list {
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #333;
+    text-align: center;
+  }
+
+  .loading, .error-message, .no-hotels {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2rem;
+  }
+
+  .error-message {
+    color: #e74c3c;
+  }
+
+  .hotel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hotel-list-container {
+    padding: 0 15px;
+  }
+
+  .hotel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

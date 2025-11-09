@@ -1,0 +1,137 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/breakpoints.scss" as *;
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5rem;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100px;
+  width: 100%;
+  font-family: $main-font;
+  z-index: 1000;
+
+  @include sm {
+    padding: 0 20px;
+    height: 70px;
+  }
+
+  img {
+    max-height: 80px;
+    width: auto;
+    object-fit: contain;
+    cursor: pointer;
+  }
+
+  .navbar_menu {
+    display: flex;
+    gap: 2.5rem;
+    margin: 0 2rem;
+
+    @include sm {
+      display: none;
+    }
+
+    .menu-item {
+      text-decoration: none;	
+      color: $blue;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #fa002a;
+      }
+    }
+  }
+
+  .navbar_search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    width: 350px;
+    max-width: 350px;
+    background-color: #f5f5f5;
+    border-radius: 20px;
+    height: 40px;
+
+    input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .MuiFormControl-root {
+      min-width: 120px;
+      margin-right: 10px;
+    }
+
+    .MuiSelect-select {
+      padding: 8px 14px;
+    }
+
+    @include lg {
+      display: none;
+    }
+  }
+
+  .navbar_right {
+    position: relative;
+
+    .navbar_right_account {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #f5f5f5;
+      }
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .navbar_right_accountmenu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 0.5rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 200px;
+      padding: 0.5rem 0;
+      z-index: 1001;
+
+      a {
+        display: block;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        color: $darkgrey;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+      }
+    }
+  }
+}
+

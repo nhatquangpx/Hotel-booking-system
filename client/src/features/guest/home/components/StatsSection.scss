@@ -1,0 +1,28 @@
+.stats-section {
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #fa002a 0%, #ff6b6b 100%);
+  color: white;
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .stat-item {
+    h3 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+  }
+}
+

@@ -1,0 +1,231 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/breakpoints.scss" as *;
+
+.login-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  
+  .login-left {
+    flex: 1;
+    padding: 2rem;
+    width: 50vw;
+    position: relative;
+    overflow-y: auto;
+
+    .logo {
+      position: absolute;
+      top: 0px;
+      left: 0;
+      margin-bottom: 0%;
+      width: 100%;
+      z-index: 2;
+      display: flex;
+      justify-content: flex-start;
+      
+      a {
+        text-decoration: none;
+      }
+      
+      img {
+        height: 200px;
+        width: auto;
+        display: block;
+        margin-left: 20px;
+      }
+    }
+
+    .login-form-container {
+      padding-top: 150px;
+      max-width: 500px;
+      margin: 0 auto;
+      width: 100%;
+
+      h1 {
+        font-size: clamp(32px, 5vw, 48px);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1C1B1F;
+      }
+
+      .subtitle {
+        color: #79747E;
+        margin-bottom: 2rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+
+        label {
+          display: block;
+          margin-bottom: 0.5rem;
+          color: #1C1B1F;
+          font-weight: 500;
+        }
+
+        input {
+          width: 100%;
+          padding: 1rem;
+          border: 1px solid #79747E;
+          border-radius: 4px;
+          font-size: 1rem;
+          color: #1C1B1F;
+          box-sizing: border-box;
+
+          &:focus {
+            border-color: #1C1B1F;
+            outline: none;
+          }
+
+          &::placeholder {
+            color: #79747E;
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+
+      .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+
+        .remember-me {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #1C1B1F;
+
+          input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+          }
+        }
+
+        .forgot-password {
+          color: #FF8682;
+          text-decoration: none;
+          font-size: 0.9rem;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+
+      .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+
+      .login-button {
+        width: 100%;
+        padding: 1rem;
+        background: #8DD3BB;
+        border: none;
+        border-radius: 4px;
+        color: #1C1B1F;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-bottom: 2rem;
+        transition: background 0.3s ease;
+
+        &:hover:not(:disabled) {
+          background: #7bc4a8;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .signup-prompt {
+        text-align: center;
+        color: #1C1B1F;
+        margin-top: 1rem;
+
+        a {
+          color: #FF8682;
+          text-decoration: none;
+          font-weight: 500;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  .login-right {
+    flex: 1;
+    position: relative;
+    padding: 0;
+    margin: 0;
+    max-width: 50vw;
+
+    .login-slide {
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+  }
+
+  @include md {
+    flex-direction: column;
+
+    .login-left {
+      width: 100vw;
+      max-width: 100vw;
+
+      .logo {
+        img {
+          height: 150px;
+          margin-left: 10px;
+        }
+      }
+
+      .login-form-container {
+        padding-top: 120px;
+        padding: 120px 1rem 2rem;
+      }
+    }
+
+    .login-right {
+      width: 100vw;
+      max-width: 100vw;
+      height: 50vh;
+      min-height: 400px;
+
+      .login-slide {
+        height: 100%;
+      }
+    }
+  }
+}
+
+/* Add this for viewport height adjustments */
+@media (max-height: 700px) {
+  .login-container .login-left .login-form-container {
+    padding-top: 130px;
+  }
+  
+  .login-container .login-left .logo img {
+    height: 100px;
+  }
+}

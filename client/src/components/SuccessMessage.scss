@@ -1,0 +1,20 @@
+.success-message {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 1rem;
+  border-radius: 5px;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-left: 4px solid #2e7d32;
+
+  i {
+    font-size: 1.2rem;
+  }
+
+  span {
+    flex: 1;
+  }
+}
+

@@ -1,0 +1,14 @@
+.base-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .navbar-spacer {
+    height: 100px;
+  }
+
+  .base-layout-content {
+    flex: 1;
+  }
+}
+
