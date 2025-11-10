@@ -6,29 +6,31 @@ const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
 
-router.use(authenticate);
+// ===== PUBLIC ROUTES (không cần authentication) =====
 
-// Quản lý thông tin cá nhân
-router.get('/profile/:id', userController.getUserById);
-router.put('/profile/:id', userController.updateUser);
-router.put('/profile/:id/changepassword', userController.changePassword);
-
-// Xem danh sách khách sạn
+// Xem danh sách khách sạn - PUBLIC
 router.get('/hotels', hotelController.getAllHotels);
 router.get('/hotels/filter', hotelController.getHotelByFilter);
 router.get('/hotels/featured', hotelController.getFeaturedHotels);
 router.get('/hotels/:id', hotelController.getHotelById);
 
-// Xem danh sách phòng
+// Xem danh sách phòng - PUBLIC
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
 router.get('/rooms/:id', roomController.getRoomById);
 
-// Quản lý đặt phòng
-router.get('/bookings', bookingController.getMyBookings);
-router.get('/bookings/available-rooms', bookingController.getAvailableRooms);
-router.get('/bookings/:id', bookingController.getBookingById);
-router.post('/bookings', bookingController.createBooking);
-router.put('/bookings/:id/cancel', bookingController.cancelBooking);
+// ===== PROTECTED ROUTES (cần authentication) =====
+
+// Quản lý thông tin cá nhân - PROTECTED
+router.get('/profile/:id', authenticate, userController.getUserById);
+router.put('/profile/:id', authenticate, userController.updateUser);
+router.put('/profile/:id/changepassword', authenticate, userController.changePassword);
+
+// Quản lý đặt phòng - PROTECTED
+router.get('/bookings', authenticate, bookingController.getMyBookings);
+router.get('/bookings/available-rooms', authenticate, bookingController.getAvailableRooms);
+router.get('/bookings/:id', authenticate, bookingController.getBookingById);
+router.post('/bookings', authenticate, bookingController.createBooking);
+router.put('/bookings/:id/cancel', authenticate, bookingController.cancelBooking);
 
 // Đánh giá và bình luận
 // router.post('/hotels/:id/reviews', hotelController.addHotelReview);
