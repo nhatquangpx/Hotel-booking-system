@@ -1,6 +1,7 @@
 const Room = require("../models/Room");
 const Hotel = require("../models/Hotel");
 const BookingHistory = require("../models/Booking");
+const { hasCloudinaryConfig } = require("../config/multerConfig");
 
 // Get all rooms for a specific hotel
 exports.getRoomsByHotel = async (req, res) => {
@@ -82,8 +83,18 @@ exports.createRoom = async (req, res) => {
     console.log("Dữ liệu phòng:", req.body);
     console.log("Files:", req.files);
 
-    // Lấy đường dẫn ảnh từ req.files và chuyển thành URL
-    const images = req.files ? req.files.map(file => `/uploads/rooms/${file.filename}`) : [];
+    // Lấy đường dẫn ảnh từ req.files
+    // Nếu dùng Cloudinary: file.secure_url hoặc file.url sẽ chứa URL đầy đủ
+    // Nếu dùng local: file.filename sẽ chứa tên file, cần thêm /uploads/rooms/
+    const images = req.files ? req.files.map(file => {
+      if (hasCloudinaryConfig) {
+        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
+        return file.secure_url || file.url || file.path;
+      } else {
+        // Local storage: tạo đường dẫn tương đối
+        return `/uploads/rooms/${file.filename}`;
+      }
+    }) : [];
 
     const { hotelId, roomNumber, type, price, maxPeople, description, facilities } = req.body;
     
@@ -184,7 +195,15 @@ exports.updateRoom = async (req, res) => {
     }
 
     // Lấy đường dẫn ảnh mới từ req.files
-    const newImages = req.files ? req.files.map(file => `/uploads/rooms/${file.filename}`) : [];
+    const newImages = req.files ? req.files.map(file => {
+      if (hasCloudinaryConfig) {
+        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
+        return file.secure_url || file.url || file.path;
+      } else {
+        // Local storage: tạo đường dẫn tương đối
+        return `/uploads/rooms/${file.filename}`;
+      }
+    }) : [];
 
     // Gộp ảnh cũ và mới
     req.body.images = [...existingImages, ...newImages];
