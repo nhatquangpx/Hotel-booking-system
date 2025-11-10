@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = `http://localhost:8001/api`;
+// Sử dụng environment variable, fallback về localhost cho development
+const API_URL = import.meta.env.VITE_API_URL || `http://localhost:8001/api`;
 
 // Tạo instance axios với config mặc định
 const api = axios.create({
