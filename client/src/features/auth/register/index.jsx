@@ -11,10 +11,6 @@ const sliderImages = [
   IMAGE_PATHS.SLIDE_3,
 ];
 
-/**
- * Auth Register page feature
- * User registration page
- */
 const AuthRegisterPage = () => {
   const [formData, setFormData] = useState({
     firstName: "",

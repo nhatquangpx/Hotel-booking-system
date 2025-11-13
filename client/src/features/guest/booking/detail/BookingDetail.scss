@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .booking-detail-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -10,8 +14,8 @@
     margin-bottom: 30px;
 
     h1 {
-      font-size: 2rem;
-      color: #333;
+      @include heading-lg;
+      color: $text-medium;
       margin: 0;
     }
 
@@ -20,22 +24,21 @@
         display: inline-block;
         padding: 8px 16px;
         border-radius: 4px;
-        font-size: 0.9rem;
-        font-weight: 500;
+        @include label-sm;
 
         &.pending {
-          background-color: #f1c40f;
-          color: #333;
+          background-color: $warning-text;
+          color: $text-medium;
         }
 
         &.paid {
-          background-color: #2ecc71;
-          color: white;
+          background-color: $success;
+          color: $text-white;
         }
 
         &.cancelled {
-          background-color: #e74c3c;
-          color: white;
+          background-color: $error;
+          color: $text-white;
         }
       }
     }
@@ -58,8 +61,8 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
         h2 {
-          font-size: 1.5rem;
-          color: #333;
+          @include heading-sm;
+          color: $text-medium;
           margin-bottom: 20px;
         }
 
@@ -117,7 +120,7 @@
             color: white;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.8rem;
+            @include body-xs;
           }
 
           .no-image {
@@ -126,9 +129,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f5f5f5;
-            color: #666;
-            font-size: 1rem;
+            background: $grey-light;
+            color: $text-light;
+            @include body-base;
           }
         }
       }
@@ -149,7 +152,7 @@
 
         h2 {
           font-size: 1.5rem;
-          color: #333;
+          color: $text-medium;
           margin-bottom: 20px;
         }
 
@@ -165,21 +168,20 @@
             gap: 10px;
 
             .label {
-              font-weight: 500;
-              color: #666;
-              font-size: 0.9rem;
+              @include label-sm;
+              color: $text-light;
               min-width: 120px;
             }
 
             .value {
-              color: #333;
-              font-size: 1rem;
+              color: $text-medium;
+              @include body-base;
               flex: 1;
-              text-align: right;
+              text-align: $align-right;
 
               &.price {
-                color: #e74c3c;
-                font-weight: 600;
+                color: $error;
+                font-weight: $font-semibold;
               }
             }
 
@@ -197,11 +199,11 @@
                 flex: 1;
 
                 .facility-tag {
-                  background: #f0f0f0;
+                  background: $admin-bg-light;
                   padding: 4px 8px;
                   border-radius: 4px;
-                  font-size: 0.9rem;
-                  color: #555;
+                  @include body-sm;
+                  color: $text-light;
                 }
               }
             }
@@ -229,34 +231,33 @@
 
     .home-btn {
       padding: 12px 24px;
-      background-color: #3498db;
-      color: white;
+      background-color: $button-primary;
+      color: $text-primary;
       border: none;
       border-radius: 4px;
-      font-size: 1rem;
-      font-weight: 500;
+      @include button-text;
       cursor: pointer;
       transition: background-color 0.3s ease;
 
       &:hover {
-        background-color: #2980b9;
+        background-color: $button-primary-hover;
       }
     }
   }
 
   .loading,
   .error-message {
-    text-align: center;
+    text-align: $align-center;
     padding: 20px;
     margin: 20px 0;
     border-radius: 8px;
-    font-size: 1.2rem;
+    @include body-md;
   }
 
   .error-message {
-    background-color: #fdeded;
-    color: #e74c3c;
-    border: 1px solid #fadbd8;
+    background-color: $error-bg-light;
+    color: $error;
+    border: 1px solid $error-border-light;
   }
 }
 

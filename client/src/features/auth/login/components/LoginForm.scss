@@ -1,4 +1,6 @@
 @use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
 @use "../../../../styles/breakpoints.scss" as *;
 
 .login-container {
@@ -43,15 +45,16 @@
       width: 100%;
 
       h1 {
-        font-size: clamp(32px, 5vw, 48px);
-        font-weight: 600;
+        @include heading-xl;
+        font-weight: $font-semibold;
         margin-bottom: 0.5rem;
-        color: #1C1B1F;
+        color: $text-primary;
       }
 
       .subtitle {
-        color: #79747E;
+        color: $text-secondary;
         margin-bottom: 2rem;
+        @include body-base;
       }
 
       .form-group {
@@ -60,26 +63,26 @@
         label {
           display: block;
           margin-bottom: 0.5rem;
-          color: #1C1B1F;
-          font-weight: 500;
+          color: $text-primary;
+          @include label-base;
         }
 
         input {
           width: 100%;
           padding: 1rem;
-          border: 1px solid #79747E;
+          border: 1px solid $border-input;
           border-radius: 4px;
-          font-size: 1rem;
-          color: #1C1B1F;
+          @include body-base;
+          color: $text-primary;
           box-sizing: border-box;
 
           &:focus {
-            border-color: #1C1B1F;
+            border-color: $text-primary;
             outline: none;
           }
 
           &::placeholder {
-            color: #79747E;
+            color: $text-secondary;
           }
 
           &:disabled {
@@ -99,7 +102,7 @@
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          color: #1C1B1F;
+          color: $text-primary;
 
           input[type="checkbox"] {
             width: 18px;
@@ -109,9 +112,9 @@
         }
 
         .forgot-password {
-          color: #FF8682;
+          color: $pink-light;
           text-decoration: none;
-          font-size: 0.9rem;
+          @include body-sm;
 
           &:hover {
             text-decoration: underline;
@@ -120,30 +123,29 @@
       }
 
       .error-message {
-        background: #fee;
-        color: #c33;
+        background: $danger-light;
+        color: $error;
         padding: 10px;
         border-radius: 5px;
         margin-bottom: 1rem;
-        text-align: center;
-        font-size: 0.9rem;
+        text-align: $align-center;
+        @include body-sm;
       }
 
       .login-button {
         width: 100%;
         padding: 1rem;
-        background: #8DD3BB;
+        background: $button-primary;
         border: none;
         border-radius: 4px;
-        color: #1C1B1F;
-        font-weight: 600;
-        font-size: 1rem;
+        color: $text-primary;
+        @include button-text;
         cursor: pointer;
         margin-bottom: 2rem;
         transition: background 0.3s ease;
 
         &:hover:not(:disabled) {
-          background: #7bc4a8;
+          background: $button-primary-hover;
         }
 
         &:disabled {
@@ -154,13 +156,13 @@
 
       .signup-prompt {
         text-align: center;
-        color: #1C1B1F;
+        color: $text-primary;
         margin-top: 1rem;
 
         a {
-          color: #FF8682;
+          color: $pink-light;
           text-decoration: none;
-          font-weight: 500;
+          @include label-base;
 
           &:hover {
             text-decoration: underline;

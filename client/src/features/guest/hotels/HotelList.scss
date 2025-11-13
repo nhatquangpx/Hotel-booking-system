@@ -1,3 +1,7 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
+
 .hotel-list-container {
   max-width: 1200px;
   margin: 30px auto;
@@ -6,20 +10,20 @@
 
 .hotel-list {
   h1 {
-    font-size: 2rem;
+    @include heading-lg;
     margin-bottom: 30px;
-    color: #333;
-    text-align: center;
+    color: $text-medium;
+    text-align: $align-center;
   }
 
   .loading, .error-message, .no-hotels {
-    text-align: center;
+    text-align: $align-center;
     padding: 20px;
-    font-size: 1.2rem;
+    @include body-md;
   }
 
   .error-message {
-    color: #e74c3c;
+    color: $error;
   }
 
   .hotel-grid {
@@ -27,6 +31,11 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 30px;
   }
+}
+
+// Tăng độ ưu tiên selector để override các style khác
+.hotel-list-container .hotel-list h1 {
+  color: $text-medium;
 }
 
 @media (max-width: 768px) {

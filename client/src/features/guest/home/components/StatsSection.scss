@@ -1,7 +1,11 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .stats-section {
   padding: 60px 20px;
-  background: linear-gradient(135deg, #fa002a 0%, #ff6b6b 100%);
-  color: white;
+  background: linear-gradient(135deg, $pinkred 0%, $pink-gradient-end 100%);
+  color: $text-white;
 
   .stats-grid {
     display: grid;
@@ -9,20 +13,18 @@
     gap: 30px;
     max-width: 1200px;
     margin: 0 auto;
-    text-align: center;
+    text-align: $align-center;
   }
 
   .stat-item {
     h3 {
-      font-size: 3rem;
+      @include heading-2xl;
       margin-bottom: 10px;
-      font-weight: bold;
     }
 
     p {
-      font-size: 1.2rem;
+      @include body-md;
       opacity: 0.9;
     }
   }
 }
-

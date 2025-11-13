@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 // Biến màu dùng chung
 :root {
   --admin-primary: #1976d2;
@@ -21,10 +25,9 @@
 
   h1 {
     color: var(--admin-primary);
-    font-weight: 700;
-    font-size: 2em;
+    @include heading-lg;
     margin-bottom: 32px;
-    text-align: left;
+    text-align: $align-left;
   }
 
   .search-bar {
@@ -56,11 +59,10 @@
       align-items: center;
       .MuiButton-root {
         white-space: nowrap;
-        font-weight: 600;
-        font-size: 1rem;
+        @include button-text;
         padding: 8px 18px;
         background-color: var(--admin-primary) !important;
-        color: #fff !important;
+        color: $text-white !important;
         &:hover {
           background-color: var(--admin-primary-hover) !important;
         }
@@ -82,12 +84,12 @@
         background-color: var(--admin-header);
         color: var(--admin-primary);
         padding: 1rem;
-        text-align: left;
-        font-weight: 600;
+        text-align: $align-left;
+        @include button-text;
       }
       td {
         padding: 1rem;
-        text-align: left;
+        text-align: $align-left;
         color: var(--admin-text);
         border-bottom: 1px solid var(--admin-border);
         &.hotel-name {
@@ -119,7 +121,7 @@
           color: var(--admin-text);
         }
         &.delete-btn {
-          color: #d32f2f;
+          color: $admin-danger;
         }
         &:hover {
           background-color: rgba(0, 0, 0, 0.1);
@@ -131,22 +133,22 @@
   .status-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    @include body-xs;
+    font-weight: $font-medium;
 
     &.active {
-      background-color: #e8f5e9;
-      color: #2e7d32;
+      background-color: $status-success-bg;
+      color: $status-success-text;
     }
 
     &.inactive {
-      background-color: #ffebee;
-      color: #c62828;
+      background-color: $status-error-bg;
+      color: $status-error-text;
     }
 
     &.maintenance {
-      background-color: #fff3e0;
-      color: #ef6c00;
+      background-color: $status-warning-bg;
+      color: $status-warning-text;
     }
   }
 
@@ -157,8 +159,8 @@
       border-radius: 8px;
       padding: 1.5rem;
       .modal-title {
-        font-size: 1.25rem;
-        font-weight: 600;
+        @include body-md-alt;
+        @include button-text;
         margin-bottom: 1rem;
       }
       .modal-actions {
@@ -175,8 +177,9 @@
             color: var(--admin-text);
           }
           &.delete-btn {
-            background-color: #d32f2f;
+            background-color: $button-cancel;
             color: white;
+            @include button-text;
           }
           &:hover {
             opacity: 0.9;
@@ -187,10 +190,10 @@
   }
 
   .loading, .error-message {
-    text-align: center;
+    text-align: $align-center;
     color: var(--admin-primary);
     margin: 24px 0;
-    font-size: 1.1em;
+    @include body-base-alt;
   }
 }
 
@@ -215,12 +218,12 @@
 
     th, td {
       padding: 0.75rem;
-      text-align: left;
+      text-align: $align-left;
       border-bottom: 1px solid var(--admin-border);
     }
 
     th {
-      font-weight: 500;
+      @include label-base;
       color: var(--admin-text);
       background-color: var(--admin-bg-light);
     }
@@ -243,7 +246,7 @@
   }
 
   p {
-    text-align: center;
+    text-align: $align-center;
     color: var(--admin-text);
     padding: 1rem;
   }

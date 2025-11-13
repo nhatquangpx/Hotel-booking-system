@@ -1,39 +1,43 @@
+@use "sass:color";
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .booking-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  background-color: #f9f9f9;
+  background-color: $bg-light;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-top: 50px;
 }
 
 h1 {
-  text-align: center;
-  color: #333;
+  text-align: $align-center;
+  color: $text-medium;
   margin-bottom: 30px;
-  font-size: 2.5em;
-  font-weight: 700;
+  @include heading-xl;
 }
 
 .success-message {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: $status-success-bg;
+  color: $status-success-text;
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 20px;
-  text-align: center;
-  font-size: 1.1em;
+  text-align: $align-center;
+  @include body-base-alt;
 }
 
 .error-message {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: $error-light;
+  color: $error-dark;
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 20px;
-  text-align: center;
-  font-size: 1.1em;
+  text-align: $align-center;
+  @include body-base-alt;
 }
 
 .booking-content {
@@ -52,22 +56,22 @@ h1 {
 
 .hotel-image-section,
 .room-image-section {
-  border: 1px solid #ddd;
+  border: 1px solid $border-medium;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  background-color: #fff;
+  background-color: $bg-white;
   padding-bottom: 15px; /* Khoảng đệm dưới cùng */
 }
 
 .hotel-image-section h3,
 .room-image-section h3 {
-  font-size: 1.3em;
-  color: #555;
+  @include body-md-alt;
+  color: $text-light;
   padding: 15px;
   margin-top: 0; /* Loại bỏ margin trên cùng */
-  border-bottom: 1px solid #eee;
-  background-color: #f2f2f2;
+  border-bottom: 1px solid $border-light;
+  background-color: $grey-light;
 }
 
 .hotel-photo,
@@ -81,7 +85,7 @@ h1 {
 }
 
 .booking-details {
-  background-color: #fff;
+  background-color: $bg-white;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -90,15 +94,15 @@ h1 {
 }
 
 .booking-summary {
-  background: white;
+  background: $bg-white;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
 
   h2 {
-    font-size: 1.3rem;
-    color: #333;
+    @include body-md-alt;
+    color: $text-medium;
     margin-bottom: 18px;
   }
 
@@ -109,26 +113,25 @@ h1 {
     margin-bottom: 10px;
 
     .label {
-      font-weight: 500;
-      color: #666;
-      font-size: 0.95rem;
+      @include label-sm;
+      color: $text-light;
       min-width: 120px;
     }
     .value {
-      color: #333;
-      font-size: 1rem;
+      color: $text-medium;
+      @include body-base;
       flex: 1;
-      text-align: right;
+      text-align: $align-right;
       &.price {
-        color: #e74c3c;
-        font-weight: 600;
+        color: $danger;
+        font-weight: $font-semibold;
       }
     }
   }
   .total {
     .label, .value {
-      font-size: 1.1rem;
-      font-weight: 600;
+      @include body-base-alt;
+      font-weight: $font-semibold;
     }
   }
 }
@@ -136,7 +139,7 @@ h1 {
 .booking-actions-confirm {
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid $border-light;
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -149,23 +152,23 @@ h1 {
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 600;
-  color: #555;
+  @include button-text;
+  color: $text-light;
 }
 
 .form-group textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid $border-medium;
   border-radius: 5px;
-  font-size: 1em;
+  @include body-base;
   box-sizing: border-box;
   min-height: 90px;
   resize: vertical;
 }
 
 .form-group textarea::placeholder {
-  color: #aaa;
+  color: $text-disabled;
 }
 
 .submit-btn,
@@ -174,85 +177,85 @@ h1 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1.1em;
-  font-weight: 600;
+  @include body-base-alt;
+  @include button-text;
   transition: background-color 0.3s ease;
   width: 100%; /* Nút chiếm hết chiều rộng */
 }
 
 .submit-btn {
-  background-color: #28a745;
-  color: white;
+  background-color: $button-primary;
+  color: $text-primary;
 }
 
 .submit-btn:hover {
-  background-color: #218838;
+  background-color: $button-primary-hover;
 }
 
 .submit-btn:disabled {
-  background-color: #94d3a2;
+  background-color: color.scale($button-primary, $lightness: 30%);
   cursor: not-allowed;
 }
 
 .cancel-btn {
-  background-color: #6c757d;
+  background-color: $button-cancel;
   color: white;
   margin-bottom: 10px; /* Khoảng cách với nút submit */
 }
 
 .cancel-btn:hover {
-  background-color: #5a6268;
+  background-color: $button-cancel-hover;
 }
 
 .payment-qr-code-section {
-  background-color: #e9f7ef;
+  background-color: color.scale($success-light, $lightness: 5%);
   padding: 30px;
   border-radius: 8px;
-  text-align: center;
+  text-align: $align-center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .payment-qr-code-section h2 {
-  color: #28a745;
-  font-size: 2em;
+  color: $success;
+  @include heading-lg;
   margin-bottom: 20px;
 }
 
 .payment-instructions {
-  font-size: 1.1em;
-  color: #333;
+  @include body-base-alt;
+  color: $text-medium;
   margin-bottom: 25px;
-  line-height: 1.6;
+  line-height: $line-relaxed;
 }
 
 .qr-code-image {
   width: 250px;
   height: 250px;
-  border: 5px solid #28a745;
+  border: 5px solid $success;
   border-radius: 10px;
   margin-bottom: 25px;
 }
 
 .payment-note {
-  font-size: 0.95em;
-  color: #666;
+  @include body-sm;
+  color: $text-light;
   margin-bottom: 30px;
 }
 
 .back-to-bookings-btn {
-  background-color: #007bff;
-  color: white;
+  background-color: $button-primary;
+  color: $text-primary;
   padding: 12px 25px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
-  font-weight: 600;
+  @include body-base;
+  @include button-text;
   transition: background-color 0.3s ease;
 }
 
 .back-to-bookings-btn:hover {
-  background-color: #0056b3;
+  background-color: $button-primary-hover;
 }
 
 /* Responsive adjustments */
@@ -277,7 +280,7 @@ h1 {
   }
 
   h1 {
-    font-size: 2em;
+    @include heading-lg;
   }
 
   .booking-details {
@@ -287,7 +290,7 @@ h1 {
   .summary-item .label,
   .summary-item .value {
     flex-basis: auto;
-    text-align: left;
+    text-align: $align-left;
   }
 
   .summary-item {
@@ -298,7 +301,7 @@ h1 {
   .submit-btn,
   .cancel-btn {
     padding: 12px 20px;
-    font-size: 1em;
+    @include body-base;
   }
 
   .qr-code-image {
@@ -315,8 +318,8 @@ h1 {
   margin-bottom: 24px;
 
   h2 {
-    font-size: 1.3rem;
-    color: #333;
+    @include body-md-alt;
+    color: $text-medium;
     margin-bottom: 18px;
   }
 
@@ -331,19 +334,18 @@ h1 {
       gap: 10px;
 
       .label {
-        font-weight: 500;
-        color: #666;
-        font-size: 0.95rem;
+        @include label-sm;
+        color: $text-light;
         min-width: 120px;
       }
       .value {
-        color: #333;
-        font-size: 1rem;
+        color: $text-medium;
+        @include body-base;
         flex: 1;
-        text-align: right;
+        text-align: $align-right;
         &.price {
-          color: #e74c3c;
-          font-weight: 600;
+        color: $danger;
+        font-weight: $font-semibold;
         }
       }
       &.description {
@@ -359,11 +361,11 @@ h1 {
           justify-content: flex-end;
           flex: 1;
           .facility-tag {
-            background: #f0f0f0;
+            background: $admin-bg-light;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.9rem;
-            color: #555;
+            @include body-sm;
+            color: $text-light;
           }
         }
       }
@@ -376,51 +378,51 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: left;
-  background: #f8fafc;
+  background: $bg-light-secondary;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   padding: 24px 18px 18px 18px;
   margin-top: 12px;
   margin-bottom: 0;
   h2 {
-    font-size: 1.2rem;
-    color: #3498db;
+    @include body-md;
+    color: $blue-light;
     margin-bottom: 10px;
-    font-weight: 700;
-    text-align: center;
+    font-weight: $font-bold;
+    text-align: $align-center;
   }
   p {
     margin: 6px 0;
-    line-height: 1.6;
-    font-size: 1rem;
-    color: #333;
-    text-align: left;
+    line-height: $line-relaxed;
+    @include body-base;
+    color: $text-medium;
+    text-align: $align-left;
     width: 100%;
     max-width: 100%;
   }
   .account-name {
-    font-weight: 600;
-    color: #222;
+    font-weight: $font-semibold;
+    color: $text-dark;
   }
   .account-number {
-    font-weight: 700;
-    color: #e67e22;
-    letter-spacing: 1px;
-    font-size: 1.1rem;
+    font-weight: $font-bold;
+    color: $warning-text-darker;
+    letter-spacing: $letter-spacing-1px;
+    @include body-base-alt;
   }
   .bank-name {
-    font-weight: 600;
-    color: #16a085;
+    font-weight: $font-semibold;
+    color: $success-dark;
   }
   .transfer-note {
-    font-weight: 700;
-    color: #e74c3c;
-    background: #fff3cd;
+    font-weight: $font-bold;
+    color: $error;
+    background: $warning;
     padding: 3px 8px;
     border-radius: 4px;
-    font-size: 1rem;
+    @include body-base;
     display: inline-block;
-    text-align: left;
+    text-align: $align-left;
     margin-top: 2px;
   }
 }

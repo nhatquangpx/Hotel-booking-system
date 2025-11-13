@@ -1,4 +1,6 @@
 @use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
 @use "../../../styles/breakpoints.scss" as *;
 
 .homepage-content {
@@ -8,24 +10,24 @@
 
   // Intro section
   .intro-section {
-    text-align: center;
+    text-align: $align-center;
     padding: 40px 0;
     margin-top: -10px;
     margin-bottom: 40px;
     max-height: 150px;
 
     h2 {
-      font-size: 2.5rem;
-      color: #333;
+      @include heading-xl;
+      color: $text-medium;
       margin-bottom: 20px;
     }
 
     p {
-      font-size: 1.1rem;
-      color: #666;
+      @include body-base-alt;
+      color: $text-light;
       max-width: 800px;
       margin: 0 auto;
-      line-height: 1.6;
+      line-height: $line-relaxed;
     }
   }
 }

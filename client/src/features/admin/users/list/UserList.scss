@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 :root {
   --admin-primary: #1976d2;
   --admin-primary-hover: #1565c0;
@@ -21,8 +25,7 @@
 
     h1 {
       color: var(--admin-primary);
-      font-weight: 700;
-      font-size: 2.2em;
+      @include heading-xl;
       margin-bottom: 2rem;
     }
 
@@ -32,11 +35,10 @@
       align-items: center;
       .MuiButton-root {
         white-space: nowrap;
-        font-weight: 600;
-        font-size: 1rem;
+        @include button-text;
         padding: 8px 18px;
         background-color: var(--admin-primary) !important;
-        color: #fff !important;
+        color: $text-white !important;
         &:hover {
           background-color: var(--admin-primary-hover) !important;
         }
@@ -75,11 +77,10 @@
       align-items: center;
       .MuiButton-root {
         white-space: nowrap;
-        font-weight: 600;
-        font-size: 1rem;
+        @include button-text;
         padding: 8px 18px;
         background-color: var(--admin-primary) !important;
-        color: #fff !important;
+        color: $text-white !important;
         &:hover {
           background-color: var(--admin-primary-hover) !important;
         }
@@ -101,18 +102,18 @@
         background-color: var(--admin-header);
         color: var(--admin-primary);
         padding: 1rem;
-        text-align: left;
-        font-weight: 600;
+        text-align: $align-left;
+        @include button-text;
       }
 
       td {
         padding: 1rem;
-        text-align: left;
+        text-align: $align-left;
         color: var(--admin-text);
         border-bottom: 1px solid var(--admin-border);
 
         &.user-name {
-          text-align: left;
+          text-align: $align-left;
         }
       }
 
@@ -144,7 +145,7 @@
         }
 
         &.delete-btn {
-          color: #d32f2f;
+          color: $admin-danger;
         }
 
         &:hover {
@@ -157,17 +158,17 @@
   .status-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    @include body-xs;
+    font-weight: $font-medium;
 
     &.active {
-      background-color: #e8f5e9;
-      color: #2e7d32;
+      background-color: $status-success-bg;
+      color: $status-success-text;
     }
 
     &.inactive {
-      background-color: #ffebee;
-      color: #c62828;
+      background-color: $status-error-bg;
+      color: $status-error-text;
     }
   }
 
@@ -179,8 +180,8 @@
       padding: 1.5rem;
 
       .modal-title {
-        font-size: 1.25rem;
-        font-weight: 600;
+        @include body-md-alt;
+        @include button-text;
         margin-bottom: 1rem;
       }
 
@@ -201,8 +202,9 @@
           }
 
           &.delete-btn {
-            background-color: #d32f2f;
+            background-color: $button-cancel;
             color: white;
+            @include button-text;
           }
 
           &:hover {

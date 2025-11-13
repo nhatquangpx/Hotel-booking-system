@@ -1,8 +1,6 @@
-$pinkred: #fa002a;
-$blue: #24355A;
-$lightgrey: #F7F8F8;
-$grey: #bdb9b9;
-$darkgrey: #969393;
+@use './global' as *;
+@forward './text';
+
 $main-font: 'svn-gilroy', serif;
 
 @mixin shadow {
@@ -11,14 +9,17 @@ $main-font: 'svn-gilroy', serif;
 
 @mixin buttonStyle {
   padding: 10px 15px;
-  background-color: $pinkred;
+  background-color: $button-primary;
   border: none;
-  font-size: 15px;
-  font-weight: 600;
+  @include button-text;
   cursor: pointer;
   transition: 0.3s ease;
-  color: white;
+  color: $text-primary;
   border-radius: 10px;
+
+  &:hover {
+    background-color: $button-primary-hover;
+  }
 }
 
 :export {
@@ -27,4 +28,6 @@ $main-font: 'svn-gilroy', serif;
   lightgrey: $lightgrey;
   grey: $grey;
   darkgrey: $darkgrey;
+  buttonPrimary: $button-primary;
+  buttonPrimaryHover: $button-primary-hover;
 }

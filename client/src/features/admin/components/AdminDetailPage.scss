@@ -1,5 +1,9 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
+
 .admin-detail-container {
-  background-color: #fff;
+  background-color: $bg-white;
   border-radius: 8px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -10,12 +14,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px 25px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid $border-light;
     
     h2 {
       margin: 0;
-      font-size: 1.5rem;
-      color: #2c3e50;
+      @include heading-md;
+      color: $blue-dark-text;
     }
     
     .detail-actions {
@@ -27,37 +31,37 @@
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-weight: 500;
+        @include label-base;
         transition: all 0.3s;
         display: flex;
         align-items: center;
         gap: 5px;
         
         &.edit-btn {
-          background-color: #2ecc71;
-          color: white;
+          background-color: $success;
+          color: $text-white;
           
           &:hover {
-            background-color: #27ae60;
+            background-color: $success-hover;
           }
           
           &::before {
             content: "✏️";
-            font-size: 0.9rem;
+            @include body-sm;
           }
         }
         
         &.back-btn {
-          background-color: #7f8c8d;
-          color: white;
+          background-color: $grey-medium;
+          color: $text-white;
           
           &:hover {
-            background-color: #636e72;
+            background-color: $grey-dark;
           }
           
           &::before {
             content: "←";
-            font-size: 1rem;
+            @include body-base;
           }
         }
       }
@@ -75,10 +79,10 @@
       }
       
       h3 {
-        font-size: 1.1rem;
+        @include heading-xs;
         margin-bottom: 15px;
-        color: #2c3e50;
-        border-bottom: 1px solid #eee;
+        color: $blue-dark-text;
+        border-bottom: 1px solid $border-light;
         padding-bottom: 10px;
       }
       
@@ -90,22 +94,23 @@
         .info-item {
           .label {
             display: block;
-            font-size: 0.85rem;
-            color: #7f8c8d;
+            @include label-sm;
+            color: $grey-medium;
             margin-bottom: 5px;
           }
           
           .value {
-            font-size: 1rem;
-            color: #2c3e50;
-            font-weight: 500;
+            @include body-base;
+            color: $blue-dark-text;
+            font-weight: $font-medium;
           }
         }
       }
       
       .description {
-        line-height: 1.6;
-        color: #34495e;
+        line-height: $line-relaxed;
+        color: $grey-dark;
+        @include body-base;
       }
     }
   }
@@ -121,8 +126,8 @@
       
       h3 {
         margin: 0;
-        font-size: 1.1rem;
-        color: #2c3e50;
+        @include heading-xs;
+        color: $blue-dark-text;
       }
     }
   }
@@ -164,24 +169,24 @@
   // Tab navigation cho các phần thông tin khác nhau
   .tab-navigation {
     display: flex;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid $border-light;
     margin-bottom: 20px;
     
     .tab-item {
       padding: 12px 20px;
       cursor: pointer;
-      font-weight: 500;
-      color: #7f8c8d;
+      @include label-base;
+      color: $grey-medium;
       border-bottom: 2px solid transparent;
       transition: all 0.3s;
       
       &:hover {
-        color: #3498db;
+        color: $blue-light;
       }
       
       &.active {
-        color: #3498db;
-        border-bottom-color: #3498db;
+        color: $blue-light;
+        border-bottom-color: $blue-light;
       }
     }
   }

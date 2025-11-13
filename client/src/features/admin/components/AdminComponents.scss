@@ -1,10 +1,14 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
+
 // Admin components styles
 
 // Table styles
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #fff;
+  background-color: $bg-white;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
@@ -12,21 +16,21 @@
   
   th, td {
     padding: 12px 15px;
-    text-align: left;
+    text-align: $align-left;
   }
   
   th {
-    background-color: #3498db;
-    color: #fff;
-    font-weight: 600;
+    background-color: $blue-light;
+    color: $text-white;
+    @include button-text;
   }
   
   tr:nth-child(even) {
-    background-color: #f8f9fa;
+    background-color: $bg-light-alt;
   }
   
   tr:hover {
-    background-color: #eef2f7;
+    background-color: $bg-light-secondary;
   }
   
   .action-buttons {
@@ -41,29 +45,30 @@
       transition: all 0.3s;
       
       &.edit-btn {
-        background-color: #2ecc71;
-        color: white;
+        background-color: $success;
+        color: $text-white;
         
         &:hover {
-          background-color: #27ae60;
+          background-color: $success-hover;
         }
       }
       
       &.delete-btn {
-        background-color: #e74c3c;
-        color: white;
+        background-color: $button-cancel;
+        color: $text-white;
+        @include button-text;
         
         &:hover {
-          background-color: #c0392b;
+          background-color: $button-cancel-hover;
         }
       }
 
       &.view-btn {
-        background-color: #3498db;
-        color: white;
+        background-color: $blue-light;
+        color: $text-white;
         
         &:hover {
-          background-color: #2980b9;
+          background-color: $blue-light-hover;
         }
       }
     }
@@ -72,7 +77,7 @@
 
 // Form styles
 .admin-form {
-  background-color: #fff;
+  background-color: $bg-white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
@@ -85,28 +90,28 @@
     label {
       display: block;
       margin-bottom: 8px;
-      font-weight: 600;
-      color: #2c3e50;
+      @include button-text;
+      color: $blue-dark-text;
     }
     
     input, select, textarea {
       width: 100%;
       padding: 10px 12px;
-      border: 1px solid #dcdfe6;
+      border: 1px solid $border-dark;
       border-radius: 4px;
-      font-size: 0.95rem;
+      @include body-sm;
       transition: border-color 0.3s;
       
       &:focus {
         outline: none;
-        border-color: #3498db;
+        border-color: $blue-light;
         box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
       }
     }
     
     .error-message {
-      color: #e74c3c;
-      font-size: 0.85rem;
+      color: $error;
+      @include error-text-sm;
       margin-top: 5px;
     }
   }
@@ -122,24 +127,24 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-weight: 600;
+      @include button-text;
       transition: all 0.3s;
       
       &.submit-btn {
-        background-color: #3498db;
-        color: white;
+        background-color: $blue-light;
+        color: $text-white;
         
         &:hover {
-          background-color: #2980b9;
+          background-color: $blue-light-hover;
         }
       }
       
       &.cancel-btn {
-        background-color: #95a5a6;
-        color: white;
+        background-color: $grey-medium-alt;
+        color: $text-white;
         
         &:hover {
-          background-color: #7f8c8d;
+          background-color: $grey-medium;
         }
       }
     }
@@ -154,7 +159,7 @@
   margin-bottom: 30px;
   
   .stat-card {
-    background-color: #fff;
+    background-color: $bg-white;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -162,43 +167,42 @@
     flex-direction: column;
     
     .stat-title {
-      color: #7f8c8d;
-      font-size: 0.9rem;
+      color: $grey-medium;
+      @include body-sm;
       margin-bottom: 5px;
-      text-transform: uppercase;
+      text-transform: $transform-uppercase;
     }
     
     .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #2c3e50;
+      @include heading-lg;
+      color: $blue-dark-text;
       margin-bottom: 10px;
     }
     
     .stat-description {
-      color: #7f8c8d;
-      font-size: 0.9rem;
+      color: $grey-medium;
+      @include body-sm;
       margin-top: auto;
     }
     
     &.users {
-      border-top: 4px solid #3498db;
+      border-top: 4px solid $blue-light;
     }
     
     &.hotels {
-      border-top: 4px solid #cfdd0b;
+      border-top: 4px solid $yellow-green;
     }
 
     &.rooms {
-      border-top: 4px solid #2ecc71;
+      border-top: 4px solid $success;
     }
     
     &.bookings {
-      border-top: 4px solid #e74c3c;
+      border-top: 4px solid $error;
     }
     
     &.revenue {
-      border-top: 4px solid #f39c12;
+      border-top: 4px solid $star-orange;
     }
   }
 }
@@ -206,11 +210,10 @@
 // Admin Dashboard Styles
 .admin-dashboard {
   h2 {
-    color: #2c3e50;
+    color: $blue-dark-text;
     margin-top: 30px;
     margin-bottom: 20px;
-    font-size: 1.5rem;
-    font-weight: 600;
+    @include heading-sm;
     
     &:first-child {
       margin-top: 0;
@@ -224,7 +227,7 @@
     margin-bottom: 30px;
     
     .quick-access-card {
-      background-color: #fff;
+      background-color: $bg-white;
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -240,20 +243,20 @@
       }
       
       .card-icon {
-        font-size: 2.5rem;
+        @include heading-xl;
         margin-bottom: 15px;
       }
       
       .card-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #2c3e50;
+        @include body-md;
+        @include button-text;
+        color: $blue-dark-text;
         margin-bottom: 10px;
       }
       
       .card-description {
-        color: #7f8c8d;
-        font-size: 0.9rem;
+        color: $grey-medium;
+        @include body-sm;
       }
     }
   }
@@ -279,13 +282,13 @@
       width: 100%;
       padding: 10px 15px;
       padding-left: 35px;
-      border: 1px solid #dcdfe6;
+      border: 1px solid $border-dark;
       border-radius: 4px;
-      font-size: 0.95rem;
+      @include body-sm;
       
       &:focus {
         outline: none;
-        border-color: #3498db;
+        border-color: $blue-light;
         box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
       }
     }
@@ -296,31 +299,31 @@
       left: 10px;
       top: 50%;
       transform: translateY(-50%);
-      color: #95a5a6;
+      color: $grey-medium-alt;
     }
   }
   
   .add-button {
     padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
+    background-color: $blue-light;
+    color: $text-white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-weight: 600;
+    @include button-text;
     transition: all 0.3s;
     display: flex;
     align-items: center;
     gap: 8px;
     
     &:hover {
-      background-color: #2980b9;
+      background-color: $blue-light-hover;
     }
     
     &::before {
       content: "+";
-      font-size: 1.2rem;
-      font-weight: 700;
+      @include body-md;
+      font-weight: $font-bold;
     }
   }
 }
@@ -339,7 +342,7 @@
   z-index: 1000;
   
   .modal-content {
-    background-color: #fff;
+    background-color: $bg-white;
     border-radius: 8px;
     max-width: 600px;
     width: 100%;
@@ -349,27 +352,27 @@
     
     .modal-header {
       padding: 15px 20px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid $border-light;
       display: flex;
       justify-content: space-between;
       align-items: center;
       
       h2 {
         margin: 0;
-        font-size: 1.2rem;
-        color: #2c3e50;
+        @include body-md;
+        color: $blue-dark-text;
       }
       
       .close-button {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        @include heading-sm;
         cursor: pointer;
-        color: #7f8c8d;
+        color: $grey-medium;
         transition: color 0.3s;
         
         &:hover {
-          color: #e74c3c;
+          color: $error;
         }
       }
     }
@@ -385,58 +388,58 @@
   display: inline-block;
   padding: 5px 10px;
   border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-align: center;
+  @include body-sm;
+  font-weight: $font-medium;
+  text-align: $align-center;
   
   &.active {
-    background-color: #2ecc71;
-    color: white;
+    background-color: $success;
+    color: $text-white;
   }
   
   &.inactive {
-    background-color: #95a5a6;
-    color: white;
+    background-color: $grey-medium-alt;
+    color: $text-white;
   }
   
   &.maintenance {
-    background-color: #f39c12;
-    color: white;
+    background-color: $star-orange;
+    color: $text-white;
   }
   
   &.available {
-    background-color: #2ecc71;
-    color: white;
+    background-color: $success;
+    color: $text-white;
   }
   
   &.booked {
-    background-color: #e74c3c;
-    color: white;
+    background-color: $error;
+    color: $text-white;
   }
   
   &.pending {
-    background-color: #3498db;
-    color: white;
+    background-color: $blue-light;
+    color: $text-white;
   }
   
   &.paid {
-    background-color: #2ecc71;
-    color: white;
+    background-color: $success;
+    color: $text-white;
   }
   
   &.cancelled {
-    background-color: #e74c3c;
-    color: white;
+    background-color: $error;
+    color: $text-white;
   }
   
   &.completed {
-    background-color: #9b59b6;
-    color: white;
+    background-color: $purple;
+    color: $text-white;
   }
   
   &.unknown {
-    background-color: #95a5a6;
-    color: white;
+    background-color: $grey-medium-alt;
+    color: $text-white;
   }
 }
 
@@ -451,16 +454,16 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  background-color: #f5f5f5;
-  border: 1px dashed #ccc;
-  color: #95a5a6;
+  background-color: $grey-light;
+  border: 1px dashed $grey;
+  color: $grey-medium-alt;
   font-style: italic;
 }
 
 // Discount text
 .discount {
-  font-size: 0.85rem;
-  color: #e74c3c;
+  @include error-text-sm;
+  color: $error;
   margin-top: 5px;
 }
 
@@ -475,22 +478,22 @@
     .header-title {
       h2 {
         margin: 0;
-        color: #2c3e50;
-        font-size: 1.5rem;
+        color: $blue-dark-text;
+        @include heading-sm;
       }
     }
 
     .header-actions {
       .add-button {
-        background-color: #2ecc71;
-        color: white;
+        background-color: $success;
+        color: $text-white;
         border: none;
         padding: 0.75rem 1.5rem;
         border-radius: 5px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        font-size: 1rem;
+        @include body-base;
         transition: background-color 0.3s ease;
 
         i {
@@ -498,7 +501,7 @@
         }
 
         &:hover {
-          background-color: #27ae60;
+          background-color: $success-hover;
         }
       }
     }
@@ -507,25 +510,25 @@
   .data-table {
     width: 100%;
     border-collapse: collapse;
-    background-color: white;
+    background-color: $bg-white;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     th, td {
       padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      text-align: $align-left;
+      border-bottom: 1px solid $border-admin;
     }
 
     th {
-      background-color: #f8f9fa;
-      font-weight: 600;
-      color: #2c3e50;
+      background-color: $bg-light-alt;
+      @include button-text;
+      color: $blue-dark-text;
     }
 
     tr:hover {
-      background-color: #f8f9fa;
+      background-color: $bg-light-alt;
     }
 
     .action-buttons {
@@ -540,29 +543,30 @@
         transition: background-color 0.3s ease;
 
         &.edit {
-          background-color: #3498db;
-          color: white;
+          background-color: $blue-light;
+          color: $text-white;
 
           &:hover {
-            background-color: #2980b9;
+            background-color: $blue-light-hover;
           }
         }
 
         &.delete {
-          background-color: #e74c3c;
-          color: white;
+          background-color: $button-cancel;
+          color: $text-white;
+          @include button-text;
 
           &:hover {
-            background-color: #c0392b;
+            background-color: $button-cancel-hover;
           }
         }
 
         &.view {
-          background-color: #2ecc71;
-          color: white;
+          background-color: $success;
+          color: $text-white;
 
           &:hover {
-            background-color: #27ae60;
+            background-color: $success-hover;
           }
         }
       }
@@ -577,26 +581,26 @@
     .search-input {
       flex: 1;
       padding: 0.75rem;
-      border: 1px solid #e0e0e0;
+      border: 1px solid $border-admin;
       border-radius: 5px;
-      font-size: 1rem;
+      @include body-base;
 
       &:focus {
         outline: none;
-        border-color: #3498db;
+        border-color: $blue-light;
       }
     }
 
     .filter-select {
       padding: 0.75rem;
-      border: 1px solid #e0e0e0;
+      border: 1px solid $border-admin;
       border-radius: 5px;
-      font-size: 1rem;
+      @include body-base;
       min-width: 150px;
 
       &:focus {
         outline: none;
-        border-color: #3498db;
+        border-color: $blue-light;
       }
     }
   }
@@ -610,16 +614,16 @@
 
     button {
       padding: 0.5rem 1rem;
-      border: 1px solid #e0e0e0;
-      background-color: white;
+      border: 1px solid $border-admin;
+      background-color: $bg-white;
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.3s ease;
 
       &:hover:not(:disabled) {
-        background-color: #3498db;
-        color: white;
-        border-color: #3498db;
+        background-color: $blue-light;
+        color: $text-white;
+        border-color: $blue-light;
       }
 
       &:disabled {
@@ -628,9 +632,9 @@
       }
 
       &.active {
-        background-color: #3498db;
-        color: white;
-        border-color: #3498db;
+        background-color: $blue-light;
+        color: $text-white;
+        border-color: $blue-light;
       }
     }
   }
@@ -638,22 +642,22 @@
   .status-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    @include body-xs;
+    font-weight: $font-medium;
 
     &.active {
-      background-color: #e8f5e9;
-      color: #2e7d32;
+      background-color: $status-success-bg;
+      color: $status-success-text;
     }
 
     &.inactive {
-      background-color: #ffebee;
-      color: #c62828;
+      background-color: $status-error-bg;
+      color: $status-error-text;
     }
 
     &.pending {
-      background-color: #fff3e0;
-      color: #ef6c00;
+      background-color: $status-warning-bg;
+      color: $status-warning-text;
     }
   }
 }
@@ -672,7 +676,7 @@
   z-index: 1000;
 
   .modal-content {
-    background-color: white;
+    background-color: $bg-white;
     border-radius: 8px;
     padding: 2rem;
     width: 90%;
@@ -696,20 +700,20 @@
 
       h3 {
         margin: 0;
-        color: #2c3e50;
-        font-size: 1.5rem;
+        color: $blue-dark-text;
+        @include heading-sm;
       }
 
       .close-button {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        @include heading-sm;
         cursor: pointer;
-        color: #7f8c8d;
+        color: $grey-medium;
         transition: color 0.3s ease;
 
         &:hover {
-          color: #2c3e50;
+          color: $blue-dark-text;
         }
       }
     }
@@ -721,11 +725,11 @@
         label {
           display: block;
           margin-bottom: 0.5rem;
-          color: #2c3e50;
-          font-weight: 500;
+          color: $blue-dark-text;
+          @include label-base;
 
           .required {
-            color: #e74c3c;
+            color: $error;
             margin-left: 0.25rem;
           }
         }
@@ -733,17 +737,17 @@
         input, select, textarea {
           width: 100%;
           padding: 0.75rem;
-          border: 1px solid #e0e0e0;
+          border: 1px solid $border-admin;
           border-radius: 5px;
-          font-size: 1rem;
+          @include body-base;
 
           &:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: $blue-light;
           }
 
           &.error {
-            border-color: #e74c3c;
+            border-color: $error;
           }
         }
 
@@ -753,8 +757,8 @@
         }
 
         .error-text {
-          color: #e74c3c;
-          font-size: 0.875rem;
+          color: $error;
+          @include body-xs;
           margin-top: 0.25rem;
         }
       }
@@ -769,27 +773,27 @@
       button {
         padding: 0.75rem 1.5rem;
         border-radius: 5px;
-        font-size: 1rem;
+        @include body-base;
         cursor: pointer;
         transition: all 0.3s ease;
 
         &.cancel {
-          background-color: #e0e0e0;
+          background-color: $border-admin;
           border: none;
-          color: #2c3e50;
+          color: $blue-dark-text;
 
           &:hover {
-            background-color: #bdbdbd;
+            background-color: $grey;
           }
         }
 
         &.submit {
-          background-color: #3498db;
+          background-color: $blue-light;
           border: none;
-          color: white;
+          color: $text-white;
 
           &:hover {
-            background-color: #2980b9;
+            background-color: $blue-light-hover;
           }
         }
       }
@@ -807,8 +811,8 @@
   .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border: 4px solid $grey-light;
+    border-top: 4px solid $blue-light;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -821,8 +825,8 @@
 
 // Error message
 .error-message {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: $status-error-bg;
+  color: $status-error-text;
   padding: 1rem;
   border-radius: 5px;
   margin-bottom: 1rem;
@@ -836,8 +840,8 @@
 
 // Success message
 .success-message {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: $status-success-bg;
+  color: $status-success-text;
   padding: 1rem;
   border-radius: 5px;
   margin-bottom: 1rem;
@@ -852,28 +856,28 @@
 .payment-badge {
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 0.9em;
-  font-weight: 500;
+  @include body-sm;
+  font-weight: $font-medium;
 
   &.pending {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: $warning;
+    color: $warning-text;
   }
 
   &.paid {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: $success-light;
+    color: $success-dark;
   }
 
   &.refunded {
-    background-color: #f8d7da;
-    color: #721c24;
+    background-color: $error-light;
+    color: $error-dark;
   }
 }
 
 .admin-container {
   padding: 20px;
-  background-color: #f8f9fa;
+  background-color: $bg-light-alt;
   min-height: calc(100vh - 60px);
 }
 
@@ -881,14 +885,14 @@
   margin-bottom: 20px;
   
   h1 {
-    font-size: 24px;
-    color: #333;
+    @include body-lg-alt;
+    color: $text-medium;
     margin: 0;
   }
 }
 
 .admin-content {
-  background-color: #fff;
+  background-color: $bg-white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -904,14 +908,14 @@
   justify-content: center;
   align-items: center;
   height: 200px;
-  font-size: 16px;
-  color: #666;
+  @include body-base;
+  color: $text-light;
 }
 
 .no-data {
-  text-align: center;
+  text-align: $align-center;
   padding: 20px;
-  color: #666;
+  color: $text-light;
   font-style: italic;
 }
 
@@ -927,35 +931,35 @@
     flex: 1;
     padding: 0.75rem;
     padding-left: 2.5rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid $border-admin;
     border-radius: 5px;
-    font-size: 1rem;
+    @include body-base;
 
     &:focus {
       outline: none;
-      border-color: #3498db;
+      border-color: $blue-light;
     }
   }
 
   i {
     position: absolute;
     left: 0.75rem;
-    color: #95a5a6;
+    color: $grey-medium-alt;
   }
 }
 
 // Filter select component
 .filter-select {
   padding: 0.75rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid $border-admin;
   border-radius: 5px;
-  font-size: 1rem;
+  @include body-base;
   min-width: 150px;
-  background-color: white;
+  background-color: $bg-white;
 
   &:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: $blue-light;
   }
 }
 
@@ -966,11 +970,11 @@
   label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-weight: 500;
+    color: $blue-dark-text;
+    @include label-base;
 
     .required {
-      color: #e74c3c;
+      color: $error;
       margin-left: 0.25rem;
     }
   }
@@ -978,23 +982,23 @@
   input, select, textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid $border-admin;
     border-radius: 5px;
-    font-size: 1rem;
+    @include body-base;
 
     &:focus {
       outline: none;
-      border-color: #3498db;
+      border-color: $blue-light;
     }
 
     &.error {
-      border-color: #e74c3c;
+      border-color: $error;
     }
   }
 
   .error-text {
-    color: #e74c3c;
-    font-size: 0.875rem;
+    color: $error;
+    @include body-xs;
     margin-top: 0.25rem;
   }
 }
@@ -1015,47 +1019,47 @@
     justify-content: center;
 
     &.view {
-      background-color: #3498db;
-      color: white;
+      background-color: $blue-light;
+      color: $text-white;
 
       &:hover {
-        background-color: #2980b9;
+        background-color: $blue-light-hover;
       }
     }
 
     &.edit {
-      background-color: #2ecc71;
-      color: white;
+      background-color: $success;
+      color: $text-white;
 
       &:hover {
-        background-color: #27ae60;
+        background-color: $success-hover;
       }
     }
 
     &.approve {
-      background-color: #2ecc71;
-      color: white;
+      background-color: $success;
+      color: $text-white;
 
       &:hover {
-        background-color: #27ae60;
+        background-color: $success-hover;
       }
     }
 
     &.reject {
-      background-color: #f39c12;
-      color: white;
+      background-color: $star-orange;
+      color: $text-white;
 
       &:hover {
-        background-color: #e67e22;
+        background-color: $warning-text-darker;
       }
     }
 
     &.delete {
-      background-color: #e74c3c;
-      color: white;
+      background-color: $error;
+      color: $text-white;
 
       &:hover {
-        background-color: #c0392b;
+        background-color: $error-dark;
       }
     }
   }
@@ -1071,14 +1075,14 @@
   .header-title {
     h2 {
       margin: 0;
-      color: #2c3e50;
-      font-size: 1.5rem;
+      color: $blue-dark-text;
+      @include heading-sm;
     }
 
     .header-subtitle {
       margin: 0.5rem 0 0 0;
-      color: #7f8c8d;
-      font-size: 1rem;
+      color: $grey-medium;
+      @include body-base;
     }
   }
 

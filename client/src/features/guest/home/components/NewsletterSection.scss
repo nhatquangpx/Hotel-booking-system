@@ -1,20 +1,24 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .newsletter-section {
   padding: 60px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  text-align: center;
+  background: linear-gradient(135deg, $purple 0%, $purple-gradient-end 100%);
+  color: $text-white;
+  text-align: $align-center;
 
   .newsletter-content {
     max-width: 600px;
     margin: 0 auto;
 
     h2 {
-      font-size: 2.5rem;
+      @include heading-xl;
       margin-bottom: 15px;
     }
 
     p {
-      font-size: 1.2rem;
+      @include body-md;
       margin-bottom: 30px;
       opacity: 0.9;
     }
@@ -31,7 +35,7 @@
       padding: 15px 20px;
       border: none;
       border-radius: 5px;
-      font-size: 1rem;
+      @include body-base;
 
       &:focus {
         outline: none;
@@ -40,17 +44,17 @@
 
     button {
       padding: 15px 30px;
-      background: #fa002a;
-      color: white;
+      background: $pinkred;
+      color: $text-white;
       border: none;
       border-radius: 5px;
-      font-size: 1rem;
-      font-weight: bold;
+      @include body-base;
+      @include button-text;
       cursor: pointer;
       transition: background 0.3s ease;
 
       &:hover {
-        background: #d1001f;
+        background: $error-dark;
       }
     }
   }

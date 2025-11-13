@@ -1,55 +1,58 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .my-bookings-container {
   max-width: 1200px;
   margin: 30px auto;
   padding: 0 20px;
 
   h1 {
-    font-size: 2rem;
-    text-align: center;
+    @include heading-lg;
+    text-align: $align-center;
     margin-bottom: 30px;
-    color: #333;
+    color: $text-medium;
   }
 
   .loading, .error-message {
-    text-align: center;
+    text-align: $align-center;
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 8px;
-    font-size: 1.2rem;
+    @include body-md;
   }
 
   .error-message {
-    background-color: #fdeded;
-    color: #e74c3c;
-    border: 1px solid #fadbd8;
+    background-color: $error-bg-light;
+    color: $error;
+    border: 1px solid $error-border-light;
   }
 
   .no-bookings {
-    text-align: center;
+    text-align: $align-center;
     padding: 50px 20px;
-    background-color: #f8f9fa;
+    background-color: $bg-light-alt;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     p {
-      font-size: 1.2rem;
+      @include body-md;
       margin-bottom: 20px;
-      color: #555;
+      color: $text-light;
     }
 
     .browse-hotels-btn {
       padding: 12px 25px;
-      background-color: #3498db;
-      color: white;
+      background-color: $button-primary;
+      color: $text-primary;
       border: none;
       border-radius: 4px;
-      font-size: 1rem;
-      font-weight: 500;
+      @include button-text;
       cursor: pointer;
       transition: background-color 0.3s ease;
 
       &:hover {
-        background-color: #2980b9;
+        background-color: $button-primary-hover;
       }
     }
   }
@@ -70,19 +73,19 @@
         justify-content: space-between;
         align-items: center;
         padding: 15px 20px;
-        background-color: #f5f5f5;
-        border-bottom: 1px solid #ddd;
+        background-color: $grey-light;
+        border-bottom: 1px solid $border-medium;
 
         .hotel-info {
           h2 {
-            font-size: 1.3rem;
+            @include heading-xs;
             margin: 0 0 5px 0;
-            color: #333;
+            color: $text-medium;
           }
 
           .booking-dates {
-            font-size: 0.9rem;
-            color: #555;
+            @include body-sm;
+            color: $text-light;
             margin: 0;
           }
         }
@@ -92,22 +95,21 @@
             display: inline-block;
             padding: 5px 10px;
             border-radius: 4px;
-            font-size: 0.9rem;
-            font-weight: 500;
+            @include label-sm;
 
             &.pending {
-              background-color: #f1c40f;
-              color: #333;
+              background-color: $warning-text;
+              color: $text-medium;
             }
 
             &.paid {
-              background-color: #2ecc71;
-              color: white;
+              background-color: $success;
+              color: $text-white;
             }
 
             &.cancelled {
-              background-color: #e74c3c;
-              color: white;
+              background-color: $error;
+              color: $text-white;
             }
           }
         }
@@ -133,7 +135,7 @@
             height: 150px;
             border-radius: 8px;
             overflow: hidden;
-            background-color: #f5f5f5;
+            background-color: $grey-light;
 
             img {
               width: 100%;
@@ -147,30 +149,30 @@
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #666;
-              font-size: 0.9rem;
-              background-color: #f5f5f5;
+              color: $text-light;
+              @include body-sm;
+              background-color: $grey-light;
             }
           }
 
           .room-details {
             h3 {
-              font-size: 1.2rem;
+              @include body-md;
               margin: 0 0 10px 0;
-              color: #333;
+              color: $text-medium;
             }
 
             .room-type {
-              font-size: 1rem;
-              color: #555;
+              @include body-base;
+              color: $text-light;
               margin: 0 0 10px 0;
-              text-transform: capitalize;
+              text-transform: $transform-capitalize;
             }
 
             .room-price {
-              font-size: 1.1rem;
-              color: #e74c3c;
-              font-weight: 500;
+              @include body-base-alt;
+              color: $error;
+              font-weight: $font-medium;
               margin: 0;
             }
           }
@@ -192,9 +194,9 @@
 
           .price-info {
             .total-price {
-              font-size: 1.3rem;
-              font-weight: 600;
-              color: #e74c3c;
+              @include body-md-alt;
+              font-weight: $font-semibold;
+              color: $error;
             }
           }
 
@@ -204,31 +206,31 @@
 
             .view-details-btn {
               padding: 8px 16px;
-              background-color: #1be0a5;
-              color: white;
+              background-color: $button-primary;
+              color: $text-primary;
               border: none;
               border-radius: 4px;
-              font-size: 0.9rem;
+              @include button-text-sm;
               cursor: pointer;
               transition: background-color 0.3s ease;
 
               &:hover {
-                background-color: #5fa798;
+                background-color: $button-primary-hover;
               }
             }
 
             .cancel-booking-btn {
               padding: 8px 16px;
-              background-color: #e74c3c;
+              background-color: $button-cancel;
               color: white;
               border: none;
               border-radius: 4px;
-              font-size: 0.9rem;
+              @include button-text-sm;
               cursor: pointer;
               transition: background-color 0.3s ease;
 
               &:hover {
-                background-color: #c0392b;
+                background-color: $button-cancel-hover;
               }
             }
           }
@@ -258,16 +260,16 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
       h2 {
-        font-size: 1.5rem;
+        @include heading-md;
         margin-top: 0;
         margin-bottom: 15px;
-        color: #333;
+        color: $text-medium;
       }
 
       p {
-        font-size: 1.1rem;
+        @include body-base-alt;
         margin-bottom: 20px;
-        color: #555;
+        color: $text-light;
       }
 
       .form-group {
@@ -276,21 +278,21 @@
         label {
           display: block;
           margin-bottom: 8px;
-          font-weight: 500;
-          color: #333;
+          @include label-base;
+          color: $text-medium;
         }
 
         textarea {
           width: 100%;
           padding: 12px;
-          border: 1px solid #ddd;
+          border: 1px solid $border-medium;
           border-radius: 4px;
-          font-size: 1rem;
+          @include body-base;
           resize: vertical;
           min-height: 100px;
 
           &:focus {
-            border-color: #3498db;
+            border-color: $blue-light;
             outline: none;
           }
         }
@@ -305,8 +307,8 @@
           padding: 10px 20px;
           border: none;
           border-radius: 4px;
-          font-size: 1rem;
-          font-weight: 500;
+          @include body-base;
+          @include label-base;
           cursor: pointer;
           transition: background-color 0.3s ease;
 
@@ -317,20 +319,22 @@
         }
 
         .cancel-btn {
-          background-color: #95a5a6;
+          background-color: $grey-medium-alt;
           color: white;
+          @include button-text;
 
           &:hover:not(:disabled) {
-            background-color: #7f8c8d;
+            background-color: $grey-medium;
           }
         }
 
         .confirm-btn {
-          background-color: #e74c3c;
+          background-color: $button-cancel;
           color: white;
+          @include button-text;
 
           &:hover:not(:disabled) {
-            background-color: #c0392b;
+            background-color: $button-cancel-hover;
           }
         }
       }
@@ -338,18 +342,18 @@
   }
 
   .cancel-policy-reminder {
-    background: #fffbe6;
-    color: #b8860b;
-    border: 1px solid #ffe58f;
+    background: $warning-bg;
+    color: $warning-text-dark;
+    border: 1px solid $warning-border;
     border-radius: 6px;
     padding: 12px 18px;
     margin-bottom: 18px;
-    font-size: 1rem;
-    line-height: 1.6;
+    @include body-base;
+    line-height: $line-relaxed;
     a {
-      color: #d35400;
+      color: $warning-text-darker;
       text-decoration: underline;
-      font-weight: 600;
+      @include button-text;
     }
   }
 } 

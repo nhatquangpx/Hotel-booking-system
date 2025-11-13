@@ -1,12 +1,16 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .testimonials-section {
   padding: 60px 20px;
-  background-color: white;
+  background-color: $bg-white;
 
   h2 {
-    text-align: center;
-    font-size: 2.5rem;
+    text-align: $align-center;
+    @include heading-xl;
     margin-bottom: 50px;
-    color: #333;
+    color: $text-medium;
   }
 
   .testimonials-grid {
@@ -18,7 +22,7 @@
   }
 
   .testimonial-item {
-    background: #f8f9fa;
+    background: $bg-light-alt;
     border-radius: 10px;
     padding: 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -27,7 +31,7 @@
   .testimonial-content {
     p {
       font-style: italic;
-      color: #666;
+      color: $text-light;
       margin-bottom: 20px;
       line-height: 1.6;
     }
@@ -47,13 +51,13 @@
 
     h4 {
       margin: 0;
-      color: #333;
+      color: $text-medium;
     }
 
     p {
       margin: 5px 0 0 0;
-      color: #666;
-      font-size: 0.9rem;
+      color: $text-light;
+      @include body-sm;
     }
   }
 }

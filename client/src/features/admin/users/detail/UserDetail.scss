@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 :root {
   --admin-primary: #1976d2;
   --admin-primary-hover: #1565c0;
@@ -15,8 +19,7 @@
 
   h1 {
     color: var(--admin-primary);
-    font-weight: 700;
-    font-size: 2.2em;
+    @include heading-xl;
     margin-bottom: 2rem;
   }
 
@@ -36,7 +39,7 @@
 
       h3 {
         margin: 0;
-        font-size: 1.5rem;
+        @include heading-md;
         color: var(--admin-text);
       }
 
@@ -47,7 +50,7 @@
         button {
           padding: 0.5rem 1rem;
           border-radius: 4px;
-          font-weight: 500;
+          @include label-base;
           transition: opacity 0.3s;
           display: flex;
           align-items: center;
@@ -55,7 +58,8 @@
 
           &.edit-btn {
             background-color: var(--admin-primary);
-            color: white;
+            color: $text-white;
+            @include button-text;
 
             &:hover {
               opacity: 0.9;
@@ -65,6 +69,7 @@
           &.back-btn {
             background-color: var(--admin-border);
             color: var(--admin-text);
+            @include button-text;
 
             &:hover {
               opacity: 0.9;
@@ -91,13 +96,15 @@
 
         .detail-label {
           width: 200px;
-          font-weight: 600;
+          @include label-base;
+          font-weight: $font-semibold;
           color: var(--admin-text);
         }
 
         .detail-value {
           flex: 1;
           color: var(--admin-text);
+          @include body-base;
         }
       }
     }
@@ -108,8 +115,8 @@
 
     h3 {
       color: var(--admin-primary);
-      font-size: 1.25rem;
-      font-weight: 600;
+      @include heading-xs;
+      font-weight: $font-semibold;
     }
   }
 
@@ -127,15 +134,16 @@
         background-color: var(--admin-header);
         color: var(--admin-primary);
         padding: 1rem;
-        text-align: center;
-        font-weight: 600;
+        text-align: $align-center;
+        @include button-text-sm;
       }
 
       td {
         padding: 1rem;
-        text-align: center;
+        text-align: $align-center;
         color: var(--admin-text);
         border-bottom: 1px solid var(--admin-border);
+        @include body-base;
       }
 
       tr {
@@ -149,11 +157,12 @@
   }
 
   .no-bookings {
-    text-align: center;
+    text-align: $align-center;
     padding: 2rem;
     color: var(--admin-text);
     background-color: var(--admin-sidebar);
     border-radius: 8px;
     margin-top: 1rem;
+    @include body-base;
   }
 } 
