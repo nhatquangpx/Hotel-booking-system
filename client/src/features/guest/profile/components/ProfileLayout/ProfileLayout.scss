@@ -1,3 +1,6 @@
+@use "../../../../../styles/variables" as *;
+@use "../../../../../styles/global" as *;
+
 .profile-layout {
   min-height: 100vh;
   display: flex;
@@ -6,7 +9,7 @@
   .profile-content {
     flex: 1;
     padding-top: 70px; // Để tránh bị Navbar che mất nội dung
-    background-color: #f5f6fa;
+    background-color: $grey-light-alt;
   }
 }
 

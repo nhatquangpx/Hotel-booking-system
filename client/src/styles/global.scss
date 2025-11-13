@@ -1,0 +1,136 @@
+// ============================================
+// Global Color Variables
+// ============================================
+
+// Footer Background Color (Light Mint/Turquoise)
+$footer-bg: #8DD3BB;
+
+// Primary Button Colors (Mint/Turquoise) 
+$button-primary: #3ef1b0;
+$button-primary-hover: #00e690;
+
+// Cancel/Delete Button Colors (Red)
+$button-cancel: #e74c3c;
+$button-cancel-hover: #c0392b;
+
+// Success Colors (Green)
+$success: #2ecc71;
+$success-hover: #27ae60;
+$success-light: #e8f5e9;
+$success-dark: #2e7d32;
+
+// Danger/Error Colors (Red/Pink)
+$danger: #e74c3c;
+$danger-hover: #c0392b;
+$danger-light: #ffebee;
+$danger-dark: #c62828;
+$error: #c62828;
+$error-light: #f8d7da;
+$error-dark: #721c24;
+$error-bg-light: #fdeded;
+$error-border-light: #fadbd8;
+$error-red: #ff4444;
+
+// Primary Brand Colors
+$pinkred: #fa002a;
+$pink-light: #FF8682;
+$pink-gradient-end: #ff6b6b;
+$blue: #24355A;
+$blue-light: #3498db;
+$blue-light-hover: #2980b9;
+$blue-medium: #1976d2;
+$blue-medium-hover: #1565c0;
+$blue-link: #007bff;
+$blue-dark-text: #2c3e50;
+
+// Grey Scale
+$lightgrey: #F7F8F8;
+$grey-light: #f5f5f5;
+$grey-light-alt: #f5f6fa;
+$grey: #bdb9b9;
+$grey-medium: #7f8c8d;
+$grey-medium-alt: #95a5a6;
+$darkgrey: #969393;
+$grey-dark: #6c757d;
+$grey-dark-hover: #5a6268;
+$grey-text: #777;
+
+// Text Colors
+$text-primary: #1C1B1F;
+$text-secondary: #79747E;
+$text-dark: #222;
+$text-medium: #333;
+$text-medium-alt: #444;
+$text-light: #666;
+$text-disabled: #aaa;
+$text-white: #fff;
+
+// Background Colors
+$bg-white: #fff;
+$bg-light: #f9f9f9;
+$bg-light-alt: #f8f9fa;
+$bg-light-secondary: #eef2f7;
+
+// Border Colors
+$border-light: #eee;
+$border-medium: #ddd;
+$border-dark: #dcdfe6;
+$border-input: #79747E;
+$border-admin: #e0e0e0;
+
+// Status Colors
+$status-success-bg: #e8f5e9;
+$status-success-text: #2e7d32;
+$status-error-bg: #ffebee;
+$status-error-text: #c62828;
+$status-warning-bg: #fff3e0;
+$status-warning-text: #ef6c00;
+$status-info-bg: #e3f2fd;
+$status-info-text: #1976d2;
+
+// Warning Colors
+$warning: #fff3cd;
+$warning-text: #fcbd01;
+$warning-bg: #fffbe6;
+$warning-border: #ffe58f;
+$warning-text-dark: #b8860b;
+$warning-text-darker: #d35400;
+
+// Special Colors
+$info: #3498db;
+$star-gold: #ffd700;
+$star-orange: #f39c12;
+$purple: #9b59b6;
+$purple-gradient-end: #764ba2;
+$yellow-green: #cfdd0b;
+
+// Admin Colors
+$admin-primary: #1976d2;
+$admin-primary-hover: #1565c0;
+$admin-danger: #d32f2f;
+$admin-success: #388e3c;
+$admin-bg: #f5f6fa;
+$admin-sidebar: #fff;
+$admin-text: #222;
+$admin-header: #f3f6fa;
+$admin-border: #e0e0e0;
+$admin-accent: #f5f6fa;
+$admin-bg-light: #f0f0f0;
+
+// ============================================
+// Export for JavaScript (if needed)
+// ============================================
+:export {
+  buttonPrimary: $button-primary;
+  buttonPrimaryHover: $button-primary-hover;
+  success: $success;
+  danger: $danger;
+  error: $error;
+  pinkred: $pinkred;
+  blue: $blue;
+  lightgrey: $lightgrey;
+  grey: $grey;
+  darkgrey: $darkgrey;
+  footerBg: $footer-bg;
+}
+

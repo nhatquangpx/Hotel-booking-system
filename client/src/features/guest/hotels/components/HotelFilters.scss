@@ -1,14 +1,18 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .filter-section {
-  background: white;
+  background: $bg-white;
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
 
   h2 {
-    font-size: 1.8rem;
+    @include heading-md;
     margin-bottom: 20px;
-    color: #333;
+    color: $text-medium;
   }
 
   .filter-form {
@@ -22,20 +26,20 @@
 
       label {
         margin-bottom: 8px;
-        font-weight: 600;
-        color: #333;
+        @include button-text;
+        color: $text-medium;
       }
 
       input,
       select {
         padding: 10px;
-        border: 1px solid #ddd;
+        border: 1px solid $border-medium;
         border-radius: 5px;
-        font-size: 1rem;
+        @include body-base;
 
         &:focus {
           outline: none;
-          border-color: #fa002a;
+          border-color: $pinkred;
         }
       }
     }

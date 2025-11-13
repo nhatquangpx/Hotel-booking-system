@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 // Biến màu dùng chung
 :root {
   --admin-primary: #1976d2;
@@ -17,11 +21,12 @@
 
   h1 {
     margin-bottom: 20px;
-    color: #333;
+    @include heading-lg;
+    color: $text-medium;
   }
 
   .detail-card {
-    background: white;
+    background: $bg-white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 30px;
@@ -29,14 +34,15 @@
 
     .detail-header {
       padding: 20px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid $border-light;
       display: flex;
       justify-content: space-between;
       align-items: center;
 
       h3 {
         margin: 0;
-        color: #333;
+        @include heading-md;
+        color: $text-medium;
       }
 
       .detail-actions {
@@ -58,13 +64,14 @@
 
         .detail-label {
           width: 150px;
-          font-weight: 500;
-          color: #666;
+          @include label-base;
+          color: $text-light;
         }
 
         .detail-value {
           flex: 1;
-          color: #333;
+          color: $text-medium;
+          @include body-base;
 
           &.image-gallery {
             display: flex;
@@ -93,13 +100,14 @@
     margin: 30px 0 20px;
     
     h3 {
-      color: #333;
+      @include heading-sm;
+      color: $text-medium;
       margin: 0;
     }
   }
 
   .room-table {
-    background: white;
+    background: $bg-white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow: hidden;
@@ -110,19 +118,20 @@
 
       th, td {
         padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #eee;
+        text-align: $align-left;
+        border-bottom: 1px solid $border-light;
       }
 
       th {
-        background: #f8f9fa;
-        font-weight: 500;
-        color: #666;
+        background: $bg-light-alt;
+        @include label-base;
+        color: $text-light;
       }
 
       td {
-        color: #333;
+        color: $text-medium;
         vertical-align: middle;
+        @include body-base;
 
         .room-image-thumb {
           width: 80px;
@@ -140,13 +149,13 @@
         .no-image {
           width: 80px;
           height: 60px;
-          background: #f8f9fa;
+          background: $bg-light-alt;
           border-radius: 4px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #999;
-          font-size: 0.9em;
+          color: $text-disabled;
+          @include body-sm;
         }
       }
 
@@ -157,17 +166,19 @@
   }
 
   .loading {
-    text-align: center;
+    text-align: $align-center;
     padding: 20px;
-    color: #666;
+    color: $text-light;
+    @include body-base;
   }
 
   .error-message {
-    text-align: center;
+    text-align: $align-center;
     padding: 20px;
-    color: #dc3545;
-    background: #fff;
+    color: $error;
+    background: $bg-white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    @include body-base;
   }
 } 

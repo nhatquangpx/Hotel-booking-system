@@ -1,4 +1,6 @@
 @use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
 @use "../../../styles/breakpoints.scss" as *;
 
 .register-container {
@@ -46,7 +48,7 @@
         color: white;
         border: none;
         padding: 10px 15px;
-        font-size: 24px;
+        @include heading-md;
         cursor: pointer;
         border-radius: 50%;
         z-index: 10;
@@ -73,7 +75,7 @@
         cursor: pointer;
         transition: all 0.3s;
         &.active {
-          background-color: #8DD3BB;
+          background-color: $button-primary;
           transform: scale(1.2);
         }
       }
@@ -85,7 +87,7 @@
     padding: 2rem;
     width: 50vw;
     position: relative;
-    background: #fff;
+    background: $bg-white;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -115,15 +117,16 @@
       width: 100%;
       
       h1 {
-        font-size: clamp(32px, 5vw, 48px);
-        font-weight: 600;
+        @include heading-xl;
+        font-weight: $font-semibold;
         margin-bottom: 0.5rem;
-        color: #1C1B1F;
+        color: $text-primary;
       }
       
       .subtitle {
-        color: #79747E;
+        color: $text-secondary;
         margin-bottom: 2rem;
+        @include body-base;
       }
       
       form {
@@ -139,25 +142,25 @@
             
             label {
               margin-bottom: 0.5rem;
-              color: #1C1B1F;
-              font-weight: 500;
+              color: $text-primary;
+              @include label-base;
             }
             
             input {
               width: 100%;
               padding: 1rem;
-              border: 1px solid #79747E;
+              border: 1px solid $border-input;
               border-radius: 4px;
-              font-size: 1rem;
-              color: #1C1B1F;
+              @include body-base;
+              color: $text-primary;
               
               &:focus {
-                border-color: #1C1B1F;
+                border-color: $text-primary;
                 outline: none;
               }
               
               &::placeholder {
-                color: #79747E;
+                color: $text-secondary;
               }
             }
           }
@@ -170,25 +173,25 @@
           
           label {
             margin-bottom: 0.5rem;
-            color: #1C1B1F;
-            font-weight: 500;
+            color: $text-primary;
+            @include label-base;
           }
           
           input {
             width: 100%;
             padding: 1rem;
-            border: 1px solid #79747E;
+            border: 1px solid $border-input;
             border-radius: 4px;
-            font-size: 1rem;
-            color: #1C1B1F;
+            @include body-base;
+            color: $text-primary;
             
             &:focus {
-              border-color: #1C1B1F;
+              border-color: $text-primary;
               outline: none;
             }
             
             &::placeholder {
-              color: #79747E;
+              color: $text-secondary;
             }
           }
         }
@@ -202,7 +205,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: #1C1B1F;
+            color: $text-primary;
             
             input[type="checkbox"] {
               width: 18px;
@@ -210,7 +213,7 @@
             }
             
             .terms, .privacy {
-              color: #FF8682;
+              color: $pink-light;
               text-decoration: none;
               
               &:hover {
@@ -223,30 +226,30 @@
         .register-button {
           width: 100%;
           padding: 1rem;
-          background-color: #8DD3BB;
+          background-color: $button-primary;
           border: none;
           border-radius: 4px;
-          color: #1C1B1F;
-          font-weight: 600;
-          font-size: 1rem;
+          color: $text-primary;
+          @include button-text;
           cursor: pointer;
           margin-bottom: 2rem;
+          transition: background 0.3s ease;
           
           &:hover {
-            background-color:#8DD3BB;
+            background-color: $button-primary-hover;
           }
         }
       }
       
       .login-prompt {
         text-align: center;
-        color: #1C1B1F;
+        color: $text-primary;
         margin-bottom: 1rem;
         
         a {
-          color: #FF8682;
+          color: $pink-light;
           text-decoration: none;
-          font-weight: 500;
+          @include label-base;
           
           &:hover {
             text-decoration: underline;
@@ -266,7 +269,7 @@
           top: 50%;
           width: 45%;
           height: 1px;
-          background-color: #79747E;
+          background-color: $text-secondary;
         }
         
         &::before {
@@ -278,14 +281,14 @@
         }
         
         span {
-          background-color: white;
+          background-color: $bg-white;
           padding: 0 1rem;
-          color: #79747E;
+          color: $text-secondary;
         }
       }
       
       .error-message {
-        color: #B3261E;
+        color: $error-dark;
         margin-bottom: 1rem;
         text-align: center;
       }

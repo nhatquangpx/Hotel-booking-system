@@ -1,4 +1,6 @@
 @use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
 @use "../../../styles/breakpoints.scss" as *;
 
 .about-container {
@@ -11,7 +13,7 @@
     background-size: cover;
     background-position: center;
     color: white;
-    text-align: center;
+    text-align: $align-center;
     padding: 100px 20px;
     border-radius: 10px;
     margin-bottom: 40px;
@@ -21,13 +23,13 @@
       margin: 0 auto;
       
       h1 {
-        font-size: 48px;
+        @include heading-xl;
         color: white;
         margin-bottom: 15px;
       }
       
       p {
-        font-size: 18px;
+        @include body-lg;
       }
     }
   }
@@ -54,14 +56,14 @@
       flex: 1;
       
       h2 {
-        font-size: 32px;
+        @include heading-lg;
         margin-bottom: 20px;
-        color: #333;
+        color: $text-medium;
       }
       
       p {
-        color: #666;
-        line-height: 1.8;
+        color: $text-light;
+        line-height: $line-loose;
         margin-bottom: 20px;
       }
       
@@ -75,21 +77,21 @@
         }
         
         .value-item {
-          background-color: #f9f9f9;
+          background-color: $bg-light;
           padding: 20px;
           border-radius: 10px;
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
           
           .value-icon {
-            font-size: 24px;
-            color: #8DD3BB;
+            @include body-lg-alt;
+            color: $footer-bg;
             margin-bottom: 10px;
           }
           
           h3 {
-            font-size: 20px;
+            @include body-lg;
             margin-bottom: 10px;
-            color: #333;
+            color: $text-medium;
           }
           
           p {
@@ -112,19 +114,19 @@
   
   .team-section {
     margin-bottom: 60px;
-    text-align: center;
+    text-align: $align-center;
     
     h2 {
-      font-size: 32px;
+      @include heading-lg;
       margin-bottom: 15px;
-      color: #333;
+      color: $text-medium;
     }
     
     .team-intro {
-      color: #666;
+      color: $text-light;
       max-width: 800px;
       margin: 0 auto 40px;
-      line-height: 1.6;
+      line-height: $line-relaxed;
     }
     
     .team-grid {
@@ -133,7 +135,7 @@
       gap: 30px;
       
       .team-member {
-        background-color: #fff;
+        background-color: $bg-white;
         overflow: hidden;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         transition: transform 0.3s;
@@ -155,13 +157,13 @@
         }
         
         h3 {
-          font-size: 20px;
+          @include body-lg;
           margin: 15px 0 5px;
-          color: #333;
+          color: $text-medium;
         }
         
         .member-title {
-          color: #666;
+          color: $text-light;
           margin-bottom: 15px;
         }
       }
@@ -170,15 +172,15 @@
   
   .contact-section {
     padding: 40px;
-    background-color: #f9f9f9;
+    background-color: $bg-light;
     border-radius: 10px;
-    text-align: center;
+    text-align: $align-center;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     
     h2 {
-      font-size: 32px;
+      @include heading-lg;
       margin-bottom: 30px;
-      color: #333;
+      color: $text-medium;
     }
     
     .contact-info {
@@ -193,19 +195,19 @@
       
       .contact-item {
         .contact-icon {
-          font-size: 32px;
-          color: #8DD3BB;
+          @include heading-md;
+          color: $footer-bg;
           margin-bottom: 10px;
         }
         
         h3 {
-          font-size: 20px;
+          @include body-lg;
           margin-bottom: 10px;
-          color: #333;
+          color: $text-medium;
         }
         
         p {
-          color: #666;
+          color: $text-light;
         }
       }
     }
@@ -219,7 +221,7 @@
       padding: 60px 20px;
       
       .hero-content h1 {
-        font-size: 36px;
+        @include heading-lg;
       }
     }
     
@@ -227,13 +229,13 @@
       gap: 30px;
       
       .about-content h2 {
-        font-size: 28px;
+        @include heading-md;
       }
     }
     
     .team-section h2,
     .contact-section h2 {
-      font-size: 28px;
+      @include heading-md;
     }
   }
 } 

@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .user-create-container {
   background: var(--admin-bg);
   min-height: 100vh;
@@ -6,9 +10,8 @@
 
   h1 {
     color: var(--admin-primary);
-    font-weight: 700;
-    font-size: 2em;
-    text-align: center;
+    @include heading-lg;
+    text-align: $align-center;
     margin-bottom: 32px;
   }
 
@@ -28,16 +31,16 @@
       flex-direction: column;
       gap: 6px;
       label {
-        font-weight: 500;
+        @include label-base;
         color: var(--admin-text);
       }
       input, select {
         padding: 10px 12px;
         border-radius: 6px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid $border-admin;
         background: var(--admin-bg);
         color: var(--admin-text);
-        font-size: 1rem;
+        @include body-base;
         &:focus {
           outline: none;
           border-color: var(--admin-primary);
@@ -52,8 +55,8 @@
       margin-top: 8px;
       .submit-btn {
         background: var(--admin-primary);
-        color: #fff;
-        font-weight: 600;
+        color: $text-white;
+        @include button-text;
         padding: 8px 20px;
         border-radius: 6px;
         border: none;
@@ -63,29 +66,29 @@
         }
       }
       .cancel-btn {
-        background: #eee;
-        color: var(--admin-text);
-        font-weight: 500;
+        background: $button-cancel;
+        color: white;
+        @include button-text;
         padding: 8px 20px;
         border-radius: 6px;
         border: none;
         cursor: pointer;
         &:hover {
-          background: #ddd;
+          background: $button-cancel-hover;
         }
       }
     }
   }
 
   .loading {
-    text-align: center;
+    text-align: $align-center;
     padding: 2rem;
     color: var(--admin-text);
   }
 
   .error-message {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: $status-error-bg;
+    color: $status-error-text;
     padding: 1rem;
     border-radius: 4px;
     margin-bottom: 1rem;

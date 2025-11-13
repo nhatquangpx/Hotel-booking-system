@@ -1,4 +1,6 @@
 @use "../styles/variables" as *;
+@use "../styles/global" as *;
+@use "../styles/text" as *;
 @use "../styles/breakpoints.scss" as *;
 
 .slider-container {
@@ -27,7 +29,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  text-align: $align-center;
 
   &::before {
     content: '';
@@ -42,22 +44,21 @@
   .slide-content {
     position: relative;
     z-index: 1;
-    text-align: center;
+    text-align: $align-center;
     color: white;
     max-width: 800px;
     padding: 0 20px;
 
     h1 {
-      font-size: 3rem;
-      font-weight: bold;
+      @include heading-2xl;
       margin-bottom: 20px;
       color: rgb(255, 255, 255);
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
     }
 
     p {
-      font-size: 1.2rem;
-      line-height: 1.6;
+      @include body-md;
+      line-height: $line-relaxed;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     }
   }
@@ -71,7 +72,7 @@
   color: white;
   border: none;
   padding: 10px 15px;
-  font-size: 24px;
+  @include heading-md;
   cursor: pointer;
   z-index: 10;
   border-radius: 50%;

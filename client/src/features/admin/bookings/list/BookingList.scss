@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 :root {
   --admin-primary: #1976d2;
   --admin-primary-hover: #1565c0;
@@ -18,10 +22,9 @@
 
   h1 {
     color: var(--admin-primary);
-    font-weight: 700;
-    font-size: 2em;
+    @include heading-lg;
     margin-bottom: 32px;
-    text-align: left;
+    text-align: $align-left;
   }
 
   .search-bar {
@@ -64,13 +67,13 @@
       overflow: hidden;
       th, td {
         padding: 12px 15px;
-        text-align: left;
+        text-align: $align-left;
         border-bottom: 1px solid var(--admin-border);
       }
       th {
         background: var(--admin-sidebar);
         color: var(--admin-text);
-        font-weight: 600;
+        @include button-text;
       }
       tr:hover {
         background: var(--admin-hover);
@@ -78,21 +81,21 @@
       .status-badge {
         padding: 4px 8px;
         border-radius: 4px;
-        font-size: 0.875rem;
+        @include body-xs;
         
         &.pending {
-          background: #fff3cd;
-          color: #856404;
+          background: $warning;
+          color: $warning-text;
         }
         
         &.paid {
-          background: #d4edda;
-          color: #155724;
+          background: $success-light;
+          color: $success-dark;
         }
         
         &.cancelled {
-          background: #f8d7da;
-          color: #721c24;
+          background: $error-light;
+          color: $error-dark;
         }
       }
       .action-buttons {
@@ -105,33 +108,33 @@
   .status-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    @include body-xs;
+    font-weight: $font-medium;
     &.pending {
-      background-color: #fffde7;
-      color: #fbc02d;
+      background-color: $warning-bg;
+      color: $warning-text-dark;
     }
     &.paid {
-      background-color: #e8f5e9;
-      color: #2e7d32;
+      background-color: $status-success-bg;
+      color: $status-success-text;
     }
     &.cancelled {
-      background-color: #ffebee;
-      color: #c62828;
+      background-color: $status-error-bg;
+      color: $status-error-text;
     }
   }
 
   .error-message {
     color: var(--admin-danger);
-    text-align: center;
+    text-align: $align-center;
     margin: 1rem 0;
-    font-size: 1.1em;
+    @include body-base-alt;
   }
   .loading {
     color: var(--admin-primary);
-    text-align: center;
+    text-align: $align-center;
     margin: 1.5rem 0;
-    font-size: 1.1em;
+    @include body-base-alt;
   }
 
   .modal-overlay {
@@ -167,7 +170,7 @@
         .close-button {
           background: none;
           border: none;
-          font-size: 24px;
+          @include body-lg-alt;
           cursor: pointer;
           color: var(--admin-text);
         }
@@ -184,7 +187,7 @@
             display: block;
             margin-bottom: 8px;
             color: var(--admin-text);
-            font-weight: 500;
+            @include label-base;
           }
 
           select {
@@ -195,7 +198,7 @@
             border-radius: 4px;
             background: var(--admin-bg);
             color: var(--admin-text);
-            font-size: 1rem;
+            @include body-base;
             margin-top: 4px;
           }
         }
@@ -212,8 +215,8 @@
             border-radius: 4px;
             cursor: pointer;
             border: none;
-            font-size: 1rem;
-            font-weight: 500;
+            @include body-base;
+            @include label-base;
             transition: background 0.2s;
           }
           .submit-btn {
@@ -222,11 +225,12 @@
             order: 1;
           }
           .submit-btn:hover {
-            background: #218838;
+            background: $success-hover;
           }
           .cancel-btn {
-            background: #6c757d;
+            background: $button-cancel;
             color: white;
+            @include button-text;
             margin-left: 20px;
             order: 2;
           }

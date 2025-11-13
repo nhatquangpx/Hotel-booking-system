@@ -1,10 +1,14 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .admin-dashboard {
   padding: 20px;
 
   h2 {
     margin: 30px 0 20px 0;
-    color: #333;
-    font-size: 1.8rem;
+    color: $text-medium;
+    @include heading-lg;
   }
 
   .stats-container {
@@ -15,28 +19,27 @@
   }
 
   .stat-card {
-    background: white;
+    background: $bg-white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
+    text-align: $align-center;
 
     .stat-title {
-      font-size: 0.9rem;
-      color: #666;
+      @include body-sm;
+      color: $text-light;
       margin-bottom: 10px;
     }
 
     .stat-value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #333;
+      @include heading-xl;
+      color: $text-medium;
       margin-bottom: 10px;
     }
 
     .stat-description {
-      font-size: 0.8rem;
-      color: #999;
+      @include body-xs;
+      color: $text-disabled;
     }
   }
 
@@ -48,7 +51,7 @@
   }
 
   .quick-access-card {
-    background: white;
+    background: $bg-white;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -62,25 +65,25 @@
     }
 
     .card-icon {
-      font-size: 3rem;
+      @include heading-2xl;
       margin-bottom: 15px;
     }
 
     .card-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #333;
+      @include body-md-alt;
+      font-weight: $font-bold;
+      color: $text-medium;
       margin-bottom: 10px;
     }
 
     .card-description {
-      font-size: 0.9rem;
-      color: #666;
+      @include body-sm;
+      color: $text-light;
     }
   }
 
   .recent-activities {
-    background: white;
+    background: $bg-white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -92,18 +95,18 @@
 
     th, td {
       padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
+      text-align: $align-left;
+      border-bottom: 1px solid $border-light;
     }
 
     th {
-      background: #f8f9fa;
-      font-weight: 600;
-      color: #333;
+      background: $bg-light-alt;
+      @include button-text-sm;
+      color: $text-medium;
     }
 
     tr:hover {
-      background: #f8f9fa;
+      background: $bg-light-alt;
     }
   }
 }

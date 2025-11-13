@@ -1,3 +1,7 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 :root {
   --admin-primary: #1976d2;
   --admin-primary-hover: #1565c0;
@@ -15,9 +19,8 @@
 
   h2 {
     color: var(--admin-primary);
-    font-weight: 700;
-    font-size: 2em;
-    text-align: center;
+    @include heading-lg;
+    text-align: $align-center;
     margin-bottom: 32px;
   }
 
@@ -38,17 +41,17 @@
       gap: 6px;
 
       label {
-        font-weight: 500;
+        @include label-base;
         color: var(--admin-text);
       }
 
       input, select, textarea {
         padding: 10px 12px;
         border-radius: 6px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid $border-admin;
         background: var(--admin-bg);
         color: var(--admin-text);
-        font-size: 1rem;
+        @include body-base;
 
         &:focus {
           outline: none;
@@ -77,14 +80,14 @@
           display: flex;
           align-items: center;
           gap: 8px;
-          font-size: 0.9rem;
+          @include body-sm;
 
           button {
             background: none;
             border: none;
             color: var(--admin-danger);
             cursor: pointer;
-            font-size: 1.2rem;
+            @include body-md;
             padding: 0 4px;
 
             &:hover {
@@ -120,7 +123,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            @include body-md;
 
             &:hover {
               background: rgba(255, 255, 255, 0.9);
@@ -138,7 +141,7 @@
           flex: 1;
           padding: 8px 12px;
           border-radius: 6px;
-          border: 1px solid #e0e0e0;
+          border: 1px solid $border-admin;
         }
 
         button {
@@ -148,6 +151,7 @@
           border: none;
           border-radius: 6px;
           cursor: pointer;
+          @include button-text-sm;
 
           &:hover {
             background: var(--admin-primary-hover);
@@ -168,7 +172,7 @@
         padding: 10px 24px;
         border: none;
         border-radius: 6px;
-        font-weight: 500;
+        @include label-base;
         cursor: pointer;
 
         &:hover {
@@ -176,33 +180,33 @@
         }
 
         &:disabled {
-          background: #ccc;
+          background: $grey;
           cursor: not-allowed;
         }
       }
 
       .cancel-btn {
-        background: #eee;
-        color: var(--admin-text);
+        background: $button-cancel;
+        color: white;
         padding: 10px 24px;
         border: none;
         border-radius: 6px;
-        font-weight: 500;
+        @include button-text;
         cursor: pointer;
 
         &:hover {
-          background: #ddd;
+          background: $button-cancel-hover;
         }
       }
     }
   }
 
   .error-message {
-    background: #ffebee;
+    background: $status-error-bg;
     color: var(--admin-danger);
     padding: 12px;
     border-radius: 6px;
     margin-bottom: 16px;
-    text-align: center;
+    text-align: $align-center;
   }
 } 

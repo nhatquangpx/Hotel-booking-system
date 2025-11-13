@@ -1,0 +1,335 @@
+// ============================================
+// Text Styles - Typography System
+// ============================================
+
+// ============================================
+// Font Size Variables
+// ============================================
+
+// Extra Small Text
+$text-xs: 0.75rem;      // 12px
+$text-xs-alt: 0.8rem;  // ~12.8px
+$text-xs-alt2: 0.85rem; // ~13.6px
+$text-xs-alt3: 0.875rem; // 14px
+$text-xs-alt4: 0.9rem;  // ~14.4px
+$text-xs-alt5: 0.95rem; // ~15.2px
+
+// Small Text
+$text-sm: 0.9rem;      // ~14.4px
+$text-sm-alt: 0.95rem; // ~15.2px
+
+// Base/Body Text
+$text-base: 1rem;      // 16px (base)
+$text-base-alt: 1.1rem; // ~17.6px
+
+// Medium Text
+$text-md: 1.2rem;      // ~19.2px
+$text-md-alt: 1.3rem; // ~20.8px
+
+// Large Text
+$text-lg: 1.5rem;      // 24px
+$text-lg-alt: 1.8rem; // ~28.8px
+
+// Extra Large Text (Headings)
+$text-xl: 2rem;        // 32px
+$text-xl-alt: 2.2rem; // ~35.2px
+$text-xl-alt2: 2.5rem; // 40px
+
+// Extra Extra Large Text
+$text-2xl: 3rem;       // 48px
+$text-2xl-alt: 3.5rem; // 56px
+
+// Pixel-based sizes (for specific use cases)
+$text-12px: 12px;
+$text-14px: 14px;
+$text-15px: 15px;
+$text-16px: 16px;
+$text-18px: 18px;
+$text-20px: 20px;
+$text-24px: 24px;
+$text-28px: 28px;
+$text-32px: 32px;
+$text-36px: 36px;
+$text-40px: 40px;
+$text-48px: 48px;
+
+// ============================================
+// Font Weight Variables
+// ============================================
+
+$font-thin: 100;
+$font-light: 300;
+$font-normal: 400;
+$font-medium: 500;
+$font-semibold: 600;
+$font-bold: 700;
+$font-extrabold: 800;
+$font-black: 900;
+
+// ============================================
+// Line Height Variables
+// ============================================
+
+$line-none: 1;
+$line-tight: 1.25;
+$line-snug: 1.375;
+$line-normal: 1.5;
+$line-relaxed: 1.6;
+$line-loose: 1.75;
+$line-relaxed-alt: 1.8;
+
+// ============================================
+// Text Alignment Variables
+// ============================================
+
+$align-left: left;
+$align-center: center;
+$align-right: right;
+$align-justify: justify;
+
+// ============================================
+// Text Transform Variables
+// ============================================
+
+$transform-none: none;
+$transform-uppercase: uppercase;
+$transform-lowercase: lowercase;
+$transform-capitalize: capitalize;
+
+// ============================================
+// Letter Spacing Variables
+// ============================================
+
+$letter-tight: -0.025em;
+$letter-normal: 0;
+$letter-wide: 0.025em;
+$letter-wider: 0.05em;
+$letter-widest: 0.1em;
+$letter-spacing-1px: 1px;
+
+// ============================================
+// Text Style Mixins
+// ============================================
+
+// Heading Styles
+@mixin heading-2xl {
+  font-size: $text-2xl;
+  font-weight: $font-bold;
+  line-height: $line-tight;
+}
+
+@mixin heading-xl {
+  font-size: $text-xl-alt2;
+  font-weight: $font-bold;
+  line-height: $line-tight;
+}
+
+@mixin heading-lg {
+  font-size: $text-xl;
+  font-weight: $font-bold;
+  line-height: $line-tight;
+}
+
+@mixin heading-md {
+  font-size: $text-lg;
+  font-weight: $font-semibold;
+  line-height: $line-normal;
+}
+
+@mixin heading-sm {
+  font-size: $text-md;
+  font-weight: $font-semibold;
+  line-height: $line-normal;
+}
+
+@mixin heading-xs {
+  font-size: $text-base-alt;
+  font-weight: $font-semibold;
+  line-height: $line-normal;
+}
+
+// Body Text Styles
+@mixin body-lg {
+  font-size: $text-base-alt;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-lg-alt {
+  font-size: $text-lg-alt;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-md {
+  font-size: $text-md;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-md-alt {
+  font-size: $text-md-alt;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-base {
+  font-size: $text-base;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-base-alt {
+  font-size: $text-base-alt;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-sm {
+  font-size: $text-sm;
+  font-weight: $font-normal;
+  line-height: $line-relaxed;
+}
+
+@mixin body-xs {
+  font-size: $text-xs-alt4;
+  font-weight: $font-normal;
+  line-height: $line-normal;
+}
+
+// Button Text Styles
+@mixin button-text {
+  font-size: $text-base;
+  font-weight: $font-semibold;
+  line-height: $line-none;
+}
+
+@mixin button-text-sm {
+  font-size: $text-sm;
+  font-weight: $font-semibold;
+  line-height: $line-none;
+}
+
+// Label Styles
+@mixin label-base {
+  font-size: $text-base;
+  font-weight: $font-medium;
+  line-height: $line-normal;
+}
+
+@mixin label-sm {
+  font-size: $text-sm;
+  font-weight: $font-medium;
+  line-height: $line-normal;
+}
+
+// Caption/Small Text Styles
+@mixin caption {
+  font-size: $text-xs-alt4;
+  font-weight: $font-normal;
+  line-height: $line-normal;
+}
+
+@mixin caption-bold {
+  font-size: $text-xs-alt4;
+  font-weight: $font-semibold;
+  line-height: $line-normal;
+}
+
+// Error/Status Text Styles
+@mixin error-text {
+  font-size: $text-sm;
+  font-weight: $font-normal;
+  line-height: $line-normal;
+}
+
+@mixin error-text-sm {
+  font-size: $text-xs-alt3;
+  font-weight: $font-normal;
+  line-height: $line-normal;
+}
+
+// ============================================
+// Utility Classes (Optional - can be used in components)
+// ============================================
+
+// Text Alignment Utilities
+.text-left {
+  text-align: $align-left;
+}
+
+.text-center {
+  text-align: $align-center;
+}
+
+.text-right {
+  text-align: $align-right;
+}
+
+.text-justify {
+  text-align: $align-justify;
+}
+
+// Text Transform Utilities
+.text-uppercase {
+  text-transform: $transform-uppercase;
+}
+
+.text-lowercase {
+  text-transform: $transform-lowercase;
+}
+
+.text-capitalize {
+  text-transform: $transform-capitalize;
+}
+
+// Font Weight Utilities
+.font-thin {
+  font-weight: $font-thin;
+}
+
+.font-light {
+  font-weight: $font-light;
+}
+
+.font-normal {
+  font-weight: $font-normal;
+}
+
+.font-medium {
+  font-weight: $font-medium;
+}
+
+.font-semibold {
+  font-weight: $font-semibold;
+}
+
+.font-bold {
+  font-weight: $font-bold;
+}
+
+.font-extrabold {
+  font-weight: $font-extrabold;
+}
+
+.font-black {
+  font-weight: $font-black;
+}
+
+// ============================================
+// Export for JavaScript (if needed)
+// ============================================
+:export {
+  textXs: $text-xs;
+  textSm: $text-sm;
+  textBase: $text-base;
+  textMd: $text-md;
+  textLg: $text-lg;
+  textXl: $text-xl;
+  text2xl: $text-2xl;
+  fontNormal: $font-normal;
+  fontMedium: $font-medium;
+  fontSemibold: $font-semibold;
+  fontBold: $font-bold;
+}
+

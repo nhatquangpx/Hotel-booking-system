@@ -4,18 +4,15 @@ import { useDispatch } from 'react-redux';
 import api from '@/apis';
 import { setLogin } from '@/redux/state';
 import { Slide } from '@/components';
+import { IMAGE_PATHS } from '@/constants';
 import './LoginForm.scss';
 
 const sliderImages = [
-  '/assets/slide1.jpg',
-  '/assets/slide2.jpg',
-  '/assets/slide3.jpg',
+  IMAGE_PATHS.SLIDE_1,
+  IMAGE_PATHS.SLIDE_2,
+  IMAGE_PATHS.SLIDE_3,
 ];
 
-/**
- * Login Form component
- * Handles user authentication with slide carousel
- */
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -108,9 +105,8 @@ export const LoginForm = () => {
           </Link>
         </div>
         <div className="login-form-container">
-          <h1>Đăng nhập</h1>
-          <p className="subtitle">Chào mừng bạn đã quay trở lại với StayJourney</p>
-          
+          <h1>Đăng nhập</h1>       
+
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Email</label>

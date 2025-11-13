@@ -1,6 +1,10 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
 .footer {
-  background: #8fdacb;
-  color: #222;
+  background: $footer-bg;
+  color: $text-dark;
   font-family: 'Inter', sans-serif;
   width: 100%;
   padding: 0;
@@ -12,7 +16,7 @@
     width: 100%;
     max-width: unset;
     padding: 32px 60px 0 60px;
-    background: #8fdacb;
+    background: $footer-bg;
 
     @media (max-width: 900px) {
       flex-direction: column;
@@ -49,11 +53,11 @@
     align-items: center;
     gap: 16px;
     a {
-      color: #222;
-      font-size: 1.3rem;
+      color: $text-dark;
+      @include body-md-alt;
       transition: color 0.2s;
       &:hover {
-        color: #5ed6b3;
+        color: $button-primary-hover;
       }
     }
   }
@@ -79,10 +83,10 @@
   }
 
   &__col-title {
-    font-weight: 700;
-    font-size: 1.1rem;
+    font-weight: $font-bold;
+    @include body-base-alt;
     margin-bottom: 12px;
-    color: #222;
+    color: $text-dark;
   }
 
   &__col ul {
@@ -92,13 +96,13 @@
   }
 
   &__col li {
-    font-size: 1rem;
-    color: #444;
+    @include body-base;
+    color: $text-medium-alt;
     margin-bottom: 8px;
     cursor: pointer;
     transition: color 0.2s;
     &:hover {
-      color: #5ed6b3;
+      color: $button-primary-hover;
     }
   }
 }
