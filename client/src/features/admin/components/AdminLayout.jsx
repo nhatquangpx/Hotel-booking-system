@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setLogout } from '@/redux/state';
+import { setLogout } from '@/store/slices/userSlice';
 import './AdminLayout.scss';
 
 const AdminLayout = ({ children }) => {
