@@ -14,7 +14,7 @@ $main-font: 'svn-gilroy', serif;
   @include button-text;
   cursor: pointer;
   transition: 0.3s ease;
-  color: $text-primary;
+  color: $text-white;
   border-radius: 10px;
 
   &:hover {

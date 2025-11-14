@@ -164,7 +164,7 @@
       .search-btn {
         padding: 12px 25px;
         background-color: $button-primary;
-        color: $text-primary;
+        color: $text-white;
         border: none;
         border-radius: 4px;
         @include button-text;
@@ -258,7 +258,7 @@
           width: 100%;
           padding: 12px;
           background-color: $button-primary;
-          color: $text-primary;
+          color: $text-white;
           border: none;
           border-radius: 4px;
           @include button-text;
@@ -410,7 +410,7 @@
 
       .confirm-btn {
         background-color: $button-primary;
-        color: $text-primary;
+        color: $text-white;
         height: 50px;
         @include button-text;
         &:hover {
