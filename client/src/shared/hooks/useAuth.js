@@ -10,7 +10,7 @@
 import { useSelector } from 'react-redux';
 
 export const useAuth = () => {
-  const auth = useSelector((state) => state.auth) || { user: null, token: null };
+  const auth = useSelector((state) => state.user) || { user: null, token: null };
   const { user, token } = auth;
 
   const localToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;

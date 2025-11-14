@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import api from '@/apis';
-import { setLogin } from '@/redux/state';
+import { setLogin } from '@/store/slices/userSlice';
 import { Slide } from '@/components';
 import { IMAGE_PATHS } from '@/constants';
 import './LoginForm.scss';
