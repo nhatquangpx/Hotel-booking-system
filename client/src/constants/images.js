@@ -3,10 +3,8 @@ const ASSETS_BASE = '/assets';
 
 export const IMAGE_PATHS = {
   // Logos
-  LOGO_BLACK_VERTICAL: `${ASSETS_BASE}/logo_black_vertical.png`,
-  LOGO_BLACK_HORIZONTAL: `${ASSETS_BASE}/logo_black_horizontal.png`,
-  LOGO_WHITE_VERTICAL: `${ASSETS_BASE}/logo_white_vertical.png`,
-  LOGO_WHITE_HORIZONTAL: `${ASSETS_BASE}/logo_white_horizontal.png`,
+  LOGO_VERTICAL: `${ASSETS_BASE}/logo_vertical.png`,
+  LOGO_HORIZONTAL: `${ASSETS_BASE}/logo_horizontal.png`,
   
   // Default images
   DEFAULT_PROFILE: `${ASSETS_BASE}/default-profile.jpg`,

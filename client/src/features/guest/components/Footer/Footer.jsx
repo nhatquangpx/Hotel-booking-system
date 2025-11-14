@@ -2,6 +2,7 @@ import React from "react";
 import "./Footer.scss";
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
+import { IMAGE_PATHS } from '@/constants/images';
 
 function Footer() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ function Footer() {
       <div className="footer__main">
         <div className="footer__logo-social">
           <div className="footer__logo">
-            <img src="/assets/logo_black_horizontal.png" alt="StayJourney Logo" style={{ height: '250px' }} />
+            <img src={IMAGE_PATHS.LOGO_HORIZONTAL} alt="StayJourney Logo" style={{ height: '250px' }} />
           </div>
           <div className="footer__socials">
             <a href="#"><i className="fab fa-facebook-f"></i></a>

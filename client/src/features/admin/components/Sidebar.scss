@@ -1,0 +1,149 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/global" as *;
+@use "../../../styles/text" as *;
+
+.admin-sidebar {
+  width: 250px;
+  background-color: $footer-bg;
+  color: $text-primary;
+  padding: 1rem;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+
+  &-header {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      flex: 1;
+      transition: opacity 0.3s;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      .sidebar-logo {
+        max-height: 120px;
+        width: auto;
+        object-fit: contain;
+      }
+    }
+
+  }
+
+  &-nav {
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        margin-bottom: 0.5rem;
+
+        a {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          color: $text-primary;
+          text-decoration: none;
+          border-radius: 6px;
+          transition: all 0.3s;
+          width: 100%;
+          background: none;
+          border: none;
+          cursor: pointer;
+          @include body-base;
+          text-align: $align-left;
+          white-space: nowrap;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: $pinkred;
+          }
+
+          &.active {
+            background-color: rgba(0, 0, 0, 0.1);
+            color: $pinkred;
+            font-weight: $font-bold;
+          }
+
+          .menu-icon {
+            min-width: 20px;
+            text-align: center;
+            font-size: 18px;
+            flex-shrink: 0;
+          }
+
+          span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      }
+    }
+  }
+
+  &.collapsed {
+    width: 80px;
+
+    .admin-sidebar-header {
+      justify-content: center;
+
+      .logo-link {
+        flex: none;
+        width: 100%;
+        justify-content: center;
+
+        .sidebar-logo {
+          max-width: 100%;
+          max-height: 100%;
+        }
+      }
+    }
+
+    .admin-sidebar-nav {
+      ul {
+        li {
+          a {
+            justify-content: center;
+            padding: 0.75rem;
+            
+            span {
+              display: none;
+            }
+
+            .menu-icon {
+              min-width: auto;
+              font-size: 20px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 200px;
+
+    &.collapsed {
+      width: 60px;
+    }
+  }
+}
+

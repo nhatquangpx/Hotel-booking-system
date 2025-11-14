@@ -1,83 +1,36 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setLogout } from '@/store/slices/userSlice';
+import React, { useState, useEffect } from 'react';
+import Sidebar from './Sidebar';
+import Header from './Header';
 import './AdminLayout.scss';
 
-const AdminLayout = ({ children }) => {
-  const location = useLocation();
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+const SIDEBAR_STORAGE_KEY = 'admin_sidebar_collapsed';
 
-  const handleLogout = () => {
-    dispatch(setLogout());
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+/**
+ * Admin Layout Component
+ * Main layout wrapper for admin pages
+ * Contains Sidebar and Header components
+ */
+const AdminLayout = ({ children }) => {
+  // Khôi phục trạng thái sidebar từ localStorage, mặc định là false (mở)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  // Lưu trạng thái vào localStorage mỗi khi thay đổi
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => !prev);
   };
 
   return (
-    <div className="admin-layout">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h2>Hotel Admin</h2>
-        </div>
-        <nav className="sidebar-nav">
-          <ul>
-            <li>
-              <Link 
-                to="/admin" 
-                className={location.pathname === '/admin' ? 'active' : ''}
-              >
-                <i className="fas fa-home"></i>
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/admin/users" 
-                className={location.pathname.includes('/admin/users') ? 'active' : ''}
-              >
-                <i className="fas fa-users"></i>
-                Quản lý người dùng
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/admin/hotels" 
-                className={location.pathname.includes('/admin/hotels') ? 'active' : ''}
-              >
-                <i className="fas fa-hotel"></i>
-                Quản lý khách sạn
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/admin/bookings" 
-                className={location.pathname.includes('/admin/bookings') ? 'active' : ''}
-              >
-                <i className="fas fa-calendar-check"></i>
-                Quản lý đặt phòng
-              </Link>
-            </li>
-            <li>
-              <button onClick={handleLogout} className="logout-button">
-                <i className="fas fa-sign-out-alt"></i>
-                Đăng xuất
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </aside>
+    <div className={`admin-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <Sidebar isCollapsed={isSidebarCollapsed} />
       <main className="content">
-        <header className="content-header">
-          <h1>
-            {location.pathname === '/admin' && 'Dashboard'}
-            {location.pathname.includes('/admin/users') && 'Quản lý người dùng'}
-            {location.pathname.includes('/admin/hotels') && 'Quản lý khách sạn'}
-            {location.pathname.includes('/admin/bookings') && 'Quản lý đặt phòng'}
-          </h1>
-        </header>
+        <Header isSidebarCollapsed={isSidebarCollapsed} onToggleSidebar={toggleSidebar} />
         <div className="content-body">
           {children}
         </div>
