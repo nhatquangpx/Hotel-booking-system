@@ -4,6 +4,7 @@ import { Search, Person, Menu } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from 'react-router-dom'
 import { setLogout } from '@/store/slices/userSlice'
+import { IMAGE_PATHS } from '@/constants/images'
 import "./Navbar.scss"
 
 const pinkred = '#fa002a';
@@ -31,7 +32,7 @@ export const Navbar = () => {
   return (
     <div className='navbar'>
       <a href="/">
-        <img src="/assets/logo_black_vertical.png" alt="logo" />
+        <img src={IMAGE_PATHS.LOGO_VERTICAL} alt="logo" />
       </a>
 
       <div className='navbar_menu'>

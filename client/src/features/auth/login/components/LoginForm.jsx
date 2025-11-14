@@ -101,7 +101,7 @@ export const LoginForm = () => {
       <div className="login-left">
         <div className="logo">
           <Link to="/">        
-            <img src="/assets/logo_black_horizontal.png" alt="StayJourney Logo" />
+            <img src={IMAGE_PATHS.LOGO_HORIZONTAL} alt="StayJourney Logo" />
           </Link>
         </div>
         <div className="login-form-container">

@@ -75,7 +75,7 @@ const AuthRegisterPage = () => {
       <div className="register-right">
         <div className="logo">
           <Link to="/">
-            <img src={IMAGE_PATHS.LOGO_BLACK_HORIZONTAL} alt="Logo" />
+            <img src={IMAGE_PATHS.LOGO_HORIZONTAL} alt="Logo" />
           </Link>
         </div>
         <div className="register-form-container">
