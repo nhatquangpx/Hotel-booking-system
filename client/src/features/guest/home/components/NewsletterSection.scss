@@ -4,8 +4,8 @@
 
 .newsletter-section {
   padding: 60px 20px;
-  background: linear-gradient(135deg, $purple 0%, $purple-gradient-end 100%);
-  color: $text-white;
+  background: $bg-content;
+  color: $text-primary;
   text-align: $align-center;
 
   .newsletter-content {

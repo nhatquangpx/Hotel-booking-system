@@ -32,7 +32,7 @@
     }
 
     .sidebar {
-      background: $bg-white;
+      background: $bg-content;
       border-radius: 8px;
       padding: 1.5rem;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -66,7 +66,7 @@
     }
 
     .main-content {
-      background: $bg-white;
+      background: $bg-content;
       border-radius: 8px;
       padding: 2rem;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
