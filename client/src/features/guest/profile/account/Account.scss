@@ -48,19 +48,14 @@
         margin-bottom: 0.5rem;
         transition: all 0.3s ease;
 
-        i {
-          margin-right: 1rem;
-          width: 20px;
-          text-align: $align-center;
-        }
-
         &:hover {
           background: $grey-light;
         }
 
         &.active {
-          background: $blue;
-          color: $text-white;
+          background: $button-primary;
+          color: $text-primary;
+          font-weight: bold;
         }
       }
     }
@@ -120,22 +115,24 @@
           transition: all 0.3s ease;
 
           &.primary {
-            background: $blue;
-            color: $text-white;
+            background: $button-primary;
+            color: $text-primary;
             border: none;
+            font-weight: bold;
 
             &:hover {
-              background: $blue;
+              background: $button-primary-hover;
             }
           }
 
           &.secondary {
-            background: $bg-white;
-            color: $text-medium;
-            border: 1px solid $border-medium;
+            background: $button-cancel;
+            color: $text-white;
+            border: none;
+            font-weight: bold;
 
             &:hover {
-              background: $grey-light;
+              background: $button-cancel-hover;
             }
           }
         }
@@ -194,18 +191,19 @@
     text-align: $align-center;
 
     .btn-primary {
-      background-color: $blue-light;
-      color: $text-white;
+      background-color: $button-primary;
+      color: $text-primary;
       border: none;
       padding: 12px 24px;
       border-radius: 4px;
       @include body-base;
       @include button-text;
+      font-weight: bold;
       cursor: pointer;
       transition: background-color 0.3s ease;
 
       &:hover {
-        background-color: $blue-light-hover;
+        background-color: $button-primary-hover;
       }
 
       &:disabled {

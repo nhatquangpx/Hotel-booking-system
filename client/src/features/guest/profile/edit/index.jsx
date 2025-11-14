@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { AccountCircle, Edit, Lock } from '@mui/icons-material';
 import ProfileLayout from '../components/ProfileLayout';
 import api from '../../../../apis';
 import '../account/Account.scss';
@@ -87,21 +88,21 @@ const GuestProfileEditPage = () => {
               to={`/profile/${user.id}`} 
               className="menu-item"
             >
-              <i className="fas fa-user"></i>
+              <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
               Thông tin cá nhân
             </Link>
             <Link 
               to={`/profile/${user.id}/edit`} 
               className="menu-item active"
             >
-              <i className="fas fa-edit"></i>
+              <Edit sx={{ fontSize: 20, marginRight: 1 }} />
               Chỉnh sửa thông tin
             </Link>
             <Link 
               to={`/profile/${user.id}/changepassword`} 
               className="menu-item"
             >
-              <i className="fas fa-lock"></i>
+              <Lock sx={{ fontSize: 20, marginRight: 1 }} />
               Đổi mật khẩu
             </Link>
           </div>

@@ -1,6 +1,6 @@
 import { IconButton, MenuItem, Select, FormControl, InputLabel } from "@mui/material"
 import { useState } from 'react'
-import { Search, Person, Menu } from "@mui/icons-material"
+import { Search, Person, Menu, Hotel, AccountCircle, Logout } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from 'react-router-dom'
 import { setLogout } from '@/store/slices/userSlice'
@@ -70,16 +70,31 @@ export const Navbar = () => {
 
         {dropdownMenu && !user && (
           <div className="navbar_right_accountmenu">
-            <Link to="/login">Đăng nhập</Link>
-            <Link to="/register">Đăng ký</Link>
+            <Link to="/login">
+              <Person sx={{ fontSize: 20, marginRight: 1 }} />
+              Đăng nhập
+            </Link>
+            <Link to="/register">
+              <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
+              Đăng ký
+            </Link>
           </div>
         )}
 
         {dropdownMenu && user && (
           <div className="navbar_right_accountmenu">
-            <Link to="/my-bookings">Đặt phòng của tôi</Link>
-            <Link to={`/profile/${user.id}`}>Thông tin cá nhân</Link>
-            <Link to="/login" onClick={() => dispatch(setLogout())}>Đăng xuất</Link>
+            <Link to="/my-bookings">
+              <Hotel sx={{ fontSize: 20, marginRight: 1 }} />
+              Đặt phòng của tôi
+            </Link>
+            <Link to={`/profile/${user.id}`}>
+              <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
+              Thông tin cá nhân
+            </Link>
+            <Link to="/login" onClick={() => dispatch(setLogout())}>
+              <Logout sx={{ fontSize: 20, marginRight: 1 }} />
+              Đăng xuất
+            </Link>
           </div>
         )}
       </div>
