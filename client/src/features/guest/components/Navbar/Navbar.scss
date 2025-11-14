@@ -118,7 +118,7 @@
       background: white;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      min-width: 200px;
+      min-width: 220px;
       padding: 0.5rem 0;
       z-index: 1001;
 
@@ -130,9 +130,15 @@
         color: $text-medium;
         @include body-base;
         transition: background-color 0.3s;
+        white-space: nowrap;
 
         &:hover {
           background-color: $grey-light;
+        }
+
+        svg {
+          color: $text-medium;
+          flex-shrink: 0;
         }
       }
     }
