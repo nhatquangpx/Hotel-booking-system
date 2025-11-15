@@ -1,7 +1,7 @@
 @use "sass:color";
-@use "../../../../styles/variables" as *;
-@use "../../../../styles/global" as *;
-@use "../../../../styles/text" as *;
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
 
 .booking-container {
   padding: 20px;

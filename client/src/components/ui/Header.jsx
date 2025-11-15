@@ -57,12 +57,26 @@ const Header = ({
               className="user-menu-button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <img 
-                src={IMAGE_PATHS.DEFAULT_PROFILE} 
-                alt="Profile" 
-                className="user-avatar"
-              />
-              <span className="user-name">{user?.name || 'User'}</span>
+              {user?.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt="Profile" 
+                  className="user-avatar"
+                />
+              ) : (
+                <div className="user-avatar-initials">
+                  {user?.name 
+                    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                    : 'U'
+                  }
+                </div>
+              )}
+              <div className="user-info">
+                <span className="user-name">{user?.name || 'User'}</span>
+                {user?.role === 'owner' && (
+                  <span className="user-role">Chủ khách sạn</span>
+                )}
+              </div>
               {isDropdownOpen ? <FaChevronUp /> : <FaChevronDown />}
             </button>
             {isDropdownOpen && (

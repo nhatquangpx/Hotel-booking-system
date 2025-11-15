@@ -1,0 +1,77 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.metric-card {
+  background: $bg-white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .metric-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 24px;
+    color: $text-white;
+
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .metric-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .metric-value {
+    @include heading-lg;
+    font-size: 1.75rem;
+    font-weight: $font-bold;
+    color: $text-primary;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+  }
+
+  .metric-title {
+    @include body-sm;
+    color: $text-secondary;
+  }
+
+  // Icon color variants
+  &.green .metric-icon {
+    background-color: $success;
+  }
+
+  &.blue .metric-icon {
+    background-color: $blue-medium;
+  }
+
+  &.yellow .metric-icon {
+    background-color: $warning-text;
+  }
+
+  &.red .metric-icon {
+    background-color: $danger;
+  }
+
+  &.default .metric-icon {
+    background-color: $grey-medium;
+  }
+}
+

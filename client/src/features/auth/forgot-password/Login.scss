@@ -1,7 +1,7 @@
-@use "../../../styles/variables" as *;
-@use "../../../styles/global" as *;
-@use "../../../styles/text" as *;
-@use "../../../styles/breakpoints.scss" as *;
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+@use "@/styles/breakpoints" as *;
 
 .login-container {
   display: flex;

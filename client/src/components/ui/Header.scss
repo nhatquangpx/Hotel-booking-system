@@ -69,6 +69,7 @@
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s;
+        text-align: left;
 
         &:hover {
           background: $grey-light;
@@ -82,10 +83,38 @@
           object-fit: cover;
         }
 
+        .user-avatar-initials {
+          width: 35px;
+          height: 35px;
+          border-radius: 50%;
+          background-color: $footer-bg;
+          color: $text-white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          @include body-sm;
+          font-weight: $font-bold;
+          flex-shrink: 0;
+        }
+
+        .user-info {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.125rem;
+        }
+
         .user-name {
           @include body-base;
           color: $text-primary;
           font-weight: $font-medium;
+          line-height: 1.2;
+        }
+
+        .user-role {
+          @include body-xs;
+          color: $text-secondary;
+          line-height: 1.2;
         }
 
         svg {
