@@ -1,0 +1,96 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.hotel-info-card {
+  background: $bg-white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+
+  .hotel-image-section {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+
+    .hotel-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hotel-name-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+      color: $text-white;
+      padding: 1.5rem;
+      @include heading-md;
+      font-weight: $font-bold;
+    }
+
+    .edit-button {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: $bg-white;
+      border: none;
+      border-radius: 8px;
+      color: $text-primary;
+      @include body-sm;
+      font-weight: $font-medium;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+      &:hover {
+        background: $grey-light;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      svg {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .hotel-details {
+    padding: 1.5rem;
+
+    .hotel-description {
+      @include body-base;
+      color: $text-primary;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .hotel-times {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+
+      .time-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        @include body-base;
+        color: $text-primary;
+
+        .time-icon {
+          color: $text-secondary;
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}
+

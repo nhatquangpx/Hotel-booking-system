@@ -33,6 +33,7 @@ import {
   AdminBookingListPage,
   AdminBookingDetailPage
 } from "@/features/admin";
+import { OwnerDashboardPage } from "@/features/owner";
 
 /**
  * App Routes
@@ -94,6 +95,11 @@ export default function AppRoutes() {
           {/* Bookings */}
           <Route path="/admin/bookings" element={<AdminBookingListPage />} />
           <Route path="/admin/bookings/:id" element={<AdminBookingDetailPage />} />
+        </Route>
+
+        {/* Owner (protected) */}
+        <Route element={<ProtectedRoute allowedRoles={["owner"]} />}>
+          <Route path="/owner" element={<OwnerDashboardPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

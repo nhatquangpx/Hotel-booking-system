@@ -1,0 +1,26 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.policies-card {
+  background: $bg-white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+
+  .policies-title {
+    @include heading-md;
+    color: $text-primary;
+    margin-bottom: 1rem;
+    font-weight: $font-bold;
+  }
+
+  .policies-text {
+    @include body-base;
+    color: $text-primary;
+    line-height: 1.6;
+    margin: 0;
+  }
+}
+

@@ -1,0 +1,61 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.owner-dashboard {
+  padding: 0;
+  max-width: 100%;
+
+  .owner-dashboard-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    @include body-lg;
+    color: $text-secondary;
+  }
+
+  .today-overview {
+    margin-bottom: 2rem;
+
+    .overview-title {
+      @include heading-xl;
+      color: $text-primary;
+      margin-bottom: 0.5rem;
+      font-weight: $font-bold;
+    }
+
+    .overview-date {
+      @include body-base;
+      color: $text-secondary;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-dashboard {
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
