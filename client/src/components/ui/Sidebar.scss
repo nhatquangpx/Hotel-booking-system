@@ -1,10 +1,11 @@
-@use "../../../styles/variables" as *;
-@use "../../../styles/global" as *;
-@use "../../../styles/text" as *;
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
 
+.app-sidebar,
 .admin-sidebar {
   width: 250px;
-  background-color: $footer-bg;
+  background-color: #ffffff;
   color: $text-primary;
   padding: 1rem;
   position: fixed;
@@ -14,7 +15,8 @@
   z-index: 1000;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 
-  &-header {
+  .sidebar-header,
+  .admin-sidebar-header {
     padding: 1rem 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
@@ -41,10 +43,10 @@
         object-fit: contain;
       }
     }
-
   }
 
-  &-nav {
+  .sidebar-nav,
+  .admin-sidebar-nav {
     ul {
       list-style: none;
       padding: 0;
@@ -76,9 +78,13 @@
           }
 
           &.active {
-            background-color: rgba(0, 0, 0, 0.1);
-            color: $pinkred;
+            background-color: $footer-bg;
+            color: $text-white;
             font-weight: $font-bold;
+
+            .menu-icon {
+              color: $text-white;
+            }
           }
 
           .menu-icon {
@@ -100,6 +106,7 @@
   &.collapsed {
     width: 80px;
 
+    .sidebar-header,
     .admin-sidebar-header {
       justify-content: center;
 
@@ -115,6 +122,7 @@
       }
     }
 
+    .sidebar-nav,
     .admin-sidebar-nav {
       ul {
         li {
@@ -138,6 +146,7 @@
 }
 
 @media (max-width: 768px) {
+  .app-sidebar,
   .admin-sidebar {
     width: 200px;
 

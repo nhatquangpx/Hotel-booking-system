@@ -18,7 +18,7 @@
   padding: 32px 0;
 
   h2 {
-    color: var(--admin-primary);
+    color: $text-primary;
     @include heading-lg;
     text-align: $align-center;
     margin-bottom: 32px;
@@ -42,7 +42,7 @@
 
       label {
         @include label-base;
-        color: var(--admin-text);
+        color: $text-primary;
       }
 
       input, select, textarea {
@@ -50,7 +50,7 @@
         border-radius: 6px;
         border: 1px solid $border-admin;
         background: var(--admin-bg);
-        color: var(--admin-text);
+        color: $text-primary;
         @include body-base;
 
         &:focus {
@@ -146,15 +146,16 @@
 
         button {
           padding: 8px 16px;
-          background: var(--admin-primary);
-          color: white;
+          background: $button-primary;
+          color: $text-white;
+          font-weight: $font-bold;
           border: none;
           border-radius: 6px;
           cursor: pointer;
           @include button-text-sm;
 
           &:hover {
-            background: var(--admin-primary-hover);
+            background: $button-primary-hover;
           }
         }
       }
@@ -162,21 +163,23 @@
 
     .form-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       gap: 12px;
       margin-top: 24px;
 
       .submit-btn {
-        background: var(--admin-primary);
-        color: white;
+        background: $button-primary;
+        color: $text-white;
+        font-weight: $font-bold;
         padding: 10px 24px;
+        min-width: 120px;
         border: none;
         border-radius: 6px;
         @include label-base;
         cursor: pointer;
 
         &:hover {
-          background: var(--admin-primary-hover);
+          background: $button-primary-hover;
         }
 
         &:disabled {
@@ -188,11 +191,14 @@
       .cancel-btn {
         background: $button-cancel;
         color: white;
+        font-weight: $font-bold;
         padding: 10px 24px;
+        min-width: 120px;
         border: none;
         border-radius: 6px;
         @include button-text;
         cursor: pointer;
+        margin-left: auto;
 
         &:hover {
           background: $button-cancel-hover;

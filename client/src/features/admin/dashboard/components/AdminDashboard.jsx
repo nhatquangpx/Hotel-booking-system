@@ -41,9 +41,7 @@ export const AdminDashboard = () => {
   
   
   return (
-    <div className="admin-dashboard">
-      <h2>Thống kê tổng quan</h2>
-      
+    <div className="admin-dashboard">      
       <div className="stats-container">
         <div className="stat-card users">
           <div className="stat-title">Tổng người dùng</div>

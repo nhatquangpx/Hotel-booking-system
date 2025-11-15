@@ -1,0 +1,71 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+
+  .dialog-content {
+    background: $bg-white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid $border-light;
+
+      h2 {
+        margin: 0;
+        color: $text-primary;
+        @include heading-md;
+      }
+
+      .dialog-close-button {
+        background: none;
+        border: none;
+        @include heading-lg;
+        cursor: pointer;
+        color: $text-medium;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s;
+
+        &:hover {
+          background: $grey-light;
+          color: $text-primary;
+        }
+      }
+    }
+
+    .dialog-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+  }
+}
+

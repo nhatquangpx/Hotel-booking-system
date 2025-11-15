@@ -2,38 +2,25 @@
 @use "../../../../styles/global" as *;
 @use "../../../../styles/text" as *;
 
-:root {
-  --admin-primary: #1976d2;
-  --admin-primary-hover: #1565c0;
-  --admin-danger: #d32f2f;
-  --admin-success: #388e3c;
-  --admin-bg: #f5f6fa;
-  --admin-sidebar: #fff;
-  --admin-text: #222;
-}
-
-.admin-form-container {
-  background: var(--admin-bg);
-  min-height: 100vh;
-  padding: 32px 0;
-
-  h2 {
-    color: $text-primary;
-    @include heading-lg;
-    text-align: $align-center;
-    margin-bottom: 32px;
-  }
-
-  form {
-    background: var(--admin-sidebar);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 32px;
+.room-form-dialog {
+  .room-form {
     display: flex;
     flex-direction: column;
     gap: 18px;
+
+    .error-message {
+      background-color: $status-error-bg;
+      color: $status-error-text;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .loading {
+      text-align: $align-center;
+      padding: 2rem;
+      color: $text-primary;
+    }
 
     .form-group {
       display: flex;
@@ -49,24 +36,41 @@
         padding: 10px 12px;
         border-radius: 6px;
         border: 1px solid $border-admin;
-        background: var(--admin-bg);
+        background: $bg-light-alt;
         color: $text-primary;
         @include body-base;
 
         &:focus {
           outline: none;
-          border-color: var(--admin-primary);
+          border-color: $button-primary;
         }
+
+        &:disabled {
+          background: $grey-light;
+          cursor: not-allowed;
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
       }
     }
 
     .form-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
     }
 
     .facilities-container, .images-container {
+      label {
+        @include label-base;
+        color: $text-primary;
+        margin-bottom: 10px;
+        display: block;
+      }
+
       .facilities-list, .images-list {
         display: flex;
         flex-wrap: wrap;
@@ -109,7 +113,7 @@
             object-fit: cover;
           }
 
-          button {
+          .remove-image-btn {
             position: absolute;
             top: 5px;
             right: 5px;
@@ -147,7 +151,7 @@
         button {
           padding: 8px 16px;
           background: $button-primary;
-          color: $text-white;
+          color: white;
           font-weight: $font-bold;
           border: none;
           border-radius: 6px;
@@ -165,25 +169,34 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 24px;
+      margin-top: 8px;
+
+      button {
+        min-width: 140px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: $font-bold;
+        @include button-text;
+        font-size: 14px;
+        line-height: 1.5;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
       .submit-btn {
         background: $button-primary;
         color: $text-white;
-        font-weight: $font-bold;
-        padding: 10px 24px;
-        min-width: 120px;
-        border: none;
-        border-radius: 6px;
-        @include label-base;
-        cursor: pointer;
 
         &:hover {
           background: $button-primary-hover;
         }
 
         &:disabled {
-          background: $grey;
+          opacity: 0.6;
           cursor: not-allowed;
         }
       }
@@ -191,13 +204,6 @@
       .cancel-btn {
         background: $button-cancel;
         color: white;
-        font-weight: $font-bold;
-        padding: 10px 24px;
-        min-width: 120px;
-        border: none;
-        border-radius: 6px;
-        @include button-text;
-        cursor: pointer;
         margin-left: auto;
 
         &:hover {
@@ -206,13 +212,5 @@
       }
     }
   }
+}
 
-  .error-message {
-    background: $status-error-bg;
-    color: var(--admin-danger);
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 16px;
-    text-align: $align-center;
-  }
-} 

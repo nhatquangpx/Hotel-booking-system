@@ -9,6 +9,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { AdminLayout } from '@/features/admin/components';
+import HotelFormDialog from '../components/HotelFormDialog';
+import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import api from '../../../../apis';
 import '@/features/admin/components/AdminComponents.scss';
 import './HotelList.scss';
@@ -28,6 +30,10 @@ const AdminHotelListPage = () => {
   const [hotelToDelete, setHotelToDelete] = useState(null);
   const [expandedHotelId, setExpandedHotelId] = useState(null);
   const [rooms, setRooms] = useState({});
+  const [showHotelDialog, setShowHotelDialog] = useState(false);
+  const [editingHotel, setEditingHotel] = useState(null);
+  const [showRoomDialog, setShowRoomDialog] = useState(false);
+  const [selectedHotelForRoom, setSelectedHotelForRoom] = useState(null);
 
   useEffect(() => {
     fetchHotels();
@@ -114,6 +120,46 @@ const AdminHotelListPage = () => {
     setHotelToDelete(null);
   };
 
+  const handleOpenCreateDialog = () => {
+    setEditingHotel(null);
+    setShowHotelDialog(true);
+  };
+
+  const handleOpenEditDialog = (hotel) => {
+    setEditingHotel(hotel);
+    setShowHotelDialog(true);
+  };
+
+  const handleCloseHotelDialog = () => {
+    setShowHotelDialog(false);
+    setEditingHotel(null);
+  };
+
+  const handleHotelSuccess = () => {
+    fetchHotels();
+  };
+
+  const handleOpenCreateRoomDialog = (hotel) => {
+    setSelectedHotelForRoom(hotel);
+    setShowRoomDialog(true);
+  };
+
+  const handleCloseRoomDialog = () => {
+    setShowRoomDialog(false);
+    setSelectedHotelForRoom(null);
+  };
+
+  const handleRoomSuccess = () => {
+    // Refresh rooms for the selected hotel
+    if (selectedHotelForRoom) {
+      api.adminRoom.getRoomsByHotel(selectedHotelForRoom._id)
+        .then(data => {
+          setRooms(prev => ({ ...prev, [selectedHotelForRoom._id]: data }));
+        })
+        .catch(err => console.error('Error fetching rooms:', err));
+    }
+  };
+
   const handleExpandClick = async (hotelId) => {
     if (expandedHotelId === hotelId) {
       setExpandedHotelId(null);
@@ -181,7 +227,6 @@ const AdminHotelListPage = () => {
 
   return (
     <AdminLayout>
-      <h1>Danh sách khách sạn</h1>
       <div className="hotel-list-container">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
           <div className="search-bar-row">
@@ -211,19 +256,20 @@ const AdminHotelListPage = () => {
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
             </div>
-            <Link to="/admin/hotels/create" className="add-hotel-btn-link" style={{ textDecoration: 'none' }}>
+            <div className="add-hotel-btn-link" onClick={handleOpenCreateDialog}>
               <Button
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
                 sx={{ 
                   backgroundColor: 'var(--admin-primary)',
-                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 }
+                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 },
+                  cursor: 'pointer'
                 }}
               >
                 Thêm khách sạn
               </Button>
-            </Link>
+            </div>
           </div>
         </Paper>
         {error && <div className="error-message">{error}</div>}
@@ -268,8 +314,7 @@ const AdminHotelListPage = () => {
                         </Tooltip>
                         <Tooltip title="Chỉnh sửa">
                           <IconButton
-                            component={Link}
-                            to={`/admin/hotels/${hotel._id}/edit`}
+                            onClick={() => handleOpenEditDialog(hotel)}
                             size="small"
                             color="black"
                           >
@@ -287,8 +332,7 @@ const AdminHotelListPage = () => {
                         </Tooltip>
                         <Tooltip title="Thêm phòng">
                           <IconButton
-                            component={Link}
-                            to={`/admin/hotels/${hotel._id}/rooms/create`}
+                            onClick={() => handleOpenCreateRoomDialog(hotel)}
                             size="small"
                             color="primary"
                           >
@@ -399,6 +443,20 @@ const AdminHotelListPage = () => {
             </div>
           </div>
         )}
+
+        <HotelFormDialog
+          isOpen={showHotelDialog}
+          onClose={handleCloseHotelDialog}
+          hotelId={editingHotel?._id || null}
+          onSuccess={handleHotelSuccess}
+        />
+
+        <RoomFormDialog
+          isOpen={showRoomDialog}
+          onClose={handleCloseRoomDialog}
+          hotelId={selectedHotelForRoom?._id || null}
+          onSuccess={handleRoomSuccess}
+        />
       </div>
     </AdminLayout>
   );

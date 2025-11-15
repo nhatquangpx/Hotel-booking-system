@@ -8,7 +8,7 @@
   padding: 32px 0;
 
   h1 {
-    color: var(--admin-primary);
+    color: $text-primary;
     @include heading-lg;
     text-align: $align-center;
     margin-bottom: 32px;
@@ -32,7 +32,7 @@
 
       h3 {
         margin: 0;
-        color: var(--admin-text);
+        color: $text-primary;
         @include heading-md;
       }
     }
@@ -46,12 +46,12 @@
         .detail-label {
           width: 150px;
           @include label-base;
-          color: var(--admin-text);
+          color: $text-primary;
         }
 
         .detail-value {
           flex: 1;
-          color: $text-light;
+          color: $text-primary;
           @include body-base;
 
           .hotel-link {

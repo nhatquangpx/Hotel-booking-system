@@ -9,9 +9,14 @@ import './Header.scss';
 
 /**
  * Header Component
- * Admin header with page title and user menu
+ * Reusable header component with sidebar toggle and user menu
  */
-const Header = ({ isSidebarCollapsed, onToggleSidebar }) => {
+const Header = ({ 
+  isSidebarCollapsed, 
+  onToggleSidebar,
+  getPageTitle,
+  className = ''
+}) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -25,44 +30,26 @@ const Header = ({ isSidebarCollapsed, onToggleSidebar }) => {
     navigate('/login');
   };
 
-  const getPageTitle = () => {
-    if (location.pathname === '/admin') return 'Dashboard';
-    if (location.pathname.includes('/admin/users')) {
-      if (location.pathname.includes('/create')) return 'Tạo người dùng mới';
-      if (location.pathname.includes('/edit')) return 'Chỉnh sửa người dùng';
-      if (location.pathname.match(/\/admin\/users\/[^/]+$/)) return 'Chi tiết người dùng';
-      return 'Quản lý người dùng';
-    }
-    if (location.pathname.includes('/admin/hotels')) {
-      if (location.pathname.includes('/create')) return 'Tạo khách sạn mới';
-      if (location.pathname.includes('/edit')) return 'Chỉnh sửa khách sạn';
-      if (location.pathname.includes('/rooms/create')) return 'Tạo phòng mới';
-      if (location.pathname.match(/\/admin\/hotels\/[^/]+$/)) return 'Chi tiết khách sạn';
-      return 'Quản lý khách sạn';
-    }
-    if (location.pathname.includes('/admin/rooms')) {
-      if (location.pathname.includes('/edit')) return 'Chỉnh sửa phòng';
-      return 'Chi tiết phòng';
-    }
-    if (location.pathname.includes('/admin/bookings')) {
-      if (location.pathname.match(/\/admin\/bookings\/[^/]+$/)) return 'Chi tiết đặt phòng';
-      return 'Quản lý đặt phòng';
-    }
-    return 'Admin';
+  const defaultGetPageTitle = () => {
+    return 'Dashboard';
   };
+
+  const title = getPageTitle ? getPageTitle(location) : defaultGetPageTitle();
 
   return (
     <>
-      <header className="admin-header">
+      <header className={`app-header ${className}`}>
         <div className="header-left">
-          <button 
-            className="sidebar-toggle-btn"
-            onClick={onToggleSidebar}
-            title={isSidebarCollapsed ? 'Mở sidebar' : 'Đóng sidebar'}
-          >
-            {isSidebarCollapsed ? <FaBars /> : <FaTimes />}
-          </button>
-          <h1>{getPageTitle()}</h1>
+          {onToggleSidebar && (
+            <button 
+              className="sidebar-toggle-btn"
+              onClick={onToggleSidebar}
+              title={isSidebarCollapsed ? 'Mở sidebar' : 'Đóng sidebar'}
+            >
+              {isSidebarCollapsed ? <FaBars /> : <FaTimes />}
+            </button>
+          )}
+          <h1>{title}</h1>
         </div>
         <div className="header-right">
           <div className="user-menu">
@@ -75,7 +62,7 @@ const Header = ({ isSidebarCollapsed, onToggleSidebar }) => {
                 alt="Profile" 
                 className="user-avatar"
               />
-              <span className="user-name">{user?.name || 'Admin'}</span>
+              <span className="user-name">{user?.name || 'User'}</span>
               {isDropdownOpen ? <FaChevronUp /> : <FaChevronDown />}
             </button>
             {isDropdownOpen && (

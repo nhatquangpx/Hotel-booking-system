@@ -21,7 +21,7 @@
   padding: 20px;
 
   h1 {
-    color: var(--admin-primary);
+    color: $text-primary;
     @include heading-lg;
     margin-bottom: 32px;
     text-align: $align-left;
@@ -35,17 +35,23 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     .search-bar-row {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 15px;
+      align-items: center;
+      width: 100%;
     }
     .search-bar-inputs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      flex: 1;
       width: 100%;
+      align-items: center;
+      flex-wrap: nowrap;
       .MuiTextField-root {
-        width: 100%;
-        min-width: 250px;
+        flex: 1;
+        min-width: 0;
+        max-width: none;
       }
     }
   }
@@ -72,7 +78,7 @@
       }
       th {
         background: var(--admin-sidebar);
-        color: var(--admin-text);
+        color: $text-primary;
         @include button-text;
       }
       tr:hover {
@@ -164,7 +170,7 @@
 
         h2 {
           margin: 0;
-          color: var(--admin-text);
+          color: $text-primary;
         }
 
         .close-button {
@@ -172,7 +178,7 @@
           border: none;
           @include body-lg-alt;
           cursor: pointer;
-          color: var(--admin-text);
+          color: $text-primary;
         }
       }
 
@@ -186,7 +192,7 @@
           label {
             display: block;
             margin-bottom: 8px;
-            color: var(--admin-text);
+            color: $text-primary;
             @include label-base;
           }
 
@@ -197,7 +203,7 @@
             border: 1px solid var(--admin-border);
             border-radius: 4px;
             background: var(--admin-bg);
-            color: var(--admin-text);
+            color: $text-primary;
             @include body-base;
             margin-top: 4px;
           }
@@ -205,34 +211,42 @@
 
         .form-actions {
           display: flex;
-          justify-content: center;
-          gap: 0;
+          justify-content: space-between;
+          gap: 12px;
           width: 100%;
 
           button {
-            min-width: 120px;
-            padding: 10px 32px;
-            border-radius: 4px;
+            min-width: 140px;
+            padding: 12px 24px;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
-            @include body-base;
-            @include label-base;
+            font-weight: $font-bold;
+            @include button-text;
+            font-size: 14px;
+            line-height: 1.5;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: background 0.2s;
           }
           .submit-btn {
-            background: var(--admin-success, #28a745);
-            color: white;
-            order: 1;
-          }
-          .submit-btn:hover {
-            background: $success-hover;
+            background: $button-primary;
+            color: $text-white;
+
+            &:hover {
+              background: $button-primary-hover;
+            }
           }
           .cancel-btn {
             background: $button-cancel;
             color: white;
-            @include button-text;
-            margin-left: 20px;
-            order: 2;
+            margin-left: auto;
+
+            &:hover {
+              background: $button-cancel-hover;
+            }
           }
         }
       }

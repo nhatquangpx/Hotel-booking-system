@@ -7,7 +7,7 @@
 
   h2 {
     margin: 30px 0 20px 0;
-    color: $text-medium;
+    color: $text-primary;
     @include heading-lg;
   }
 
@@ -27,7 +27,7 @@
 
     .stat-title {
       @include body-sm;
-      color: $text-light;
+      color: $text-primary;
       margin-bottom: 10px;
     }
 
@@ -35,7 +35,7 @@
       @include heading-lg;
       font-size: 1.75rem;
       font-weight: $font-bold;
-      color: $text-medium;
+      color: $text-primary;
       margin-bottom: 10px;
       word-break: break-word;
       overflow-wrap: break-word;
@@ -44,7 +44,7 @@
 
     .stat-description {
       @include body-xs;
-      color: $text-disabled;
+      color: $text-primary;
     }
   }
 
@@ -77,13 +77,13 @@
     .card-title {
       @include body-md-alt;
       font-weight: $font-bold;
-      color: $text-medium;
+      color: $text-primary;
       margin-bottom: 10px;
     }
 
     .card-description {
       @include body-sm;
-      color: $text-light;
+      color: $text-primary;
     }
   }
 
@@ -107,7 +107,7 @@
     th {
       background: $bg-light-alt;
       @include button-text-sm;
-      color: $text-medium;
+      color: $text-primary;
     }
 
     tr:hover {

@@ -15,10 +15,10 @@
   background-color: var(--admin-bg);
   min-height: 100vh;
   padding: 1.5rem;
-  color: var(--admin-text);
+  color: $text-primary;
 
   h1 {
-    color: var(--admin-primary);
+    color: $text-primary;
     @include heading-xl;
     margin-bottom: 2rem;
   }
@@ -40,7 +40,7 @@
       h3 {
         margin: 0;
         @include heading-md;
-        color: var(--admin-text);
+        color: $text-primary;
       }
 
       .detail-actions {
@@ -57,18 +57,19 @@
           gap: 0.5rem;
 
           &.edit-btn {
-            background-color: var(--admin-primary);
+            background-color: $button-primary;
             color: $text-white;
+            font-weight: $font-bold;
             @include button-text;
 
             &:hover {
-              opacity: 0.9;
+              background-color: $button-primary-hover;
             }
           }
 
           &.back-btn {
             background-color: var(--admin-border);
-            color: var(--admin-text);
+            color: $text-primary;
             @include button-text;
 
             &:hover {
@@ -98,12 +99,12 @@
           width: 200px;
           @include label-base;
           font-weight: $font-semibold;
-          color: var(--admin-text);
+          color: $text-primary;
         }
 
         .detail-value {
           flex: 1;
-          color: var(--admin-text);
+          color: $text-primary;
           @include body-base;
         }
       }
@@ -114,7 +115,7 @@
     margin: 2rem 0 1rem;
 
     h3 {
-      color: var(--admin-primary);
+      color: $text-primary;
       @include heading-xs;
       font-weight: $font-semibold;
     }
@@ -132,7 +133,7 @@
 
       th {
         background-color: var(--admin-header);
-        color: var(--admin-primary);
+        color: $text-primary;
         padding: 1rem;
         text-align: $align-center;
         @include button-text-sm;
@@ -141,7 +142,7 @@
       td {
         padding: 1rem;
         text-align: $align-center;
-        color: var(--admin-text);
+        color: $text-primary;
         border-bottom: 1px solid var(--admin-border);
         @include body-base;
       }
@@ -159,7 +160,7 @@
   .no-bookings {
     text-align: $align-center;
     padding: 2rem;
-    color: var(--admin-text);
+    color: $text-primary;
     background-color: var(--admin-sidebar);
     border-radius: 8px;
     margin-top: 1rem;

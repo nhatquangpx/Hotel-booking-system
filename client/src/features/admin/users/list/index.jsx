@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
 import { AdminLayout } from '@/features/admin/components';
+import UserFormDialog from '../components/UserFormDialog';
 import api from '../../../../apis';
 import './UserList.scss';
 
@@ -23,6 +24,8 @@ const AdminUserListPage = () => {
   const [selectedRole, setSelectedRole] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -64,6 +67,25 @@ const AdminUserListPage = () => {
     setUserToDelete(null);
   };
 
+  const handleOpenCreateDialog = () => {
+    setEditingUser(null);
+    setShowUserDialog(true);
+  };
+
+  const handleOpenEditDialog = (user) => {
+    setEditingUser(user);
+    setShowUserDialog(true);
+  };
+
+  const handleCloseUserDialog = () => {
+    setShowUserDialog(false);
+    setEditingUser(null);
+  };
+
+  const handleUserSuccess = () => {
+    fetchUsers();
+  };
+
   const handleRoleFilter = (e) => {
     setSelectedRole(e.target.value);
   };
@@ -78,7 +100,6 @@ const AdminUserListPage = () => {
 
   return (
     <AdminLayout>
-      <h1>Danh sách người dùng</h1>
       <div className="user-list-container">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
           <div className="search-bar-row">
@@ -108,19 +129,20 @@ const AdminUserListPage = () => {
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
             </div>
-            <Link to="/admin/users/create" className="add-user-btn-link" style={{ textDecoration: 'none' }}>
+            <div className="add-user-btn-link" onClick={handleOpenCreateDialog}>
               <Button
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
                 sx={{ 
                   backgroundColor: 'var(--admin-primary)',
-                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 }
+                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 },
+                  cursor: 'pointer'
                 }}
               >
                 Thêm người dùng
               </Button>
-            </Link>
+            </div>
           </div>
         </Paper>
 
@@ -176,11 +198,13 @@ const AdminUserListPage = () => {
                           </Link>
                         </Tooltip>
                         <Tooltip title="Chỉnh sửa">
-                          <Link to={`/admin/users/edit/${user._id}`}>
-                            <IconButton size="small" color="black">
-                              <EditIcon />
-                            </IconButton>
-                          </Link>
+                          <IconButton 
+                            size="small" 
+                            color="black"
+                            onClick={() => handleOpenEditDialog(user)}
+                          >
+                            <EditIcon />
+                          </IconButton>
                         </Tooltip>
                         <Tooltip title="Xóa">
                           <IconButton 
@@ -213,6 +237,13 @@ const AdminUserListPage = () => {
             </div>
           </div>
         )}
+
+        <UserFormDialog
+          isOpen={showUserDialog}
+          onClose={handleCloseUserDialog}
+          userId={editingUser?._id || null}
+          onSuccess={handleUserSuccess}
+        />
       </div>
     </AdminLayout>
   );
