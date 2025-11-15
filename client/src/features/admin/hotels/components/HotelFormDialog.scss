@@ -1,0 +1,194 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/global" as *;
+@use "../../../../styles/text" as *;
+
+.hotel-form-dialog {
+  .hotel-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .error-message {
+      background-color: $status-error-bg;
+      color: $status-error-text;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .loading {
+      text-align: $align-center;
+      padding: 2rem;
+      color: $text-primary;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        @include label-base;
+        color: $text-primary;
+      }
+
+      input, select, textarea {
+        padding: 10px 12px;
+        border-radius: 6px;
+        border: 1px solid $border-admin;
+        background: $bg-light-alt;
+        color: $text-primary;
+        @include body-base;
+
+        &:focus {
+          outline: none;
+          border-color: $button-primary;
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .image-previews {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+
+      .image-preview-item {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%;
+        border: 1px solid $border-medium;
+        border-radius: 8px;
+        overflow: hidden;
+
+        img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .remove-image-btn {
+          position: absolute;
+          top: 5px;
+          right: 5px;
+          background-color: rgba(255, 255, 255, 0.9);
+          border-radius: 50%;
+          width: 24px;
+          height: 24px;
+          min-width: unset;
+          padding: 0;
+          color: var(--admin-danger);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          border: none;
+          z-index: 1;
+
+          &:hover {
+            background-color: rgba(255, 255, 255, 1);
+          }
+        }
+      }
+    }
+
+    .form-group-policies {
+      margin-bottom: 0;
+
+      label {
+        @include label-base;
+        color: $text-primary;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .policies-inputs {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+
+        .policy-item {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+
+          input[type="time"] {
+            padding: 8px;
+            border: 1px solid $border-medium;
+            border-radius: 4px;
+            @include body-sm;
+            width: 100%;
+          }
+
+          label {
+            @include body-sm;
+            color: $text-primary;
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+
+      button {
+        min-width: 140px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: $font-bold;
+        @include button-text;
+        font-size: 14px;
+        line-height: 1.5;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .submit-btn {
+        background: $button-primary;
+        color: $text-white;
+
+        &:hover {
+          background: $button-primary-hover;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .cancel-btn {
+        background: $button-cancel;
+        color: white;
+        margin-left: auto;
+
+        &:hover {
+          background: $button-cancel-hover;
+        }
+      }
+    }
+  }
+}
+

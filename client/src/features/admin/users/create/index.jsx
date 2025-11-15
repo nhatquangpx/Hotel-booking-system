@@ -111,11 +111,11 @@ const AdminUserCreatePage = () => {
           </div>
           
           <div className="form-actions">
-            <button type="button" onClick={() => navigate('/admin/users')} className="cancel-btn">
-              Hủy
-            </button>
             <button type="submit" className="submit-btn" disabled={saving}>
               {saving ? 'Đang tạo...' : 'Tạo người dùng'}
+            </button>
+            <button type="button" onClick={() => navigate('/admin/users')} className="cancel-btn">
+              Hủy
             </button>
           </div>
         </form>

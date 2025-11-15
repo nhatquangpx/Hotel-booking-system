@@ -358,10 +358,10 @@ const AdminHotelEditPage = () => {
             </div>
           </div>
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={() => navigate('/admin/hotels')}>Hủy</button>
             <button type="submit" className="submit-btn" disabled={saving}>
               {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>
+            <button type="button" className="cancel-btn" onClick={() => navigate('/admin/hotels')}>Hủy</button>
           </div>
         </form>
       </div>

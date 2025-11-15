@@ -101,7 +101,6 @@ const AdminBookingListPage = () => {
 
   return (
     <AdminLayout>
-      <h1>Danh sách đặt phòng</h1>
       <div className="booking-list-container">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
           <div className="search-bar-row">

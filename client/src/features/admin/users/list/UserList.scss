@@ -3,13 +3,8 @@
 @use "../../../../styles/text" as *;
 
 :root {
-  --admin-primary: #1976d2;
-  --admin-primary-hover: #1565c0;
-  --admin-danger: #d32f2f;
-  --admin-success: #388e3c;
   --admin-bg: #f5f6fa;
   --admin-sidebar: #fff;
-  --admin-text: #222;
 }
 
 .user-list-container {
@@ -24,7 +19,7 @@
     margin-bottom: 1.5rem;
 
     h1 {
-      color: var(--admin-primary);
+      color: $text-primary;
       @include heading-xl;
       margin-bottom: 2rem;
     }
@@ -37,10 +32,11 @@
         white-space: nowrap;
         @include button-text;
         padding: 8px 18px;
-        background-color: var(--admin-primary) !important;
+        background-color: $button-primary !important;
         color: $text-white !important;
+        font-weight: $font-bold;
         &:hover {
-          background-color: var(--admin-primary-hover) !important;
+          background-color: $button-primary-hover !important;
         }
       }
     }
@@ -61,28 +57,31 @@
 
     .search-bar-inputs {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       flex: 1;
-      max-width: 600px;
+      width: 100%;
+      align-items: center;
+      flex-wrap: nowrap;
       .MuiTextField-root {
         flex: 1;
-        min-width: 120px;
-        max-width: 200px;
+        min-width: 0;
+        max-width: none;
       }
     }
 
     .add-user-btn-link {
-      margin-left: auto;
+      margin-left: 16px;
       display: flex;
       align-items: center;
       .MuiButton-root {
         white-space: nowrap;
         @include button-text;
         padding: 8px 18px;
-        background-color: var(--admin-primary) !important;
+        background-color: $button-primary !important;
         color: $text-white !important;
+        font-weight: $font-bold;
         &:hover {
-          background-color: var(--admin-primary-hover) !important;
+          background-color: $button-primary-hover !important;
         }
       }
     }
@@ -100,7 +99,7 @@
 
       th {
         background-color: var(--admin-header);
-        color: var(--admin-primary);
+        color: $text-primary;
         padding: 1rem;
         text-align: $align-left;
         @include button-text;
@@ -109,7 +108,7 @@
       td {
         padding: 1rem;
         text-align: $align-left;
-        color: var(--admin-text);
+        color: $text-primary;
         border-bottom: 1px solid var(--admin-border);
 
         &.user-name {
@@ -141,7 +140,7 @@
         }
 
         &.edit-btn {
-          color: var(--admin-text);
+          color: $text-primary;
         }
 
         &.delete-btn {
@@ -175,7 +174,7 @@
   .delete-modal {
     .modal-content {
       background-color: var(--admin-sidebar);
-      color: var(--admin-text);
+      color: $text-primary;
       border-radius: 8px;
       padding: 1.5rem;
 
@@ -198,7 +197,7 @@
 
           &.cancel-btn {
             background-color: var(--admin-border);
-            color: var(--admin-text);
+            color: $text-primary;
           }
 
           &.delete-btn {

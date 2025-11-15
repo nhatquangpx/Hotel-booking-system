@@ -19,7 +19,7 @@
   padding: 32px 0;
 
   h1 {
-    color: var(--admin-primary);
+    color: $text-primary;
     @include heading-lg;
     text-align: $align-center;
     margin-bottom: 32px;
@@ -42,14 +42,14 @@
       gap: 6px;
       label {
         @include label-base;
-        color: var(--admin-text);
+        color: $text-primary;
       }
       input, select, textarea {
         padding: 10px 12px;
         border-radius: 6px;
         border: 1px solid $border-admin;
         background: var(--admin-bg);
-        color: var(--admin-text);
+        color: $text-primary;
         @include body-base;
         &:focus {
           outline: none;
@@ -130,7 +130,7 @@
 
           label {
             @include body-sm;
-            color: $text-light;
+            color: $text-primary;
           }
         }
       }
@@ -138,29 +138,34 @@
 
     .form-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       gap: 12px;
       margin-top: 8px;
       .submit-btn {
-        background: var(--admin-primary);
+        background: $button-primary;
         color: $text-white;
+        font-weight: $font-bold;
         @include button-text;
         padding: 8px 20px;
+        min-width: 120px;
         border-radius: 6px;
         border: none;
         cursor: pointer;
         &:hover {
-          background: var(--admin-primary-hover);
+          background: $button-primary-hover;
         }
       }
       .cancel-btn {
         background: $button-cancel;
         color: white;
+        font-weight: $font-bold;
         @include button-text;
         padding: 8px 20px;
+        min-width: 120px;
         border-radius: 6px;
         border: none;
         cursor: pointer;
+        margin-left: auto;
         &:hover {
           background: $button-cancel-hover;
         }
@@ -180,14 +185,15 @@
 .upload-button {
   display: inline-block;
   padding: 8px 16px;
-  background-color: $admin-primary;
+  background-color: $button-primary;
   color: $text-white;
+  font-weight: $font-bold;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: $admin-primary-hover;
+    background-color: $button-primary-hover;
   }
 }
 
@@ -255,7 +261,7 @@
     }
 
     .owner-email {
-      color: $text-light;
+      color: $text-primary;
       @include body-sm;
     }
   }

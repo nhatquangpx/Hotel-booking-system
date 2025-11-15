@@ -1,12 +1,17 @@
-@use "../../../styles/variables" as *;
-@use "../../../styles/global" as *;
-@use "../../../styles/text" as *;
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
 
+.app-header,
 .admin-header {
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background-color: $footer-bg;
+  padding: 1rem 1.5rem;
+  border-radius: 0;
+  width: 100%;
 
   .header-left {
     display: flex;
@@ -49,6 +54,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    margin-right: 10px;
 
     .user-menu {
       position: relative;
@@ -82,10 +88,10 @@
           font-weight: $font-medium;
         }
 
-            svg {
-              color: $text-secondary;
-              font-size: 12px;
-            }
+        svg {
+          color: $text-secondary;
+          font-size: 12px;
+        }
       }
 
       .user-dropdown {
@@ -119,12 +125,12 @@
             background-color: $grey-light;
           }
 
-              svg {
-                color: $text-secondary;
-                width: 20px;
-                text-align: center;
-                flex-shrink: 0;
-              }
+          svg {
+            color: $text-secondary;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+          }
 
           &.logout-button {
             border-top: 1px solid $border-light;
@@ -154,6 +160,7 @@
 }
 
 @media (max-width: 768px) {
+  .app-header,
   .admin-header {
     flex-direction: column;
     align-items: flex-start;

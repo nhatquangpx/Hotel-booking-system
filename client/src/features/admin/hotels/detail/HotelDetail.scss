@@ -22,7 +22,7 @@
   h1 {
     margin-bottom: 20px;
     @include heading-lg;
-    color: $text-medium;
+    color: $text-primary;
   }
 
   .detail-card {
@@ -42,7 +42,7 @@
       h3 {
         margin: 0;
         @include heading-md;
-        color: $text-medium;
+        color: $text-primary;
       }
 
       .detail-actions {
@@ -65,12 +65,12 @@
         .detail-label {
           width: 150px;
           @include label-base;
-          color: $text-light;
+          color: $text-primary;
         }
 
         .detail-value {
           flex: 1;
-          color: $text-medium;
+          color: $text-primary;
           @include body-base;
 
           &.image-gallery {
@@ -101,7 +101,7 @@
     
     h3 {
       @include heading-sm;
-      color: $text-medium;
+      color: $text-primary;
       margin: 0;
     }
   }
@@ -125,11 +125,11 @@
       th {
         background: $bg-light-alt;
         @include label-base;
-        color: $text-light;
+        color: $text-primary;
       }
 
       td {
-        color: $text-medium;
+        color: $text-primary;
         vertical-align: middle;
         @include body-base;
 
@@ -154,7 +154,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          color: $text-disabled;
+          color: $text-primary;
           @include body-sm;
         }
       }
@@ -168,7 +168,7 @@
   .loading {
     text-align: $align-center;
     padding: 20px;
-    color: $text-light;
+    color: $text-primary;
     @include body-base;
   }
 

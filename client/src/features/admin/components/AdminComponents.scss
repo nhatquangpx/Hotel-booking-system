@@ -45,11 +45,12 @@
       transition: all 0.3s;
       
       &.edit-btn {
-        background-color: $success;
+        background-color: $button-primary;
         color: $text-white;
+        font-weight: $font-bold;
         
         &:hover {
-          background-color: $success-hover;
+          background-color: $button-primary-hover;
         }
       }
       
@@ -64,11 +65,12 @@
       }
 
       &.view-btn {
-        background-color: $blue-light;
+        background-color: $button-primary;
         color: $text-white;
+        font-weight: $font-bold;
         
         &:hover {
-          background-color: $blue-light-hover;
+          background-color: $button-primary-hover;
         }
       }
     }
@@ -131,11 +133,12 @@
       transition: all 0.3s;
       
       &.submit-btn {
-        background-color: $blue-light;
+        background-color: $button-primary;
         color: $text-white;
+        font-weight: $font-bold;
         
         &:hover {
-          background-color: $blue-light-hover;
+          background-color: $button-primary-hover;
         }
       }
       
@@ -305,8 +308,9 @@
   
   .add-button {
     padding: 10px 20px;
-    background-color: $blue-light;
+    background-color: $button-primary;
     color: $text-white;
+    font-weight: $font-bold;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -317,7 +321,7 @@
     gap: 8px;
     
     &:hover {
-      background-color: $blue-light-hover;
+      background-color: $button-primary-hover;
     }
     
     &::before {
@@ -882,11 +886,10 @@
 }
 
 .admin-header {
-  margin-bottom: 20px;
   
   h1 {
     @include body-lg-alt;
-    color: $text-medium;
+    color: $text-primary;
     margin: 0;
   }
 }
@@ -909,13 +912,13 @@
   align-items: center;
   height: 200px;
   @include body-base;
-  color: $text-light;
+  color: $text-primary;
 }
 
 .no-data {
   text-align: $align-center;
   padding: 20px;
-  color: $text-light;
+  color: $text-primary;
   font-style: italic;
 }
 
