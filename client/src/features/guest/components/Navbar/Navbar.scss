@@ -41,13 +41,13 @@
 
     .menu-item {
       text-decoration: none;	
-      color: $blue;
+      color: $text-header-footer;
       @include body-base;
       font-weight: $font-bold;
       transition: color 0.3s ease;
 
       &:hover {
-        color: $pinkred;
+        color: $button-cancel;
       }
     }
   }

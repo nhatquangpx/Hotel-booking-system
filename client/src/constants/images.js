@@ -5,7 +5,8 @@ export const IMAGE_PATHS = {
   // Logos
   LOGO_VERTICAL: `${ASSETS_BASE}/logo_vertical.png`,
   LOGO_HORIZONTAL: `${ASSETS_BASE}/logo_horizontal.png`,
-  
+  LOGO_VERTICAL_WHITE: `${ASSETS_BASE}/logo_vertical_white.png`,
+  LOGO_HORIZONTAL_WHITE: `${ASSETS_BASE}/logo_horizontal_white.png`,
   // Default images
   DEFAULT_PROFILE: `${ASSETS_BASE}/default-profile.jpg`,
   QR_CODE: `${ASSETS_BASE}/qr-code.png`,

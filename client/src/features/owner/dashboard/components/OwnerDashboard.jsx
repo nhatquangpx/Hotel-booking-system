@@ -6,7 +6,7 @@ import HotelInfoCard from '../../components/HotelInfoCard';
 import PoliciesCard from '../../components/PoliciesCard';
 import RevenueChart from '../../components/RevenueChart';
 import RoomOccupancyChart from '../../components/RoomOccupancyChart';
-import TaskList from '../../components/TaskList';
+import TaskList from './TaskList';
 import './OwnerDashboard.scss';
 
 /**

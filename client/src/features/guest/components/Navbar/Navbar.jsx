@@ -32,7 +32,7 @@ export const Navbar = () => {
   return (
     <div className='navbar'>
       <a href="/">
-        <img src={IMAGE_PATHS.LOGO_VERTICAL} alt="logo" />
+        <img src={IMAGE_PATHS.LOGO_VERTICAL_WHITE} alt="logo" />
       </a>
 
       <div className='navbar_menu'>

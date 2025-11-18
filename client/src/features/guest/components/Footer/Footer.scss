@@ -4,7 +4,7 @@
 
 .footer {
   background: $footer-bg;
-  color: $text-dark;
+  color: $text-header-footer;
   font-family: 'Inter', sans-serif;
   width: 100%;
   padding: 0;
@@ -53,14 +53,14 @@
     align-items: center;
     gap: 16px;
     a {
-      color: $text-dark;
+      color: $text-header-footer;
       @include body-md-alt;
       transition: color 0.2s;
       &:hover {
-        color: $button-primary-hover;
+        color: $button-cancel;
       }
     }
-  }
+  }       
 
   &__links {
     display: flex;
@@ -83,10 +83,10 @@
   }
 
   &__col-title {
-    font-weight: $font-bold;
     @include body-base-alt;
+    font-weight: $font-bold;
     margin-bottom: 12px;
-    color: $text-dark;
+    color: $text-header-footer;
   }
 
   &__col ul {
@@ -97,12 +97,12 @@
 
   &__col li {
     @include body-base;
-    color: $text-medium-alt;
+    color: $text-white;
     margin-bottom: 8px;
     cursor: pointer;
     transition: color 0.2s;
     &:hover {
-      color: $button-primary-hover;
+      color: $button-cancel;
     }
   }
 }
