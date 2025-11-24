@@ -20,10 +20,23 @@ const Sidebar = ({
   const location = useLocation();
 
   const isActive = (path) => {
+    // Exact match for root paths
     if (path === '/admin') {
       return location.pathname === '/admin';
     }
-    return location.pathname.startsWith(path);
+    if (path === '/owner') {
+      return location.pathname === '/owner';
+    }
+    
+    // For other paths, check if pathname starts with the path
+    // and ensure it's not just a prefix (e.g., /owner should not match /owner/rooms)
+    if (location.pathname === path) {
+      return true;
+    }
+    if (location.pathname.startsWith(path + '/')) {
+      return true;
+    }
+    return false;
   };
 
   return (
