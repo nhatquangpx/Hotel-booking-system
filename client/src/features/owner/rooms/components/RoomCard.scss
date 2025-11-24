@@ -1,0 +1,139 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.room-card {
+  background-color: $bg-white;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border: 2px solid transparent;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: $button-primary;
+  }
+
+  &__icon {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 1.25rem;
+    opacity: 0.7;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__number {
+    @include heading-md;
+    font-weight: $font-bold;
+    color: $text-primary;
+    margin-bottom: 0.25rem;
+  }
+
+  &__status {
+    @include body-sm;
+    font-weight: $font-medium;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+  }
+
+  &__type {
+    @include body-base;
+    color: $text-secondary;
+    margin-top: auto;
+  }
+
+  &__guest {
+    @include body-sm;
+    color: $text-medium;
+    font-style: italic;
+    margin-top: 0.25rem;
+  }
+
+  // Status color variants
+  &--empty {
+    background-color: $status-success-bg;
+    border-color: $status-success-text;
+
+    .room-card__icon {
+      color: $status-success-text;
+    }
+
+    .room-card__status {
+      background-color: $status-success-text;
+      color: $text-white;
+    }
+  }
+
+  &--occupied {
+    background-color: $status-info-bg;
+    border-color: $status-info-text;
+
+    .room-card__icon {
+      color: $status-info-text;
+    }
+
+    .room-card__status {
+      background-color: $status-info-text;
+      color: $text-white;
+    }
+  }
+
+  &--pending {
+    background-color: $warning-bg;
+    border-color: $warning-text;
+
+    .room-card__icon {
+      color: $warning-text;
+    }
+
+    .room-card__status {
+      background-color: $warning-text;
+      color: $text-white;
+    }
+  }
+
+  &--cleaning {
+    background-color: $grey-light;
+    border-color: $grey-medium;
+
+    .room-card__icon {
+      color: $grey-medium;
+    }
+
+    .room-card__status {
+      background-color: $grey-medium;
+      color: $text-white;
+    }
+  }
+
+  &--maintenance {
+    background-color: $status-error-bg;
+    border-color: $status-error-text;
+
+    .room-card__icon {
+      color: $status-error-text;
+    }
+
+    .room-card__status {
+      background-color: $status-error-text;
+      color: $text-white;
+    }
+  }
+}
+

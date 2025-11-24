@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header, Sidebar } from '@/components';
+import { useLocation } from 'react-router-dom';
 import { 
   FaHome, 
   FaBed, 
@@ -9,7 +10,6 @@ import {
   FaWrench, 
   FaUsers 
 } from 'react-icons/fa';
-import { useLocation } from 'react-router-dom';
 import './OwnerLayout.scss';
 
 const SIDEBAR_STORAGE_KEY = 'owner_sidebar_collapsed';

@@ -1,0 +1,58 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.room-status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1rem;
+  background-color: $bg-white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__color {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    &--empty {
+      background-color: $status-success-bg;
+      border-color: $status-success-text;
+    }
+
+    &--occupied {
+      background-color: $status-info-bg;
+      border-color: $status-info-text;
+    }
+
+    &--pending {
+      background-color: $warning-bg;
+      border-color: $warning-text;
+    }
+
+    &--cleaning {
+      background-color: $grey-light;
+      border-color: $grey-medium;
+    }
+
+    &--maintenance {
+      background-color: $status-error-bg;
+      border-color: $status-error-text;
+    }
+  }
+
+  &__label {
+    @include body-base;
+    color: $text-primary;
+  }
+}
+
