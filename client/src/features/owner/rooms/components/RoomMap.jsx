@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RoomCard from './RoomCard';
 import RoomStatusLegend from './RoomStatusLegend';
+import RoomDetailModal from './RoomDetailModal';
 import api from '@/apis';
 import { useAuth } from '@/shared/hooks';
 import './RoomMap.scss';
@@ -16,6 +17,8 @@ const RoomMap = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchRooms();
@@ -66,10 +69,20 @@ const RoomMap = () => {
   };
 
   const handleRoomClick = (room) => {
-    // Navigate to room detail or open a modal
-    // For now, we'll just log it
-    console.log('Room clicked:', room);
-    // You can navigate to a detail page: navigate(`/owner/rooms/${room._id}`);
+    setSelectedRoom(room);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedRoom(null);
+  };
+
+  const handleEditRoom = (room) => {
+    // Navigate to edit page or open edit modal
+    // For now, just log it
+    console.log('Edit room:', room);
+    // You can navigate to edit page: navigate(`/owner/rooms/${room._id}/edit`);
   };
 
   if (loading) {
@@ -118,6 +131,13 @@ const RoomMap = () => {
           ))
         )}
       </div>
+
+      <RoomDetailModal
+        room={selectedRoom}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onEdit={handleEditRoom}
+      />
     </div>
   );
 };

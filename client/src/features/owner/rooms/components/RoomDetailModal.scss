@@ -1,0 +1,457 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.room-detail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.room-detail-modal {
+  background-color: $bg-white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.room-detail-modal__header {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-bottom: 1px solid $border-light;
+  background-color: $bg-white;
+  gap: 1rem;
+}
+
+.room-detail-modal__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.room-detail-modal__title {
+  @include heading-lg;
+  color: $text-primary;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.room-detail-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.room-detail-modal__action-btn-header {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid $border-medium;
+  border-radius: 6px;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  @include body-sm;
+  font-weight: $font-medium;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $bg-light;
+    border-color: $button-primary;
+    color: $button-primary;
+  }
+
+  &--danger {
+    color: $error;
+    border-color: $error;
+
+    &:hover {
+      background-color: $error-light;
+      border-color: $error;
+      color: $error-dark;
+    }
+  }
+}
+
+.room-detail-modal__edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid $border-medium;
+  border-radius: 6px;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  @include body-sm;
+  font-weight: $font-medium;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: $bg-light;
+    border-color: $button-primary;
+    color: $button-primary;
+  }
+
+  svg {
+    font-size: 0.875rem;
+  }
+}
+
+.room-detail-modal__close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.25rem;
+
+  &:hover {
+    background-color: $bg-light;
+    color: $text-primary;
+  }
+}
+
+.room-detail-modal__tabs {
+  display: flex;
+  border-bottom: 1px solid $border-light;
+  background-color: $bg-white;
+  padding: 0 1.5rem;
+}
+
+.room-detail-modal__tab {
+  padding: 1rem 1.5rem;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  @include body-base;
+  font-weight: $font-medium;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  margin-bottom: -1px;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &--active {
+    color: $button-primary;
+    border-bottom-color: $button-primary;
+  }
+}
+
+.room-detail-modal__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.room-detail-modal__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  min-height: 300px;
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid $grey-light;
+    border-top-color: $button-primary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  p {
+    @include body-base;
+    color: $text-secondary;
+  }
+}
+
+.room-detail-modal__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.room-detail-modal__image {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: $bg-light;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $grey-light;
+
+    .placeholder-content {
+      @include body-base;
+      color: $text-secondary;
+    }
+  }
+}
+
+.room-detail-modal__details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.room-detail-modal__detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid $border-light;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.room-detail-modal__detail-label {
+  @include body-base;
+  font-weight: $font-medium;
+  color: $text-secondary;
+  min-width: 120px;
+}
+
+.room-detail-modal__detail-value {
+  @include body-base;
+  color: $text-primary;
+  font-weight: $font-medium;
+}
+
+.room-detail-modal__section-title {
+  @include heading-sm;
+  color: $text-primary;
+  margin: 1.5rem 0 0.75rem 0;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.room-detail-modal__description {
+  margin-top: 1rem;
+}
+
+.room-detail-modal__description-text {
+  @include body-base;
+  color: $text-secondary;
+  line-height: $line-relaxed;
+  margin: 0;
+}
+
+.room-detail-modal__facilities {
+  margin-top: 1rem;
+}
+
+.room-detail-modal__facilities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.room-detail-modal__facility-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: $status-success-bg;
+  border-radius: 20px;
+  @include body-sm;
+  color: $status-success-text;
+  font-weight: $font-medium;
+
+  svg {
+    font-size: 0.875rem;
+  }
+}
+
+.room-detail-modal__customer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid $border-light;
+}
+
+.room-detail-modal__customer-name {
+  @include body-base;
+  color: $text-primary;
+  font-weight: $font-medium;
+  margin: 0.5rem 0 0 0;
+}
+
+.room-detail-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.room-detail-modal__actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.room-detail-modal__action-btn {
+  padding: 0.875rem 1.25rem;
+  background-color: $bg-white;
+  border: 1px solid $border-medium;
+  border-radius: 8px;
+  @include body-base;
+  font-weight: $font-medium;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+
+  &:hover {
+    background-color: $bg-light;
+    border-color: $button-primary;
+    color: $button-primary;
+  }
+
+  &--danger {
+    color: $error;
+    border-color: $error;
+
+    &:hover {
+      background-color: $error-light;
+      border-color: $error;
+      color: $error-dark;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .room-detail-modal {
+    max-width: 100%;
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+
+  .room-detail-modal__header {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .room-detail-modal__header-top {
+    width: 100%;
+  }
+
+  .room-detail-modal__title {
+    @include heading-md;
+  }
+
+  .room-detail-modal__header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .room-detail-modal__action-btn-header {
+    padding: 0.5rem 0.75rem;
+    @include body-xs;
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+  }
+
+  .room-detail-modal__edit-btn {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+    padding: 0.5rem 0.75rem;
+    @include body-xs;
+    
+    span {
+      display: none;
+    }
+  }
+
+  .room-detail-modal__content {
+    padding: 1rem;
+  }
+
+  .room-detail-modal__image {
+    height: 200px;
+  }
+
+  .room-detail-modal__detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .room-detail-modal__detail-label {
+    min-width: auto;
+  }
+}
+
