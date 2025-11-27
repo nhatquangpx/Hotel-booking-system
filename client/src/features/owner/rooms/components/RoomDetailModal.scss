@@ -83,6 +83,9 @@
 }
 
 .room-detail-modal__action-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   background-color: transparent;
   border: 1px solid $border-medium;
@@ -93,6 +96,10 @@
   @include body-sm;
   font-weight: $font-medium;
   white-space: nowrap;
+
+  svg {
+    font-size: 0.875rem;
+  }
 
   &:hover {
     background-color: $bg-light;
@@ -348,6 +355,104 @@
   margin: 0.5rem 0 0 0;
 }
 
+.room-detail-modal__current-booking {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid $border-light;
+}
+
+.room-detail-modal__booking-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  @include body-base;
+  color: $text-secondary;
+
+  .loading-spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 2px solid $grey-light;
+    border-top-color: $button-primary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+.room-detail-modal__booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background-color: $bg-light;
+  border-radius: 8px;
+}
+
+.room-detail-modal__booking-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid $border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.room-detail-modal__booking-label {
+  @include body-sm;
+  font-weight: $font-medium;
+  color: $text-secondary;
+  min-width: 140px;
+}
+
+.room-detail-modal__booking-value {
+  @include body-base;
+  color: $text-primary;
+  font-weight: $font-medium;
+
+  &--occupied {
+    color: $status-info-text;
+    background-color: $status-info-bg;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  &--paid {
+    color: $status-success-text;
+    background-color: $status-success-bg;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  &--pending {
+    color: $warning-text;
+    background-color: $warning-bg;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+}
+
+.room-detail-modal__booking-empty {
+  padding: 1.5rem;
+  text-align: center;
+  background-color: $bg-light;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.room-detail-modal__booking-empty-text {
+  @include body-base;
+  color: $text-secondary;
+  margin: 0;
+  font-style: italic;
+}
+
 .room-detail-modal__actions {
   display: flex;
   flex-direction: column;
@@ -451,6 +556,16 @@
   }
 
   .room-detail-modal__detail-label {
+    min-width: auto;
+  }
+
+  .room-detail-modal__booking-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .room-detail-modal__booking-label {
     min-width: auto;
   }
 }
