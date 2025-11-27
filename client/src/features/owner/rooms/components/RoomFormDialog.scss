@@ -1,0 +1,216 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.room-form-dialog {
+  .room-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .error-message {
+      background-color: $status-error-bg;
+      color: $status-error-text;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .loading {
+      text-align: $align-center;
+      padding: 2rem;
+      color: $text-primary;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        @include label-base;
+        color: $text-primary;
+      }
+
+      input, select, textarea {
+        padding: 10px 12px;
+        border-radius: 6px;
+        border: 1px solid $border-admin;
+        background: $bg-light-alt;
+        color: $text-primary;
+        @include body-base;
+
+        &:focus {
+          outline: none;
+          border-color: $button-primary;
+        }
+
+        &:disabled {
+          background: $grey-light;
+          cursor: not-allowed;
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .facilities-container, .images-container {
+      label {
+        @include label-base;
+        color: $text-primary;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .facilities-list, .images-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 10px 0;
+
+        .facility-tag {
+          background: var(--admin-bg);
+          padding: 6px 12px;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          @include body-sm;
+
+          button {
+            background: none;
+            border: none;
+            color: var(--admin-danger);
+            cursor: pointer;
+            @include body-md;
+            padding: 0 4px;
+
+            &:hover {
+              color: var(--admin-danger);
+            }
+          }
+        }
+
+        .image-item {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          border-radius: 8px;
+          overflow: hidden;
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .remove-image-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            color: var(--admin-danger);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            @include body-md;
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.9);
+            }
+          }
+        }
+      }
+
+      .facility-input, .image-input {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+
+        input, select {
+          flex: 1;
+          padding: 8px 12px;
+          border-radius: 6px;
+          border: 1px solid $border-admin;
+        }
+
+        button {
+          padding: 8px 16px;
+          background: $button-primary;
+          color: white;
+          font-weight: $font-bold;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          @include button-text-sm;
+
+          &:hover {
+            background: $button-primary-hover;
+          }
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+
+      button {
+        min-width: 140px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: $font-bold;
+        @include button-text;
+        font-size: 14px;
+        line-height: 1.5;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .submit-btn {
+        background: $button-primary;
+        color: $text-white;
+
+        &:hover {
+          background: $button-primary-hover;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .cancel-btn {
+        background: $button-cancel;
+        color: white;
+        margin-left: auto;
+
+        &:hover {
+          background: $button-cancel-hover;
+        }
+      }
+    }
+  }
+}
+
