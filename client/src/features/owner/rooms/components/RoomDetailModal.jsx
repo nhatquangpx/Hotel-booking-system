@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaEdit, FaWifi, FaSnowflake, FaTv, FaWineBottle } from 'react-icons/fa';
+import { FaTimes, FaEdit, FaWifi, FaSnowflake, FaTv, FaWineBottle, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import api from '@/apis';
 import './RoomDetailModal.scss';
 
@@ -99,11 +99,6 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
     }
   };
 
-  const handleNewBooking = () => {
-    // Navigate to new booking page
-    console.log('New booking for room:', roomData);
-  };
-
   const handleViewHistory = () => {
     // Navigate to booking history
     console.log('View booking history for room:', roomData);
@@ -139,24 +134,19 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
           <div className="room-detail-modal__header-actions">
             <button 
               className="room-detail-modal__action-btn-header"
-              onClick={handleNewBooking}
-              title="Đặt phòng mới"
-            >
-              Đặt phòng mới
-            </button>
-            <button 
-              className="room-detail-modal__action-btn-header"
               onClick={handleViewHistory}
               title="Xem lịch sử đặt phòng"
             >
-              Lịch sử
+              <FaHistory />
+              <span>Lịch sử</span>
             </button>
             <button 
               className="room-detail-modal__action-btn-header"
               onClick={handleUpdateStatus}
               title="Cập nhật trạng thái"
             >
-              Cập nhật trạng thái
+              <FaSyncAlt />
+              <span>Cập nhật trạng thái</span>
             </button>
             <button 
               className="room-detail-modal__edit-btn"
@@ -171,7 +161,8 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
               onClick={handleDeleteRoom}
               title="Xóa phòng"
             >
-              Xóa phòng
+              <FaTrash />
+              <span>Xóa phòng</span>
             </button>
           </div>
         </div>
