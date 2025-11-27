@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import RoomCard from './RoomCard';
-import RoomStatusLegend from './RoomStatusLegend';
-import RoomDetailModal from './RoomDetailModal';
+import { RoomCard, RoomStatusLegend, RoomDetailModal } from '../components';
+import { CreateRoomButton } from '../create';
 import api from '@/apis';
 import { useAuth } from '@/shared/hooks';
 import './RoomMap.scss';
 
-/**
- * Room Map Component
- * Main component displaying the room map grid
- */
 const RoomMap = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,7 +24,6 @@ const RoomMap = () => {
       setLoading(true);
       setError(null);
 
-      // First, get the owner's hotels
       const hotels = await api.ownerHotel.getOwnerHotels();
       
       if (!hotels || hotels.length === 0) {
@@ -38,12 +32,9 @@ const RoomMap = () => {
         return;
       }
 
-      // Get rooms from the first hotel (or you can add hotel selection later)
       const hotelId = hotels[0]._id || hotels[0].id;
       const roomsData = await api.ownerRoom.getHotelRooms(hotelId);
 
-      // Transform room data to include status and guest info
-      // In a real app, this would come from the API based on bookings
       const roomsWithStatus = roomsData.map(room => ({
         ...room,
         status: room.status || determineRoomStatus(room),
@@ -59,12 +50,8 @@ const RoomMap = () => {
     }
   };
 
-  // Helper function to determine room status
-  // In a real app, this would be calculated based on bookings
   const determineRoomStatus = (room) => {
-    // This is a placeholder - in reality, you'd check bookings
     if (room.available === false) return 'maintenance';
-    // You would check if there's an active booking
     return 'empty';
   };
 
@@ -79,10 +66,7 @@ const RoomMap = () => {
   };
 
   const handleEditRoom = (room) => {
-    // Navigate to edit page or open edit modal
-    // For now, just log it
     console.log('Edit room:', room);
-    // You can navigate to edit page: navigate(`/owner/rooms/${room._id}/edit`);
   };
 
   if (loading) {
@@ -108,10 +92,15 @@ const RoomMap = () => {
   return (
     <div className="room-map">
       <div className="room-map__header">
-        <h2 className="room-map__title">Sơ đồ phòng</h2>
-        <p className="room-map__instruction">
-          Nhấn vào phòng để xem chi tiết và thao tác
-        </p>
+        <div className="room-map__header-content">
+          <div>
+            <h2 className="room-map__title">Sơ đồ phòng</h2>
+            <p className="room-map__instruction">
+              Nhấn vào phòng để xem chi tiết và thao tác
+            </p>
+          </div>
+          <CreateRoomButton onSuccess={fetchRooms} />
+        </div>
       </div>
 
       <RoomStatusLegend />

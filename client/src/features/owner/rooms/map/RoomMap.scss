@@ -11,6 +11,14 @@
     margin-bottom: 1.5rem;
   }
 
+  &__header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
   &__title {
     @include heading-lg;
     color: $text-primary;
@@ -22,6 +30,7 @@
     color: $text-secondary;
     margin: 0;
   }
+
 
   &__grid {
     display: grid;

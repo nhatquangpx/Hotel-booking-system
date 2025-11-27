@@ -1,0 +1,44 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.create-room-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: $button-primary;
+  color: $text-white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  @include body-base;
+  font-weight: $font-medium;
+  transition: all 0.3s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background-color: $button-primary-hover;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  svg {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
