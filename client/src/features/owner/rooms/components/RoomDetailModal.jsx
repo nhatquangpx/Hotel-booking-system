@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaEdit, FaWifi, FaSnowflake, FaTv, FaWineBottle, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
+import { UpdateRoomStatusDialog } from './index';
 import api from '@/apis';
 import './RoomDetailModal.scss';
 
@@ -7,9 +8,10 @@ import './RoomDetailModal.scss';
  * Room Detail Modal Component
  * Displays detailed information about a room with tabs for Information and Actions
  */
-const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
+const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
   const [roomDetails, setRoomDetails] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && room?._id) {
@@ -49,12 +51,11 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
 
   const formatStatus = (status) => {
     const statusMap = {
-      'active': 'Trống',
+      'empty': 'Trống',
       'occupied': 'Đang ở',
       'pending': 'Chờ nhận',
-      'cleaning': 'Cần dọn',
       'maintenance': 'Bảo trì',
-      'inactive': 'Không hoạt động'
+      'inactive': 'Tạm ngưng'
     };
     return statusMap[status] || status || 'Trống';
   };
@@ -105,8 +106,16 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
   };
 
   const handleUpdateStatus = () => {
-    // Open status update modal
-    console.log('Update status for room:', roomData);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleCloseStatusDialog = () => {
+    setIsStatusDialogOpen(false);
+  };
+
+  const handleStatusUpdateSuccess = () => {
+    fetchRoomDetails();
+    onStatusUpdate?.();
   };
 
   const handleDeleteRoom = () => {
@@ -262,6 +271,13 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit }) => {
           )}
         </div>
       </div>
+
+      <UpdateRoomStatusDialog
+        room={roomDetails || room}
+        isOpen={isStatusDialogOpen}
+        onClose={handleCloseStatusDialog}
+        onSuccess={handleStatusUpdateSuccess}
+      />
     </div>
   );
 };

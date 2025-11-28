@@ -40,7 +40,7 @@ exports.getRoomsByHotel = async (req, res) => {
       const bookedRoomIds = bookings.map(booking => booking.room.toString());
       const availableRooms = rooms.filter(room => 
         !bookedRoomIds.includes(room._id.toString()) && 
-        room.status === "active"
+        room.status === "empty"
       );
       
       console.log(`Tìm thấy ${availableRooms.length} phòng trống trong khoảng thời gian yêu cầu`);
@@ -148,7 +148,7 @@ exports.createRoom = async (req, res) => {
       maxPeople: Number(maxPeople),
       facilities: parsedFacilities,
       images: images,
-      status: 'active'
+      status: 'empty'
     });
     
     const savedRoom = await newRoom.save();

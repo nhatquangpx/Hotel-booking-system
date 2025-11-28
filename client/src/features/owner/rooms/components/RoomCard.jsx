@@ -24,14 +24,14 @@ const RoomCard = ({ room, onClick }) => {
         color: 'pending',
         icon: FaClock
       },
-      'cleaning': {
-        label: 'Cần dọn',
-        color: 'cleaning',
-        icon: FaExclamationCircle
-      },
       'maintenance': {
         label: 'Bảo trì',
         color: 'maintenance',
+        icon: FaTools
+      },
+      'inactive': {
+        label: 'Tạm ngưng',
+        color: 'inactive',
         icon: FaTools
       }
     };

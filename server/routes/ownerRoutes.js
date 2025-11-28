@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require("../middlewares/authentication");
 const { isOwner } = require("../middlewares/authorization");
+const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
 const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
@@ -23,8 +24,8 @@ router.delete('/hotels/:id', hotelController.deleteHotel);
 // Quản lý phòng
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
 router.get('/rooms/:id', roomController.getRoomById);
-router.post('/hotels/:hotelId/rooms', roomController.createRoom);
-router.put('/rooms/:id', roomController.updateRoom);
+router.post('/hotels/:hotelId/rooms', uploadRoomImages, roomController.createRoom);
+router.put('/rooms/:id', uploadRoomImages, roomController.updateRoom);
 router.delete('/rooms/:id', roomController.deleteRoom);
 
 // Quản lý đặt phòng
