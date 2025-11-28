@@ -108,23 +108,24 @@
     }
   }
 
-  &--cleaning {
-    background-color: $grey-light;
-    border-color: $grey-medium;
+  &--maintenance {
+    background-color: $status-error-bg;
+    border-color: $status-error-text;
 
     .room-card__icon {
-      color: $grey-medium;
+      color: $status-error-text;
     }
 
     .room-card__status {
-      background-color: $grey-medium;
+      background-color: $status-error-text;
       color: $text-white;
     }
   }
 
-  &--maintenance {
+  &--inactive {
     background-color: $status-error-bg;
     border-color: $status-error-text;
+    opacity: 0.7;
 
     .room-card__icon {
       color: $status-error-text;

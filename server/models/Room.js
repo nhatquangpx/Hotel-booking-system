@@ -34,8 +34,8 @@ const RoomSchema = new mongoose.Schema(
     images: [String],
     status: {
       type: String,
-      enum: ["active", "maintenance", "inactive"],
-      default: "active"
+      enum: ["empty", "occupied", "pending", "maintenance", "inactive"],
+      default: "empty"
     }
   },
   { timestamps: true }

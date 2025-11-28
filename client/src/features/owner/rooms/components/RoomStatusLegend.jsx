@@ -10,8 +10,8 @@ const RoomStatusLegend = () => {
     { key: 'empty', label: 'Trống', color: 'empty' },
     { key: 'occupied', label: 'Đang ở', color: 'occupied' },
     { key: 'pending', label: 'Chờ nhận', color: 'pending' },
-    { key: 'cleaning', label: 'Cần dọn', color: 'cleaning' },
-    { key: 'maintenance', label: 'Bảo trì', color: 'maintenance' }
+    { key: 'maintenance', label: 'Bảo trì', color: 'maintenance' },
+    { key: 'inactive', label: 'Tạm ngưng', color: 'inactive' }
   ];
 
   return (

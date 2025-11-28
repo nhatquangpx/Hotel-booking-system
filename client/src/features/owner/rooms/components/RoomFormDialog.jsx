@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
+import { getImageUrl } from '@/constants/images';
 import api from '../../../../apis';
 import './RoomFormDialog.scss';
 
@@ -25,6 +26,7 @@ const RoomFormDialog = ({
     available: true,
   });
   const [selectedImages, setSelectedImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [facilityInput, setFacilityInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,6 +63,7 @@ const RoomFormDialog = ({
           available: true,
         });
         setSelectedImages([]);
+        setExistingImages([]);
         setFacilityInput('');
         setError(null);
       }
@@ -96,6 +99,7 @@ const RoomFormDialog = ({
         facilities: roomData.facilities || [],
         available: roomData.available !== undefined ? roomData.available : true,
       });
+      setExistingImages(roomData.images || []);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải thông tin phòng');
@@ -138,6 +142,10 @@ const RoomFormDialog = ({
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleRemoveExistingImage = (index) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -151,11 +159,28 @@ const RoomFormDialog = ({
       setError(null);
 
       if (isEdit) {
-        const updateData = {
-          ...formData,
-          facilities: JSON.stringify(formData.facilities)
-        };
-        await api.ownerRoom.updateRoom(roomId, updateData);
+        const submitData = new FormData();
+        
+        submitData.append('hotelId', formData.hotelId);
+        submitData.append('roomNumber', formData.roomNumber);
+        submitData.append('type', formData.type);
+        submitData.append('description', formData.description);
+        submitData.append('maxPeople', formData.maxPeople);
+        submitData.append('facilities', JSON.stringify(formData.facilities));
+        submitData.append('available', formData.available);
+        
+        submitData.append('price', JSON.stringify({
+          regular: formData.price,
+          discount: 0
+        }));
+        
+        submitData.append('existingImages', JSON.stringify(existingImages));
+        
+        selectedImages.forEach((image) => {
+          submitData.append('images', image);
+        });
+        
+        await api.ownerRoom.updateRoom(roomId, submitData);
       } else {
         const submitData = new FormData();
         Object.keys(formData).forEach(key => {
@@ -312,33 +337,49 @@ const RoomFormDialog = ({
             </div>
           </div>
 
-          {!isEdit && (
-            <div className="images-container">
-              <label>Hình ảnh phòng</label>
-              <div className="images-list">
-                {selectedImages.map((image, index) => (
-                  <div key={index} className="image-item">
-                    <img src={URL.createObjectURL(image)} alt={`Phòng ${index + 1}`} />
-                    <IconButton 
-                      className="remove-image-btn"
-                      onClick={() => handleRemoveImage(index)}
-                      size="small"
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </div>
-                ))}
-              </div>
-              <div className="image-input">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                />
-              </div>
+          <div className="images-container">
+            <label>Hình ảnh phòng</label>
+            <div className="images-list">
+              {isEdit && existingImages.map((image, index) => (
+                <div key={`existing-${index}`} className="image-item">
+                  <img 
+                    src={getImageUrl(image)} 
+                    alt={`Phòng ${index + 1}`}
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/200x150?text=Image+Error';
+                    }}
+                  />
+                  <IconButton 
+                    className="remove-image-btn"
+                    onClick={() => handleRemoveExistingImage(index)}
+                    size="small"
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              ))}
+              {selectedImages.map((image, index) => (
+                <div key={`new-${index}`} className="image-item">
+                  <img src={URL.createObjectURL(image)} alt={`Phòng ${index + 1}`} />
+                  <IconButton 
+                    className="remove-image-btn"
+                    onClick={() => handleRemoveImage(index)}
+                    size="small"
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              ))}
             </div>
-          )}
+            <div className="image-input">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+              />
+            </div>
+          </div>
 
           <div className="form-actions">
             <button type="submit" className="submit-btn" disabled={saving}>

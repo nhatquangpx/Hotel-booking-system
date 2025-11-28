@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RoomCard, RoomStatusLegend, RoomDetailModal } from '../components';
 import { CreateRoomButton } from '../create';
+import { EditRoomDialog } from '../edit';
 import api from '@/apis';
 import { useAuth } from '@/shared/hooks';
 import './RoomMap.scss';
@@ -14,6 +15,7 @@ const RoomMap = () => {
   const [error, setError] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const editRoomManagerRef = useRef(null);
 
   useEffect(() => {
     fetchRooms();
@@ -37,11 +39,25 @@ const RoomMap = () => {
 
       const roomsWithStatus = roomsData.map(room => ({
         ...room,
-        status: room.status || determineRoomStatus(room),
+        status: normalizeRoomStatus(room),
         guestName: room.currentGuest || null
       }));
 
-      setRooms(roomsWithStatus);
+      const sortedRooms = roomsWithStatus.sort((a, b) => {
+        const roomNumberA = a.roomNumber || '';
+        const roomNumberB = b.roomNumber || '';
+        
+        const numA = parseInt(roomNumberA) || 0;
+        const numB = parseInt(roomNumberB) || 0;
+        
+        if (numA !== numB) {
+          return numA - numB;
+        }
+        
+        return roomNumberA.localeCompare(roomNumberB);
+      });
+
+      setRooms(sortedRooms);
     } catch (err) {
       console.error('Error fetching rooms:', err);
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách phòng');
@@ -50,8 +66,19 @@ const RoomMap = () => {
     }
   };
 
-  const determineRoomStatus = (room) => {
-    if (room.available === false) return 'maintenance';
+  const normalizeRoomStatus = (room) => {
+    if (room.status && ['empty', 'occupied', 'pending', 'maintenance', 'inactive'].includes(room.status)) {
+      return room.status;
+    }
+    
+    if (room.available === false) {
+      return 'maintenance';
+    }
+    
+    if (room.currentGuest) {
+      return 'occupied';
+    }
+    
     return 'empty';
   };
 
@@ -66,7 +93,8 @@ const RoomMap = () => {
   };
 
   const handleEditRoom = (room) => {
-    console.log('Edit room:', room);
+    setIsModalOpen(false);
+    editRoomManagerRef.current?.handleEditRoom(room);
   };
 
   if (loading) {
@@ -126,6 +154,12 @@ const RoomMap = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onEdit={handleEditRoom}
+        onStatusUpdate={fetchRooms}
+      />
+
+      <EditRoomDialog
+        ref={editRoomManagerRef}
+        onSuccess={fetchRooms}
       />
     </div>
   );
