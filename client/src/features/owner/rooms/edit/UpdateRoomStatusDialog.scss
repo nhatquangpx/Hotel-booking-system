@@ -38,6 +38,29 @@
           outline: none;
           border-color: $button-primary;
         }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          background: $bg-light;
+        }
+      }
+
+      .readonly-status {
+        padding: 10px 12px;
+        border-radius: 6px;
+        border: 1px solid $border-admin;
+        background: $bg-light;
+        color: $text-secondary;
+        @include body-base;
+        font-weight: $font-medium;
+      }
+
+      .status-note {
+        @include body-sm;
+        color: $text-secondary;
+        font-style: italic;
+        margin-top: 0.25rem;
       }
     }
 

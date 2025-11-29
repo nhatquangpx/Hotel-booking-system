@@ -7,7 +7,7 @@ import './RoomCard.scss';
  * Displays individual room information with status
  */
 const RoomCard = ({ room, onClick }) => {
-  const getStatusConfig = (status) => {
+  const getBookingStatusConfig = (status) => {
     const statusMap = {
       'empty': {
         label: 'Trống',
@@ -23,6 +23,16 @@ const RoomCard = ({ room, onClick }) => {
         label: 'Chờ nhận',
         color: 'pending',
         icon: FaClock
+      }
+    };
+    return statusMap[status] || statusMap['empty'];
+  };
+
+  const getRoomStatusConfig = (status) => {
+    const statusMap = {
+      'active': {
+        label: 'Hoạt động',
+        color: 'active'
       },
       'maintenance': {
         label: 'Bảo trì',
@@ -35,11 +45,19 @@ const RoomCard = ({ room, onClick }) => {
         icon: FaTools
       }
     };
-    return statusMap[status] || statusMap['empty'];
+    return statusMap[status] || statusMap['active'];
   };
 
-  const statusConfig = getStatusConfig(room.status || 'empty');
-  const IconComponent = statusConfig.icon;
+  // Ưu tiên hiển thị bookingStatus, nếu không có thì fallback về roomStatus
+  const bookingStatus = room.bookingStatus || (room.status && ['empty', 'occupied', 'pending'].includes(room.status) ? room.status : 'empty');
+  const roomStatus = room.roomStatus || (room.status && ['active', 'maintenance', 'inactive'].includes(room.status) ? room.status : 'active');
+  
+  const bookingStatusConfig = getBookingStatusConfig(bookingStatus);
+  const roomStatusConfig = getRoomStatusConfig(roomStatus);
+  const IconComponent = bookingStatusConfig.icon;
+  
+  // Nếu roomStatus không phải active, hiển thị màu theo roomStatus
+  const displayColor = roomStatus !== 'active' ? roomStatusConfig.color : bookingStatusConfig.color;
 
   const formatRoomType = (type) => {
     const typeMap = {
@@ -54,7 +72,7 @@ const RoomCard = ({ room, onClick }) => {
 
   return (
     <div 
-      className={`room-card room-card--${statusConfig.color}`}
+      className={`room-card room-card--${displayColor}`}
       onClick={onClick}
     >
       <div className="room-card__icon">
@@ -62,9 +80,12 @@ const RoomCard = ({ room, onClick }) => {
       </div>
       <div className="room-card__content">
         <div className="room-card__number">{room.roomNumber || room.number}</div>
-        <div className="room-card__status">{statusConfig.label}</div>
+        <div className="room-card__status">{bookingStatusConfig.label}</div>
+        {roomStatus !== 'active' && (
+          <div className="room-card__room-status">{roomStatusConfig.label}</div>
+        )}
         <div className="room-card__type">{formatRoomType(room.type)}</div>
-        {(room.status === 'occupied' || room.status === 'pending') && room.guestName && (
+        {(bookingStatus === 'occupied' || bookingStatus === 'pending') && room.guestName && (
           <div className="room-card__guest">{room.guestName}</div>
         )}
       </div>

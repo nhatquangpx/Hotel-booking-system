@@ -1,0 +1,101 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.delete-room-dialog {
+  .delete-room-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .error-message {
+      background-color: $status-error-bg;
+      color: $status-error-text;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .delete-room-warning {
+      padding: 1rem;
+      background-color: $bg-light;
+      border-radius: 8px;
+      border-left: 4px solid $warning-text;
+
+      .warning-text {
+        @include body-base;
+        color: $text-primary;
+        font-weight: $font-medium;
+        margin: 0 0 0.5rem 0;
+
+        strong {
+          color: $button-primary;
+        }
+      }
+
+      .warning-note {
+        @include body-sm;
+        color: $text-secondary;
+        margin: 0.5rem 0;
+      }
+
+      .warning-error {
+        @include body-sm;
+        color: $error;
+        font-weight: $font-medium;
+        margin: 0.75rem 0 0 0;
+        padding: 0.5rem;
+        background-color: $error-light;
+        border-radius: 4px;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 8px;
+
+      button {
+        min-width: 120px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: $font-bold;
+        @include button-text;
+        font-size: 14px;
+        line-height: 1.5;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .delete-btn {
+        background: $error;
+        color: $text-white;
+
+        &:hover:not(:disabled) {
+          background: $error-dark;
+        }
+      }
+
+      .cancel-btn {
+        background: $button-cancel;
+        color: white;
+
+        &:hover {
+          background: $button-cancel-hover;
+        }
+      }
+    }
+  }
+}
+

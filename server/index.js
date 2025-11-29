@@ -15,13 +15,13 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Request logging middleware - ĐẶT ĐẦU TIÊN để log TẤT CẢ requests
-app.use((req, res, next) => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.path}`);
-  console.log(`  Origin: ${req.headers.origin || 'none'}`);
-  console.log(`  User-Agent: ${req.headers['user-agent']?.substring(0, 50) || 'none'}`);
-  next();
-});
+// app.use((req, res, next) => {
+//   const timestamp = new Date().toISOString();
+//   console.log(`[${timestamp}] ${req.method} ${req.path}`);
+//   console.log(`  Origin: ${req.headers.origin || 'none'}`);
+//   console.log(`  User-Agent: ${req.headers['user-agent']?.substring(0, 50) || 'none'}`);
+//   next();
+// });
 
 // CORS configuration - cho phép cả localhost, production và Vercel preview URLs
 const allowedOrigins = [
@@ -32,29 +32,23 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    console.log(`CORS check - Origin: ${origin || 'none'}`);
-    
     // Cho phép requests không có origin (mobile apps, Postman, etc.)
     if (!origin) {
-      console.log('  -> Allowed (no origin)');
       return callback(null, true);
     }
     
     // Cho phép localhost và production URL từ env var
     if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log(`  -> Allowed (in allowedOrigins)`);
       return callback(null, true);
     }
     
     // Cho phép tất cả Vercel URLs (production và preview)
     // Vercel URLs có format: *.vercel.app
     if (origin.endsWith('.vercel.app')) {
-      console.log(`  -> Allowed (Vercel domain)`);
       return callback(null, true);
     }
     
     // Từ chối các origins khác
-    console.log(`  -> Blocked (not allowed)`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,

@@ -4,24 +4,28 @@ import api from '@/apis';
 import './UpdateRoomStatusDialog.scss';
 
 const UpdateRoomStatusDialog = ({ room, isOpen, onClose, onSuccess }) => {
-  const [selectedStatus, setSelectedStatus] = useState(room?.status || 'empty');
+  const [selectedRoomStatus, setSelectedRoomStatus] = useState(room?.roomStatus || 'active');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (isOpen && room) {
-      setSelectedStatus(room.status || 'empty');
+      setSelectedRoomStatus(room.roomStatus || 'active');
       setError(null);
     }
   }, [isOpen, room]);
 
-  const statusOptions = [
-    { value: 'empty', label: 'Trống' },
-    { value: 'occupied', label: 'Đang ở' },
-    { value: 'pending', label: 'Chờ nhận' },
+  const roomStatusOptions = [
+    { value: 'active', label: 'Hoạt động' },
     { value: 'maintenance', label: 'Bảo trì' },
     { value: 'inactive', label: 'Tạm ngưng' }
   ];
+
+  const bookingStatusLabels = {
+    'empty': 'Trống',
+    'occupied': 'Đang ở',
+    'pending': 'Chờ nhận'
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,18 +35,23 @@ const UpdateRoomStatusDialog = ({ room, isOpen, onClose, onSuccess }) => {
       return;
     }
 
+    // Kiểm tra bookingStatus: chỉ cho phép thay đổi roomStatus khi bookingStatus là 'empty'
+    if (room.bookingStatus !== 'empty') {
+      setError('Chỉ có thể thay đổi trạng thái phòng khi phòng đang trống (empty)');
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
 
       const updateData = new FormData();
-      updateData.append('status', selectedStatus);
+      updateData.append('roomStatus', selectedRoomStatus);
       updateData.append('roomNumber', room.roomNumber);
       updateData.append('type', room.type);
       updateData.append('description', room.description || '');
       updateData.append('maxPeople', room.maxPeople || 2);
       updateData.append('facilities', JSON.stringify(room.facilities || []));
-      updateData.append('available', selectedStatus === 'empty' || selectedStatus === 'occupied' || selectedStatus === 'pending');
       
       if (room.price) {
         updateData.append('price', JSON.stringify({
@@ -77,15 +86,30 @@ const UpdateRoomStatusDialog = ({ room, isOpen, onClose, onSuccess }) => {
       <form className="update-status-form" onSubmit={handleSubmit}>
         {error && <div className="error-message">{error}</div>}
 
+        {room && (
+          <div className="form-group">
+            <label>Trạng thái đặt phòng (chỉ đọc)</label>
+            <div className="readonly-status">
+              {bookingStatusLabels[room.bookingStatus] || room.bookingStatus || 'Trống'}
+            </div>
+            {room.bookingStatus !== 'empty' && (
+              <p className="status-note">
+                Không thể thay đổi trạng thái phòng khi phòng đang {bookingStatusLabels[room.bookingStatus]?.toLowerCase() || 'có khách'}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="form-group">
-          <label htmlFor="status">Trạng thái phòng</label>
+          <label htmlFor="roomStatus">Trạng thái phòng</label>
           <select
-            id="status"
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            id="roomStatus"
+            value={selectedRoomStatus}
+            onChange={(e) => setSelectedRoomStatus(e.target.value)}
             required
+            disabled={room?.bookingStatus !== 'empty'}
           >
-            {statusOptions.map(option => (
+            {roomStatusOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

@@ -40,7 +40,8 @@ exports.getRoomsByHotel = async (req, res) => {
       const bookedRoomIds = bookings.map(booking => booking.room.toString());
       const availableRooms = rooms.filter(room => 
         !bookedRoomIds.includes(room._id.toString()) && 
-        room.status === "empty"
+        room.bookingStatus === "empty" &&
+        room.roomStatus === "active"
       );
       
       console.log(`Tìm thấy ${availableRooms.length} phòng trống trong khoảng thời gian yêu cầu`);
@@ -148,7 +149,8 @@ exports.createRoom = async (req, res) => {
       maxPeople: Number(maxPeople),
       facilities: parsedFacilities,
       images: images,
-      status: 'empty'
+      roomStatus: req.body.roomStatus || 'active',
+      bookingStatus: 'empty'
     });
     
     const savedRoom = await newRoom.save();
@@ -213,6 +215,18 @@ exports.updateRoom = async (req, res) => {
     if (!room) {
       console.log(`Không tìm thấy phòng với ID: ${req.params.id}`);
       return res.status(404).json({ message: "Không tìm thấy phòng" });
+    }
+
+    // Kiểm tra nếu đang cập nhật roomStatus: chỉ cho phép khi bookingStatus là 'empty'
+    if (req.body.roomStatus && room.bookingStatus !== 'empty') {
+      return res.status(400).json({ 
+        message: "Chỉ có thể thay đổi trạng thái phòng khi phòng đang trống (empty)" 
+      });
+    }
+
+    // Không cho phép cập nhật bookingStatus trực tiếp từ owner
+    if (req.body.bookingStatus) {
+      delete req.body.bookingStatus;
     }
 
     // Không cần kiểm tra quyền sở hữu vì đã có middleware verifyOwner cho khách sạn
