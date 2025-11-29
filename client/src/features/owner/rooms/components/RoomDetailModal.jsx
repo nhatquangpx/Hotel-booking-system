@@ -8,7 +8,7 @@ import './RoomDetailModal.scss';
  * Room Detail Modal Component
  * Displays detailed information about a room with tabs for Information and Actions
  */
-const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
+const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDeleteSuccess }) => {
   const [roomDetails, setRoomDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const editRoomManagerRef = useRef(null);
@@ -126,6 +126,11 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
 
   const handleEditSuccess = () => {
     fetchRoomDetails();
+    onStatusUpdate?.();
+  };
+
+  const handleDeleteSuccess = () => {
+    onDeleteSuccess?.();
     onStatusUpdate?.();
   };
 
@@ -290,6 +295,7 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
       <EditRoomDialog
         ref={editRoomManagerRef}
         onSuccess={handleEditSuccess}
+        onDeleteSuccess={handleDeleteSuccess}
       />
     </div>
   );

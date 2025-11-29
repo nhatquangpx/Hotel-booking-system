@@ -155,31 +155,102 @@
         }
       }
 
-      .facility-input, .image-input {
+      .facility-dropdown-wrapper {
+        position: relative;
+        margin-top: 10px;
+
+        .facility-dropdown-trigger {
+          position: relative;
+          display: flex;
+          align-items: center;
+
+          input {
+            flex: 1;
+            padding: 10px 35px 10px 12px;
+            border-radius: 6px;
+            border: 1px solid $border-admin;
+            background: $bg-light-alt;
+            color: $text-primary;
+            @include body-base;
+
+            &:focus {
+              outline: none;
+              border-color: $button-primary;
+            }
+
+            &::placeholder {
+              color: $text-secondary;
+            }
+          }
+
+          .dropdown-arrow {
+            position: absolute;
+            right: 12px;
+            pointer-events: none;
+            color: $text-secondary;
+            font-size: 12px;
+            transition: transform 0.2s;
+          }
+        }
+
+        .facility-dropdown-menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          margin-top: 4px;
+          background: $bg-light-alt;
+          border: 1px solid $border-admin;
+          border-radius: 6px;
+          max-height: 300px;
+          overflow-y: auto;
+          z-index: 1000;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+          .facility-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            @include body-base;
+
+            &:hover {
+              background: $bg-light;
+            }
+
+            input[type="checkbox"] {
+              margin-right: 10px;
+              cursor: pointer;
+              width: 18px;
+              height: 18px;
+            }
+
+            span {
+              flex: 1;
+              color: $text-primary;
+            }
+          }
+
+          .facility-dropdown-empty {
+            padding: 12px;
+            text-align: center;
+            color: $text-secondary;
+            @include body-sm;
+          }
+        }
+      }
+
+      .image-input {
         display: flex;
         gap: 10px;
         margin-top: 10px;
 
-        input, select {
+        input {
           flex: 1;
           padding: 8px 12px;
           border-radius: 6px;
           border: 1px solid $border-admin;
-        }
-
-        button {
-          padding: 8px 16px;
-          background: $button-primary;
-          color: white;
-          font-weight: $font-bold;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          @include button-text-sm;
-
-          &:hover {
-            background: $button-primary-hover;
-          }
         }
       }
     }

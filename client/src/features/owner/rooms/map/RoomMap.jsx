@@ -193,6 +193,7 @@ const RoomMap = () => {
         onClose={handleCloseModal}
         onEdit={handleEditRoom}
         onStatusUpdate={fetchRooms}
+        onDeleteSuccess={handleCloseModal}
       />
 
       <EditRoomDialog
