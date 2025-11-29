@@ -28,7 +28,8 @@ const RoomFormDialog = ({
   });
   const [selectedImages, setSelectedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
-  const [facilityInput, setFacilityInput] = useState('');
+  const [facilitySearch, setFacilitySearch] = useState('');
+  const [isFacilityDropdownOpen, setIsFacilityDropdownOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,7 +44,14 @@ const RoomFormDialog = ({
 
   const facilityOptions = [
     'TV', 'Wifi', 'Minibar', 'Điều hòa', 'Bồn tắm', 'Ban công', 
-    'Két sắt', 'Bàn làm việc', 'Tủ lạnh', 'Máy pha cà phê'
+    'Két sắt', 'Bàn làm việc', 'Tủ lạnh', 'Máy pha cà phê',
+    'Điện thoại', 'Máy sấy tóc', 'Bàn trang điểm', 'Ghế sofa',
+    'Giường đôi', 'Giường đơn', 'Tủ quần áo', 'Khu vực tiếp khách',
+    'Phòng tắm riêng', 'Vòi sen', 'Bồn tắm jacuzzi', 'Bếp mini',
+    'Lò vi sóng', 'Máy rửa bát', 'Bàn ăn', 'Khu vực làm việc',
+    'Máy chiếu', 'Hệ thống âm thanh', 'Điều khiển thông minh', 'Rèm cửa tự động',
+    'An ninh 24/7', 'Dịch vụ phòng', 'Dọn dẹp hàng ngày', 'Dịch vụ giặt ủi',
+    'Phòng gym', 'Hồ bơi', 'Spa', 'Massage', 'Xông hơi', 'Phòng xông hơi khô'
   ];
 
   useEffect(() => {
@@ -66,11 +74,30 @@ const RoomFormDialog = ({
         });
         setSelectedImages([]);
         setExistingImages([]);
-        setFacilityInput('');
+        setFacilitySearch('');
+        setIsFacilityDropdownOpen(false);
         setError(null);
       }
     }
   }, [isOpen, roomId, hotelId]);
+
+  // Đóng dropdown khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdown = document.querySelector('.facility-dropdown-wrapper');
+      if (dropdown && !dropdown.contains(event.target)) {
+        setIsFacilityDropdownOpen(false);
+      }
+    };
+
+    if (isFacilityDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isFacilityDropdownOpen]);
 
   const fetchHotels = async () => {
     try {
@@ -119,14 +146,20 @@ const RoomFormDialog = ({
     }));
   };
 
-  const handleAddFacility = () => {
-    if (facilityInput && !formData.facilities.includes(facilityInput)) {
-      setFormData(prev => ({
-        ...prev,
-        facilities: [...prev.facilities, facilityInput],
-      }));
-      setFacilityInput('');
-    }
+  const handleToggleFacility = (facility) => {
+    setFormData(prev => {
+      if (prev.facilities.includes(facility)) {
+        return {
+          ...prev,
+          facilities: prev.facilities.filter(f => f !== facility),
+        };
+      } else {
+        return {
+          ...prev,
+          facilities: [...prev.facilities, facility],
+        };
+      }
+    });
   };
 
   const handleRemoveFacility = (facility) => {
@@ -135,6 +168,12 @@ const RoomFormDialog = ({
       facilities: prev.facilities.filter(f => f !== facility),
     }));
   };
+
+  // Lọc danh sách tiện nghi: loại bỏ các tiện nghi đã chọn và lọc theo search
+  const availableFacilities = facilityOptions.filter(facility => 
+    !formData.facilities.includes(facility) &&
+    facility.toLowerCase().includes(facilitySearch.toLowerCase())
+  );
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -367,17 +406,43 @@ const RoomFormDialog = ({
                 </div>
               ))}
             </div>
-            <div className="facility-input">
-              <select
-                value={facilityInput}
-                onChange={(e) => setFacilityInput(e.target.value)}
+            <div className="facility-dropdown-wrapper">
+              <div 
+                className="facility-dropdown-trigger"
+                onClick={() => setIsFacilityDropdownOpen(!isFacilityDropdownOpen)}
               >
-                <option value="">-- Chọn tiện nghi --</option>
-                {facilityOptions.map((facility, index) => (
-                  <option key={index} value={facility}>{facility}</option>
-                ))}
-              </select>
-              <button type="button" onClick={handleAddFacility}>Thêm</button>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm và chọn tiện nghi..."
+                  value={facilitySearch}
+                  onChange={(e) => {
+                    setFacilitySearch(e.target.value);
+                    setIsFacilityDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsFacilityDropdownOpen(true)}
+                />
+                <span className="dropdown-arrow">▼</span>
+              </div>
+              {isFacilityDropdownOpen && (
+                <div className="facility-dropdown-menu">
+                  {availableFacilities.length > 0 ? (
+                    availableFacilities.map((facility, index) => (
+                      <label key={index} className="facility-option">
+                        <input
+                          type="checkbox"
+                          checked={formData.facilities.includes(facility)}
+                          onChange={() => handleToggleFacility(facility)}
+                        />
+                        <span>{facility}</span>
+                      </label>
+                    ))
+                  ) : (
+                    <div className="facility-dropdown-empty">
+                      {facilitySearch ? 'Không tìm thấy tiện nghi' : 'Đã chọn tất cả tiện nghi'}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

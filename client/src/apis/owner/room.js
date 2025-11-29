@@ -24,7 +24,11 @@ export const ownerRoomAPI = {
   // Tạo phòng mới
   createRoom: async (hotelId, roomData) => {
     try {
-      const response = await api.post(`/owner/hotels/${hotelId}/rooms`, roomData);
+      const response = await api.post(`/owner/hotels/${hotelId}/rooms`, roomData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -34,7 +38,11 @@ export const ownerRoomAPI = {
   // Cập nhật thông tin phòng
   updateRoom: async (id, roomData) => {
     try {
-      const response = await api.put(`/owner/rooms/${id}`, roomData);
+      const response = await api.put(`/owner/rooms/${id}`, roomData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

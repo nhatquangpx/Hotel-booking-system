@@ -5,7 +5,7 @@ import DeleteRoomDialog from './DeleteRoomDialog';
 import api from '@/apis';
 import './EditRoomDialog.scss';
 
-const EditRoomDialog = forwardRef(({ onSuccess }, ref) => {
+const EditRoomDialog = forwardRef(({ onSuccess, onDeleteSuccess }, ref) => {
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [hotelId, setHotelId] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -79,6 +79,7 @@ const EditRoomDialog = forwardRef(({ onSuccess }, ref) => {
 
   const handleDeleteSuccess = () => {
     onSuccess?.();
+    onDeleteSuccess?.();
     handleCloseDeleteDialog();
   };
 
