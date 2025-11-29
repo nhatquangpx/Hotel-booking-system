@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaTimes, FaEdit, FaWifi, FaSnowflake, FaTv, FaWineBottle, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { UpdateRoomStatusDialog } from './index';
+import { EditRoomDialog } from '../edit';
 import api from '@/apis';
 import './RoomDetailModal.scss';
 
@@ -11,7 +11,7 @@ import './RoomDetailModal.scss';
 const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
   const [roomDetails, setRoomDetails] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const editRoomManagerRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && room?._id) {
@@ -49,13 +49,20 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
     return typeMap[type] || type || 'Phòng';
   };
 
-  const formatStatus = (status) => {
+  const formatRoomStatus = (status) => {
+    const statusMap = {
+      'active': 'Hoạt động',
+      'maintenance': 'Bảo trì',
+      'inactive': 'Tạm ngưng'
+    };
+    return statusMap[status] || status || 'Hoạt động';
+  };
+
+  const formatBookingStatus = (status) => {
     const statusMap = {
       'empty': 'Trống',
       'occupied': 'Đang ở',
-      'pending': 'Chờ nhận',
-      'maintenance': 'Bảo trì',
-      'inactive': 'Tạm ngưng'
+      'pending': 'Chờ nhận'
     };
     return statusMap[status] || status || 'Trống';
   };
@@ -106,23 +113,20 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
   };
 
   const handleUpdateStatus = () => {
-    setIsStatusDialogOpen(true);
-  };
-
-  const handleCloseStatusDialog = () => {
-    setIsStatusDialogOpen(false);
-  };
-
-  const handleStatusUpdateSuccess = () => {
-    fetchRoomDetails();
-    onStatusUpdate?.();
+    if (editRoomManagerRef.current) {
+      editRoomManagerRef.current.handleUpdateStatus(roomDetails || room);
+    }
   };
 
   const handleDeleteRoom = () => {
-    // Confirm and delete room
-    if (window.confirm(`Bạn có chắc chắn muốn xóa phòng ${roomData.roomNumber}?`)) {
-      console.log('Delete room:', roomData);
+    if (editRoomManagerRef.current) {
+      editRoomManagerRef.current.handleDeleteRoom(roomDetails || room);
     }
+  };
+
+  const handleEditSuccess = () => {
+    fetchRoomDetails();
+    onStatusUpdate?.();
   };
 
   return (
@@ -213,11 +217,22 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
                   </span>
                 </div>
 
-                <div className="room-detail-modal__detail-item">
-                  <span className="room-detail-modal__detail-label">Trạng thái:</span>
-                  <span className="room-detail-modal__detail-value">
-                    {formatStatus(roomData.status)}
-                  </span>
+                <div className="room-detail-modal__status-section">
+                  <h3 className="room-detail-modal__section-title">Trạng thái</h3>
+                  <div className="room-detail-modal__status-grid">
+                    <div className="room-detail-modal__status-column">
+                      <div className="room-detail-modal__status-label">Trạng thái phòng</div>
+                      <div className="room-detail-modal__status-value">
+                        {formatRoomStatus(roomData.roomStatus)}
+                      </div>
+                    </div>
+                    <div className="room-detail-modal__status-column">
+                      <div className="room-detail-modal__status-label">Trạng thái đặt phòng</div>
+                      <div className="room-detail-modal__status-value">
+                        {formatBookingStatus(roomData.bookingStatus)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="room-detail-modal__detail-item">
@@ -272,11 +287,9 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate }) => {
         </div>
       </div>
 
-      <UpdateRoomStatusDialog
-        room={roomDetails || room}
-        isOpen={isStatusDialogOpen}
-        onClose={handleCloseStatusDialog}
-        onSuccess={handleStatusUpdateSuccess}
+      <EditRoomDialog
+        ref={editRoomManagerRef}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );

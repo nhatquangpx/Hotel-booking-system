@@ -37,11 +37,13 @@ const RoomMap = () => {
       const hotelId = hotels[0]._id || hotels[0].id;
       const roomsData = await api.ownerRoom.getHotelRooms(hotelId);
 
-      const roomsWithStatus = roomsData.map(room => ({
-        ...room,
-        status: normalizeRoomStatus(room),
-        guestName: room.currentGuest || null
-      }));
+      const roomsWithStatus = roomsData.map(room => {
+        const normalized = normalizeRoomStatus(room);
+        return {
+          ...normalized,
+          guestName: room.currentGuest || null
+        };
+      });
 
       const sortedRooms = roomsWithStatus.sort((a, b) => {
         const roomNumberA = a.roomNumber || '';
@@ -67,19 +69,55 @@ const RoomMap = () => {
   };
 
   const normalizeRoomStatus = (room) => {
-    if (room.status && ['empty', 'occupied', 'pending', 'maintenance', 'inactive'].includes(room.status)) {
-      return room.status;
+    // Nếu đã có roomStatus và bookingStatus, giữ nguyên
+    if (room.roomStatus && room.bookingStatus) {
+      return {
+        ...room,
+        roomStatus: room.roomStatus,
+        bookingStatus: room.bookingStatus
+      };
     }
     
+    // Fallback cho dữ liệu cũ
+    if (room.status) {
+      // Kiểm tra xem status cũ thuộc loại nào
+      if (['empty', 'occupied', 'pending'].includes(room.status)) {
+        return {
+          ...room,
+          bookingStatus: room.status,
+          roomStatus: 'active'
+        };
+      } else if (['maintenance', 'inactive'].includes(room.status)) {
+        return {
+          ...room,
+          bookingStatus: 'empty',
+          roomStatus: room.status
+        };
+      }
+    }
+    
+    // Fallback mặc định
     if (room.available === false) {
-      return 'maintenance';
+      return {
+        ...room,
+        bookingStatus: 'empty',
+        roomStatus: 'maintenance'
+      };
     }
     
     if (room.currentGuest) {
-      return 'occupied';
+      return {
+        ...room,
+        bookingStatus: 'occupied',
+        roomStatus: 'active'
+      };
     }
     
-    return 'empty';
+    return {
+      ...room,
+      bookingStatus: 'empty',
+      roomStatus: 'active'
+    };
   };
 
   const handleRoomClick = (room) => {

@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// Sử dụng environment variable, fallback về localhost cho development
-const API_URL = import.meta.env.VITE_API_URL || `http://localhost:8001/api`;
-
 // Validate và normalize API URL
 const getApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;

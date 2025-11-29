@@ -294,6 +294,40 @@
   font-weight: $font-medium;
 }
 
+.room-detail-modal__status-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid $border-light;
+}
+
+.room-detail-modal__status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.room-detail-modal__status-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: $bg-light;
+  border-radius: 8px;
+}
+
+.room-detail-modal__status-label {
+  @include body-sm;
+  font-weight: $font-medium;
+  color: $text-secondary;
+}
+
+.room-detail-modal__status-value {
+  @include body-base;
+  color: $text-primary;
+  font-weight: $font-semibold;
+}
+
 .room-detail-modal__section-title {
   @include heading-sm;
   color: $text-primary;

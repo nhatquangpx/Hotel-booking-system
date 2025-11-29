@@ -23,7 +23,8 @@ const RoomFormDialog = ({
     maxPeople: 2,
     description: '',
     facilities: [],
-    available: true,
+    roomStatus: 'active',
+    bookingStatus: 'empty',
   });
   const [selectedImages, setSelectedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -60,7 +61,8 @@ const RoomFormDialog = ({
           maxPeople: 2,
           description: '',
           facilities: [],
-          available: true,
+          roomStatus: 'active',
+          bookingStatus: 'empty',
         });
         setSelectedImages([]);
         setExistingImages([]);
@@ -97,7 +99,8 @@ const RoomFormDialog = ({
         maxPeople: roomData.maxPeople || 2,
         description: roomData.description || '',
         facilities: roomData.facilities || [],
-        available: roomData.available !== undefined ? roomData.available : true,
+        roomStatus: roomData.roomStatus || 'active',
+        bookingStatus: roomData.bookingStatus || 'empty',
       });
       setExistingImages(roomData.images || []);
       setError(null);
@@ -167,7 +170,10 @@ const RoomFormDialog = ({
         submitData.append('description', formData.description);
         submitData.append('maxPeople', formData.maxPeople);
         submitData.append('facilities', JSON.stringify(formData.facilities));
-        submitData.append('available', formData.available);
+        // Chỉ cho phép cập nhật roomStatus khi bookingStatus là empty
+        if (formData.roomStatus && formData.bookingStatus === 'empty') {
+          submitData.append('roomStatus', formData.roomStatus);
+        }
         
         submitData.append('price', JSON.stringify({
           regular: formData.price,
@@ -299,6 +305,44 @@ const RoomFormDialog = ({
                 required
               />
             </div>
+          </div>
+
+          {isEdit && (
+            <div className="form-group">
+              <label>Trạng thái đặt phòng (chỉ đọc)</label>
+              <div className="readonly-status">
+                {formData.bookingStatus === 'empty' ? 'Trống' : 
+                 formData.bookingStatus === 'occupied' ? 'Đang ở' : 
+                 formData.bookingStatus === 'pending' ? 'Chờ nhận' : 'Trống'}
+              </div>
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="roomStatus">Trạng thái phòng</label>
+            {isEdit && formData.bookingStatus !== 'empty' ? (
+              <>
+                <div className="readonly-status">
+                  {formData.roomStatus === 'active' ? 'Hoạt động' : 
+                   formData.roomStatus === 'maintenance' ? 'Bảo trì' : 'Tạm ngưng'}
+                </div>
+                <p className="status-note">
+                  Không thể thay đổi trạng thái phòng khi phòng đang {formData.bookingStatus === 'occupied' ? 'có khách' : 'chờ nhận'}
+                </p>
+              </>
+            ) : (
+              <select
+                id="roomStatus"
+                name="roomStatus"
+                value={formData.roomStatus}
+                onChange={handleChange}
+                required
+              >
+                <option value="active">Hoạt động</option>
+                <option value="maintenance">Bảo trì</option>
+                <option value="inactive">Tạm ngưng</option>
+              </select>
+            )}
           </div>
 
           <div className="form-group">

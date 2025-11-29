@@ -33,8 +33,8 @@ exports.createBooking = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
 
-    if (room.status !== "empty") {
-      console.log(`Phòng ${roomId} không khả dụng, trạng thái hiện tại: ${room.status}`);
+    if (room.bookingStatus !== "empty" || room.roomStatus !== "active") {
+      console.log(`Phòng ${roomId} không khả dụng, trạng thái đặt phòng: ${room.bookingStatus}, trạng thái phòng: ${room.roomStatus}`);
       return res.status(400).json({ message: "Phòng không khả dụng cho đặt chỗ" });
     }
 
