@@ -78,7 +78,7 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
           <polyline
             points={points}
             fill="none"
-            stroke="#00e690"
+            stroke="#D4AF37"
             strokeWidth="3"
             className="chart-line"
           />
@@ -93,7 +93,7 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
                   cx={x}
                   cy={y}
                   r="5"
-                  fill="#00e690"
+                  fill="#D4AF37"
                   className="data-point"
                 />
                 <text

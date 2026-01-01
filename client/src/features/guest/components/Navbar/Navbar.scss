@@ -8,8 +8,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 5rem;
-  background: $footer-bg;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: $footer-bg; // Nâu nhạt pha vàng
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); // Shadow nhẹ, sang trọng
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 0;
   left: 0;
@@ -41,13 +42,13 @@
 
     .menu-item {
       text-decoration: none;	
-      color: $text-header-footer;
+      color: $text-header-footer; // Màu sáng cho text trên nền nâu vàng
       @include body-base;
-      font-weight: $font-bold;
+      font-weight: $font-semibold;
       transition: color 0.3s ease;
 
       &:hover {
-        color: $button-cancel;
+        color: $luxury-gold; // Gold accent khi hover
       }
     }
   }
@@ -59,9 +60,16 @@
     padding: 0 20px;
     width: 350px;
     max-width: 350px;
-    background-color: $grey-light;
+    background-color: $bg-luxury-light; // Xám nhạt
     border-radius: 20px;
     height: 40px;
+
+    // Đảm bảo icon search có màu trắng
+    button {
+      svg {
+        color: #ffffff !important;
+      }
+    }
 
     input {
       flex: 1;
@@ -101,7 +109,12 @@
       transition: background-color 0.3s;
 
       &:hover {
-        background-color: $grey-light;
+        background-color: rgba(255, 255, 255, 0.1); // Nền trắng mờ khi hover
+      }
+
+      // Đảm bảo tất cả icon trong button có màu trắng
+      svg {
+        color: #ffffff !important;
       }
 
       img {

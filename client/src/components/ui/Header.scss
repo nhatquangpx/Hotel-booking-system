@@ -47,7 +47,7 @@
   h1 {
     margin: 0;
     @include heading-lg;
-    color: $blue-dark-text;
+    color: $text-white; // Màu trắng để nổi bật trên nền nâu vàng
   }
 
   .header-right {

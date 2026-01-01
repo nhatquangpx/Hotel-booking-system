@@ -3,8 +3,8 @@
 @use "@/styles/text" as *;
 
 .footer {
-  background: $footer-bg;
-  color: $text-header-footer;
+  background: $footer-guest-bg; // Đen thuần cho guest footer
+  color: $text-white; // Màu trắng cho text dễ nhìn
   font-family: 'Inter', sans-serif;
   width: 100%;
   padding: 0;
@@ -16,7 +16,7 @@
     width: 100%;
     max-width: unset;
     padding: 32px 60px 0 60px;
-    background: $footer-bg;
+    background: $footer-guest-bg; // Đen thuần cho guest footer
 
     @media (max-width: 900px) {
       flex-direction: column;
@@ -53,11 +53,11 @@
     align-items: center;
     gap: 16px;
     a {
-      color: $text-header-footer;
+      color: $text-white; // Màu trắng cho text
       @include body-md-alt;
       transition: color 0.2s;
       &:hover {
-        color: $button-cancel;
+        color: $luxury-gold; // Gold accent khi hover
       }
     }
   }       
@@ -86,7 +86,7 @@
     @include body-base-alt;
     font-weight: $font-bold;
     margin-bottom: 12px;
-    color: $text-header-footer;
+    color: $text-white; // Màu trắng cho tiêu đề, nổi bật
   }
 
   &__col ul {
@@ -97,12 +97,12 @@
 
   &__col li {
     @include body-base;
-    color: $text-white;
+    color: rgba(255, 255, 255, 0.9); // Trắng với độ mờ nhẹ cho dễ nhìn
     margin-bottom: 8px;
     cursor: pointer;
     transition: color 0.2s;
     &:hover {
-      color: $button-cancel;
+      color: $luxury-gold; // Gold accent khi hover
     }
   }
 }

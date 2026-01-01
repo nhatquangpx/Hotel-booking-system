@@ -2,12 +2,33 @@
 // Global Color Variables
 // ============================================
 
-// Footer Background Color (Light Mint/Turquoise)
-$footer-bg:rgb(48, 202, 148);
+// Luxury & Premium Theme Colors (Sang trọng & Hiện đại) - Định nghĩa trước
+$luxury-gold: #D4AF37; // Gold accent - điểm nhấn
+$luxury-gold-light: #F5C842;
+$luxury-gold-dark: #B8941F;
+$luxury-black: #1a1a1a; // Đen sang trọng
+$luxury-black-light: #2d2d2d;
+$luxury-white: #ffffff; // Trắng tinh khiết
+$luxury-grey-light: #f8f9fa; // Xám nhạt
+$luxury-grey: #e9ecef; // Xám trung bình
+$luxury-grey-dark: #6c757d; // Xám đậm
 
-// Primary Button Colors (Mint/Turquoise) 
-$button-primary: #00e690;
-$button-primary-hover: #00c173;
+// Lotte Hotel Theme Colors
+// Primary Color: Warm Beige Brown (nâu vàng nhạt) - Lotte Hotels brand color
+$lotte-primary: #A0826D; // Warm beige brown - nhạt hơn, thiên vàng (không đỏ)
+$lotte-primary-dark: #8B7355; // Darker version for hover states
+$lotte-primary-light: #B89B7A; // Lighter version
+$lotte-gold: #D4AF37; // Gold accent color (giữ để tương thích)
+$lotte-gold-light: #F5C842;
+$lotte-gold-dark: #B8941F;
+
+// Footer Background Colors
+$footer-bg: $lotte-primary; // Nâu nhạt pha vàng cho header
+$footer-guest-bg: #1a1a1a; // Đen thuần cho guest footer (không ánh đỏ)
+
+// Primary Button Colors (Luxury Gold) 
+$button-primary: $luxury-gold;
+$button-primary-hover: $luxury-gold-dark;
 
 // Cancel/Delete Button Colors (Red)
 $button-cancel: #e74c3c;
@@ -31,10 +52,10 @@ $error-bg-light: #fdeded;
 $error-border-light: #fadbd8;
 $error-red: #ff4444;
 
-// Primary Brand Colors
-$pinkred: #fa002a;
-$pink-light: #FF8682;
-$pink-gradient-end: #ff6b6b;
+// Primary Brand Colors (Updated to Lotte Theme)
+$pinkred: $lotte-primary; // Changed to Lotte primary
+$pink-light: $lotte-primary-light;
+$pink-gradient-end: $lotte-primary-dark;
 $blue: #24355A;
 $blue-light: #3498db;
 $blue-light-hover: #2980b9;
@@ -98,17 +119,26 @@ $warning-border: #ffe58f;
 $warning-text-dark: #b8860b;
 $warning-text-darker: #d35400;
 
-// Special Colors
+// Special Colors (Updated to Lotte Theme)
 $info: #3498db;
-$star-gold: #ffd700;
-$star-orange: #f39c12;
+$star-gold: $lotte-gold; // Updated to Lotte gold
+$star-orange: $lotte-gold-light;
 $purple: #9b59b6;
 $purple-gradient-end: #764ba2;
 $yellow-green: #cfdd0b;
 
-// Admin Colors
-$admin-primary: #1976d2;
-$admin-primary-hover: #1565c0;
+// Text Colors for Luxury Theme
+$text-header-light: #1a1a1a; // Đen cho text trên nền trắng
+$text-header-dark: #ffffff; // Trắng cho text trên nền đen
+
+// Background Colors for Luxury Theme
+$bg-luxury-white: #ffffff;
+$bg-luxury-light: #f8f9fa;
+$bg-luxury-grey: #e9ecef;
+
+// Admin Colors (Updated to Lotte Theme)
+$admin-primary: $lotte-primary;
+$admin-primary-hover: $lotte-primary-dark;
 $admin-danger: #d32f2f;
 $admin-success: #388e3c;
 $admin-bg: #f5f6fa;

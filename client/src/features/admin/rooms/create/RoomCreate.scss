@@ -3,8 +3,8 @@
 @use "@/styles/text" as *;
 
 :root {
-  --admin-primary: #1976d2;
-  --admin-primary-hover: #1565c0;
+  --admin-primary: #{$admin-primary};
+  --admin-primary-hover: #{$admin-primary-hover};
   --admin-danger: #d32f2f;
   --admin-success: #388e3c;
   --admin-bg: #f5f6fa;

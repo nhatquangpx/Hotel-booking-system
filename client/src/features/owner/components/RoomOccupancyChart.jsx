@@ -85,7 +85,7 @@ const RoomOccupancyChart = ({ data = [], title = 'Công suất phòng' }) => {
                   y={y}
                   width={width}
                   height={barHeight}
-                  fill="#00e690"
+                  fill="#D4AF37"
                   className="chart-bar"
                   rx="4"
                 />
