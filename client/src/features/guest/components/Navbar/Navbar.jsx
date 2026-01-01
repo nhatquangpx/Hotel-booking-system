@@ -50,15 +50,15 @@ export const Navbar = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <IconButton type="submit">
-          <Search sx={{ color: pinkred }} />
+          <Search sx={{ color: '#ffffff' }} />
         </IconButton>
       </form>
 
       <div className='navbar_right'>
         <button className='navbar_right_account' onClick={() => setDropdownMenu(!dropdownMenu)}>
-          <Menu sx={{ color: darkgrey }} />
+          <Menu sx={{ color: '#ffffff' }} />
           {!user ? (
-            <Person sx={{ color: darkgrey }} />
+            <Person sx={{ color: '#ffffff' }} />
           ) : (
             <img
               src= "/assets/default-profile.jpg"
