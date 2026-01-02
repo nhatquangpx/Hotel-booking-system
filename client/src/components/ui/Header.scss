@@ -8,10 +8,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: $footer-bg;
+  background-color: $lotte-primary-light; // Màu nâu vàng nhạt
   padding: 1rem 1.5rem;
   border-radius: 0;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); // Shadow nhẹ để tạo độ sâu
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); // Border nhẹ
 
   .header-left {
     display: flex;
@@ -47,7 +49,7 @@
   h1 {
     margin: 0;
     @include heading-lg;
-    color: $text-white; // Màu trắng để nổi bật trên nền nâu vàng
+    color: $text-white; // Màu trắng để dễ đọc trên nền nâu vàng nhạt
   }
 
   .header-right {
@@ -87,7 +89,7 @@
           width: 35px;
           height: 35px;
           border-radius: 50%;
-          background-color: $footer-bg;
+          background-color: $lotte-primary; // Giữ màu nâu vàng cho avatar initials
           color: $text-white;
           display: flex;
           align-items: center;

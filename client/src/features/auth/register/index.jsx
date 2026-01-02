@@ -80,7 +80,6 @@ const AuthRegisterPage = () => {
         </div>
         <div className="register-form-container">
           <h1>Đăng ký</h1>
-          <p className="subtitle">Chào mừng bạn đến với StayJourney</p>
           <form onSubmit={handleSubmit}>
             <div className="form-row">
               <div className="form-group">

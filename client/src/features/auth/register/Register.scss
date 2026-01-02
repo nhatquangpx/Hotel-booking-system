@@ -95,31 +95,45 @@
     
     .logo {
       position: absolute;
-      top: -50px;
-      left: 0;
-      width: 100%;
+      top: 2rem; // Tương ứng với padding-top của container
+      left: 2rem; // Tương ứng với padding-left của container
       z-index: 2;
       display: flex;
       justify-content: flex-start;
+      align-items: flex-start;
+      margin: 0;
+      padding: 0;
       
-      img {
-        height: 200px;
-        width: auto;
+      a {
+        text-decoration: none;
         display: block;
-        margin-left: 20px;
+        margin: 0;
+        padding: 0;
+      }
+      
+      img,
+      a img {
+        height: 81px !important; // Tăng 15% từ 70px (70 * 1.15 = 80.5 ≈ 81px)
+        width: auto !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-height: 81px !important;
+        max-width: none !important;
+        object-fit: contain;
       }
     }
     
     .register-form-container {
-      padding-top: 50px;
+      padding-top: 121px; // Logo 81px + top 2rem (32px) + spacing 8px = 121px
       max-width: 500px;
       margin: 0 auto;
       width: 100%;
       
       h1 {
-        @include heading-xl;
+        @include heading-2xl;
         font-weight: $font-semibold;
-        margin-bottom: 0.5rem;
+        margin-bottom: 2rem;
         color: $text-primary;
       }
       
@@ -314,8 +328,19 @@
       width: 100vw;
       padding: 1.5rem;
       
+      .logo {
+        top: 1.5rem; // Tương ứng với padding-top mobile
+        left: 1.5rem; // Tương ứng với padding-left mobile
+        img,
+        a img {
+          height: 69px !important; // Tăng 15% từ 60px (60 * 1.15 = 69px)
+          max-height: 69px !important;
+          margin: 0 !important; // Bỏ margin vì đã dùng left để căn lề
+        }
+      }
+      
       .register-form-container {
-        padding-top: 60px;
+        padding-top: 104px; // Logo 69px + top 1.5rem (24px) + spacing 11px = 104px
       }
     }
   }
@@ -323,11 +348,18 @@
 
 /* Add this for viewport height adjustments */
 @media (max-height: 700px) {
-  .register-container .register-right .register-form-container {
-    padding-top: 130px;
+  .register-container .register-right .logo {
+    top: 1rem; // Tương ứng với padding-top small viewport
+    left: 1rem; // Tương ứng với padding-left small viewport
+    img,
+    a img {
+      height: 63px !important; // Tăng 15% từ 55px (55 * 1.15 = 63.25 ≈ 63px)
+      max-height: 63px !important;
+      margin: 0 !important; // Bỏ margin vì đã dùng left để căn lề
+    }
   }
   
-  .register-container .register-right .logo img {
-    height: 100px;
+  .register-container .register-right .register-form-container {
+    padding-top: 91px; // Logo 63px + top 1rem (16px) + spacing 12px = 91px
   }
 }
