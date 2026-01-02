@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 5rem;
-  background: $footer-bg; // Nâu nhạt pha vàng
+  background: $lotte-primary-light; // Màu nâu vàng nhạt
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); // Shadow nhẹ, sang trọng
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -42,7 +42,7 @@
 
     .menu-item {
       text-decoration: none;	
-      color: $text-header-footer; // Màu sáng cho text trên nền nâu vàng
+      color: $text-white; // Màu trắng để dễ đọc trên nền nâu vàng nhạt
       @include body-base;
       font-weight: $font-semibold;
       transition: color 0.3s ease;
@@ -64,10 +64,10 @@
     border-radius: 20px;
     height: 40px;
 
-    // Đảm bảo icon search có màu trắng
+    // Icon search có màu trắng trên nền nâu vàng nhạt
     button {
       svg {
-        color: #ffffff !important;
+        color: $text-white !important;
       }
     }
 
@@ -112,9 +112,9 @@
         background-color: rgba(255, 255, 255, 0.1); // Nền trắng mờ khi hover
       }
 
-      // Đảm bảo tất cả icon trong button có màu trắng
+      // Icon có màu trắng trên nền nâu vàng nhạt
       svg {
-        color: #ffffff !important;
+        color: $text-white !important;
       }
 
       img {

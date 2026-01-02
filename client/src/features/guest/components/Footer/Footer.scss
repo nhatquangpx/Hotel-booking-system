@@ -42,10 +42,12 @@
 
   &__logo {
     img {
-      height: 200px;
+      height: 80px; // Giảm xuống 80px để không đè lên chữ
+      width: auto;
+      object-fit: contain;
     }
-    margin-top: -70px;
-    margin-left: -70px;
+    margin-top: 0;
+    margin-left: 0;
   }
 
   &__socials {
