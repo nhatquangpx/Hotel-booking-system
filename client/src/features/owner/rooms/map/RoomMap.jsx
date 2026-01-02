@@ -159,12 +159,9 @@ const RoomMap = () => {
     <div className="room-map">
       <div className="room-map__header">
         <div className="room-map__header-content">
-          <div>
-            <h2 className="room-map__title">Sơ đồ phòng</h2>
-            <p className="room-map__instruction">
-              Nhấn vào phòng để xem chi tiết và thao tác
-            </p>
-          </div>
+          <p className="room-map__instruction">
+            Nhấn vào phòng để xem chi tiết và thao tác
+          </p>
           <CreateRoomButton onSuccess={fetchRooms} />
         </div>
       </div>

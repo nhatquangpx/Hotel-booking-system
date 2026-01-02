@@ -40,6 +40,24 @@ export const ownerBookingAPI = {
       throw error.response?.data || error.message;
     }
   }
+
+  // TODO: Thêm các API endpoints sau khi implement logic check-in/check-out:
+  // checkIn: async (id) => {
+  //   try {
+  //     const response = await api.post(`/owner/bookings/${id}/check-in`);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw error.response?.data || error.message;
+  //   }
+  // },
+  // checkOut: async (id) => {
+  //   try {
+  //     const response = await api.post(`/owner/bookings/${id}/check-out`);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw error.response?.data || error.message;
+  //   }
+  // }
 };
 
 export default ownerBookingAPI; 

@@ -17,19 +17,6 @@
 
   .today-overview {
     margin-bottom: 2rem;
-
-    .overview-title {
-      @include heading-xl;
-      color: $text-primary;
-      margin-bottom: 0.5rem;
-      font-weight: $font-bold;
-    }
-
-    .overview-date {
-      @include body-base;
-      color: $text-secondary;
-      margin-bottom: 1.5rem;
-    }
   }
 
   .metrics-grid {

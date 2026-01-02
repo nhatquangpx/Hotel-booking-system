@@ -32,6 +32,9 @@ router.delete('/rooms/:id', roomController.deleteRoom);
 router.get('/bookings', bookingController.getBookingsByOwner);
 router.get('/bookings/:id', bookingController.getBookingById);
 router.put('/bookings/:id/status', bookingController.updateBookingStatus);
+// TODO: Thêm các routes sau khi implement logic check-in/check-out:
+// router.post('/bookings/:id/check-in', bookingController.checkIn);
+// router.post('/bookings/:id/check-out', bookingController.checkOut);
 
 // // Quản lý đánh giá
 // router.get('/reviews', hotelController.getHotelReviews);
