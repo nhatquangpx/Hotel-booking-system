@@ -129,9 +129,6 @@ export const OwnerDashboard = () => {
     <div className="owner-dashboard">
       {/* Today's Overview Section */}
       <div className="today-overview">
-        <h1 className="overview-title">Tổng quan hôm nay</h1>
-        <p className="overview-date">{getCurrentDate()}</p>
-        
         <HotelInfoCard 
           hotel={hotel}
           onEdit={() => console.log('Edit hotel')}

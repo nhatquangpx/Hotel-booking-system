@@ -14,15 +14,9 @@
   &__header-content {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-  }
-
-  &__title {
-    @include heading-lg;
-    color: $text-primary;
-    margin-bottom: 0.5rem;
   }
 
   &__instruction {

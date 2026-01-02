@@ -310,21 +310,51 @@ exports.getAvailableRooms = async (req, res) => {
   }
 };
 
-// Update booking status (admin only)
+// Update booking status (admin, owner, or guest)
 exports.updateBookingStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  const { role, _id: userId } = req.user; // Lấy thông tin người dùng từ middleware xác thực
+  const { role, id: userId } = req.user; // Lấy thông tin người dùng từ middleware xác thực (JWT có trường 'id' không phải '_id')
 
   try {
-    // Tìm đơn đặt phòng
-    const booking = await BookingHistory.findById(id);
+    // Tìm đơn đặt phòng và populate hotel để kiểm tra quyền
+    const booking = await BookingHistory.findById(id)
+      .populate({
+        path: "hotel",
+        select: "ownerId"
+      });
+
     if (!booking) {
       return res.status(404).json({ message: "Đơn đặt phòng không tồn tại" });
     }
 
-    // Kiểm tra quyền: chỉ admin hoặc owner của đơn đặt phòng được phép
-    if (role !== "admin" && booking.guest.toString() !== userId.toString()) {
+    // Kiểm tra quyền:
+    // 1. Admin có quyền cập nhật mọi booking
+    // 2. Owner có quyền cập nhật booking của khách sạn của họ
+    // 3. Guest có quyền cập nhật booking của chính họ
+    let hasPermission = false;
+
+    if (role === "admin") {
+      hasPermission = true;
+    } else if (role === "owner") {
+      // Kiểm tra xem user có phải là chủ sở hữu của khách sạn trong booking không
+      const hotel = booking.hotel;
+      if (hotel && hotel.ownerId) {
+        // ownerId có thể là ObjectId hoặc đã được populate
+        const hotelOwnerId = hotel.ownerId.toString ? hotel.ownerId.toString() : String(hotel.ownerId);
+        hasPermission = hotelOwnerId === String(userId);
+      }
+    } else {
+      // Kiểm tra xem user có phải là guest của booking không
+      const guestId = booking.guest;
+      if (guestId) {
+        // guest có thể là ObjectId hoặc đã được populate
+        const guestIdStr = guestId.toString ? guestId.toString() : String(guestId);
+        hasPermission = guestIdStr === String(userId);
+      }
+    }
+
+    if (!hasPermission) {
       return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
     }
 
