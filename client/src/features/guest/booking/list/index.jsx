@@ -96,7 +96,6 @@ const GuestMyBookingsPage = () => {
     }
   };
 
-
   const canCancelBooking = (booking) => {
     if (booking.paymentStatus === 'cancelled' || booking.paymentStatus === 'paid') {
       return false;
@@ -108,6 +107,7 @@ const GuestMyBookingsPage = () => {
     
     return daysUntilCheckIn >= 2;
   };
+
 
   return (
     <GuestLayout>

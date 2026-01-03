@@ -66,6 +66,7 @@ exports.createUser = async (req, res) => {
             status: status || "active"
         });
         await newUser.save();
+        console.log(`Đã tạo user thành công: ${newUser._id} (${newUser.email}) với role ${newUser.role}`);
         res.status(201).json({ message: 'Người dùng đã được tạo thành công!', user: newUser });
     }
     catch (err) {
@@ -88,6 +89,7 @@ exports.updateUser = async (req, res) => {
             return res.status(404).json({ message: 'Người dùng không tồn tại!' });
         }
 
+        console.log(`Đã cập nhật user thành công: ${userId}`);
         res.status(200).json(updatedUser);
     } catch (err) {
         res.status(500).json({ message: 'Lỗi khi cập nhật thông tin người dùng!', error: err.message });
@@ -106,6 +108,7 @@ exports.deleteUser = async (req, res) => {
             return res.status(404).json({ message: 'Người dùng không tồn tại!' });
         }
 
+        console.log(`Đã xóa user thành công: ${userId}`);
         res.status(200).json({ message: 'Người dùng đã được xóa thành công!' });
     } catch (err) {
         res.status(500).json({ message: 'Lỗi khi xóa người dùng!', error: err.message });
@@ -168,6 +171,7 @@ exports.changePassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
+    console.log(`Đã đổi mật khẩu thành công cho user ${userId}`);
     // Trả về thông báo thành công
     return res.status(200).json({
       success: true,

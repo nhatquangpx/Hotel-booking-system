@@ -9,11 +9,7 @@ exports.getRoomsByHotel = async (req, res) => {
     const { hotelId } = req.params;
     const { checkInDate, checkOutDate } = req.query;
     
-    console.log(`Lấy danh sách phòng cho khách sạn ID: ${hotelId}`);
-    if (checkInDate && checkOutDate) {
-      console.log(`Kiểm tra phòng trống từ ${checkInDate} đến ${checkOutDate}`);
-    }
-      // Base query to find rooms in the specified hotel
+    // Base query to find rooms in the specified hotel
     let query = { hotelId: hotelId };
     
     // Get all rooms in the hotel
@@ -44,11 +40,9 @@ exports.getRoomsByHotel = async (req, res) => {
         room.roomStatus === "active"
       );
       
-      console.log(`Tìm thấy ${availableRooms.length} phòng trống trong khoảng thời gian yêu cầu`);
       return res.status(200).json(availableRooms);
     }
     
-    console.log(`Tìm thấy ${rooms.length} phòng cho khách sạn này`);
     res.status(200).json(rooms);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách phòng:", error);

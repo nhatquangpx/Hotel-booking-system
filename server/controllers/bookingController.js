@@ -123,6 +123,8 @@ exports.getMyBookings = async (req, res) => {
 exports.getUserBookings = async (req, res) => {
   try {
     const userId = req.params.userId;
+    console.log(`Lấy danh sách đặt phòng của user ID: ${userId}`);
+    
     const bookings = await BookingHistory.find({ guest: userId })
       .populate({
         path: "hotel",
@@ -146,8 +148,10 @@ exports.getUserBookings = async (req, res) => {
       status: b.paymentStatus 
     }));
 
+    console.log(`Đã tìm thấy ${formatted.length} đặt phòng của user ${userId}`);
     res.status(200).json(formatted);
   } catch (error) {
+    console.error("Lỗi khi lấy danh sách đặt phòng:", error);
     res.status(500).json({ message: "Lỗi khi lấy danh sách đặt phòng", error: error.message });
   }
 };
@@ -194,8 +198,6 @@ exports.getAllBookings = async (req, res) => {
 // Get bookings by owner (for owner's hotels)
 exports.getBookingsByOwner = async (req, res) => {
   try {
-    console.log(`Lấy danh sách đặt phòng của chủ khách sạn ID: ${req.user.id}`);
-
     // Tìm tất cả hotel thuộc về owner này
     const ownerHotels = await Hotel.find({ ownerId: req.user.id }).select('_id');
     const hotelIds = ownerHotels.map(hotel => hotel._id);
@@ -215,7 +217,6 @@ exports.getBookingsByOwner = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    console.log(`Tìm thấy ${bookings.length} đặt phòng cho các khách sạn của chủ sở hữu`);
     res.status(200).json(bookings);
   }
   catch (error) {
@@ -325,6 +326,7 @@ exports.updateBookingStatus = async (req, res) => {
       });
 
     if (!booking) {
+      console.log(`Không tìm thấy booking với ID: ${id} để cập nhật trạng thái`);
       return res.status(404).json({ message: "Đơn đặt phòng không tồn tại" });
     }
 
@@ -355,6 +357,7 @@ exports.updateBookingStatus = async (req, res) => {
     }
 
     if (!hasPermission) {
+      console.log(`User ${userId} (${role}) không có quyền cập nhật booking ${id}`);
       return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
     }
 
@@ -368,6 +371,7 @@ exports.updateBookingStatus = async (req, res) => {
     booking.paymentStatus = status;
     await booking.save();
 
+    console.log(`Đã cập nhật trạng thái booking ${id} thành ${status} bởi ${role} ${userId}`);
     res.status(200).json({ message: "Cập nhật trạng thái thành công", booking });
   } catch (error) {
     console.error("Lỗi khi cập nhật trạng thái đơn đặt phòng:", error);
@@ -441,4 +445,120 @@ exports.cancelBooking = async (req, res) => {
     console.error("Lỗi khi hủy đơn đặt phòng:", error);
     res.status(500).json({ message: "Lỗi khi hủy đơn đặt phòng", error: error.message });
   }
-}; 
+};
+
+// Check-in booking (owner only)
+exports.checkIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Tìm booking và populate hotel để kiểm tra quyền
+    const booking = await BookingHistory.findById(id)
+      .populate({
+        path: "hotel",
+        select: "ownerId"
+      });
+
+    if (!booking) {
+      console.log(`Không tìm thấy booking với ID: ${id} để check-in`);
+      return res.status(404).json({ message: "Đơn đặt phòng không tồn tại" });
+    }
+
+    // Kiểm tra quyền: chỉ owner của khách sạn mới được check-in
+    const hotel = booking.hotel;
+    if (!hotel || !hotel.ownerId) {
+      console.log(`Không tìm thấy thông tin khách sạn cho booking ${id}`);
+      return res.status(403).json({ message: "Không tìm thấy thông tin khách sạn" });
+    }
+
+    const hotelOwnerId = hotel.ownerId.toString ? hotel.ownerId.toString() : String(hotel.ownerId);
+    if (hotelOwnerId !== String(userId)) {
+      console.log(`User ${userId} không có quyền check-in booking ${id} (owner: ${hotelOwnerId})`);
+      return res.status(403).json({ message: "Bạn không có quyền thực hiện check-in cho đơn đặt phòng này" });
+    }
+
+    // Kiểm tra booking đã được thanh toán chưa
+    if (booking.paymentStatus !== "paid") {
+      console.log(`Không thể check-in booking ${id}: chưa thanh toán (status: ${booking.paymentStatus})`);
+      return res.status(400).json({ message: "Chỉ có thể check-in khi đơn đặt phòng đã được thanh toán" });
+    }
+
+    // Kiểm tra đã check-in chưa
+    if (booking.checkedInAt) {
+      console.log(`Không thể check-in booking ${id}: đã check-in trước đó`);
+      return res.status(400).json({ message: "Đơn đặt phòng đã được check-in trước đó" });
+    }
+
+    // Thực hiện check-in
+    booking.checkedInAt = new Date();
+    await booking.save();
+
+    console.log(`Đã check-in thành công cho booking ${id} bởi owner ${userId}`);
+    res.status(200).json({ 
+      message: "Check-in thành công", 
+      booking 
+    });
+  } catch (error) {
+    console.error("Lỗi khi check-in:", error);
+    res.status(500).json({ message: "Lỗi khi check-in", error: error.message });
+  }
+};
+
+// Check-out booking (owner only)
+exports.checkOut = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Tìm booking và populate hotel để kiểm tra quyền
+    const booking = await BookingHistory.findById(id)
+      .populate({
+        path: "hotel",
+        select: "ownerId"
+      });
+
+    if (!booking) {
+      console.log(`Không tìm thấy booking với ID: ${id} để check-out`);
+      return res.status(404).json({ message: "Đơn đặt phòng không tồn tại" });
+    }
+
+    // Kiểm tra quyền: chỉ owner của khách sạn mới được check-out
+    const hotel = booking.hotel;
+    if (!hotel || !hotel.ownerId) {
+      console.log(`Không tìm thấy thông tin khách sạn cho booking ${id}`);
+      return res.status(403).json({ message: "Không tìm thấy thông tin khách sạn" });
+    }
+
+    const hotelOwnerId = hotel.ownerId.toString ? hotel.ownerId.toString() : String(hotel.ownerId);
+    if (hotelOwnerId !== String(userId)) {
+      console.log(`User ${userId} không có quyền check-out booking ${id} (owner: ${hotelOwnerId})`);
+      return res.status(403).json({ message: "Bạn không có quyền thực hiện check-out cho đơn đặt phòng này" });
+    }
+
+    // Kiểm tra đã check-in chưa
+    if (!booking.checkedInAt) {
+      console.log(`Không thể check-out booking ${id}: chưa check-in`);
+      return res.status(400).json({ message: "Bạn phải check-in trước khi check-out" });
+    }
+
+    // Kiểm tra đã check-out chưa
+    if (booking.checkedOutAt) {
+      console.log(`Không thể check-out booking ${id}: đã check-out trước đó`);
+      return res.status(400).json({ message: "Đơn đặt phòng đã được check-out trước đó" });
+    }
+
+    // Thực hiện check-out
+    booking.checkedOutAt = new Date();
+    await booking.save();
+
+    console.log(`Đã check-out thành công cho booking ${id} bởi owner ${userId}`);
+    res.status(200).json({ 
+      message: "Check-out thành công", 
+      booking 
+    });
+  } catch (error) {
+    console.error("Lỗi khi check-out:", error);
+    res.status(500).json({ message: "Lỗi khi check-out", error: error.message });
+  }
+};
