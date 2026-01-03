@@ -20,6 +20,7 @@ exports.register = async (req, res) => {
         });
 
         await newUser.save();
+        console.log(`Đăng ký thành công: User ${newUser._id} (${newUser.email}) với role ${newUser.role}`);
         res.status(201).json({ message: "Đăng ký thành công!", user: newUser });
     } catch (err) {
       console.error("Registration Error:", err); 
@@ -40,6 +41,7 @@ exports.login = async (req, res) => {
 
         const token = jwt.sign({ id: user._id, role: user.role, session: Date.now }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
+        console.log(`Đăng nhập thành công: User ${user._id} (${user.email}) với role ${user.role}`);
         res.status(200).json({
             token,
             user: { id: user._id, email: user.email, role: user.role }
@@ -92,6 +94,7 @@ exports.resetPassword = async (req, res) => {
       user.password = hashNewPassword;
       await user.save();
   
+      console.log(`Đã đổi mật khẩu thành công cho user ${id}`);
       res.status(200).json({ message: "Mật khẩu của bạn đã được đặt lại thành công!" });
     } catch (err) {
       res.status(500).json({ message: "Đã xảy ra lỗi khi đặt lại mật khẩu.", error: err.message });
