@@ -85,7 +85,7 @@ exports.createHotel = async (req, res) => {
     });
 
     const savedHotel = await newHotel.save();
-    console.log("Đã tạo khách sạn thành công:", savedHotel);
+    console.log(`Đã tạo khách sạn thành công: ${savedHotel._id} (${savedHotel.name}) bởi owner ${savedHotel.ownerId}`);
     res.status(201).json(savedHotel);
   } catch (error) {
     console.error("Lỗi khi tạo khách sạn:", error);
@@ -126,7 +126,7 @@ exports.updateHotel = async (req, res) => {
       { new: true, runValidators: true }
     );
     
-    console.log("Đã cập nhật khách sạn thành công");
+    console.log(`Đã cập nhật khách sạn thành công: ${req.params.id} (${updatedHotel?.name})`);
     res.status(200).json(updatedHotel);
   } catch (error) {
     console.error("Lỗi khi cập nhật khách sạn:", error);
@@ -138,10 +138,12 @@ exports.updateHotel = async (req, res) => {
 exports.deleteHotel = async (req, res) => {
   try {
     // Không cần kiểm tra quyền sở hữu vì đã có middleware verifyOwner
-    console.log("Đang xóa khách sạn với ID:", req.params.id);
+    console.log(`Đang xóa khách sạn với ID: ${req.params.id}`);
     
-    await Hotel.findByIdAndDelete(req.params.id);
-    console.log("Đã xóa khách sạn thành công");
+    const deletedHotel = await Hotel.findByIdAndDelete(req.params.id);
+    if (deletedHotel) {
+      console.log(`Đã xóa khách sạn thành công: ${req.params.id} (${deletedHotel.name})`);
+    }
     res.status(200).json({ message: "Đã xóa khách sạn thành công" });
   } catch (error) {
     console.error("Lỗi khi xóa khách sạn:", error);

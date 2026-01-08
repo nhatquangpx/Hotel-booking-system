@@ -44,12 +44,13 @@ const BookingSchema = new mongoose.Schema(
     },
     cancellationReason: {
       type: String
+    },
+    checkedInAt: {
+      type: Date
+    },
+    checkedOutAt: {
+      type: Date
     }
-    // TODO: Thêm các trường sau khi implement logic check-in/check-out:
-    // checkedInAt: { type: Date }, // Thời điểm thực tế check-in
-    // checkedOutAt: { type: Date }, // Thời điểm thực tế check-out
-    // checkedInBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Người thực hiện check-in
-    // checkedOutBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Người thực hiện check-out
   },
   { timestamps: true }
 );
