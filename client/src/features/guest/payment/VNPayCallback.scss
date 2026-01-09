@@ -1,0 +1,164 @@
+@use "sass:color";
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.vnpay-callback-container {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.callback-content {
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  background: white;
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.75rem;
+  }
+
+  p {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid $luxury-grey-light;
+  border-top: 4px solid $button-primary;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: $success;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem;
+  animation: scaleIn 0.3s ease-out;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  background: $danger;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem;
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-message {
+  color: $success;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  color: $danger;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.redirect-message {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.redirect-btn,
+.retry-btn,
+.back-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1.5rem;
+  @include button-text;
+}
+
+.redirect-btn {
+  background-color: $button-primary;
+  color: $text-white;
+
+  &:hover {
+    background-color: $button-primary-hover;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba($luxury-gold, 0.3);
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.retry-btn {
+  background-color: $button-primary;
+  color: $text-white;
+
+  &:hover {
+    background-color: $button-primary-hover;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba($luxury-gold, 0.3);
+  }
+}
+
+.back-btn {
+  background-color: $luxury-grey-dark;
+  color: $text-white;
+
+  &:hover {
+    background-color: color.scale($luxury-grey-dark, $lightness: -10%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba($luxury-grey-dark, 0.3);
+  }
+}
+

@@ -6,6 +6,7 @@ import userAPI from './guest/profile';
 import userHotelAPI from './guest/hotel';
 import userRoomAPI from './guest/room';
 import userBookingAPI from './guest/booking';
+import paymentAPI from './guest/payment';
 
 // Owner APIs
 import ownerHotelAPI from './owner/hotel';
@@ -25,6 +26,7 @@ export default {
   userHotel: userHotelAPI,
   userRoom: userRoomAPI,
   userBooking: userBookingAPI,
+  payment: paymentAPI,
   ownerHotel: ownerHotelAPI,
   ownerRoom: ownerRoomAPI,
   ownerBooking: ownerBookingAPI,

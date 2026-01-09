@@ -6,22 +6,17 @@ const authRoutes = require("./routes/authRoutes");
 const guestRoutes = require("./routes/guestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy để lấy IP address đúng khi deploy
+app.set('trust proxy', true);
+
 // Kết nối MongoDB
 connectDB();
-
-// Request logging middleware - ĐẶT ĐẦU TIÊN để log TẤT CẢ requests
-// app.use((req, res, next) => {
-//   const timestamp = new Date().toISOString();
-//   console.log(`[${timestamp}] ${req.method} ${req.path}`);
-//   console.log(`  Origin: ${req.headers.origin || 'none'}`);
-//   console.log(`  User-Agent: ${req.headers['user-agent']?.substring(0, 50) || 'none'}`);
-//   next();
-// });
 
 // CORS configuration - cho phép cả localhost, production và Vercel preview URLs
 const allowedOrigins = [
@@ -67,6 +62,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/guest", guestRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/owner", ownerRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

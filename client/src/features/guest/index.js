@@ -9,4 +9,5 @@ export { GuestAboutPage } from './about';
 export { GuestContactPage } from './contact';
 export { GuestBookingPage, GuestMyBookingsPage, GuestBookingDetailPage } from './booking';
 export { GuestProfileAccountPage, GuestProfileEditPage, GuestProfileChangePasswordPage } from './profile';
+export { VNPayCallbackPage } from './payment';
 

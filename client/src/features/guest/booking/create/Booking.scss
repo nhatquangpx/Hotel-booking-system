@@ -171,6 +171,68 @@ h1 {
   color: $text-disabled;
 }
 
+.payment-method-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.payment-method-option {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border: 2px solid $border-light;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+
+  &:hover {
+    border-color: $button-primary;
+    background: rgba($luxury-gold, 0.05);
+  }
+
+  input[type="radio"] {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: $button-primary;
+  }
+
+  input[type="radio"]:checked + .payment-method-content {
+    .payment-method-name {
+      color: $button-primary;
+      font-weight: $font-semibold;
+    }
+  }
+
+  &:has(input[type="radio"]:checked) {
+    border-color: $button-primary;
+    background: rgba($luxury-gold, 0.1);
+  }
+}
+
+.payment-method-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.payment-method-name {
+  @include body-base-alt;
+  color: $text-medium;
+  font-weight: $font-medium;
+  transition: color 0.3s ease;
+}
+
+.payment-method-desc {
+  @include body-sm;
+  color: $text-light;
+}
+
 .submit-btn,
 .cancel-btn {
   padding: 14px 25px;
@@ -186,6 +248,7 @@ h1 {
 .submit-btn {
   background-color: $button-primary;
   color: $text-white;
+  margin-bottom: 10px; /* Khoảng cách với nút cancel */
 }
 
 .submit-btn:hover {
@@ -200,7 +263,6 @@ h1 {
 .cancel-btn {
   background-color: $button-cancel;
   color: white;
-  margin-bottom: 10px; /* Khoảng cách với nút submit */
 }
 
 .cancel-btn:hover {
