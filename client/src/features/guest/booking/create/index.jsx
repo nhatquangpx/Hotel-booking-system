@@ -141,14 +141,28 @@ const GuestBookingPage = () => {
         
         const response = await api.userBooking.createBooking(bookingPayload);
         
-        setSuccessMessage('Đặt phòng thành công! Vui lòng quét mã QR để thanh toán.');
-        setShowPaymentQRCode(true);
+        // Nếu payment method là VNPay, tạo payment URL và redirect
+        if (formData.paymentMethod === 'vnpay') {
+          try {
+            const paymentResponse = await api.payment.createVNPayPaymentUrl(response._id);
+            // Redirect đến trang thanh toán VNPay
+            window.location.href = paymentResponse.paymentUrl;
+          } catch (paymentErr) {
+            setError(paymentErr.response?.data?.message || 'Đã xảy ra lỗi khi tạo link thanh toán');
+            setSubmitting(false);
+            console.error(paymentErr);
+          }
+        } else {
+          // QR code payment (giữ nguyên logic cũ)
+          setSuccessMessage('Đặt phòng thành công! Vui lòng quét mã QR để thanh toán.');
+          setShowPaymentQRCode(true);
 
-        setTimeout(() => {
-          navigate('/my-bookings');
-        }, 900000);
-        
-        setSubmitting(false);
+          setTimeout(() => {
+            navigate('/my-bookings');
+          }, 900000);
+          
+          setSubmitting(false);
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Đã xảy ra lỗi khi đặt phòng');
         setSubmitting(false);
@@ -303,6 +317,37 @@ const GuestBookingPage = () => {
                 {!showPaymentQRCode && (
                   <div className="booking-actions-confirm">
                     <div className="form-group">
+                      <label>Phương thức thanh toán</label>
+                      <div className="payment-method-options">
+                        <label className="payment-method-option">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="vnpay"
+                            checked={formData.paymentMethod === 'vnpay'}
+                            onChange={handleInputChange}
+                          />
+                          <div className="payment-method-content">
+                            <span className="payment-method-name">VNPay</span>
+                            <span className="payment-method-desc">Thanh toán trực tuyến qua VNPay</span>
+                          </div>
+                        </label>
+                        <label className="payment-method-option">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="qr_code"
+                            checked={formData.paymentMethod === 'qr_code'}
+                            onChange={handleInputChange}
+                          />
+                          <div className="payment-method-content">
+                            <span className="payment-method-name">QR Code</span>
+                            <span className="payment-method-desc">Quét mã QR để chuyển khoản</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="form-group">
                       <label htmlFor="specialRequests">Yêu cầu đặc biệt (tùy chọn)</label>
                       <textarea
                         id="specialRequests"
@@ -315,18 +360,22 @@ const GuestBookingPage = () => {
                     </div>
                     <button
                       type="button"
-                      className="cancel-btn"
-                      onClick={() => navigate(-1)}
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      type="button"
                       className="submit-btn"
                       onClick={handleSubmit}
                       disabled={submitting}
                     >
-                      {submitting ? 'Đang xử lý...' : 'Xác nhận đặt phòng và Thanh toán'}
+                      {submitting 
+                        ? (formData.paymentMethod === 'vnpay' ? 'Đang chuyển đến trang thanh toán...' : 'Đang xử lý...') 
+                        : formData.paymentMethod === 'vnpay' 
+                          ? 'Xác nhận đặt phòng và Thanh toán qua VNPay' 
+                          : 'Xác nhận đặt phòng và Thanh toán'}
+                    </button>
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => navigate(-1)}
+                    >
+                      Hủy
                     </button>
                   </div>
                 )}

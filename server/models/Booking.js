@@ -36,8 +36,11 @@ const BookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["qr_code"],
+      enum: ["qr_code", "vnpay"],
       default: "qr_code"
+    },
+    vnpTransactionRef: {
+      type: String
     },
     specialRequests: {
       type: String

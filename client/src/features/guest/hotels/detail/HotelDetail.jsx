@@ -310,8 +310,8 @@ const GuestHotelDetailPage = () => {
                     <p><strong>Ngày trả phòng:</strong> {bookingDates.checkOutDate}</p>
                   </div>
                   <div className="modal-actions">
-                    <button className="cancel-btn" onClick={handleCloseModal}>Hủy</button>
                     <button className="confirm-btn" onClick={handleConfirmBooking}>Tiếp tục (Đặt phòng)</button>
+                    <button className="cancel-btn" onClick={handleCloseModal}>Hủy</button>
                   </div>
                 </div>
               </div>

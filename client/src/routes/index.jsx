@@ -14,7 +14,8 @@ import {
   GuestBookingDetailPage,
   GuestProfileAccountPage,
   GuestProfileEditPage,
-  GuestProfileChangePasswordPage
+  GuestProfileChangePasswordPage,
+  VNPayCallbackPage
 } from "@/features/guest";
 import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/features/auth";
 import { 
@@ -70,6 +71,9 @@ export default function AppRoutes() {
         <Route path="/booking/new" element={<GuestBookingPage />} />
         <Route path="/my-bookings" element={<GuestMyBookingsPage />} />
         <Route path="/booking/:id" element={<GuestBookingDetailPage />} />
+
+        {/* Guest - Payment */}
+        <Route path="/payment/vnpay-return" element={<VNPayCallbackPage />} />
 
         {/* Admin (protected) */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
