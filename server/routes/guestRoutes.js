@@ -5,6 +5,7 @@ const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
+const reviewController = require('../controllers/reviewController');
 
 // ===== PUBLIC ROUTES (không cần authentication) =====
 
@@ -28,12 +29,16 @@ router.put('/profile/:id/changepassword', authenticate, userController.changePas
 // Quản lý đặt phòng - PROTECTED
 router.get('/bookings', authenticate, bookingController.getMyBookings);
 router.get('/bookings/available-rooms', authenticate, bookingController.getAvailableRooms);
-router.get('/bookings/:id', authenticate, bookingController.getBookingById);
 router.post('/bookings', authenticate, bookingController.createBooking);
 router.put('/bookings/:id/cancel', authenticate, bookingController.cancelBooking);
+// Route đánh giá phải đặt trước route /bookings/:id để tránh conflict
+router.put('/bookings/:id/review', authenticate, reviewController.addReview);
+router.get('/bookings/:id', authenticate, bookingController.getBookingById);
 
 // Đánh giá và bình luận
-// router.post('/hotels/:id/reviews', hotelController.addHotelReview);
-// router.post('/rooms/:id/reviews', roomController.addRoomReview);
+router.get('/reviews/hotel/:hotelId', reviewController.getReviewsByHotel); // PUBLIC
+router.get('/reviews/booking/:bookingId', authenticate, reviewController.getReviewByBooking); // PROTECTED
+router.put('/reviews/:id', authenticate, reviewController.updateReview); // PROTECTED - Cập nhật review
+router.delete('/reviews/:id', authenticate, reviewController.deleteReview); // PROTECTED - Xóa review
 
 module.exports = router;

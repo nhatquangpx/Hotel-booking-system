@@ -1,0 +1,162 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.booking-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.booking-modal-content {
+  background-color: $bg-white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  animation: fadeIn 0.3s ease-out;
+
+  h2 {
+    @include heading-md;
+    color: $text-medium;
+    margin-bottom: 20px;
+    text-align: $align-center;
+  }
+
+  .modal-room-details {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: $bg-light-alt;
+    border-radius: 8px;
+    border: 1px solid $border-light;
+
+    h3 {
+      @include heading-sm;
+      color: $blue-link;
+      margin-bottom: 10px;
+    }
+
+    p {
+      @include body-base;
+      color: $text-light;
+      margin-bottom: 8px;
+      
+      strong {
+        color: $text-medium;
+      }
+    }
+
+    .modal-room-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+  }
+
+  .modal-image-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+
+    .modal-room-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .prev-image-btn,
+    .next-image-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      @include heading-sm;
+      z-index: 10;
+      border-radius: 100%;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    .prev-image-btn {
+      left: 10px;
+    }
+
+    .next-image-btn {
+      right: 10px;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+
+    button {
+      flex: 1;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      @include body-base;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      height: 50px;
+    }
+
+    .cancel-btn {
+      background-color: $button-cancel;
+      color: white;
+      @include button-text;
+      
+      &:hover {
+        background-color: $button-cancel-hover;
+      }
+    }
+
+    .confirm-btn {
+      background-color: $button-primary;
+      color: $text-white;
+      @include button-text;
+      
+      &:hover {
+        background-color: $button-primary-hover;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { GuestLayout } from '@/features/guest/components/layout';
+import { BookingReview } from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
 import { formatDate } from '@/shared/utils';
@@ -43,18 +44,44 @@ const GuestBookingDetailPage = () => {
     fetchBookingDetails();
   }, [id, user, navigate]);
 
-
-  const renderBookingStatus = (status) => {
-    switch (status) {
-      case 'pending':
-        return <span className="status pending">Chờ thanh toán</span>;
-      case 'paid':
-        return <span className="status paid">Đã thanh toán</span>;
-      case 'cancelled':
-        return <span className="status cancelled">Đã hủy</span>;
-      default:
-        return <span className="status">{status}</span>;
+  // Callback để reload booking sau khi review được tạo/sửa/xóa
+  const handleReviewUpdate = async () => {
+    try {
+      const response = await api.userBooking.getBookingById(id);
+      setBooking(response);
+    } catch (err) {
+      console.error('Error reloading booking after review update:', err);
     }
+  };
+
+
+  const renderBookingStatus = (booking) => {
+    // Nếu đã hủy
+    if (booking.paymentStatus === 'cancelled') {
+      return <span className="status cancelled">Đã hủy</span>;
+    }
+    
+    // Nếu đã checkout (ưu tiên cao nhất)
+    if (booking.checkedOutAt) {
+      return <span className="status checked-out">Đã checkout</span>;
+    }
+    
+    // Nếu đã checkin nhưng chưa checkout
+    if (booking.checkedInAt) {
+      return <span className="status checked-in">Đã checkin</span>;
+    }
+    
+    // Nếu đã thanh toán nhưng chưa checkin
+    if (booking.paymentStatus === 'paid') {
+      return <span className="status paid">Đã thanh toán</span>;
+    }
+    
+    // Chờ thanh toán
+    if (booking.paymentStatus === 'pending') {
+      return <span className="status pending">Chờ thanh toán</span>;
+    }
+    
+    return <span className="status">{booking.paymentStatus}</span>;
   };
 
   const nextImage = () => {
@@ -103,7 +130,7 @@ const GuestBookingDetailPage = () => {
         <div className="booking-header">
           <h1>Chi tiết đặt phòng</h1>
           <div className="booking-status">
-            {renderBookingStatus(booking.paymentStatus)}
+            {renderBookingStatus(booking)}
           </div>
         </div>
 
@@ -240,6 +267,14 @@ const GuestBookingDetailPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Review Section */}
+            <BookingReview 
+              booking={booking}
+              existingReview={booking.review || null}
+              onReviewUpdate={handleReviewUpdate}
+            />
+
             <div className="action-buttons below-info">
               <button 
                 className="home-btn"

@@ -1,6 +1,7 @@
 const BookingHistory = require("../models/Booking");
 const Room = require("../models/Room");
 const Hotel = require("../models/Hotel");
+const Review = require("../models/Review");
 
 // Create a new booking
 exports.createBooking = async (req, res) => {
@@ -253,8 +254,21 @@ exports.getBookingById = async (req, res) => {
       return res.status(403).json({ message: "Bạn không có quyền xem đơn đặt phòng này" });
     }
 
+    // Tìm review của booking này nếu có
+    const review = await Review.findOne({ booking: booking._id })
+      .populate({
+        path: "guest",
+        select: "name email"
+      });
+
+    // Convert booking to object để thêm review
+    const bookingObj = booking.toObject();
+    if (review) {
+      bookingObj.review = review;
+    }
+
     console.log(`Đã tìm thấy thông tin đặt phòng ${req.params.id}`);
-    res.status(200).json(booking);
+    res.status(200).json(bookingObj);
   } catch (error) {
     console.error("Lỗi khi lấy thông tin đơn đặt phòng:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin đơn đặt phòng", error: error.message });

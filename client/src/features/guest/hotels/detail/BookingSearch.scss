@@ -1,0 +1,79 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.booking-search {
+  margin-bottom: 40px;
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    @include heading-md;
+    margin-bottom: 20px;
+    color: $text-medium;
+    border-bottom: 2px solid $star-orange;
+    padding-bottom: 10px;
+  }
+
+  .date-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+
+    .date-field {
+      flex: 1;
+      min-width: 200px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        @include label-base;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid $border-medium;
+        border-radius: 4px;
+        @include body-base;
+      }
+    }
+
+    .search-btn {
+      padding: 12px 25px;
+      background-color: $button-primary;
+      color: $text-white;
+      border: none;
+      border-radius: 4px;
+      @include button-text;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background-color: $button-primary-hover;
+      }
+
+      &:disabled {
+        background-color: $grey-medium-alt;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-search {
+    .date-picker {
+      flex-direction: column;
+      align-items: stretch;
+
+      .search-btn {
+        margin-top: 10px;
+      }
+    }
+  }
+}
+
