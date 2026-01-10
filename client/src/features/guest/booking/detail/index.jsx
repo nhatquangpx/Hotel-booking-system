@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { GuestLayout } from '@/features/guest/components/layout';
-import { BookingReview } from './BookingReview';
+import BookingReview from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
 import { formatDate } from '@/shared/utils';
