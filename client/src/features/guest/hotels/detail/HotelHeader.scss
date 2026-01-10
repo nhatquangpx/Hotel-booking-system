@@ -1,0 +1,38 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.hotel-header {
+  text-align: $align-center;
+  margin-bottom: 30px;
+
+  h1 {
+    @include heading-xl;
+    margin-bottom: 15px;
+    color: $text-medium;
+  }
+
+  .hotel-rating {
+    margin-bottom: 15px;
+
+    .star {
+      color: $star-orange;
+      @include body-lg;
+      margin-right: 5px;
+    }
+  }
+
+  .hotel-address {
+    @include body-base-alt;
+    color: $text-light;
+  }
+}
+
+@media (max-width: 768px) {
+  .hotel-header {
+    h1 {
+      @include heading-lg;
+    }
+  }
+}
+

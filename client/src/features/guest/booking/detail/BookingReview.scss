@@ -1,0 +1,267 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.review-display-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+
+  h2 {
+    font-size: 1.5rem;
+    color: $text-medium;
+    margin-bottom: 20px;
+  }
+
+  .review-content {
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      .review-rating-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .star {
+          font-size: 24px;
+          color: $grey-medium;
+
+          &.active {
+            color: $star-gold;
+          }
+        }
+
+        .rating-value {
+          @include body-base;
+          color: $text-medium;
+          font-weight: $font-semibold;
+          margin-left: 4px;
+        }
+      }
+
+      .review-date {
+        @include body-sm;
+        color: $text-light;
+
+        .updated-indicator {
+          color: $text-disabled;
+          font-style: italic;
+        }
+      }
+    }
+
+    .review-comment {
+      padding: 16px;
+      background-color: $grey-light;
+      border-radius: 4px;
+      margin-bottom: 16px;
+
+      p {
+        @include body-base;
+        color: $text-medium;
+        line-height: $line-relaxed;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+    }
+
+    .review-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+
+      .edit-review-btn {
+        padding: 10px 20px;
+        background-color: $button-primary;
+        color: $text-white;
+        border: none;
+        border-radius: 4px;
+        @include button-text-sm;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+          background-color: $button-primary-hover;
+        }
+      }
+
+      .delete-review-btn {
+        padding: 10px 20px;
+        background-color: $button-cancel;
+        color: $text-white;
+        border: none;
+        border-radius: 4px;
+        @include button-text-sm;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:hover:not(:disabled) {
+          background-color: $button-cancel-hover;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+.review-form-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+
+  h2 {
+    font-size: 1.5rem;
+    color: $text-medium;
+    margin-bottom: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      @include label-base;
+      color: $text-medium;
+    }
+
+    .rating-stars {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      .star {
+        font-size: 28px;
+        color: $grey-medium;
+        cursor: pointer;
+        transition: color 0.2s ease, transform 0.1s ease;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+
+        &.active {
+          color: $star-gold;
+        }
+      }
+
+      .rating-text {
+        @include body-base;
+        color: $text-medium;
+        margin-left: 8px;
+      }
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid $border-medium;
+      border-radius: 4px;
+      @include body-base;
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+
+      &:focus {
+        border-color: $blue-light;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+      }
+
+      &::placeholder {
+        color: $text-disabled;
+      }
+    }
+  }
+
+  .error-message-form {
+    background-color: $error-bg-light;
+    color: $error;
+    border: 1px solid $error-border-light;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 20px;
+    @include body-sm;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+
+    .cancel-edit-btn {
+      padding: 12px 24px;
+      background-color: $grey-medium;
+      color: $text-white;
+      border: none;
+      border-radius: 4px;
+      @include button-text;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background-color: $grey-dark;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .submit-review-btn {
+      padding: 12px 24px;
+      background-color: $button-primary;
+      color: $text-white;
+      border: none;
+      border-radius: 4px;
+      @include button-text;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background-color: $button-primary-hover;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.review-success-message {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  text-align: $align-center;
+
+  p {
+    @include body-md;
+    color: $success-dark;
+    margin: 0;
+    padding: 12px;
+    background-color: $success-light;
+    border-radius: 4px;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+  }
+}
+

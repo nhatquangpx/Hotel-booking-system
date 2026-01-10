@@ -83,24 +83,47 @@ const GuestMyBookingsPage = () => {
     }
   };
 
-  const renderBookingStatus = (status) => {
-    switch (status) {
-      case 'pending':
-        return <span className="status pending">Chờ thanh toán</span>;
-      case 'paid':
-        return <span className="status paid">Đã thanh toán</span>;
-      case 'cancelled':
-        return <span className="status cancelled">Đã hủy</span>;
-      default:
-        return <span className="status">{status}</span>;
+  const renderBookingStatus = (booking) => {
+    // Nếu đã hủy
+    if (booking.paymentStatus === 'cancelled') {
+      return <span className="status cancelled">Đã hủy</span>;
     }
+    
+    // Nếu đã checkout (ưu tiên cao nhất)
+    if (booking.checkedOutAt) {
+      return <span className="status checked-out">Đã checkout</span>;
+    }
+    
+    // Nếu đã checkin nhưng chưa checkout
+    if (booking.checkedInAt) {
+      return <span className="status checked-in">Đã checkin</span>;
+    }
+    
+    // Nếu đã thanh toán nhưng chưa checkin
+    if (booking.paymentStatus === 'paid') {
+      return <span className="status paid">Đã thanh toán</span>;
+    }
+    
+    // Chờ thanh toán
+    if (booking.paymentStatus === 'pending') {
+      return <span className="status pending">Chờ thanh toán</span>;
+    }
+    
+    return <span className="status">{booking.paymentStatus}</span>;
   };
 
   const canCancelBooking = (booking) => {
-    if (booking.paymentStatus === 'cancelled' || booking.paymentStatus === 'paid') {
+    // Không cho phép hủy nếu đã hủy, đã thanh toán, đã checkin hoặc đã checkout
+    if (
+      booking.paymentStatus === 'cancelled' || 
+      booking.paymentStatus === 'paid' ||
+      booking.checkedInAt ||
+      booking.checkedOutAt
+    ) {
       return false;
     }
     
+    // Kiểm tra còn cách ngày check-in ít nhất 2 ngày
     const checkInDate = new Date(booking.checkInDate);
     const today = new Date();
     const daysUntilCheckIn = Math.ceil((checkInDate - today) / (1000 * 60 * 60 * 24));
@@ -145,7 +168,7 @@ const GuestMyBookingsPage = () => {
                     </p>
                   </div>
                   <div className="booking-status">
-                    {renderBookingStatus(booking.paymentStatus)}
+                    {renderBookingStatus(booking)}
                   </div>
                 </div>
                 
@@ -178,10 +201,10 @@ const GuestMyBookingsPage = () => {
                     </div>
                     <div className="action-buttons">
                       <button 
-                        className="view-details-btn"
+                        className={booking.checkedOutAt ? "review-btn" : "view-details-btn"}
                         onClick={() => navigate(`/booking/${booking._id}`)}
                       >
-                        Xem chi tiết
+                        {booking.checkedOutAt ? 'Đánh giá phòng' : 'Xem chi tiết'}
                       </button>
                       {canCancelBooking(booking) && (
                         <button 

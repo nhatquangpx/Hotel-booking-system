@@ -1,0 +1,26 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.hotel-description {
+  margin-bottom: 40px;
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    @include heading-md;
+    margin-bottom: 20px;
+    color: $text-medium;
+    border-bottom: 2px solid $star-orange;
+    padding-bottom: 10px;
+  }
+
+  p {
+    @include body-base-alt;
+    line-height: $line-relaxed;
+    color: $text-medium-alt;
+  }
+}
+

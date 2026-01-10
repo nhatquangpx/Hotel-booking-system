@@ -36,6 +36,16 @@
           color: $text-white;
         }
 
+        &.checked-in {
+          background-color: $blue-light;
+          color: $text-white;
+        }
+
+        &.checked-out {
+          background-color: $grey-medium;
+          color: $text-white;
+        }
+
         &.cancelled {
           background-color: $error;
           color: $text-white;
@@ -211,11 +221,13 @@
         }
       }
 
+
       .action-buttons.below-info {
         margin-top: 24px;
         display: flex;
         justify-content: center;
         align-items: center;
+        gap: 15px;
         padding: 0;
         background: none;
         border: none;

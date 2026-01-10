@@ -107,6 +107,16 @@
               color: $text-white;
             }
 
+            &.checked-in {
+              background-color: $blue-light;
+              color: $text-white;
+            }
+
+            &.checked-out {
+              background-color: $grey-medium;
+              color: $text-white;
+            }
+
             &.cancelled {
               background-color: $error;
               color: $text-white;
@@ -231,6 +241,21 @@
 
               &:hover {
                 background-color: $button-cancel-hover;
+              }
+            }
+
+            .review-btn {
+              padding: 8px 16px;
+              background-color: $button-primary;
+              color: $text-white;
+              border: none;
+              border-radius: 4px;
+              @include button-text-sm;
+              cursor: pointer;
+              transition: background-color 0.3s ease;
+
+              &:hover {
+                background-color: $button-primary-hover;
               }
             }
           }
