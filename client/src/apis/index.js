@@ -13,6 +13,7 @@ import paymentAPI from './guest/payment';
 import ownerHotelAPI from './owner/hotel';
 import ownerRoomAPI from './owner/room';
 import ownerBookingAPI from './owner/booking';
+import ownerReviewAPI from './owner/review';
 
 // Admin APIs
 import adminUserAPI from './admin/user';
@@ -29,9 +30,12 @@ export default {
   userBooking: userBookingAPI,
   review: reviewAPI,
   payment: paymentAPI,
+
   ownerHotel: ownerHotelAPI,
   ownerRoom: ownerRoomAPI,
   ownerBooking: ownerBookingAPI,
+  ownerReview: ownerReviewAPI,
+  
   adminUser: adminUserAPI,
   adminHotel: adminHotelAPI,
   adminRoom: adminRoomAPI,
