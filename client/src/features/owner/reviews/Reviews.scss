@@ -1,0 +1,205 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.owner-reviews-page {
+  width: 100%;
+
+  .loading,
+  .error-message {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.1rem;
+  }
+
+  .error-message {
+    background-color: $danger-light;
+    color: $danger-dark;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid $danger;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+
+    h1 {
+      @include heading-xl;
+      color: $text-primary;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      @include body-base;
+      color: $text-secondary;
+    }
+  }
+
+  .reviews-section {
+    .section-title {
+      @include heading-lg;
+      color: $text-primary;
+      margin-bottom: 1.5rem;
+    }
+
+    .empty-reviews {
+      text-align: center;
+      padding: 3rem;
+      color: $text-secondary;
+      background-color: $grey-light;
+      border-radius: 8px;
+    }
+
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .review-card {
+      background-color: $bg-white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+      position: relative;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .review-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+
+        .review-avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: $text-white;
+          font-weight: $font-bold;
+          font-size: 1.1rem;
+          flex-shrink: 0;
+        }
+
+        .review-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          .review-guest-name {
+            @include heading-md;
+            color: $text-primary;
+            font-weight: $font-semibold;
+          }
+
+          .review-rating {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+
+            .star {
+              font-size: 1.1rem;
+
+              &.star-filled {
+                color: #fbbf24; // Màu vàng cho sao đầy
+              }
+
+              &.star-empty {
+                color: #e5e7eb; // Màu xám cho sao rỗng
+              }
+            }
+          }
+        }
+      }
+
+      .review-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding-left: 66px; // Căn với avatar
+        padding-right: 100px; // Để chỗ cho button
+
+        .review-room {
+          @include body-sm;
+          color: $text-secondary;
+          font-weight: $font-medium;
+        }
+
+        .review-comment {
+          @include body-base;
+          color: $text-primary;
+          line-height: 1.6;
+        }
+
+        .review-date {
+          @include body-sm;
+          color: $text-secondary;
+        }
+      }
+
+      .review-actions {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+
+        .reply-button {
+          padding: 0.5rem 1rem;
+          background-color: $button-primary;
+          color: $text-white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          @include body-sm;
+          font-weight: $font-medium;
+          transition: all 0.3s ease;
+          white-space: nowrap;
+
+          &:hover {
+            background-color: $button-primary-hover;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-reviews-page {
+    .review-card {
+      .review-content {
+        padding-left: 0;
+        padding-right: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .review-actions {
+        position: static;
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+
+        .reply-button {
+          width: 100%;
+          max-width: 150px;
+        }
+      }
+    }
+  }
+}
+

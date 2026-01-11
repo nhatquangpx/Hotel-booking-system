@@ -52,7 +52,7 @@ const OwnerLayout = ({ children }) => {
     if (location.pathname.includes('/owner/revenue')) return 'Thu chi';
     if (location.pathname.includes('/owner/reports')) return 'Báo cáo';
     if (location.pathname.includes('/owner/assets')) return 'Tài sản';
-    if (location.pathname.includes('/owner/customers')) return 'Khách hàng';
+    if (location.pathname.includes('/owner/reviews')) return 'Đánh giá';
     return 'Quản lý khách sạn';
   };
 
@@ -63,7 +63,7 @@ const OwnerLayout = ({ children }) => {
     { path: '/owner/revenue', label: 'Thu chi', icon: FaDollarSign, title: 'Thu chi' },
     { path: '/owner/reports', label: 'Báo cáo', icon: FaChartBar, title: 'Báo cáo' },
     { path: '/owner/assets', label: 'Tài sản', icon: FaWrench, title: 'Tài sản' },
-    { path: '/owner/customers', label: 'Khách hàng', icon: FaUsers, title: 'Khách hàng' },
+    { path: '/owner/reviews', label: 'Đánh giá', icon: FaUsers, title: 'Đánh giá' },
   ];
 
   return (

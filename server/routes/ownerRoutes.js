@@ -7,6 +7,7 @@ const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
+const reviewController = require('../controllers/reviewController');
 // const dashboardController = require('../controllers/dashboardController');
 
 router.use(authenticate, isOwner);
@@ -35,9 +36,8 @@ router.put('/bookings/:id/status', bookingController.updateBookingStatus);
 router.post('/bookings/:id/check-in', bookingController.checkIn);
 router.post('/bookings/:id/check-out', bookingController.checkOut);
 
-// // Quản lý đánh giá
-// router.get('/reviews', hotelController.getHotelReviews);
-// router.put('/reviews/:id/reply', hotelController.replyToReview);
+// Quản lý đánh giá
+router.get('/reviews', reviewController.getReviewsByOwner);
 
 // // Thống kê
 // router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);

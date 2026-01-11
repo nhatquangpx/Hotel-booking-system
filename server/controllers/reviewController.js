@@ -1,6 +1,7 @@
 const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
+const Room = require("../models/Room");
 
 // Thêm đánh giá cho booking sau khi checkout
 exports.addReview = async (req, res) => {
@@ -370,6 +371,79 @@ exports.deleteReview = async (req, res) => {
     console.error("Lỗi khi xóa đánh giá:", error);
     res.status(500).json({ 
       message: "Lỗi khi xóa đánh giá", 
+      error: error.message 
+    });
+  }
+};
+
+// Lấy danh sách đánh giá của các khách sạn thuộc về owner
+exports.getReviewsByOwner = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+
+    console.log(`Lấy danh sách đánh giá cho owner ${ownerId}`);
+
+    // Tìm tất cả khách sạn thuộc về owner này
+    const ownerHotels = await Hotel.find({ ownerId }).select('_id');
+    const hotelIds = ownerHotels.map(hotel => hotel._id);
+
+    if (hotelIds.length === 0) {
+      return res.status(200).json({
+        reviews: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          pages: 0
+        }
+      });
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Lấy reviews của các khách sạn thuộc owner
+    const reviews = await Review.find({ 
+      hotel: { $in: hotelIds }
+    })
+      .populate({
+        path: "guest",
+        select: "name email phone"
+      })
+      .populate({
+        path: "hotel",
+        select: "name"
+      })
+      .populate({
+        path: "booking",
+        select: "checkInDate checkOutDate room",
+        populate: {
+          path: "room",
+          select: "roomNumber"
+        }
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Đếm tổng số reviews
+    const totalReviews = await Review.countDocuments({ 
+      hotel: { $in: hotelIds }
+    });
+
+    res.status(200).json({
+      reviews,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalReviews,
+        pages: Math.ceil(totalReviews / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách đánh giá của owner:", error);
+    res.status(500).json({ 
+      message: "Lỗi khi lấy danh sách đánh giá", 
       error: error.message 
     });
   }

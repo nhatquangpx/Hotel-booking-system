@@ -34,7 +34,12 @@ import {
   AdminBookingListPage,
   AdminBookingDetailPage
 } from "@/features/admin";
-import { OwnerDashboardPage, OwnerRoomMapPage, OwnerBookingListPage } from "@/features/owner";
+import { 
+  OwnerDashboardPage,
+  OwnerRoomMapPage,
+  OwnerBookingListPage,
+  OwnerReviewsPage
+} from "@/features/owner";
 
 /**
  * App Routes
@@ -106,6 +111,7 @@ export default function AppRoutes() {
           <Route path="/owner" element={<OwnerDashboardPage />} />
           <Route path="/owner/rooms" element={<OwnerRoomMapPage />} />
           <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
+          <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
