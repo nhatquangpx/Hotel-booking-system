@@ -1,0 +1,331 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.reply-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.reply-modal {
+  background-color: $bg-white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.reply-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid $border-light;
+  background-color: $bg-white;
+
+  h2 {
+    @include heading-lg;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  .reply-modal__close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: $text-secondary;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: $grey-light;
+      color: $text-primary;
+    }
+  }
+}
+
+.reply-modal__content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+// Review Detail
+.review-detail {
+  background-color: $grey-light;
+  border-radius: 8px;
+  padding: 1.5rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__info {
+    flex: 1;
+  }
+
+  &__guest {
+    @include heading-md;
+    color: $text-primary;
+    font-weight: $font-semibold;
+    margin-bottom: 0.5rem;
+  }
+
+  &__rating {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+
+    .star {
+      font-size: 1.1rem;
+
+      &.star-filled {
+        color: #fbbf24;
+      }
+
+      &.star-empty {
+        color: #e5e7eb;
+      }
+    }
+  }
+
+  &__date {
+    @include body-sm;
+    color: $text-secondary;
+  }
+
+  &__room {
+    @include body-sm;
+    color: $text-secondary;
+    font-weight: $font-medium;
+    margin-bottom: 0.75rem;
+  }
+
+  &__comment {
+    @include body-base;
+    color: $text-primary;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+}
+
+// Reply Form
+.reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__error {
+    background-color: $danger-light;
+    color: $danger-dark;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    border: 1px solid $danger;
+    @include body-sm;
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      @include body-base;
+      font-weight: $font-medium;
+      color: $text-primary;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid $border-medium;
+      border-radius: 6px;
+      @include body-base;
+      color: $text-primary;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: $button-primary;
+      }
+
+      &::placeholder {
+        color: $text-secondary;
+      }
+    }
+  }
+
+  &__char-count {
+    @include body-xs;
+    color: $text-secondary;
+    text-align: right;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__delete-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: $button-cancel;
+    color: $text-white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    @include body-sm;
+    font-weight: $font-medium;
+    transition: all 0.3s;
+
+    &:hover:not(:disabled) {
+      background-color: $button-cancel-hover;
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__submit-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-left: auto;
+  }
+
+  &__cancel-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: transparent;
+    color: $text-primary;
+    border: 1px solid $border-medium;
+    border-radius: 6px;
+    cursor: pointer;
+    @include body-sm;
+    font-weight: $font-medium;
+    transition: all 0.3s;
+
+    &:hover:not(:disabled) {
+      background-color: $grey-light;
+      border-color: $border-dark;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__submit-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: $button-primary;
+    color: $text-white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    @include body-sm;
+    font-weight: $font-medium;
+    transition: all 0.3s;
+
+    &:hover:not(:disabled) {
+      background-color: $button-primary-hover;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .reply-modal {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .reply-modal__content {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .review-detail {
+    padding: 1rem;
+  }
+
+  .reply-form__actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    .reply-form__delete-btn {
+      width: 100%;
+    }
+
+    .reply-form__submit-group {
+      margin-left: 0;
+      width: 100%;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+

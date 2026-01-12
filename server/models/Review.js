@@ -29,6 +29,14 @@ const ReviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
       maxlength: 2000
+    },
+    ownerResponse: {
+      type: String,
+      trim: true,
+      maxlength: 2000
+    },
+    ownerResponseAt: {
+      type: Date
     }
   },
   { timestamps: true }

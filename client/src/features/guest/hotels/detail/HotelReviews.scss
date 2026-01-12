@@ -189,6 +189,46 @@
           white-space: pre-wrap;
         }
       }
+
+      .owner-response {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid $border-light;
+        background-color: $grey-light;
+        padding: 15px;
+        border-radius: 6px;
+        margin-left: 20px;
+
+        &__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        &__label {
+          @include body-sm;
+          font-weight: $font-semibold;
+          color: $text-medium;
+        }
+
+        &__date {
+          @include body-xs;
+          color: $text-light;
+        }
+
+        &__content {
+          p {
+            @include body-base;
+            color: $text-medium;
+            line-height: $line-relaxed;
+            margin: 0;
+            white-space: pre-wrap;
+          }
+        }
+      }
     }
   }
 

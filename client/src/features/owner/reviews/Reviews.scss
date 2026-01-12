@@ -121,28 +121,59 @@
         }
       }
 
-      .review-content {
+      .review-body {
         display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
+        gap: 1.5rem;
         padding-left: 66px; // Căn với avatar
         padding-right: 100px; // Để chỗ cho button
 
-        .review-room {
-          @include body-sm;
-          color: $text-secondary;
-          font-weight: $font-medium;
+        .review-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          min-width: 0; // Cho phép truncate
+
+          .review-room {
+            @include body-sm;
+            color: $text-secondary;
+            font-weight: $font-medium;
+          }
+
+          .review-comment {
+            @include body-base;
+            color: $text-primary;
+            line-height: 1.6;
+          }
+
+          .review-date {
+            @include body-sm;
+            color: $text-secondary;
+          }
         }
 
-        .review-comment {
-          @include body-base;
-          color: $text-primary;
-          line-height: 1.6;
-        }
+        .review-response {
+          flex-shrink: 0;
+          width: 280px;
+          max-width: 280px;
+          background-color: $grey-light;
+          border-radius: 8px;
+          padding: 1rem;
+          border-left: 3px solid $button-primary;
 
-        .review-date {
-          @include body-sm;
-          color: $text-secondary;
+          &__label {
+            @include body-sm;
+            font-weight: $font-semibold;
+            color: $text-primary;
+            margin-bottom: 0.5rem;
+          }
+
+          &__content {
+            @include body-sm;
+            color: $text-secondary;
+            line-height: 1.5;
+            word-wrap: break-word;
+          }
         }
       }
 
@@ -181,11 +212,21 @@
 @media (max-width: 768px) {
   .owner-reviews-page {
     .review-card {
-      .review-content {
+      .review-body {
+        flex-direction: column;
         padding-left: 0;
         padding-right: 0;
         margin-top: 0.5rem;
         margin-bottom: 1rem;
+
+        .review-content {
+          width: 100%;
+        }
+
+        .review-response {
+          width: 100%;
+          max-width: 100%;
+        }
       }
 
       .review-actions {
