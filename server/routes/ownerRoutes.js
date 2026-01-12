@@ -38,6 +38,8 @@ router.post('/bookings/:id/check-out', bookingController.checkOut);
 
 // Quản lý đánh giá
 router.get('/reviews', reviewController.getReviewsByOwner);
+router.put('/reviews/:id/reply', reviewController.replyToReview);
+router.delete('/reviews/:id/reply', reviewController.deleteReply);
 
 // // Thống kê
 // router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);

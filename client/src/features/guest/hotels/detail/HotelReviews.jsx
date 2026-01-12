@@ -99,6 +99,22 @@ const HotelReviews = ({
                 <div className="review-comment">
                   <p>{review.comment}</p>
                 </div>
+                {/* Owner Response */}
+                {review.ownerResponse && (
+                  <div className="owner-response">
+                    <div className="owner-response__header">
+                      <div className="owner-response__label">Phản hồi từ chủ khách sạn</div>
+                      {review.ownerResponseAt && (
+                        <div className="owner-response__date">
+                          {formatDate(review.ownerResponseAt)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="owner-response__content">
+                      <p>{review.ownerResponse}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

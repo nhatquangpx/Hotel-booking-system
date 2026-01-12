@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
+import ReplyModal from './ReplyModal';
 import api from '@/apis';
 import { formatDate } from '@/shared/utils';
 import './Reviews.scss';
@@ -13,6 +14,8 @@ const OwnerReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   useEffect(() => {
     fetchReviews();
@@ -78,10 +81,29 @@ const OwnerReviewsPage = () => {
     return stars;
   };
 
-  // TODO: Implement reply to review functionality
+  // Truncate text helper
+  const truncateText = (text, maxLength = 150) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + '...';
+  };
+
   const handleReply = (reviewId) => {
-    // TODO: Mở modal/form để chủ khách sạn phản hồi lại review
-    console.log('Phản hồi review:', reviewId);
+    const review = reviews.find(r => r._id === reviewId);
+    if (review) {
+      setSelectedReview(review);
+      setIsReplyModalOpen(true);
+    }
+  };
+
+  const handleCloseReplyModal = () => {
+    setIsReplyModalOpen(false);
+    setSelectedReview(null);
+  };
+
+  const handleReplySuccess = () => {
+    // Refresh reviews list after successful reply
+    fetchReviews();
   };
 
   if (loading) {
@@ -137,23 +159,33 @@ const OwnerReviewsPage = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="review-content">
-                      <div className="review-room">
-                        Phòng {roomNumber}
+                    <div className="review-body">
+                      <div className="review-content">
+                        <div className="review-room">
+                          Phòng {roomNumber}
+                        </div>
+                        <div className="review-comment">
+                          {review.comment}
+                        </div>
+                        <div className="review-date">
+                          {formatDate(review.createdAt)}
+                        </div>
                       </div>
-                      <div className="review-comment">
-                        {review.comment}
-                      </div>
-                      <div className="review-date">
-                        {formatDate(review.createdAt)}
-                      </div>
+                      {review.ownerResponse && (
+                        <div className="review-response">
+                          <div className="review-response__label">Phản hồi của bạn:</div>
+                          <div className="review-response__content">
+                            {truncateText(review.ownerResponse, 150)}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="review-actions">
                       <button
                         className="reply-button"
                         onClick={() => handleReply(review._id)}
                       >
-                        Phản hồi
+                        {review.ownerResponse ? 'Chỉnh sửa phản hồi' : 'Phản hồi'}
                       </button>
                     </div>
                   </div>
@@ -162,6 +194,16 @@ const OwnerReviewsPage = () => {
             </div>
           )}
         </div>
+
+        {/* Reply Modal */}
+        {selectedReview && (
+          <ReplyModal
+            review={selectedReview}
+            isOpen={isReplyModalOpen}
+            onClose={handleCloseReplyModal}
+            onSuccess={handleReplySuccess}
+          />
+        )}
       </div>
     </OwnerLayout>
   );

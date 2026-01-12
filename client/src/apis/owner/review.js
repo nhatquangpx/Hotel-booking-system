@@ -11,6 +11,28 @@ export const ownerReviewAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  // Phản hồi review (thêm hoặc cập nhật)
+  replyToReview: async (reviewId, response) => {
+    try {
+      const response_data = await api.put(`/owner/reviews/${reviewId}/reply`, {
+        response
+      });
+      return response_data.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Xóa phản hồi
+  deleteReply: async (reviewId) => {
+    try {
+      const response = await api.delete(`/owner/reviews/${reviewId}/reply`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

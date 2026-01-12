@@ -449,3 +449,156 @@ exports.getReviewsByOwner = async (req, res) => {
   }
 };
 
+// Owner phản hồi review
+exports.replyToReview = async (req, res) => {
+  try {
+    const { id } = req.params; // review ID
+    const ownerId = req.user.id;
+    const { response } = req.body;
+
+    console.log(`Owner ${ownerId} đang phản hồi review ${id}`);
+
+    // Validate input
+    if (!response || !response.trim()) {
+      return res.status(400).json({ 
+        message: "Nội dung phản hồi không được để trống" 
+      });
+    }
+
+    if (response.trim().length > 2000) {
+      return res.status(400).json({ 
+        message: "Nội dung phản hồi không được vượt quá 2000 ký tự" 
+      });
+    }
+
+    // Tìm review
+    const review = await Review.findById(id).populate({
+      path: "hotel",
+      select: "ownerId"
+    });
+
+    if (!review) {
+      console.log(`Không tìm thấy review với ID: ${id}`);
+      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
+    }
+
+    // Kiểm tra quyền: chỉ owner của khách sạn mới có quyền phản hồi
+    if (review.hotel.ownerId.toString() !== ownerId) {
+      console.log(`Owner ${ownerId} không có quyền phản hồi review ${id}`);
+      return res.status(403).json({ 
+        message: "Bạn không có quyền phản hồi đánh giá này" 
+      });
+    }
+
+    // Cập nhật hoặc thêm phản hồi
+    review.ownerResponse = response.trim();
+    review.ownerResponseAt = new Date();
+    await review.save();
+
+    // Populate thông tin để trả về
+    await review.populate([
+      {
+        path: "guest",
+        select: "name email"
+      },
+      {
+        path: "hotel",
+        select: "name"
+      },
+      {
+        path: "booking",
+        select: "checkInDate checkOutDate room",
+        populate: {
+          path: "room",
+          select: "roomNumber"
+        }
+      }
+    ]);
+
+    console.log(`Đã phản hồi review ${id} thành công bởi owner ${ownerId}`);
+    res.status(200).json({
+      message: "Phản hồi đã được gửi thành công",
+      review
+    });
+  } catch (error) {
+    console.error("Lỗi khi phản hồi đánh giá:", error);
+    res.status(500).json({ 
+      message: "Lỗi khi phản hồi đánh giá", 
+      error: error.message 
+    });
+  }
+};
+
+// Owner xóa phản hồi
+exports.deleteReply = async (req, res) => {
+  try {
+    const { id } = req.params; // review ID
+    const ownerId = req.user.id;
+
+    console.log(`Owner ${ownerId} đang xóa phản hồi review ${id}`);
+
+    // Tìm review
+    const review = await Review.findById(id).populate({
+      path: "hotel",
+      select: "ownerId"
+    });
+
+    if (!review) {
+      console.log(`Không tìm thấy review với ID: ${id}`);
+      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
+    }
+
+    // Kiểm tra quyền: chỉ owner của khách sạn mới có quyền xóa phản hồi
+    if (review.hotel.ownerId.toString() !== ownerId) {
+      console.log(`Owner ${ownerId} không có quyền xóa phản hồi review ${id}`);
+      return res.status(403).json({ 
+        message: "Bạn không có quyền xóa phản hồi này" 
+      });
+    }
+
+    // Kiểm tra có phản hồi không
+    if (!review.ownerResponse) {
+      return res.status(400).json({ 
+        message: "Không có phản hồi để xóa" 
+      });
+    }
+
+    // Xóa phản hồi
+    review.ownerResponse = null;
+    review.ownerResponseAt = null;
+    await review.save();
+
+    // Populate thông tin để trả về
+    await review.populate([
+      {
+        path: "guest",
+        select: "name email"
+      },
+      {
+        path: "hotel",
+        select: "name"
+      },
+      {
+        path: "booking",
+        select: "checkInDate checkOutDate room",
+        populate: {
+          path: "room",
+          select: "roomNumber"
+        }
+      }
+    ]);
+
+    console.log(`Đã xóa phản hồi review ${id} thành công bởi owner ${ownerId}`);
+    res.status(200).json({
+      message: "Phản hồi đã được xóa thành công",
+      review
+    });
+  } catch (error) {
+    console.error("Lỗi khi xóa phản hồi:", error);
+    res.status(500).json({ 
+      message: "Lỗi khi xóa phản hồi", 
+      error: error.message 
+    });
+  }
+};
+
