@@ -14,6 +14,8 @@ import ownerHotelAPI from './owner/hotel';
 import ownerRoomAPI from './owner/room';
 import ownerBookingAPI from './owner/booking';
 import ownerReviewAPI from './owner/review';
+import notificationAPI from './shared/notification';
+import ownerProfileAPI from './owner/profile';
 
 // Admin APIs
 import adminUserAPI from './admin/user';
@@ -35,6 +37,8 @@ export default {
   ownerRoom: ownerRoomAPI,
   ownerBooking: ownerBookingAPI,
   ownerReview: ownerReviewAPI,
+  ownerProfile: ownerProfileAPI,
+  notification: notificationAPI,
   
   adminUser: adminUserAPI,
   adminHotel: adminHotelAPI,

@@ -1,0 +1,293 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.notification-bell {
+  position: relative;
+
+  &-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    width: 51px;
+    height: 51px;
+    border-radius: 8px;
+    background: $bg-white;
+    border: 1px solid $border-medium;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: $text-primary;
+    font-size: 20px;
+    flex-shrink: 0;
+
+    &:hover {
+      background: $grey-light;
+      border-color: $pinkred;
+      color: $pinkred;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: $danger;
+    color: $text-white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: $font-bold;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid $bg-white;
+  }
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: $bg-white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 380px;
+  max-width: 420px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  overflow: hidden;
+
+  .notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid $border-light;
+    background: $grey-light;
+
+    h3 {
+      margin: 0;
+      @include heading-sm;
+      color: $text-primary;
+    }
+
+    .mark-all-read-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: $lotte-primary;
+      color: $text-white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      @include body-xs;
+      font-weight: $font-medium;
+      transition: all 0.3s;
+
+      &:hover {
+        background: $lotte-primary-dark;
+      }
+
+      svg {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .notification-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 450px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $grey-light;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $border-medium;
+      border-radius: 3px;
+
+      &:hover {
+        background: $text-secondary;
+      }
+    }
+
+    .notification-empty {
+      padding: 2rem;
+      text-align: center;
+      @include body-base;
+      color: $text-secondary;
+    }
+  }
+
+  .notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid $border-light;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+
+    &:hover {
+      background: $grey-light;
+    }
+
+    &.unread {
+      background: rgba($lotte-primary, 0.05);
+      border-left: 3px solid $lotte-primary;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 8px;
+        height: 8px;
+        background: $lotte-primary;
+        border-radius: 50%;
+      }
+    }
+
+    .notification-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: $grey-light;
+      color: $lotte-primary;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .notification-content {
+      flex: 1;
+      min-width: 0;
+
+      .notification-title {
+        @include body-base;
+        font-weight: $font-semibold;
+        color: $text-primary;
+        margin-bottom: 0.25rem;
+        line-height: 1.4;
+      }
+
+      .notification-message {
+        @include body-sm;
+        color: $text-secondary;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+      }
+
+      .notification-time {
+        @include body-xs;
+        color: $text-light;
+      }
+    }
+
+    .mark-read-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: $text-secondary;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      opacity: 0;
+
+      .notification-item:hover & {
+        opacity: 1;
+      }
+
+      &:hover {
+        background: $grey-light;
+        color: $text-primary;
+      }
+
+      svg {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .notification-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid $border-light;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: $grey-light;
+
+    .load-more-btn,
+    .view-all-btn {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      @include body-sm;
+      font-weight: $font-medium;
+      transition: all 0.3s;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .load-more-btn {
+      background: $bg-white;
+      color: $text-primary;
+      border: 1px solid $border-medium;
+
+      &:hover:not(:disabled) {
+        background: $grey-light;
+        border-color: $lotte-primary;
+        color: $lotte-primary;
+      }
+    }
+
+    .view-all-btn {
+      background: $lotte-primary;
+      color: $text-white;
+
+      &:hover {
+        background: $lotte-primary-dark;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .notification-dropdown {
+    min-width: 320px;
+    max-width: 90vw;
+    right: -10px;
+  }
+}
+

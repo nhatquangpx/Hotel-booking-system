@@ -44,7 +44,7 @@ const ReviewSchema = new mongoose.Schema(
 
 ReviewSchema.index({ hotel: 1, createdAt: -1 });
 ReviewSchema.index({ guest: 1, createdAt: -1 });
-ReviewSchema.index({ booking: 1 }, { unique: true });
+// Index cho booking đã được định nghĩa bằng unique: true trong field definition
 
 const Review = mongoose.model("Review", ReviewSchema);
 module.exports = Review;

@@ -2,6 +2,7 @@ const BookingHistory = require("../models/Booking");
 const Room = require("../models/Room");
 const Hotel = require("../models/Hotel");
 const Review = require("../models/Review");
+const { notifyBookingCancelled, notifyCheckIn, notifyCheckOut, notifyPaymentSuccessful } = require("../services/notificationService");
 
 // Create a new booking
 exports.createBooking = async (req, res) => {
@@ -90,6 +91,9 @@ exports.createBooking = async (req, res) => {
     // Save booking to database
     const savedBooking = await newBooking.save();
     console.log(`Đã tạo đặt phòng thành công, ID: ${savedBooking._id}`);
+
+    // KHÔNG tạo thông báo ở đây - chỉ tạo khi thanh toán thành công
+    // Để tránh spam notification từ các đơn đặt phòng không thanh toán
 
     res.status(201).json(savedBooking);
   } catch (error) {
@@ -381,11 +385,23 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(400).json({ message: "Trạng thái không hợp lệ" });
     }
 
+    // Lưu lại trạng thái cũ để kiểm tra
+    const oldStatus = booking.paymentStatus;
+    
     // Cập nhật trạng thái
     booking.paymentStatus = status;
     await booking.save();
 
     console.log(`Đã cập nhật trạng thái booking ${id} thành ${status} bởi ${role} ${userId}`);
+
+    // Nếu chuyển từ pending/cancelled sang paid, tạo thông báo đặt phòng mới cho owner
+    // Chỉ tạo thông báo nếu chuyển sang paid (để tránh spam từ các đơn không thanh toán)
+    if (status === "paid" && oldStatus !== "paid") {
+      notifyPaymentSuccessful(id).catch(err => {
+        console.error('Lỗi khi tạo thông báo đặt phòng mới (sau khi cập nhật thanh toán):', err);
+      });
+    }
+
     res.status(200).json({ message: "Cập nhật trạng thái thành công", booking });
   } catch (error) {
     console.error("Lỗi khi cập nhật trạng thái đơn đặt phòng:", error);
@@ -451,6 +467,11 @@ exports.cancelBooking = async (req, res) => {
 
     console.log(`Đã hủy đặt phòng ${id} thành công`);
 
+    // Tạo thông báo cho owner
+    notifyBookingCancelled(id).catch(err => {
+      console.error('Lỗi khi tạo thông báo hủy đặt phòng:', err);
+    });
+
     res.status(200).json({ 
       message: "Đã hủy đơn đặt phòng thành công", 
       booking: updatedBooking
@@ -509,6 +530,12 @@ exports.checkIn = async (req, res) => {
     await booking.save();
 
     console.log(`Đã check-in thành công cho booking ${id} bởi owner ${userId}`);
+    
+    // Tạo thông báo cho owner (để ghi nhận)
+    notifyCheckIn(id).catch(err => {
+      console.error('Lỗi khi tạo thông báo check-in:', err);
+    });
+
     res.status(200).json({ 
       message: "Check-in thành công", 
       booking 
@@ -567,6 +594,12 @@ exports.checkOut = async (req, res) => {
     await booking.save();
 
     console.log(`Đã check-out thành công cho booking ${id} bởi owner ${userId}`);
+    
+    // Tạo thông báo cho owner (để ghi nhận)
+    notifyCheckOut(id).catch(err => {
+      console.error('Lỗi khi tạo thông báo check-out:', err);
+    });
+
     res.status(200).json({ 
       message: "Check-out thành công", 
       booking 

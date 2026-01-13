@@ -38,7 +38,8 @@ import {
   OwnerDashboardPage,
   OwnerRoomMapPage,
   OwnerBookingListPage,
-  OwnerReviewsPage
+  OwnerReviewsPage,
+  OwnerNotificationsPage
 } from "@/features/owner";
 
 /**
@@ -112,6 +113,7 @@ export default function AppRoutes() {
           <Route path="/owner/rooms" element={<OwnerRoomMapPage />} />
           <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
           <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
+          <Route path="/owner/notifications" element={<OwnerNotificationsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,4 +1,5 @@
 const express = require("express");
+const http = require("http");
 const dotenv = require("dotenv").config();
 const cors = require("cors");
 const connectDB = require("./config/db");
@@ -8,8 +9,10 @@ const adminRoutes = require("./routes/adminRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const path = require('path');
+const { initializeSocket } = require("./socket/socketServer");
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Trust proxy để lấy IP address đúng khi deploy
@@ -21,7 +24,6 @@ connectDB();
 // CORS configuration - cho phép cả localhost, production và Vercel preview URLs
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://localhost:5173',
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Loại bỏ undefined values
 
@@ -102,6 +104,9 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found', path: req.path, method: req.method });
 });
 
-app.listen(PORT, () => {
+// Initialize Socket.io
+initializeSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

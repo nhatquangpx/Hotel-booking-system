@@ -8,6 +8,7 @@ const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
 const reviewController = require('../controllers/reviewController');
+const notificationController = require('../controllers/notificationController');
 // const dashboardController = require('../controllers/dashboardController');
 
 router.use(authenticate, isOwner);
@@ -40,6 +41,14 @@ router.post('/bookings/:id/check-out', bookingController.checkOut);
 router.get('/reviews', reviewController.getReviewsByOwner);
 router.put('/reviews/:id/reply', reviewController.replyToReview);
 router.delete('/reviews/:id/reply', reviewController.deleteReply);
+
+// Quản lý thông báo
+router.get('/notifications', notificationController.getNotifications);
+router.get('/notifications/unread-count', notificationController.getUnreadCount);
+router.put('/notifications/:id/read', notificationController.markAsRead);
+router.put('/notifications/read-all', notificationController.markAllAsRead);
+router.get('/notifications/load-more', notificationController.loadMoreNotifications);
+router.post('/notifications/check-no-show', notificationController.checkNoShowBookings);
 
 // // Thống kê
 // router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
