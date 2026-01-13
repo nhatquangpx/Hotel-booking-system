@@ -2,6 +2,7 @@ const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
+const { notifyNewReview } = require("../services/notificationService");
 
 // Thêm đánh giá cho booking sau khi checkout
 exports.addReview = async (req, res) => {
@@ -87,6 +88,11 @@ exports.addReview = async (req, res) => {
     });
 
     await review.save();
+
+    // Tạo thông báo cho owner
+    notifyNewReview(review._id).catch(err => {
+      console.error('Lỗi khi tạo thông báo đánh giá mới:', err);
+    });
 
     // Populate thông tin guest và hotel để trả về
     await review.populate([

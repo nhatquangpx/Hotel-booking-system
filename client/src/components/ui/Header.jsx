@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FaBars, FaTimes, FaUser, FaKey, FaSignOutAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { setLogout } from '@/store/slices/userSlice';
+import { setLogout, setLogin } from '@/store/slices/userSlice';
 import { useAuth } from '@/shared/hooks';
+import api from '@/apis';
 import { IMAGE_PATHS } from '@/constants/images';
+import { NotificationBell } from '@/features/notifications';
 import './Header.scss';
 
 /**
@@ -20,8 +22,33 @@ const Header = ({
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
+  // Fetch user profile nếu là owner và chưa có name đầy đủ
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.role === 'owner' && token && (!user?.name || user?.name === 'User')) {
+        try {
+          const profile = await api.ownerProfile.getProfile();
+          if (profile) {
+            setUserProfile(profile);
+            // Cập nhật vào Redux store và localStorage
+            dispatch(setLogin({ user: profile, token }));
+            localStorage.setItem('user', JSON.stringify(profile));
+          }
+        } catch (error) {
+          console.error('Lỗi khi tải thông tin người dùng:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.role, user?.name, token, dispatch]);
+
+  // Sử dụng userProfile nếu có, nếu không thì dùng user từ auth
+  const displayUser = userProfile || user;
 
   const handleLogout = () => {
     dispatch(setLogout());
@@ -52,28 +79,29 @@ const Header = ({
           <h1>{title}</h1>
         </div>
         <div className="header-right">
+          <NotificationBell />
           <div className="user-menu">
             <button 
               className="user-menu-button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {user?.avatar ? (
+              {displayUser?.avatar ? (
                 <img 
-                  src={user.avatar} 
+                  src={displayUser.avatar} 
                   alt="Profile" 
                   className="user-avatar"
                 />
               ) : (
                 <div className="user-avatar-initials">
-                  {user?.name 
-                    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                  {displayUser?.name 
+                    ? displayUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
                     : 'U'
                   }
                 </div>
               )}
               <div className="user-info">
-                <span className="user-name">{user?.name || 'User'}</span>
-                {user?.role === 'owner' && (
+                <span className="user-name">{displayUser?.name || 'User'}</span>
+                {displayUser?.role === 'owner' && (
                   <span className="user-role">Chủ khách sạn</span>
                 )}
               </div>
@@ -81,17 +109,17 @@ const Header = ({
             </button>
             {isDropdownOpen && (
               <div className="user-dropdown">
-                {user?.id && (
+                {displayUser?._id && (
                   <>
                     <Link 
-                      to={`/profile/${user.id}`}
+                      to={`/profile/${displayUser._id}`}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaUser />
                       Thông tin tài khoản
                     </Link>
                     <Link 
-                      to={`/profile/${user.id}/changepassword`}
+                      to={`/profile/${displayUser._id}/changepassword`}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaKey />

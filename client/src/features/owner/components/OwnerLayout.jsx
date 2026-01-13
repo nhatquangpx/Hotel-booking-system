@@ -5,9 +5,6 @@ import {
   FaHome, 
   FaBed, 
   FaCalendarCheck, 
-  FaDollarSign, 
-  FaChartBar, 
-  FaWrench, 
   FaUsers 
 } from 'react-icons/fa';
 import './OwnerLayout.scss';
@@ -49,10 +46,8 @@ const OwnerLayout = ({ children }) => {
       if (location.pathname.match(/\/owner\/bookings\/[^/]+$/)) return 'Chi tiết đặt phòng';
       return 'Đặt phòng';
     }
-    if (location.pathname.includes('/owner/revenue')) return 'Thu chi';
-    if (location.pathname.includes('/owner/reports')) return 'Báo cáo';
-    if (location.pathname.includes('/owner/assets')) return 'Tài sản';
     if (location.pathname.includes('/owner/reviews')) return 'Đánh giá';
+    if (location.pathname.includes('/owner/notifications')) return 'Thông báo';
     return 'Quản lý khách sạn';
   };
 
@@ -60,9 +55,6 @@ const OwnerLayout = ({ children }) => {
     { path: '/owner', label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
     { path: '/owner/rooms', label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
     { path: '/owner/bookings', label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
-    { path: '/owner/revenue', label: 'Thu chi', icon: FaDollarSign, title: 'Thu chi' },
-    { path: '/owner/reports', label: 'Báo cáo', icon: FaChartBar, title: 'Báo cáo' },
-    { path: '/owner/assets', label: 'Tài sản', icon: FaWrench, title: 'Tài sản' },
     { path: '/owner/reviews', label: 'Đánh giá', icon: FaUsers, title: 'Đánh giá' },
   ];
 

@@ -7,6 +7,8 @@ const hotelController = require("../controllers/hotelController");
 const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
 const dashboardController = require('../controllers/dashboardController');
+// TODO: Thêm notification routes cho admin khi cần
+// const notificationController = require('../controllers/notificationController');
 const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
 // const { roomValidation, validate } = require('../validations/roomValidation');
 
@@ -45,5 +47,13 @@ router.put("/bookings/:id/status", bookingController.updateBookingStatus);
 // Thống kê
 router.get('/dashboard/stats', dashboardController.getAdminStats);
 router.get('/dashboard/recent-activities', dashboardController.getRecentActivities);
+
+// TODO: Quản lý thông báo cho admin
+// router.get('/notifications', notificationController.getNotifications);
+// router.get('/notifications/unread-count', notificationController.getUnreadCount);
+// router.put('/notifications/:id/read', notificationController.markAsRead);
+// router.put('/notifications/read-all', notificationController.markAllAsRead);
+// router.get('/notifications/load-more', notificationController.loadMoreNotifications);
+// Lưu ý: notificationController đã generic, sẵn sàng dùng cho admin
 
 module.exports = router;
