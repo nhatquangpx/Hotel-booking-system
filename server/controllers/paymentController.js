@@ -3,7 +3,11 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const PaymentTransaction = require("../models/PaymentTransaction");
-const { notifyPaymentSuccessful, notifyGuestBookingConfirmed } = require("../services/notifications");
+const { 
+  notifyPaymentSuccessful, 
+  notifyGuestBookingConfirmed,
+  notifyAdminHighValueBooking
+} = require("../services/notifications");
 
 // Helper function để khởi tạo VNPay instance
 const getVNPayInstance = () => {
@@ -180,6 +184,13 @@ exports.vnpayCallback = async (req, res) => {
             notifyGuestBookingConfirmed(booking._id).catch(err => {
               console.error('Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:', err);
             });
+
+            // Notify admins about high-value booking (threshold: 10 million VND)
+            if (booking.totalAmount >= 10000000) {
+              notifyAdminHighValueBooking(booking._id, 10000000).catch(err => {
+                console.error('Lỗi khi tạo thông báo đặt phòng giá trị cao cho admin:', err);
+              });
+            }
 
             // Redirect về trang callback với thông tin thành công
             return res.redirect(`${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}`);

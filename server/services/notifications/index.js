@@ -12,6 +12,7 @@
 const { createNotification } = require("./core");
 const ownerNotifications = require("./owner");
 const guestNotifications = require("./guest");
+const adminNotifications = require("./admin");
 
 module.exports = {
   // Core function
@@ -21,7 +22,8 @@ module.exports = {
   ...ownerNotifications,
   
   // Guest notifications
-  ...guestNotifications
+  ...guestNotifications,
   
-  // Admin notifications can be added here in the future
+  // Admin notifications
+  ...adminNotifications
 };
