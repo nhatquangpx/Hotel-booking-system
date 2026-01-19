@@ -1,31 +1,44 @@
-import { IconButton, MenuItem, Select, FormControl, InputLabel } from "@mui/material"
-import { useState } from 'react'
-import { Search, Person, Menu, Hotel, AccountCircle, Logout } from "@mui/icons-material"
+import { IconButton } from "@mui/material"
+import { useState, useEffect, useRef } from 'react'
+import { Search, Hotel, AccountCircle, Logout, KeyboardArrowDown } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from 'react-router-dom'
 import { setLogout } from '@/store/slices/userSlice'
 import { IMAGE_PATHS } from '@/constants/images'
+import { NotificationBell } from '@/features/notifications'
 import "./Navbar.scss"
-
-const pinkred = '#fa002a';
-const darkgrey = '#969393';
 
 export const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false);
-  const [searchType, setSearchType] = useState('hotel');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
 
   const userState = useSelector((state) => state.user || {}); 
   const user = userState?.user || null; 
 
   const dispatch = useDispatch();
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownMenu(false);
+      }
+    };
+
+    if (dropdownMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [dropdownMenu]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     
-    // Tìm kiếm đồng thời theo tên khách sạn và địa danh
     navigate(`/hotels?search=${encodeURIComponent(searchQuery)}`);
   };
 
@@ -55,46 +68,60 @@ export const Navbar = () => {
       </form>
 
       <div className='navbar_right'>
-        <button className='navbar_right_account' onClick={() => setDropdownMenu(!dropdownMenu)}>
-          <Menu sx={{ color: '#ffffff' }} />
-          {!user ? (
-            <Person sx={{ color: '#ffffff' }} />
-          ) : (
-            <img
-              src= "/assets/default-profile.jpg"
-              alt="profile"
-              style={{ objectFit: "cover", borderRadius: "50%" }}
-            />
-          )}
-        </button>
-
-        {dropdownMenu && !user && (
-          <div className="navbar_right_accountmenu">
-            <Link to="/login">
-              <Person sx={{ fontSize: 20, marginRight: 1 }} />
-              Đăng nhập
-            </Link>
-            <Link to="/register">
-              <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
+        {user && <NotificationBell />}
+        
+        {!user ? (
+          <div className="navbar_right_auth_buttons">
+            <Link to="/register" className="navbar_auth_button navbar_auth_button_register">
               Đăng ký
             </Link>
+            <Link to="/login" className="navbar_auth_button navbar_auth_button_login">
+              Đăng nhập
+            </Link>
           </div>
-        )}
+        ) : (
+          <div className="navbar_right_account_wrapper" ref={dropdownRef}>
+            <button className='navbar_right_account' onClick={() => setDropdownMenu(!dropdownMenu)}>
+              <div className="navbar_right_account_avatar">
+                <img
+                  src="/assets/default-profile.jpg"
+                  alt="profile"
+                  className="navbar_right_account_avatar_img"
+                />
+                <KeyboardArrowDown 
+                  sx={{ 
+                    color: '#ffffff', 
+                    fontSize: 16,
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    background: '#fa002a',
+                    borderRadius: '50%',
+                    padding: '2px'
+                  }} 
+                />
+              </div>
+            </button>
 
-        {dropdownMenu && user && (
-          <div className="navbar_right_accountmenu">
-            <Link to="/my-bookings">
-              <Hotel sx={{ fontSize: 20, marginRight: 1 }} />
-              Đặt phòng của tôi
-            </Link>
-            <Link to={`/profile/${user.id}`}>
-              <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
-              Thông tin cá nhân
-            </Link>
-            <Link to="/login" onClick={() => dispatch(setLogout())}>
-              <Logout sx={{ fontSize: 20, marginRight: 1 }} />
-              Đăng xuất
-            </Link>
+            {dropdownMenu && user && (
+              <div className="navbar_right_accountmenu">
+                <Link to="/my-bookings" onClick={() => setDropdownMenu(false)}>
+                  <Hotel sx={{ fontSize: 20, marginRight: 1 }} />
+                  Đặt phòng của tôi
+                </Link>
+                <Link to={`/profile/${user.id}`} onClick={() => setDropdownMenu(false)}>
+                  <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
+                  Thông tin cá nhân
+                </Link>
+                <Link to="/login" onClick={() => {
+                  dispatch(setLogout());
+                  setDropdownMenu(false);
+                }}>
+                  <Logout sx={{ fontSize: 20, marginRight: 1 }} />
+                  Đăng xuất
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

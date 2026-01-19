@@ -95,7 +95,54 @@
   }
 
   .navbar_right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     position: relative;
+
+    .navbar_right_auth_buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .navbar_auth_button {
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        text-decoration: none;
+        @include body-base;
+        font-weight: $font-medium;
+        transition: all 0.3s;
+        white-space: nowrap;
+
+        &_register {
+          background: transparent;
+          color: $text-white;
+          border: 2px solid $text-white;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: $luxury-gold;
+            color: $luxury-gold;
+          }
+        }
+
+        &_login {
+          background: $text-white;
+          color: $lotte-primary;
+          border: 2px solid $text-white;
+
+          &:hover {
+            background: $luxury-gold;
+            color: $text-white;
+            border-color: $luxury-gold;
+          }
+        }
+      }
+    }
+
+    .navbar_right_account_wrapper {
+      position: relative;
+    }
 
     .navbar_right_account {
       display: flex;
@@ -117,9 +164,17 @@
         color: $text-white !important;
       }
 
-      img {
+      .navbar_right_account_avatar {
+        position: relative;
         width: 40px;
         height: 40px;
+
+        .navbar_right_account_avatar_img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
       }
     }
 
@@ -129,11 +184,12 @@
       right: 0;
       margin-top: 0.5rem;
       background: white;
-      border-radius: 8px;
+      border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       min-width: 220px;
       padding: 0.5rem 0;
       z-index: 1001;
+      overflow: hidden;
 
       a {
         display: flex;

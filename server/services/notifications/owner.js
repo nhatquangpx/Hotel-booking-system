@@ -1,74 +1,12 @@
-const Notification = require("../models/Notification");
-const Booking = require("../models/Booking");
-const Hotel = require("../models/Hotel");
-const User = require("../models/User");
-const { emitNotification, emitUnreadCount } = require("../socket/socketServer");
+const Booking = require("../../models/Booking");
+const Review = require("../../models/Review");
+const Notification = require("../../models/Notification");
+const { createNotification } = require("./core");
 
 /**
- * Notification Service
- * Generic helper functions to create notifications for all roles (owner, admin, guest)
+ * Owner Notification Service
+ * All notification functions specific to owner role
  */
-
-/**
- * Create a notification for any user role
- * @param {String} recipientId - Recipient user ID
- * @param {String} recipientRole - Recipient role (owner, admin, guest)
- * @param {String} type - Notification type
- * @param {String} title - Notification title
- * @param {String} message - Notification message
- * @param {String} relatedId - Related entity ID (booking, review, etc.)
- * @param {String} relatedModel - Related model name (Booking, Review, Hotel, Room)
- */
-const createNotification = async (recipientId, recipientRole, type, title, message, relatedId = null, relatedModel = null) => {
-  try {
-    const notification = new Notification({
-      recipient: recipientId,
-      recipientRole: recipientRole,
-      type,
-      title,
-      message,
-      relatedId,
-      relatedModel,
-      isRead: false
-    });
-
-    await notification.save();
-
-    // Emit realtime notification via Socket.io
-    try {
-      const notificationData = {
-        _id: notification._id,
-        recipient: notification.recipient,
-        recipientRole: notification.recipientRole,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        relatedId: notification.relatedId,
-        relatedModel: notification.relatedModel,
-        isRead: notification.isRead,
-        createdAt: notification.createdAt,
-        updatedAt: notification.updatedAt
-      };
-      emitNotification(recipientId.toString(), recipientRole, notificationData);
-
-      // Emit unread count update
-      const unreadCount = await Notification.countDocuments({
-        recipient: recipientId,
-        recipientRole: recipientRole,
-        isRead: false
-      });
-      emitUnreadCount(recipientId.toString(), recipientRole, unreadCount);
-    } catch (socketError) {
-      // Log error but don't fail the notification creation
-      console.error('Lỗi khi emit notification realtime:', socketError);
-    }
-
-    return notification;
-  } catch (error) {
-    console.error(`Lỗi khi tạo thông báo ${type} cho ${recipientRole} ${recipientId}:`, error);
-    return null;
-  }
-};
 
 /**
  * Create notification for successful payment
@@ -225,7 +163,6 @@ const notifyCheckOut = async (bookingId) => {
  */
 const notifyNewReview = async (reviewId) => {
   try {
-    const Review = require("../models/Review");
     const review = await Review.findById(reviewId)
       .populate('hotel', 'name ownerId')
       .populate('guest', 'name');
@@ -348,8 +285,7 @@ const checkNoShowBookings = async () => {
 };
 
 module.exports = {
-  createNotification,
-  notifyPaymentSuccessful, // Được dùng để tạo thông báo đặt phòng mới khi thanh toán thành công
+  notifyPaymentSuccessful,
   notifyBookingCancelled,
   notifyCheckIn,
   notifyCheckOut,
@@ -357,4 +293,3 @@ module.exports = {
   notifyNoShow,
   checkNoShowBookings
 };
-

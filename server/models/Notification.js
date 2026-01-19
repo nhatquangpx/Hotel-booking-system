@@ -15,6 +15,7 @@ const NotificationSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
+        // Owner notifications
         "new_booking",
         "payment_successful",
         "booking_cancelled",
@@ -23,7 +24,20 @@ const NotificationSchema = new mongoose.Schema(
         "negative_review",
         "checkout_today",
         "checkin_today",
-        "no_show"
+        "no_show",
+        // Guest notifications
+        "booking_confirmed",
+        "booking_modified",
+        "booking_expired",
+        "payment_reminder",
+        "refund_processed",
+        "upcoming_trip_reminder",
+        "checkin_instructions",
+        "new_message",
+        "review_request",
+        "review_reply",
+        "promotion",
+        "security_alert"
       ],
       required: true
     },

@@ -79,15 +79,15 @@
         }
 
         .user-avatar {
-          width: 35px;
-          height: 35px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           object-fit: cover;
         }
 
         .user-avatar-initials {
-          width: 35px;
-          height: 35px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           background-color: $lotte-primary; // Giữ màu nâu vàng cho avatar initials
           color: $text-white;
@@ -130,7 +130,7 @@
         top: calc(100% + 8px);
         right: 0;
         background: $bg-white;
-        border-radius: 8px;
+        border-radius: 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         min-width: 220px;
         padding: 0.5rem 0;

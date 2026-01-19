@@ -15,6 +15,7 @@ import {
   GuestProfileAccountPage,
   GuestProfileEditPage,
   GuestProfileChangePasswordPage,
+  GuestNotificationsPage,
   VNPayCallbackPage
 } from "@/features/guest";
 import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/features/auth";
@@ -80,6 +81,9 @@ export default function AppRoutes() {
 
         {/* Guest - Payment */}
         <Route path="/payment/vnpay-return" element={<VNPayCallbackPage />} />
+
+        {/* Guest - Notifications */}
+        <Route path="/notifications" element={<GuestNotificationsPage />} />
 
         {/* Admin (protected) */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
