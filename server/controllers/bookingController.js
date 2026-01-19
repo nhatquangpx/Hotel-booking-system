@@ -2,7 +2,15 @@ const BookingHistory = require("../models/Booking");
 const Room = require("../models/Room");
 const Hotel = require("../models/Hotel");
 const Review = require("../models/Review");
-const { notifyBookingCancelled, notifyCheckIn, notifyCheckOut, notifyPaymentSuccessful } = require("../services/notificationService");
+const { 
+  notifyBookingCancelled, 
+  notifyCheckIn, 
+  notifyCheckOut, 
+  notifyPaymentSuccessful,
+  notifyGuestBookingConfirmed,
+  notifyGuestBookingCancelled,
+  notifyGuestBookingExpired
+} = require("../services/notifications");
 
 // Create a new booking
 exports.createBooking = async (req, res) => {
@@ -394,11 +402,17 @@ exports.updateBookingStatus = async (req, res) => {
 
     console.log(`Đã cập nhật trạng thái booking ${id} thành ${status} bởi ${role} ${userId}`);
 
-    // Nếu chuyển từ pending/cancelled sang paid, tạo thông báo đặt phòng mới cho owner
+    // Nếu chuyển từ pending/cancelled sang paid, tạo thông báo đặt phòng mới cho owner và guest
     // Chỉ tạo thông báo nếu chuyển sang paid (để tránh spam từ các đơn không thanh toán)
     if (status === "paid" && oldStatus !== "paid") {
+      // Notify owner about new booking (after payment)
       notifyPaymentSuccessful(id).catch(err => {
-        console.error('Lỗi khi tạo thông báo đặt phòng mới (sau khi cập nhật thanh toán):', err);
+        console.error('Lỗi khi tạo thông báo đặt phòng mới cho owner:', err);
+      });
+      
+      // Notify guest about booking confirmation
+      notifyGuestBookingConfirmed(id).catch(err => {
+        console.error('Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:', err);
       });
     }
 
@@ -469,7 +483,12 @@ exports.cancelBooking = async (req, res) => {
 
     // Tạo thông báo cho owner
     notifyBookingCancelled(id).catch(err => {
-      console.error('Lỗi khi tạo thông báo hủy đặt phòng:', err);
+      console.error('Lỗi khi tạo thông báo hủy đặt phòng cho owner:', err);
+    });
+
+    // Tạo thông báo cho guest
+    notifyGuestBookingCancelled(id).catch(err => {
+      console.error('Lỗi khi tạo thông báo hủy đặt phòng cho guest:', err);
     });
 
     res.status(200).json({ 

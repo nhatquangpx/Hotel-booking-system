@@ -3,7 +3,7 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const PaymentTransaction = require("../models/PaymentTransaction");
-const { notifyPaymentSuccessful } = require("../services/notificationService");
+const { notifyPaymentSuccessful, notifyGuestBookingConfirmed } = require("../services/notifications");
 
 // Helper function để khởi tạo VNPay instance
 const getVNPayInstance = () => {
@@ -173,7 +173,12 @@ exports.vnpayCallback = async (req, res) => {
 
             // Tạo thông báo cho owner
             notifyPaymentSuccessful(booking._id).catch(err => {
-              console.error('Lỗi khi tạo thông báo thanh toán thành công:', err);
+              console.error('Lỗi khi tạo thông báo thanh toán thành công cho owner:', err);
+            });
+
+            // Tạo thông báo cho guest
+            notifyGuestBookingConfirmed(booking._id).catch(err => {
+              console.error('Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:', err);
             });
 
             // Redirect về trang callback với thông tin thành công

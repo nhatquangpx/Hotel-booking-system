@@ -51,11 +51,18 @@ export const notificationConfig = {
     supportedTypes: [
       'booking_confirmed',
       'booking_cancelled',
+      'booking_modified',
+      'booking_expired',
       'payment_successful',
-      'payment_failed',
-      'checkin_reminder',
-      'checkout_reminder',
-      'review_request'
+      'payment_reminder',
+      'refund_processed',
+      'upcoming_trip_reminder',
+      'checkin_instructions',
+      'new_message',
+      'review_request',
+      'review_reply',
+      'promotion',
+      'security_alert'
     ]
   }
 };
@@ -75,12 +82,18 @@ export const getNotificationPath = (notification, role) => {
     case 'checkin_today':
     case 'checkout_today':
     case 'booking_confirmed':
-    case 'checkin_reminder':
-    case 'checkout_reminder':
+    case 'booking_modified':
+    case 'booking_expired':
+    case 'payment_reminder':
+    case 'refund_processed':
+    case 'upcoming_trip_reminder':
+    case 'checkin_instructions':
+    case 'review_request':
       return config.routes.booking(notification.relatedId);
     
     case 'new_review':
     case 'negative_review':
+    case 'review_reply':
       if (config.routes.review) {
         return config.routes.review;
       }
@@ -92,6 +105,9 @@ export const getNotificationPath = (notification, role) => {
     case 'new_hotel':
       return config.routes.hotel ? config.routes.hotel(notification.relatedId) : config.routes.list;
     
+    case 'new_message':
+    case 'promotion':
+    case 'security_alert':
     default:
       return config.routes.list;
   }

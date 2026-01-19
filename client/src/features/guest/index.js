@@ -4,6 +4,7 @@
  */
 export { GuestHomePage } from './home';
 export { GuestHotelListPage } from './hotels';
+export { default as GuestNotificationsPage } from './notifications';
 export { GuestHotelDetailPage } from './hotels/detail';
 export { GuestAboutPage } from './about';
 export { GuestContactPage } from './contact';

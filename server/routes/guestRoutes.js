@@ -43,12 +43,12 @@ router.get('/reviews/booking/:bookingId', authenticate, reviewController.getRevi
 router.put('/reviews/:id', authenticate, reviewController.updateReview); // PROTECTED - Cập nhật review
 router.delete('/reviews/:id', authenticate, reviewController.deleteReview); // PROTECTED - Xóa review
 
-// TODO: Quản lý thông báo cho guest
-// router.get('/notifications', authenticate, notificationController.getNotifications);
-// router.get('/notifications/unread-count', authenticate, notificationController.getUnreadCount);
-// router.put('/notifications/:id/read', authenticate, notificationController.markAsRead);
-// router.put('/notifications/read-all', authenticate, notificationController.markAllAsRead);
-// router.get('/notifications/load-more', authenticate, notificationController.loadMoreNotifications);
-// Lưu ý: notificationController đã generic, sẵn sàng dùng cho guest
+// Quản lý thông báo cho guest
+const notificationController = require('../controllers/notificationController');
+router.get('/notifications', authenticate, notificationController.getNotifications);
+router.get('/notifications/unread-count', authenticate, notificationController.getUnreadCount);
+router.put('/notifications/:id/read', authenticate, notificationController.markAsRead);
+router.put('/notifications/read-all', authenticate, notificationController.markAllAsRead);
+router.get('/notifications/load-more', authenticate, notificationController.loadMoreNotifications);
 
 module.exports = router;

@@ -2,7 +2,7 @@ const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
-const { notifyNewReview } = require("../services/notificationService");
+const { notifyNewReview } = require("../services/notifications");
 
 // Thêm đánh giá cho booking sau khi checkout
 exports.addReview = async (req, res) => {

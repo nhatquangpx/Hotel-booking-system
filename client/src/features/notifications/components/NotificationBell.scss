@@ -11,15 +11,15 @@
     align-items: center;
     justify-content: center;
     padding: 0.5rem;
-    width: 51px;
-    height: 51px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     background: $bg-white;
     border: 1px solid $border-medium;
     cursor: pointer;
     transition: all 0.3s;
     color: $text-primary;
-    font-size: 20px;
+    font-size: 18px;
     flex-shrink: 0;
 
     &:hover {

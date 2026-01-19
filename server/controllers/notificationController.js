@@ -1,5 +1,5 @@
 const Notification = require("../models/Notification");
-const { checkNoShowBookings } = require("../services/notificationService");
+const { checkNoShowBookings } = require("../services/notifications");
 const Hotel = require("../models/Hotel");
 const { emitUnreadCount } = require("../socket/socketServer");
 
