@@ -37,7 +37,21 @@ const NotificationSchema = new mongoose.Schema(
         "review_request",
         "review_reply",
         "promotion",
-        "security_alert"
+        "security_alert",
+        // Admin notifications
+        "suspicious_activity",
+        "hotel_registration_request",
+        "hotel_approved",
+        "hotel_rejected",
+        "hotel_suspended",
+        "high_value_booking",
+        "multiple_cancellations",
+        "negative_review_spike",
+        "system_alert",
+        "security_breach_attempt",
+        "payment_issue",
+        "daily_summary",
+        "weekly_report"
       ],
       required: true
     },
@@ -57,7 +71,7 @@ const NotificationSchema = new mongoose.Schema(
     },
     relatedModel: {
       type: String,
-      enum: ["Booking", "Review", "Hotel", "Room"]
+      enum: ["Booking", "Review", "Hotel", "Room", "User"]
     },
     isRead: {
       type: Boolean,

@@ -2,6 +2,75 @@ const Notification = require("../../models/Notification");
 const { emitNotification, emitUnreadCount } = require("../../socket/socketServer");
 
 /**
+ * Sanitize string input to prevent injection and limit length
+ * Removes special characters that could be used for injection
+ * Limits length to prevent DoS via very long messages
+ * @param {String|Number|null|undefined} input - Input to sanitize
+ * @param {Number} maxLength - Maximum allowed length (default: 500)
+ * @returns {String} Sanitized string
+ */
+const sanitizeInput = (input, maxLength = 500) => {
+  if (input === null || input === undefined) {
+    return 'N/A';
+  }
+  
+  // Convert to string
+  let sanitized = String(input);
+  
+  // Remove or escape potentially dangerous characters
+  // Keep alphanumeric, Vietnamese characters, spaces, common punctuation
+  sanitized = sanitized.replace(/[<>\"'`{}[\]]/g, ''); // Remove brackets, quotes, backticks
+  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters
+  
+  // Limit length to prevent DoS
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength) + '...';
+  }
+  
+  // Trim whitespace
+  sanitized = sanitized.trim();
+  
+  return sanitized || 'N/A';
+};
+
+/**
+ * Sanitize IP address (only allow valid IP format)
+ * @param {String} ip - IP address to sanitize
+ * @returns {String} Sanitized IP or 'N/A'
+ */
+const sanitizeIP = (ip) => {
+  if (!ip || typeof ip !== 'string') {
+    return 'N/A';
+  }
+  
+  // Basic IP validation regex (IPv4 and IPv6)
+  const ipRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}$|^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
+  const sanitized = ip.trim();
+  
+  if (ipRegex.test(sanitized) && sanitized.length <= 45) {
+    return sanitized;
+  }
+  
+  // If invalid, return sanitized version with limited length
+  return sanitizeInput(ip, 45);
+};
+
+/**
+ * Sanitize error message (more aggressive sanitization)
+ * @param {String|Error} error - Error object or message
+ * @returns {String} Sanitized error message
+ */
+const sanitizeError = (error) => {
+  if (!error) return 'N/A';
+  
+  // If it's an Error object, get the message
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  // More aggressive sanitization for error messages
+  return sanitizeInput(errorMessage, 200);
+};
+
+/**
  * Core Notification Service
  * Generic helper function to create notifications for all roles
  * 
@@ -66,5 +135,8 @@ const createNotification = async (recipientId, recipientRole, type, title, messa
 };
 
 module.exports = {
-  createNotification
+  createNotification,
+  sanitizeInput,
+  sanitizeIP,
+  sanitizeError
 };

@@ -203,7 +203,7 @@ const notifyGuestRefundProcessed = async (bookingId, refundAmount, percentage = 
 const notifyGuestUpcomingTrip = async (bookingId, daysUntil) => {
   try {
     const booking = await Booking.findById(bookingId)
-      .populate('hotel', 'name location')
+      .populate('hotel', 'name')
       .populate('guest');
 
     if (!booking || !booking.guest) {
@@ -212,14 +212,13 @@ const notifyGuestUpcomingTrip = async (bookingId, daysUntil) => {
 
     const guestId = booking.guest._id || booking.guest;
     const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-    const location = booking.hotel?.location || 'Đà Lạt';
 
     await createNotification(
       guestIdStr,
       'guest',
       'upcoming_trip_reminder',
       'Nhắc nhở chuyến đi',
-      `Chỉ còn ${daysUntil} ngày nữa là đến kỳ nghỉ tại ${location}! Xem lại thông tin đặt phòng tại đây.`,
+      `Chỉ còn ${daysUntil} ngày nữa là đến kỳ nghỉ! Xem lại thông tin đặt phòng tại đây.`,
       bookingId,
       'Booking'
     );
