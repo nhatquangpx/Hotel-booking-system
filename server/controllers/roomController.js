@@ -32,11 +32,10 @@ exports.getRoomsByHotel = async (req, res) => {
         paymentStatus: { $in: ["pending", "paid"] }
       });
       
-      // Filter out booked rooms and rooms that are not operational
+      // Filter out rooms that already have bookings in the period and rooms that are not operational
       const bookedRoomIds = bookings.map(booking => booking.room.toString());
       const availableRooms = rooms.filter(room => 
         !bookedRoomIds.includes(room._id.toString()) && 
-        room.bookingStatus === "empty" &&
         room.roomStatus === "active"
       );
       
