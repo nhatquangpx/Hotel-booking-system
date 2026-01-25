@@ -81,7 +81,13 @@ exports.createUser = async (req, res) => {
 }
 exports.updateUser = async (req, res) => {
     try {
-        const userId = req.params.id;
+        // Lấy userId từ params hoặc từ req.user (khi là owner/admin update profile của chính mình)
+        const userId = req.params.id || req.user?.id;
+        
+        if (!userId) {
+            return res.status(400).json({ message: 'ID người dùng không được cung cấp!' });
+        }
+        
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'ID người dùng không hợp lệ!' });
         }

@@ -16,6 +16,10 @@ const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig'
 
 router.use(authenticate, isAdmin);
 
+// Quản lý thông tin cá nhân
+router.get("/profile", userController.getUserById);
+router.put("/profile", userController.updateUser);
+
 // Quản lý người dùng
 router.get("/users", userController.getAllUsers);
 router.get("/users/:id", userController.getUserById);
