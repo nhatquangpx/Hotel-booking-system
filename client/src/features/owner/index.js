@@ -7,4 +7,9 @@ export { OwnerRoomMapPage } from './rooms';
 export { default as OwnerBookingListPage } from './bookings/list';
 export { default as OwnerReviewsPage } from './reviews';
 export { default as OwnerNotificationsPage } from './notifications';
+export { 
+  OwnerProfileAccountPage,
+  OwnerProfileEditPage,
+  OwnerProfileChangePasswordPage
+} from './profile';
 
