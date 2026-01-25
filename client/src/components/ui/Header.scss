@@ -132,7 +132,9 @@
         background: $bg-white;
         border-radius: 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        min-width: 220px;
+        width: 260px;
+        min-width: 260px;
+        max-width: 260px;
         padding: 0.5rem 0;
         z-index: 1001;
         overflow: hidden;
@@ -151,6 +153,9 @@
           cursor: pointer;
           text-align: $align-left;
           transition: background-color 0.3s;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
 
           &:hover {
             background-color: $grey-light;

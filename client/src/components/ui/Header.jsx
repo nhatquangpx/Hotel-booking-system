@@ -26,26 +26,38 @@ const Header = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
 
-  // Fetch user profile nếu là owner và chưa có name đầy đủ
+  // Fetch user profile nếu là owner/admin và chưa có name đầy đủ hoặc thiếu _id
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (user?.role === 'owner' && token && (!user?.name || user?.name === 'User')) {
-        try {
-          const profile = await api.ownerProfile.getProfile();
-          if (profile) {
-            setUserProfile(profile);
-            // Cập nhật vào Redux store và localStorage
-            dispatch(setLogin({ user: profile, token }));
-            localStorage.setItem('user', JSON.stringify(profile));
+      if (token && (user?.role === 'owner' || user?.role === 'admin')) {
+        // Kiểm tra nếu thiếu name hoặc _id (hoặc chỉ có id)
+        const hasId = user?.id || user?._id;
+        const needsFetch = !user?.name || user?.name === 'User' || !user?._id;
+        
+        if (needsFetch && hasId) {
+          try {
+            let profile;
+            if (user?.role === 'owner') {
+              profile = await api.ownerProfile.getProfile();
+            } else if (user?.role === 'admin') {
+              profile = await api.adminProfile.getProfile();
+            }
+            
+            if (profile) {
+              setUserProfile(profile);
+              // Cập nhật vào Redux store và localStorage
+              dispatch(setLogin({ user: profile, token }));
+              localStorage.setItem('user', JSON.stringify(profile));
+            }
+          } catch (error) {
+            console.error('Lỗi khi tải thông tin người dùng:', error);
           }
-        } catch (error) {
-          console.error('Lỗi khi tải thông tin người dùng:', error);
         }
       }
     };
 
     fetchUserProfile();
-  }, [user?.role, user?.name, token, dispatch]);
+  }, [user?.role, user?.name, user?._id, user?.id, token, dispatch]);
 
   // Sử dụng userProfile nếu có, nếu không thì dùng user từ auth
   const displayUser = userProfile || user;
@@ -104,22 +116,25 @@ const Header = ({
                 {displayUser?.role === 'owner' && (
                   <span className="user-role">Chủ khách sạn</span>
                 )}
+                {displayUser?.role === 'admin' && (
+                  <span className="user-role">Quản trị viên</span>
+                )}
               </div>
               {isDropdownOpen ? <FaChevronUp /> : <FaChevronDown />}
             </button>
             {isDropdownOpen && (
               <div className="user-dropdown">
-                {displayUser?._id && (
+                {(displayUser?._id || displayUser?.id) && (
                   <>
                     <Link 
-                      to={`/profile/${displayUser._id}`}
+                      to={`/profile/${displayUser._id || displayUser.id}`}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaUser />
                       Thông tin tài khoản
                     </Link>
                     <Link 
-                      to={`/profile/${displayUser._id}/changepassword`}
+                      to={`/profile/${displayUser._id || displayUser.id}/changepassword`}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaKey />
