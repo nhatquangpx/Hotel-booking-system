@@ -40,15 +40,15 @@ const RoomOccupancyChart = ({ data = [], title = 'Công suất phòng' }) => {
     <div className="room-occupancy-chart">
       <h3 className="chart-title">{title}</h3>
       <div className="chart-container">
-        <svg viewBox="0 0 400 200" className="chart-svg">
+        <svg viewBox="0 0 450 250" className="chart-svg" preserveAspectRatio="xMidYMid meet">
           {/* Grid lines */}
           {[0, 25, 50, 75, 100].map((y) => (
             <line
               key={y}
-              x1="0"
-              y1={y * 2}
+              x1="50"
+              y1={y * 2 + 20}
               x2="400"
-              y2={y * 2}
+              y2={y * 2 + 20}
               stroke="#e0e0e0"
               strokeWidth="1"
             />
@@ -56,14 +56,14 @@ const RoomOccupancyChart = ({ data = [], title = 'Công suất phòng' }) => {
           
           {/* Y-axis labels */}
           {[0, 2500000, 5000000, 7500000, 10000000].map((value, index) => {
-            const y = 200 - (index * 50);
+            const y = 220 - (index * 50);
             return (
               <text
                 key={value}
-                x="0"
+                x="45"
                 y={y}
                 className="axis-label"
-                textAnchor="start"
+                textAnchor="end"
               >
                 {formatValue(value)}
               </text>
@@ -72,11 +72,11 @@ const RoomOccupancyChart = ({ data = [], title = 'Công suất phòng' }) => {
 
           {/* Bars */}
           {chartData.map((d, index) => {
-            const x = (index / chartData.length) * 400;
+            const x = 50 + (index / chartData.length) * 350;
             const barHeight = getBarHeight(d.value) * 2;
-            const y = 200 - barHeight;
-            const width = (400 / chartData.length) * 0.7;
-            const centerX = x + (400 / chartData.length) / 2;
+            const y = 220 - barHeight;
+            const width = (350 / chartData.length) * 0.7;
+            const centerX = x + (350 / chartData.length) / 2;
 
             return (
               <g key={index}>
@@ -103,13 +103,13 @@ const RoomOccupancyChart = ({ data = [], title = 'Công suất phòng' }) => {
 
           {/* X-axis labels */}
           {chartData.map((d, index) => {
-            const x = (index / chartData.length) * 400;
-            const centerX = x + (400 / chartData.length) / 2;
+            const x = 50 + (index / chartData.length) * 350;
+            const centerX = x + (350 / chartData.length) / 2;
             return (
               <text
                 key={index}
                 x={centerX}
-                y="195"
+                y="240"
                 className="axis-label"
                 textAnchor="middle"
               >

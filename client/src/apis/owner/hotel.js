@@ -34,22 +34,24 @@ export const ownerHotelAPI = {
   // Cập nhật thông tin khách sạn
   updateHotel: async (id, hotelData) => {
     try {
-      const response = await api.put(`/owner/hotels/${id}`, hotelData);
+      // Kiểm tra nếu hotelData là FormData (có ảnh mới)
+      const isFormData = hotelData instanceof FormData;
+      const config = isFormData
+        ? {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        : {};
+      
+      const response = await api.put(`/owner/hotels/${id}`, hotelData, config);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // Xóa khách sạn
-  deleteHotel: async (id) => {
-    try {
-      const response = await api.delete(`/owner/hotels/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
+  // Owner không được phép xóa khách sạn
 
   // Cập nhật trạng thái khách sạn
   updateHotelStatus: async (id, status) => {

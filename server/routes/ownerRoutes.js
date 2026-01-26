@@ -9,7 +9,7 @@ const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
 const reviewController = require('../controllers/reviewController');
 const notificationController = require('../controllers/notificationController');
-// const dashboardController = require('../controllers/dashboardController');
+const dashboardController = require('../controllers/dashboardController');
 
 router.use(authenticate, isOwner);
 
@@ -21,8 +21,7 @@ router.put('/profile/changepassword', userController.changePassword);
 // Quản lý khách sạn
 router.get('/hotels', hotelController.getHotelsByOwner);
 router.get('/hotels/:id', hotelController.getHotelById);
-router.put('/hotels/:id', hotelController.updateHotel);
-router.delete('/hotels/:id', hotelController.deleteHotel);
+router.put('/hotels/:id', uploadHotelImages, hotelController.updateHotel);
 
 // Quản lý phòng
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
@@ -51,10 +50,10 @@ router.put('/notifications/read-all', notificationController.markAllAsRead);
 router.get('/notifications/load-more', notificationController.loadMoreNotifications);
 router.post('/notifications/check-no-show', notificationController.checkNoShowBookings);
 
-// // Thống kê
-// router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
-// router.get('/dashboard/revenue', dashboardController.getOwnerRevenueStats);
-// router.get('/dashboard/bookings', dashboardController.getOwnerBookingStats);
-// router.get('/dashboard/rooms', dashboardController.getOwnerRoomStats);
+// Thống kê Dashboard
+router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
+router.get('/dashboard/revenue', dashboardController.getOwnerRevenueStats);
+router.get('/dashboard/rooms', dashboardController.getOwnerRoomStats);
+router.get('/dashboard/tasks', dashboardController.getOwnerTodayTasks);
 
 module.exports = router;

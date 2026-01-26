@@ -44,15 +44,15 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
     <div className="revenue-chart">
       <h3 className="chart-title">{title}</h3>
       <div className="chart-container">
-        <svg viewBox="0 0 400 200" className="chart-svg">
+        <svg viewBox="0 0 450 250" className="chart-svg" preserveAspectRatio="xMidYMid meet">
           {/* Grid lines */}
           {[0, 25, 50, 75, 100].map((y) => (
             <line
               key={y}
-              x1="0"
-              y1={y * 2}
+              x1="50"
+              y1={y * 2 + 20}
               x2="400"
-              y2={y * 2}
+              y2={y * 2 + 20}
               stroke="#e0e0e0"
               strokeWidth="1"
             />
@@ -60,14 +60,14 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
           
           {/* Y-axis labels */}
           {[0, 2500000, 5000000, 7500000, 10000000].map((value, index) => {
-            const y = 200 - (index * 50);
+            const y = 220 - (index * 50);
             return (
               <text
                 key={value}
-                x="0"
+                x="45"
                 y={y}
                 className="axis-label"
-                textAnchor="start"
+                textAnchor="end"
               >
                 {formatValue(value)}
               </text>
@@ -76,7 +76,11 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
 
           {/* Line path */}
           <polyline
-            points={points}
+            points={chartData.map((d, index) => {
+              const x = 50 + (index / (chartData.length - 1)) * 350;
+              const y = 20 + getYPosition(d.value) * 2;
+              return `${x},${y}`;
+            }).join(' ')}
             fill="none"
             stroke="#D4AF37"
             strokeWidth="3"
@@ -85,8 +89,8 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
 
           {/* Data points */}
           {chartData.map((d, index) => {
-            const x = (index / (chartData.length - 1)) * 400;
-            const y = getYPosition(d.value) * 2;
+            const x = 50 + (index / (chartData.length - 1)) * 350;
+            const y = 20 + getYPosition(d.value) * 2;
             return (
               <g key={index}>
                 <circle
@@ -110,12 +114,12 @@ const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
 
           {/* X-axis labels */}
           {chartData.map((d, index) => {
-            const x = (index / (chartData.length - 1)) * 400;
+            const x = 50 + (index / (chartData.length - 1)) * 350;
             return (
               <text
                 key={index}
                 x={x}
-                y="195"
+                y="240"
                 className="axis-label"
                 textAnchor="middle"
               >

@@ -121,23 +121,75 @@ exports.updateHotel = async (req, res) => {
       delete req.body.ownerId;
     }
 
-    // Xử lý ảnh mới nếu có
-    if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => {
-        if (hasCloudinaryConfig) {
-          // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
-          return file.secure_url || file.url || file.path;
-        } else {
-          // Local storage: tạo đường dẫn tương đối
-          return `/uploads/hotels/${file.filename}`;
-        }
-      });
-      req.body.images = newImages;
+    // Parse nested fields từ FormData (address[number], contactInfo[phone], etc.)
+    const updateData = {};
+    
+    // Copy các fields đơn giản
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.description) updateData.description = req.body.description;
+    if (req.body.starRating) updateData.starRating = parseInt(req.body.starRating);
+    if (req.body.status) updateData.status = req.body.status;
+
+    // Parse address
+    if (req.body['address[number]'] || req.body['address[street]'] || req.body['address[city]']) {
+      updateData.address = {
+        number: req.body['address[number]'] || req.body.address?.number || '',
+        street: req.body['address[street]'] || req.body.address?.street || '',
+        city: req.body['address[city]'] || req.body.address?.city || ''
+      };
+    } else if (req.body.address && typeof req.body.address === 'object') {
+      updateData.address = req.body.address;
+    }
+
+    // Parse contactInfo
+    if (req.body['contactInfo[phone]'] || req.body['contactInfo[email]']) {
+      updateData.contactInfo = {
+        phone: req.body['contactInfo[phone]'] || req.body.contactInfo?.phone || '',
+        email: req.body['contactInfo[email]'] || req.body.contactInfo?.email || ''
+      };
+    } else if (req.body.contactInfo && typeof req.body.contactInfo === 'object') {
+      updateData.contactInfo = req.body.contactInfo;
+    }
+
+    // Parse policies
+    if (req.body['policies[checkInTime]'] || req.body['policies[checkOutTime]']) {
+      updateData.policies = {
+        checkInTime: req.body['policies[checkInTime]'] || req.body.policies?.checkInTime || '14:00',
+        checkOutTime: req.body['policies[checkOutTime]'] || req.body.policies?.checkOutTime || '12:00'
+      };
+    } else if (req.body.policies && typeof req.body.policies === 'object') {
+      updateData.policies = req.body.policies;
+    }
+
+    // Parse existingImages nếu là string (từ FormData)
+    let existingImages = [];
+    if (req.body.existingImages) {
+      try {
+        existingImages = JSON.parse(req.body.existingImages);
+      } catch (e) {
+        existingImages = [];
+      }
+    }
+
+    // Lấy đường dẫn ảnh mới từ req.files
+    const newImages = req.files ? req.files.map(file => {
+      if (hasCloudinaryConfig) {
+        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
+        return file.secure_url || file.url || file.path;
+      } else {
+        // Local storage: tạo đường dẫn tương đối
+        return `/uploads/hotels/${file.filename}`;
+      }
+    }) : [];
+
+    // Gộp ảnh cũ và mới (ưu tiên existingImages nếu có, nếu không có ảnh mới thì giữ nguyên ảnh cũ)
+    if (existingImages.length > 0 || newImages.length > 0) {
+      updateData.images = [...existingImages, ...newImages];
     }
 
     const updatedHotel = await Hotel.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: updateData },
       { new: true, runValidators: true }
     );
     
