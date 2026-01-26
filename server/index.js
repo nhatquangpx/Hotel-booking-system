@@ -1,51 +1,49 @@
 const express = require("express");
 const http = require("http");
-const dotenv = require("dotenv").config();
+const path = require('path');
+const cron = require('node-cron');
 const cors = require("cors");
+require("dotenv").config();
+
 const connectDB = require("./config/db");
+
 const authRoutes = require("./routes/authRoutes");
 const guestRoutes = require("./routes/guestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
-const path = require('path');
+
 const { initializeSocket } = require("./socket/socketServer");
+const { sendCheckInReminders } = require("./services/emails");
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
-// Trust proxy để lấy IP address đúng khi deploy
-app.set('trust proxy', true);
-
-// Kết nối MongoDB
-connectDB();
-
-// CORS configuration - cho phép cả localhost, production và Vercel preview URLs
+// CORS allowed origins
 const allowedOrigins = [
   'http://localhost:3000',
   process.env.FRONTEND_URL,
-].filter(Boolean); // Loại bỏ undefined values
+].filter(Boolean);
+
+connectDB();
+
+app.set('trust proxy', true);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Cho phép requests không có origin (mobile apps, Postman, etc.)
     if (!origin) {
       return callback(null, true);
     }
     
-    // Cho phép localhost và production URL từ env var
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
     
-    // Cho phép tất cả Vercel URLs (production và preview)
-    // Vercel URLs có format: *.vercel.app
     if (origin.endsWith('.vercel.app')) {
       return callback(null, true);
     }
     
-    // Từ chối các origins khác
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -55,18 +53,15 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
-// Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API routes - Mount TRƯỚC static files để tránh conflicts
 app.use("/api/auth", authRoutes);
 app.use("/api/guest", guestRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/owner", ownerRoutes);
 app.use("/api/payment", paymentRoutes);
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -75,7 +70,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API info endpoint (for testing)
 app.get('/api', (req, res) => {
   res.json({ 
     message: 'API is running',
@@ -95,18 +89,36 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Static files - Mount SAU API routes
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static('public'));
 
-// 404 handler
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found', path: req.path, method: req.method });
+  res.status(404).json({ 
+    message: 'Route not found', 
+    path: req.path, 
+    method: req.method 
+  });
 });
 
-// Initialize Socket.io
 initializeSocket(server);
+
+cron.schedule('0 9 * * *', async () => {
+  console.log('Bắt đầu gửi email nhắc nhở check-in...');
+  try {
+    const results = await sendCheckInReminders();
+    console.log(`Hoàn thành gửi email nhắc nhở: ${results.success}/${results.total} thành công`);
+    if (results.errors.length > 0) {
+      console.error('Các lỗi khi gửi email:', results.errors);
+    }
+  } catch (error) {
+    console.error('Lỗi khi chạy scheduled job gửi email nhắc nhở:', error);
+  }
+}, {
+  scheduled: true,
+  timezone: "Asia/Ho_Chi_Minh"
+});
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log('Scheduled job gửi email nhắc nhở check-in đã được kích hoạt (9:00 AM hàng ngày)');
 });

@@ -9,7 +9,7 @@ const {
   notifyGuestBookingCancelled,
   notifyGuestBookingExpired,
 } = require("../services/notifications");
-const { sendReceiptEmail } = require("../services/emails");
+const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../services/emails");
 
 const bookingService = require("../services/bookings");
 
@@ -199,6 +199,11 @@ exports.updateBookingStatus = async (req, res) => {
           }
         }).catch(err => {
           console.error('Lỗi khi gửi email hóa đơn:', err);
+        });
+
+        // Gửi email nhắc nhở check-in ngay nếu checkInDate là 1-2 ngày sau
+        sendCheckInReminderIfNeeded(populatedBooking).catch(err => {
+          console.error('Lỗi khi gửi email nhắc nhở check-in:', err);
         });
       }
 

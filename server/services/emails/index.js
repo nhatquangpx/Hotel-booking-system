@@ -5,7 +5,8 @@
 
 const { sendEmail } = require("./emailService");
 const { sendNewPasswordEmail } = require("./authEmail");
-const { sendReceiptEmail } = require("./bookingEmail");
+const { sendReceiptEmail, sendCheckInReminderEmail } = require("./bookingEmail");
+const { sendCheckInReminders, sendCheckInReminderIfNeeded } = require("./reminderEmailService");
 
 module.exports = {
   // Core email service
@@ -16,4 +17,9 @@ module.exports = {
   
   // Booking emails
   sendReceiptEmail,
+  sendCheckInReminderEmail,
+  
+  // Reminder email service
+  sendCheckInReminders,
+  sendCheckInReminderIfNeeded,
 };

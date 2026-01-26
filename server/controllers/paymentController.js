@@ -8,7 +8,7 @@ const {
   notifyGuestBookingConfirmed,
   notifyAdminHighValueBooking
 } = require("../services/notifications");
-const { sendReceiptEmail } = require("../services/emails");
+const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../services/emails");
 
 // Helper function để khởi tạo VNPay instance
 const getVNPayInstance = () => {
@@ -196,6 +196,11 @@ exports.vnpayCallback = async (req, res) => {
                     }
                 }).catch(err => {
                     console.error('Lỗi khi gửi email hóa đơn:', err);
+                });
+
+                // Gửi email nhắc nhở check-in ngay nếu checkInDate là 1-2 ngày sau
+                sendCheckInReminderIfNeeded(populatedBooking).catch(err => {
+                    console.error('Lỗi khi gửi email nhắc nhở check-in:', err);
                 });
             }
 
