@@ -3,6 +3,7 @@ import { FaDollarSign, FaBed, FaExclamationCircle } from 'react-icons/fa';
 import { ownerDashboardAPI } from '@/apis/owner/dashboard';
 import MetricCard from '../../components/MetricCard';
 import HotelInfoCard from '../../components/HotelInfoCard';
+import EditHotelDialog from '../../components/EditHotelDialog';
 import PoliciesCard from '../../components/PoliciesCard';
 import RevenueChart from '../../components/RevenueChart';
 import RoomOccupancyChart from '../../components/RoomOccupancyChart';
@@ -26,6 +27,7 @@ export const OwnerDashboard = () => {
   const [roomOccupancy, setRoomOccupancy] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -62,38 +64,6 @@ export const OwnerDashboard = () => {
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        // Set default data for demo
-        setStats({
-          todayRevenue: 7800000,
-          availableRooms: 8,
-          totalRooms: 20,
-          roomsToClean: 5,
-          brokenRooms: 2
-        });
-        setWeeklyRevenue([
-          { day: 'T2', value: 4500000 },
-          { day: 'T3', value: 5200000 },
-          { day: 'T4', value: 3800000 },
-          { day: 'T5', value: 6100000 },
-          { day: 'T6', value: 7200000 },
-          { day: 'T7', value: 8500000 },
-          { day: 'CN', value: 7800000 },
-        ]);
-        setRoomOccupancy([
-          { day: 'T2', value: 6000000 },
-          { day: 'T3', value: 7000000 },
-          { day: 'T4', value: 6500000 },
-          { day: 'T5', value: 8000000 },
-          { day: 'T6', value: 9000000 },
-          { day: 'T7', value: 9500000 },
-          { day: 'CN', value: 8500000 },
-        ]);
-        setTasks([
-          { id: 1, type: 'cleaning', text: 'Dọn phòng 101, 102, 105', urgent: true },
-          { id: 2, type: 'checkin', text: 'Khách đến - Phòng 203', time: '14:00' },
-          { id: 3, type: 'maintenance', text: 'Sửa vòi nước phòng 304', urgent: true },
-          { id: 4, type: 'checkout', text: 'Check-out phòng 201', time: '12:00' },
-        ]);
       } finally {
         setLoading(false);
       }
@@ -101,6 +71,23 @@ export const OwnerDashboard = () => {
 
     fetchDashboardData();
   }, []);
+
+  const handleEditHotel = () => {
+    setShowEditDialog(true);
+  };
+
+  const handleEditSuccess = () => {
+    // Refresh hotel data after successful update
+    const fetchHotelData = async () => {
+      try {
+        const hotelData = await ownerDashboardAPI.getHotelInfo();
+        setHotel(hotelData);
+      } catch (err) {
+        console.error('Error refreshing hotel data:', err);
+      }
+    };
+    fetchHotelData();
+  };
 
   const formatRevenue = (amount) => {
     if (amount >= 1000000) {
@@ -131,9 +118,19 @@ export const OwnerDashboard = () => {
       <div className="today-overview">
         <HotelInfoCard 
           hotel={hotel}
-          onEdit={() => console.log('Edit hotel')}
+          onEdit={handleEditHotel}
         />
       </div>
+
+      {/* Edit Hotel Dialog */}
+      {hotel && (
+        <EditHotelDialog
+          isOpen={showEditDialog}
+          onClose={() => setShowEditDialog(false)}
+          hotel={hotel}
+          onSuccess={handleEditSuccess}
+        />
+      )}
 
       {/* Policies Section */}
       <PoliciesCard />
