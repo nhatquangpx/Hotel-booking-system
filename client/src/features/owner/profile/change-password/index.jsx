@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { AccountCircle, Edit, Lock } from '@mui/icons-material';
+import { AccountCircle, Edit, Lock, Security } from '@mui/icons-material';
 import { OwnerLayout } from '@/features/owner/components';
 import api from '../../../../apis';
 import '../account/Account.scss';
@@ -14,6 +14,7 @@ import '../account/Account.scss';
 const OwnerProfileChangePasswordPage = () => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -123,24 +124,31 @@ const OwnerProfileChangePasswordPage = () => {
           <div className="sidebar">
             <Link 
               to={basePath} 
-              className="menu-item"
+              className={`menu-item ${location.pathname === basePath ? 'active' : ''}`}
             >
               <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
               Thông tin cá nhân
             </Link>
             <Link 
               to={`${basePath}/edit`} 
-              className="menu-item"
+              className={`menu-item ${location.pathname === `${basePath}/edit` ? 'active' : ''}`}
             >
               <Edit sx={{ fontSize: 20, marginRight: 1 }} />
               Chỉnh sửa thông tin
             </Link>
             <Link 
               to={`${basePath}/changepassword`} 
-              className="menu-item active"
+              className={`menu-item ${location.pathname === `${basePath}/changepassword` ? 'active' : ''}`}
             >
               <Lock sx={{ fontSize: 20, marginRight: 1 }} />
               Đổi mật khẩu
+            </Link>
+            <Link 
+              to={`${basePath}/two-factor`} 
+              className={`menu-item ${location.pathname === `${basePath}/two-factor` ? 'active' : ''}`}
+            >
+              <Security sx={{ fontSize: 20, marginRight: 1 }} />
+              Xác thực 2 lớp
             </Link>
           </div>
 

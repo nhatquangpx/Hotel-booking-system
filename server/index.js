@@ -70,25 +70,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/api', (req, res) => {
-  res.json({ 
-    message: 'API is running',
-    endpoints: {
-      auth: {
-        login: 'POST /api/auth/login',
-        register: 'POST /api/auth/register',
-        forgotPassword: 'POST /api/auth/forgotpassword'
-      },
-      guest: {
-        hotels: 'GET /api/guest/hotels',
-        featuredHotels: 'GET /api/guest/hotels/featured',
-        hotelById: 'GET /api/guest/hotels/:id'
-      }
-    },
-    timestamp: new Date().toISOString()
-  });
-});
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static('public'));
 

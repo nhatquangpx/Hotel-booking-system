@@ -34,7 +34,53 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active"
-    }
+    },
+    twoFactorAuth: {
+      enabled: {
+        type: Boolean,
+        default: false
+      },
+      secret: {
+        type: String,
+        default: null
+      },
+      backupCodes: [{
+        code: String,
+        used: {
+          type: Boolean,
+          default: false
+        },
+        usedAt: Date
+      }]
+    },
+    temp2FAToken: {
+      type: String,
+      default: null
+    },
+    temp2FAExpires: {
+      type: Date,
+      default: null
+    },
+    trustedDevices: [{
+      deviceId: {
+        type: String,
+        required: true
+      },
+      deviceName: {
+        type: String,
+        default: 'Unknown Device'
+      },
+      userAgent: String,
+      ipAddress: String,
+      trustedAt: {
+        type: Date,
+        default: Date.now
+      },
+      expiresAt: {
+        type: Date,
+        required: true
+      }
+    }]
   },
   { timestamps: true }
 );

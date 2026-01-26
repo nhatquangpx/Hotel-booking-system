@@ -1,0 +1,465 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.two-factor-settings {
+  .section {
+    background: $bg-white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    h2 {
+      @include heading-lg;
+      margin-bottom: 10px;
+      color: $text-primary;
+    }
+
+    .section-description {
+      @include body-base;
+      color: $text-secondary;
+      margin-bottom: 30px;
+    }
+
+    .twofa-status-card {
+      background: $bg-light;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid $border-medium;
+      margin-bottom: 20px;
+
+      .status-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+
+        .status-info {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+
+          h3 {
+            @include heading-sm;
+            margin: 0;
+            color: $text-primary;
+          }
+
+          .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            @include button-text;
+            font-size: 13px;
+            font-weight: 600;
+
+            &.enabled {
+              background: #d4edda;
+              color: #155724;
+            }
+
+            &.disabled {
+              background: #f8d7da;
+              color: #721c24;
+            }
+          }
+        }
+      }
+
+      .status-details {
+        margin-bottom: 20px;
+        padding-top: 15px;
+        border-top: 1px solid $border-light;
+
+        p {
+          @include body-base;
+          color: $text-secondary;
+          margin: 0;
+
+          strong {
+            color: $text-primary;
+          }
+        }
+      }
+
+      .twofa-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        button {
+          padding: 10px 20px;
+          border-radius: 5px;
+          @include button-text;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: none;
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .btn-enable {
+          background: $button-primary;
+          color: $text-white;
+
+          &:hover:not(:disabled) {
+            background: $button-primary-hover;
+          }
+        }
+
+        .btn-regenerate {
+          background: $bg-white;
+          color: $text-primary;
+          border: 1px solid $border-medium;
+
+          &:hover:not(:disabled) {
+            background: $bg-light;
+            border-color: $pinkred;
+            color: $pinkred;
+          }
+        }
+
+        .btn-disable {
+          background: transparent;
+          color: #dc3545;
+          border: 1px solid #dc3545;
+
+          &:hover:not(:disabled) {
+            background: #dc3545;
+            color: $text-white;
+          }
+        }
+      }
+    }
+
+    .backup-codes-card {
+      background: #fffbe6;
+      border: 2px solid #F5C842;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 20px;
+
+      h3 {
+        @include heading-sm;
+        margin-bottom: 15px;
+        color: #B8941F;
+      }
+
+      .warning-text {
+        @include body-base;
+        color: #856404;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .codes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+
+        .code-item {
+          background: $bg-white;
+          padding: 12px;
+          border-radius: 5px;
+          text-align: center;
+          font-family: 'Courier New', monospace;
+          font-size: 16px;
+          font-weight: 600;
+          color: #B8941F;
+          border: 1px solid #F5C842;
+        }
+      }
+
+      .codes-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+
+        button {
+          padding: 8px 16px;
+          border-radius: 5px;
+          @include button-text;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: none;
+        }
+
+        .btn-copy {
+          background: $button-primary;
+          color: $text-white;
+
+          &:hover {
+            background: $button-primary-hover;
+          }
+        }
+
+        .btn-close {
+          background: transparent;
+          color: $text-primary;
+          border: 1px solid $border-medium;
+
+          &:hover {
+            background: $bg-light;
+            border-color: $pinkred;
+            color: $pinkred;
+          }
+        }
+      }
+    }
+
+    .confirm-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+
+      .dialog-content {
+        background: $bg-white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+        h3 {
+          @include heading-md;
+          margin-bottom: 15px;
+          color: $text-primary;
+        }
+
+        p {
+          @include body-base;
+          color: $text-secondary;
+          margin-bottom: 25px;
+        }
+
+        .dialog-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+
+          button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            @include button-text;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+          }
+
+          .btn-cancel {
+            background: transparent;
+            color: $text-primary;
+            border: 1px solid $border-medium;
+
+            &:hover:not(:disabled) {
+              background: $bg-light;
+              border-color: $pinkred;
+              color: $pinkred;
+            }
+          }
+
+          .btn-confirm {
+            background: #dc3545;
+            color: $text-white;
+
+            &:hover:not(:disabled) {
+              background: #c82333;
+            }
+          }
+        }
+      }
+    }
+
+    // Trusted Devices Section
+    .section-header {
+      margin-bottom: 20px;
+
+      h2 {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+    }
+
+    .trusted-devices-card {
+      background: $bg-white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      .devices-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid $border-light;
+
+        .devices-count {
+          @include body-base;
+          color: $text-medium;
+          margin: 0;
+
+          strong {
+            color: $text-primary;
+            font-weight: 600;
+          }
+        }
+
+        .btn-remove-all {
+          display: flex;
+          align-items: center;
+          padding: 8px 16px;
+          background: transparent;
+          border: 1px solid #dc3545;
+          color: #dc3545;
+          border-radius: 6px;
+          @include button-text;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover:not(:disabled) {
+            background: #dc3545;
+            color: $text-white;
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+
+      .devices-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .device-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          padding: 16px;
+          background: $bg-light;
+          border-radius: 8px;
+          border: 1px solid $border-light;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: $pinkred;
+            box-shadow: 0 2px 8px rgba(160, 130, 109, 0.1);
+          }
+
+          .device-info {
+            flex: 1;
+
+            .device-name-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+
+              h4 {
+                @include heading-sm;
+                margin: 0;
+                color: $text-primary;
+              }
+
+              .days-badge {
+                padding: 4px 12px;
+                border-radius: 12px;
+                @include body-sm;
+                font-weight: 600;
+                background: #28a745;
+                color: $text-white;
+
+                &.warning {
+                  background: #ffc107;
+                  color: $text-dark;
+                }
+              }
+            }
+
+            .device-details {
+              @include body-sm;
+              color: $text-medium;
+              margin: 4px 0;
+
+              strong {
+                color: $text-primary;
+              }
+            }
+
+            .device-user-agent {
+              @include body-sm;
+              color: $text-light;
+              margin-top: 8px;
+              font-style: italic;
+            }
+          }
+
+          .btn-remove-device {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            background: transparent;
+            border: 1px solid $border-medium;
+            color: $text-medium;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 16px;
+
+            &:hover:not(:disabled) {
+              background: #dc3545;
+              border-color: #dc3545;
+              color: $text-white;
+            }
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+          }
+        }
+      }
+    }
+
+    .empty-state {
+      background: $bg-light;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+
+      p {
+        @include body-base;
+        color: $text-medium;
+        margin: 8px 0;
+      }
+
+      .empty-hint {
+        @include body-sm;
+        color: $text-light;
+        font-style: italic;
+      }
+    }
+  }
+}

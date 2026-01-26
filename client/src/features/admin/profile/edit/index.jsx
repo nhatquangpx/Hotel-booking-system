@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { AccountCircle, Edit, Lock } from '@mui/icons-material';
+import { AccountCircle, Edit, Lock, Security } from '@mui/icons-material';
 import { AdminLayout } from '@/features/admin/components';
 import api from '../../../../apis';
 import '../account/Account.scss';
@@ -14,6 +14,7 @@ import '../account/Account.scss';
 const AdminProfileEditPage = () => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -97,24 +98,31 @@ const AdminProfileEditPage = () => {
           <div className="sidebar">
             <Link 
               to={basePath} 
-              className="menu-item"
+              className={`menu-item ${location.pathname === basePath ? 'active' : ''}`}
             >
               <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
               Thông tin cá nhân
             </Link>
             <Link 
               to={`${basePath}/edit`} 
-              className="menu-item active"
+              className={`menu-item ${location.pathname === `${basePath}/edit` ? 'active' : ''}`}
             >
               <Edit sx={{ fontSize: 20, marginRight: 1 }} />
               Chỉnh sửa thông tin
             </Link>
             <Link 
               to={`${basePath}/changepassword`} 
-              className="menu-item"
+              className={`menu-item ${location.pathname === `${basePath}/changepassword` ? 'active' : ''}`}
             >
               <Lock sx={{ fontSize: 20, marginRight: 1 }} />
               Đổi mật khẩu
+            </Link>
+            <Link 
+              to={`${basePath}/two-factor`} 
+              className={`menu-item ${location.pathname === `${basePath}/two-factor` ? 'active' : ''}`}
+            >
+              <Security sx={{ fontSize: 20, marginRight: 1 }} />
+              Xác thực 2 lớp
             </Link>
           </div>
 

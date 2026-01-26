@@ -36,7 +36,8 @@ import {
   AdminBookingDetailPage,
   AdminProfileAccountPage,
   AdminProfileEditPage,
-  AdminProfileChangePasswordPage
+  AdminProfileChangePasswordPage,
+  AdminTwoFactorPage
 } from "@/features/admin";
 import { 
   OwnerDashboardPage,
@@ -46,7 +47,8 @@ import {
   OwnerNotificationsPage,
   OwnerProfileAccountPage,
   OwnerProfileEditPage,
-  OwnerProfileChangePasswordPage
+  OwnerProfileChangePasswordPage,
+  OwnerTwoFactorPage
 } from "@/features/owner";
 
 /**
@@ -120,6 +122,7 @@ export default function AppRoutes() {
           <Route path="/admin/profile" element={<AdminProfileAccountPage />} />
           <Route path="/admin/profile/edit" element={<AdminProfileEditPage />} />
           <Route path="/admin/profile/changepassword" element={<AdminProfileChangePasswordPage />} />
+          <Route path="/admin/profile/two-factor" element={<AdminTwoFactorPage />} />
         </Route>
 
         {/* Owner (protected) */}
@@ -134,6 +137,7 @@ export default function AppRoutes() {
           <Route path="/owner/profile" element={<OwnerProfileAccountPage />} />
           <Route path="/owner/profile/edit" element={<OwnerProfileEditPage />} />
           <Route path="/owner/profile/changepassword" element={<OwnerProfileChangePasswordPage />} />
+          <Route path="/owner/profile/two-factor" element={<OwnerTwoFactorPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

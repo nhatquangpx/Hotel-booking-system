@@ -180,6 +180,54 @@
           }
         }
       }
+
+      .two-factor-auth-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+
+        h2 {
+          @include heading-lg;
+          font-weight: $font-semibold;
+          color: $text-primary;
+          text-align: center;
+          margin-bottom: 0.5rem;
+        }
+
+        .twofa-description {
+          @include body-base;
+          color: $text-secondary;
+          text-align: center;
+          margin-bottom: 1rem;
+
+          strong {
+            color: $text-primary;
+          }
+        }
+
+        .back-to-login-btn {
+          width: 100%;
+          padding: 0.75rem;
+          background: transparent;
+          border: 1px solid $border-medium;
+          border-radius: 4px;
+          color: $text-primary;
+          @include button-text;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          margin-top: 1rem;
+
+          &:hover:not(:disabled) {
+            background: $bg-light;
+            border-color: $text-primary;
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
     }
   }
 
