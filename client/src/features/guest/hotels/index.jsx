@@ -8,7 +8,16 @@ import './HotelList.scss';
  * Displays list of hotels with filtering capabilities
  */
 export const GuestHotelListPage = () => {
-  const { hotels, cities, filters, loading, error, handleFilterChange } = useHotelFilters();
+  const { 
+    hotels, 
+    cities, 
+    filters, 
+    loading, 
+    error, 
+    handleFilterChange, 
+    handleAmenityToggle, 
+    clearFilters 
+  } = useHotelFilters();
 
   return (
     <GuestLayout>
@@ -17,6 +26,8 @@ export const GuestHotelListPage = () => {
           filters={filters}
           cities={cities}
           onFilterChange={handleFilterChange}
+          onAmenityToggle={handleAmenityToggle}
+          onClearFilters={clearFilters}
         />
 
         <div className="hotel-list">
