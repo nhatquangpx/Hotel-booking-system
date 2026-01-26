@@ -16,6 +16,7 @@ router.use(authenticate, isOwner);
 // Quản lý thông tin cá nhân    
 router.get('/profile', userController.getUserById);
 router.put('/profile', userController.updateUser);
+router.put('/profile/changepassword', userController.changePassword);
 
 // Quản lý khách sạn
 router.get('/hotels', hotelController.getHotelsByOwner);

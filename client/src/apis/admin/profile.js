@@ -19,6 +19,16 @@ export const adminProfileAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  // Đổi mật khẩu
+  changePassword: async (userData) => {
+    try {
+      const response = await api.put('/admin/profile/changepassword', userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
   }
 };
 

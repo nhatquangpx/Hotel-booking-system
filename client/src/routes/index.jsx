@@ -33,14 +33,20 @@ import {
   AdminRoomDetailPage,
   AdminRoomEditPage,
   AdminBookingListPage,
-  AdminBookingDetailPage
+  AdminBookingDetailPage,
+  AdminProfileAccountPage,
+  AdminProfileEditPage,
+  AdminProfileChangePasswordPage
 } from "@/features/admin";
 import { 
   OwnerDashboardPage,
   OwnerRoomMapPage,
   OwnerBookingListPage,
   OwnerReviewsPage,
-  OwnerNotificationsPage
+  OwnerNotificationsPage,
+  OwnerProfileAccountPage,
+  OwnerProfileEditPage,
+  OwnerProfileChangePasswordPage
 } from "@/features/owner";
 
 /**
@@ -109,6 +115,11 @@ export default function AppRoutes() {
           {/* Bookings */}
           <Route path="/admin/bookings" element={<AdminBookingListPage />} />
           <Route path="/admin/bookings/:id" element={<AdminBookingDetailPage />} />
+
+          {/* Profile */}
+          <Route path="/admin/profile" element={<AdminProfileAccountPage />} />
+          <Route path="/admin/profile/edit" element={<AdminProfileEditPage />} />
+          <Route path="/admin/profile/changepassword" element={<AdminProfileChangePasswordPage />} />
         </Route>
 
         {/* Owner (protected) */}
@@ -118,6 +129,11 @@ export default function AppRoutes() {
           <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
           <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
           <Route path="/owner/notifications" element={<OwnerNotificationsPage />} />
+          
+          {/* Profile */}
+          <Route path="/owner/profile" element={<OwnerProfileAccountPage />} />
+          <Route path="/owner/profile/edit" element={<OwnerProfileEditPage />} />
+          <Route path="/owner/profile/changepassword" element={<OwnerProfileChangePasswordPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

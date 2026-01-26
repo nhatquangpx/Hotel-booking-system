@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const crypto = require("crypto");
-const {sendNewPasswordEmail} = require("../utils/emailService");
+const { sendNewPasswordEmail } = require("../services/emails");
 
 // Đăng ký
 exports.register = async (req, res) => {

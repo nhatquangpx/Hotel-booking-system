@@ -148,7 +148,18 @@ const checkBookingPermission = (booking, user) => {
 
   // Guest can access their own bookings
   if (userRole === "guest") {
-    const guestId = booking.guest?.toString ? booking.guest.toString() : String(booking.guest);
+    // Handle both populated (object) and unpopulated (ObjectId) guest
+    let guestId;
+    if (booking.guest && typeof booking.guest === 'object' && booking.guest._id) {
+      // Guest is populated (object with _id)
+      guestId = booking.guest._id.toString();
+    } else if (booking.guest && typeof booking.guest === 'object' && booking.guest.id) {
+      // Guest is populated (object with id)
+      guestId = booking.guest.id.toString();
+    } else {
+      // Guest is ObjectId (not populated)
+      guestId = booking.guest?.toString ? booking.guest.toString() : String(booking.guest);
+    }
     return guestId === String(userId);
   }
 
@@ -160,7 +171,17 @@ const checkBookingPermission = (booking, user) => {
     }
 
     // Handle both populated and unpopulated hotel
-    const ownerId = hotel.ownerId?.toString ? hotel.ownerId.toString() : String(hotel.ownerId);
+    let ownerId;
+    if (hotel.ownerId && typeof hotel.ownerId === 'object' && hotel.ownerId._id) {
+      // ownerId is populated (object with _id)
+      ownerId = hotel.ownerId._id.toString();
+    } else if (hotel.ownerId && typeof hotel.ownerId === 'object' && hotel.ownerId.id) {
+      // ownerId is populated (object with id)
+      ownerId = hotel.ownerId.id.toString();
+    } else {
+      // ownerId is ObjectId (not populated)
+      ownerId = hotel.ownerId?.toString ? hotel.ownerId.toString() : String(hotel.ownerId);
+    }
     return ownerId === String(userId);
   }
 

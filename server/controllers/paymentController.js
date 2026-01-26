@@ -8,6 +8,7 @@ const {
   notifyGuestBookingConfirmed,
   notifyAdminHighValueBooking
 } = require("../services/notifications");
+const { sendReceiptEmail } = require("../services/emails");
 
 // Helper function để khởi tạo VNPay instance
 const getVNPayInstance = () => {
@@ -174,6 +175,29 @@ exports.vnpayCallback = async (req, res) => {
             }
 
             console.log(`Đã cập nhật booking ${booking._id} thành paid sau khi thanh toán VNPay thành công`);
+
+            // Populate booking với đầy đủ thông tin để gửi email hóa đơn
+            const populatedBooking = await Booking.findById(updatedBooking._id)
+                .populate('guest', 'name email phone')
+                .populate('hotel', 'name address contactInfo')
+                .populate('room', 'roomNumber type price maxPeople');
+
+            // Gửi email hóa đơn điện tử
+            if (populatedBooking && populatedBooking.guest && populatedBooking.guest.email) {
+                sendReceiptEmail(
+                    populatedBooking,
+                    'vnpay',
+                    paymentResult.vnp_TxnRef
+                ).then(success => {
+                    if (success) {
+                        console.log(`Đã gửi email hóa đơn cho booking ${booking._id}`);
+                    } else {
+                        console.error(`Không thể gửi email hóa đơn cho booking ${booking._id}`);
+                    }
+                }).catch(err => {
+                    console.error('Lỗi khi gửi email hóa đơn:', err);
+                });
+            }
 
             // Tạo thông báo cho owner
             notifyPaymentSuccessful(booking._id).catch(err => {

@@ -129,7 +129,8 @@ exports.deleteUser = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   try {
-    const userId = req.params.id;
+    // Lấy userId từ params (guest) hoặc từ req.user (admin/owner)
+    const userId = req.params.id || req.user?.id;
     const { currentPassword, newPassword } = req.body;
 
     // Validate input

@@ -124,17 +124,29 @@ const Header = ({
             </button>
             {isDropdownOpen && (
               <div className="user-dropdown">
-                {(displayUser?._id || displayUser?.id) && (
+                {displayUser && (
                   <>
                     <Link 
-                      to={`/profile/${displayUser._id || displayUser.id}`}
+                      to={
+                        displayUser.role === 'admin' 
+                          ? '/admin/profile'
+                          : displayUser.role === 'owner'
+                          ? '/owner/profile'
+                          : `/profile/${displayUser._id || displayUser.id}`
+                      }
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaUser />
                       Thông tin tài khoản
                     </Link>
                     <Link 
-                      to={`/profile/${displayUser._id || displayUser.id}/changepassword`}
+                      to={
+                        displayUser.role === 'admin' 
+                          ? '/admin/profile/changepassword'
+                          : displayUser.role === 'owner'
+                          ? '/owner/profile/changepassword'
+                          : `/profile/${displayUser._id || displayUser.id}/changepassword`
+                      }
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaKey />

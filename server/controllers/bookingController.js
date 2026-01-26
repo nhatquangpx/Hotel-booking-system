@@ -9,6 +9,7 @@ const {
   notifyGuestBookingCancelled,
   notifyGuestBookingExpired,
 } = require("../services/notifications");
+const { sendReceiptEmail } = require("../services/emails");
 
 const bookingService = require("../services/bookings");
 
@@ -175,8 +176,32 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
     }
 
-    // Send notifications if status changed to paid
+    // Send notifications and email receipt if status changed to paid
     if (status === "paid" && oldStatus !== "paid") {
+      // Populate booking với đầy đủ thông tin để gửi email hóa đơn
+      const populatedBooking = await Booking.findById(id)
+        .populate('guest', 'name email phone')
+        .populate('hotel', 'name address contactInfo')
+        .populate('room', 'roomNumber type price maxPeople');
+
+      // Gửi email hóa đơn điện tử
+      if (populatedBooking && populatedBooking.guest && populatedBooking.guest.email) {
+        const paymentMethod = populatedBooking.paymentMethod || 'qr_code';
+        sendReceiptEmail(
+          populatedBooking,
+          paymentMethod,
+          populatedBooking.vnpTransactionRef || null
+        ).then(success => {
+          if (success) {
+            console.log(`Đã gửi email hóa đơn cho booking ${id} (cập nhật thủ công)`);
+          } else {
+            console.error(`Không thể gửi email hóa đơn cho booking ${id}`);
+          }
+        }).catch(err => {
+          console.error('Lỗi khi gửi email hóa đơn:', err);
+        });
+      }
+
       // Notify owner about new booking (after payment)
       notifyPaymentSuccessful(id).catch(err => {
         console.error('Lỗi khi tạo thông báo đặt phòng mới cho owner:', err);
