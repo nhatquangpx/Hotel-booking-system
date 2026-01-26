@@ -53,6 +53,10 @@ const BookingSchema = new mongoose.Schema(
     },
     checkedOutAt: {
       type: Date
+    },
+    checkInReminderSent: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

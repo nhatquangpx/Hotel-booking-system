@@ -339,6 +339,296 @@ const sendReceiptEmail = async (booking, paymentMethod = 'qr_code', transactionR
   }
 };
 
+/**
+ * Gửi email nhắc nhở check-in cho booking
+ * @param {Object} booking - Booking object đã được populate với hotel, room, guest
+ * @param {Number} daysUntilCheckIn - Số ngày còn lại đến check-in (1 hoặc 2)
+ * @returns {Promise<Boolean>} - Success status
+ */
+const sendCheckInReminderEmail = async (booking, daysUntilCheckIn = 2) => {
+  try {
+    // Lấy thông tin từ booking
+    const guest = booking.guest;
+    const hotel = booking.hotel;
+    const room = booking.room;
+    
+    if (!guest || !guest.email) {
+      console.error('Không tìm thấy email của khách hàng');
+      return false;
+    }
+
+    // Format ngày tháng
+    const formatDate = (date) => {
+      if (!date) return 'N/A';
+      return new Date(date).toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    };
+
+    // Format giá tiền
+    const formatPrice = (price) => {
+      return new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
+    };
+
+    // Tính số đêm
+    const checkIn = new Date(booking.checkInDate);
+    const checkOut = new Date(booking.checkOutDate);
+    const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+
+    // Tạo mã booking ngắn gọn
+    const bookingIdShort = booking._id.toString().slice(-8).toUpperCase();
+
+    // Địa chỉ khách sạn
+    const hotelAddress = hotel.address 
+      ? `${hotel.address.number} ${hotel.address.street}, ${hotel.address.city}`
+      : 'N/A';
+
+    // Loại phòng
+    const roomTypeMap = {
+      'standard': 'Phòng tiêu chuẩn',
+      'deluxe': 'Phòng cao cấp',
+      'suite': 'Phòng Suite',
+      'family': 'Phòng gia đình',
+      'executive': 'Phòng hạng sang'
+    };
+    const roomTypeName = roomTypeMap[room.type] || room.type;
+
+    // Link đến booking detail
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const bookingDetailUrl = `${frontendUrl}/booking/${booking._id}`;
+
+    // Tạo thông điệp nhắc nhở dựa trên số ngày còn lại
+    const reminderMessage = daysUntilCheckIn === 1 
+      ? 'Ngày mai là ngày check-in của bạn!'
+      : `Còn ${daysUntilCheckIn} ngày nữa là đến ngày check-in!`;
+
+    const subject = `Nhắc nhở check-in - Đặt phòng #BK${bookingIdShort}`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #1C1B1F;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .reminder-container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #A0826D;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #A0826D;
+      margin: 0;
+      font-size: 28px;
+    }
+    .header p {
+      color: #79747E;
+      margin: 5px 0;
+    }
+    .reminder-badge {
+      background-color: #fffbe6;
+      border: 2px solid #F5C842;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    .reminder-badge h2 {
+      color: #B8941F;
+      margin: 0 0 10px 0;
+      font-size: 20px;
+    }
+    .reminder-badge p {
+      color: #79747E;
+      margin: 5px 0;
+      font-size: 16px;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #A0826D;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #79747E;
+      width: 40%;
+    }
+    .info-value {
+      color: #1C1B1F;
+      width: 60%;
+      text-align: right;
+      font-size: 14px;
+    }
+    .booking-details {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .cta-button {
+      display: block;
+      text-align: center;
+      background-color: #A0826D;
+      color: #ffffff;
+      padding: 15px 30px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      margin: 30px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .cta-button:hover {
+      background-color: #8a6f5a;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e9ecef;
+      color: #79747E;
+      font-size: 14px;
+    }
+    .booking-id {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 15px 0;
+      font-size: 14px;
+      color: #1C1B1F;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="reminder-container">
+    <div class="header">
+      <h1>NHẮC NHỞ CHECK-IN</h1>
+      <p>Hệ thống đặt phòng khách sạn trực tuyến</p>
+    </div>
+
+    <div class="reminder-badge">
+      <h2>⏰ Nhắc nhở quan trọng</h2>
+      <p><strong>Ngày check-in của bạn là: ${formatDate(booking.checkInDate)}</strong></p>
+      <p>${reminderMessage}</p>
+    </div>
+
+    <div class="booking-id">
+      <strong>Mã đặt phòng:</strong> #BK${bookingIdShort}
+    </div>
+
+    <div class="section">
+      <div class="section-title">Thông tin đặt phòng</div>
+      <div class="booking-details">
+        <div class="info-row">
+          <span class="info-label">Khách sạn:</span>
+          <span class="info-value"><strong>${hotel.name || 'N/A'}</strong></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Địa chỉ:</span>
+          <span class="info-value">${hotelAddress}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Phòng:</span>
+          <span class="info-value">${room.roomNumber || 'N/A'} - ${roomTypeName}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Ngày nhận phòng:</span>
+          <span class="info-value"><strong>${formatDate(booking.checkInDate)}</strong></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Ngày trả phòng:</span>
+          <span class="info-value">${formatDate(booking.checkOutDate)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Số đêm:</span>
+          <span class="info-value">${nights} đêm</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tổng thanh toán:</span>
+          <span class="info-value"><strong>${formatPrice(booking.totalAmount)}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Thông tin khách hàng</div>
+      <div class="info-row">
+        <span class="info-label">Họ và tên:</span>
+        <span class="info-value">${guest.name || 'N/A'}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-value">${guest.email || 'N/A'}</span>
+      </div>
+      ${guest.phone ? `
+      <div class="info-row">
+        <span class="info-label">Số điện thoại:</span>
+        <span class="info-value">${guest.phone}</span>
+      </div>
+      ` : ''}
+    </div>
+
+    ${booking.specialRequests ? `
+    <div class="section">
+      <div class="section-title">Yêu cầu đặc biệt</div>
+      <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; color: #1C1B1F;">${booking.specialRequests}</p>
+    </div>
+    ` : ''}
+
+    <a href="${bookingDetailUrl}" class="cta-button">
+      Xem chi tiết đơn đặt phòng
+    </a>
+
+    <div class="footer">
+      <p><strong>Chúng tôi rất mong được đón tiếp bạn!</strong></p>
+      <p>Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi qua email hoặc hotline.</p>
+      <p style="margin-top: 20px; color: #79747E; font-size: 12px;">
+        Đây là email tự động, vui lòng không trả lời email này.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    return await sendEmail(guest.email, subject, html);
+  } catch (error) {
+    console.error('Lỗi khi gửi email nhắc nhở check-in:', error);
+    return false;
+  }
+};
+
 module.exports = {
   sendReceiptEmail,
+  sendCheckInReminderEmail,
 };
