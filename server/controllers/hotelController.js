@@ -1,6 +1,8 @@
 const Hotel = require("../models/Hotel");
+const Room = require("../models/Room");
 const User = require("../models/User");
 const { hasCloudinaryConfig } = require("../config/multerConfig");
+const mongoose = require("mongoose");
 const { 
   notifyAdminHotelRegistrationRequest,
   notifyAdminHotelApproved,
@@ -261,38 +263,110 @@ exports.getFeaturedHotels = async (req, res) => {
   }
 };
 
-// Get hotels by filter
+// Get hotels by filter (nâng cao)
 exports.getHotelByFilter = async (req, res) => {
   try {
-    const { city, starRating, name, search } = req.query;
-    let query = {};
+    const { 
+      city, 
+      starRating, 
+      name, 
+      search,
+      minPrice,
+      maxPrice,
+      maxPeople,
+      roomType,
+      amenities
+    } = req.query;
+    
+    // Build base query for hotels
+    let hotelQuery = { status: "active" }; // Chỉ lấy khách sạn đang hoạt động
 
-    // Apply filters if they exist
+    // Apply basic filters
     if (city) {
-      query["address.city"] = { $regex: city, $options: "i" };
+      hotelQuery["address.city"] = { $regex: city, $options: "i" };
     }
     
     if (starRating) {
-      query.starRating = parseInt(starRating);
+      hotelQuery.starRating = parseInt(starRating);
     }
 
     if (name) {
-      query.name = { $regex: name, $options: "i" };
+      hotelQuery.name = { $regex: name, $options: "i" };
     }
 
     // Tìm kiếm đồng thời theo tên khách sạn và địa danh
     if (search) {
-      query.$or = [
+      hotelQuery.$or = [
         { name: { $regex: search, $options: "i" } },
         { "address.city": { $regex: search, $options: "i" } }
       ];
     }
-    
-    const hotels = await Hotel.find(query)
+
+    // Nếu có filter liên quan đến phòng (giá, số người, loại phòng, facilities)
+    // thì cần sử dụng aggregation để join với Room
+    const hasRoomFilters = minPrice || maxPrice || maxPeople || roomType || amenities;
+
+    if (hasRoomFilters) {
+      // Build room query
+      let roomQuery = { roomStatus: "active" }; // Chỉ lấy phòng đang hoạt động
+
+      if (minPrice || maxPrice) {
+        roomQuery["price.regular"] = {};
+        if (minPrice) {
+          roomQuery["price.regular"].$gte = parseInt(minPrice);
+        }
+        if (maxPrice) {
+          roomQuery["price.regular"].$lte = parseInt(maxPrice);
+        }
+      }
+
+      if (maxPeople) {
+        roomQuery.maxPeople = { $gte: parseInt(maxPeople) };
+      }
+
+      if (roomType) {
+        const roomTypes = Array.isArray(roomType) ? roomType : [roomType];
+        roomQuery.type = { $in: roomTypes };
+      }
+
+      // Filter by facilities (tiện ích phòng)
+      if (amenities) {
+        let facilitiesArray;
+        if (Array.isArray(amenities)) {
+          facilitiesArray = amenities;
+        } else if (typeof amenities === 'string') {
+          // Xử lý trường hợp amenities là string (comma-separated từ query params)
+          facilitiesArray = amenities.split(',').filter(a => a.trim() !== '');
+        } else {
+          facilitiesArray = [amenities];
+        }
+        
+        if (facilitiesArray.length > 0) {
+          // Lọc phòng có chứa tất cả các facilities được chọn (sử dụng $all)
+          roomQuery.facilities = { $all: facilitiesArray };
+        }
+      }
+
+      // Tìm các phòng thỏa mãn điều kiện
+      const matchingRooms = await Room.find(roomQuery).select('hotelId');
+      const hotelIds = [...new Set(matchingRooms.map(room => room.hotelId.toString()))];
+
+      // Thêm filter hotelIds vào hotelQuery
+      if (hotelIds.length > 0) {
+        hotelQuery._id = { $in: hotelIds.map(id => new mongoose.Types.ObjectId(id)) };
+      } else {
+        // Nếu không có phòng nào thỏa mãn, trả về mảng rỗng
+        return res.status(200).json([]);
+      }
+    }
+
+    // Tìm các khách sạn thỏa mãn điều kiện
+    const hotels = await Hotel.find(hotelQuery)
       .populate({
         path: 'ownerId',
         select: 'name email phone -_id'
-      });
+      })
+      .sort({ createdAt: -1 });
       
     res.status(200).json(hotels);
   } catch (error) {
