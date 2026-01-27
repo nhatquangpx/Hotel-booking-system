@@ -2,7 +2,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const crypto = require("crypto");
-const { sendNewPasswordEmail } = require("../services/emails");
+const { sendNewPasswordEmail, send2FAOTPEmail } = require("../services/emails");
+const { generateOTP, verifyOTP, requires2FA, isDeviceTrusted, getDeviceInfo, addTrustedDevice } = require("../services/auth");
 
 // Đăng ký
 exports.register = async (req, res) => {
@@ -39,15 +40,188 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Mật khẩu không chính xác!" });
 
+        // Kiểm tra nếu role yêu cầu 2FA và user đã bật 2FA
+        if (requires2FA(user.role) && user.twoFactorAuth?.enabled) {
+            // Lấy thông tin device
+            const deviceInfo = getDeviceInfo(req);
+            
+            // Kiểm tra xem device có được trust không
+            if (isDeviceTrusted(user, deviceInfo.deviceId)) {
+                // Device đã được trust, bỏ qua 2FA và tạo token trực tiếp
+                const token = jwt.sign(
+                    { id: user._id, role: user.role, session: Date.now },
+                    process.env.JWT_SECRET,
+                    { expiresIn: "7d" }
+                );
+
+                console.log(`Đăng nhập thành công với trusted device: User ${user._id} (${user.email})`);
+                return res.status(200).json({
+                    token,
+                    user: { id: user._id, email: user.email, role: user.role },
+                    requires2FA: false,
+                    trustedDevice: true
+                });
+            }
+
+            // Device chưa được trust, yêu cầu 2FA
+            // Generate OTP và lưu vào temp token
+            const otpCode = generateOTP();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút
+
+            // Lưu OTP vào database
+            user.temp2FAToken = otpCode;
+            user.temp2FAExpires = expiresAt;
+            await user.save();
+
+            // Gửi OTP qua email
+            await send2FAOTPEmail(user.email, otpCode, user.name);
+
+            console.log(`Yêu cầu 2FA cho user ${user._id} (${user.email})`);
+            return res.status(200).json({
+                requires2FA: true,
+                message: "Vui lòng nhập mã OTP đã được gửi đến email của bạn",
+                userId: user._id,
+                deviceId: deviceInfo.deviceId
+            });
+        }
+
+        // Nếu không cần 2FA, tạo token như bình thường
         const token = jwt.sign({ id: user._id, role: user.role, session: Date.now }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
         console.log(`Đăng nhập thành công: User ${user._id} (${user.email}) với role ${user.role}`);
         res.status(200).json({
             token,
-            user: { id: user._id, email: user.email, role: user.role }
+            user: { id: user._id, email: user.email, role: user.role },
+            requires2FA: false
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+// Xác thực 2FA
+exports.verify2FA = async (req, res) => {
+    try {
+        const { userId, otpCode, rememberDevice } = req.body;
+
+        if (!userId || !otpCode) {
+            return res.status(400).json({ message: "Vui lòng cung cấp userId và mã OTP" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "Người dùng không tồn tại!" });
+        }
+
+        // Kiểm tra 2FA có được bật không
+        if (!user.twoFactorAuth?.enabled) {
+            return res.status(400).json({ message: "Xác thực 2 lớp chưa được bật cho tài khoản này" });
+        }
+
+        // Kiểm tra OTP
+        const isValid = verifyOTP(otpCode, user.temp2FAToken, user.temp2FAExpires);
+
+        if (!isValid) {
+            // Kiểm tra backup codes nếu OTP không hợp lệ
+            const backupCode = user.twoFactorAuth.backupCodes.find(
+                code => code.code === otpCode.toUpperCase() && !code.used
+            );
+
+            if (backupCode) {
+                // Sử dụng backup code
+                backupCode.used = true;
+                backupCode.usedAt = new Date();
+                
+                // Lưu trusted device nếu user chọn remember
+                if (rememberDevice) {
+                    const deviceInfo = getDeviceInfo(req);
+                    addTrustedDevice(user, deviceInfo.deviceId, deviceInfo.deviceName, deviceInfo.userAgent, deviceInfo.ipAddress, 30);
+                }
+                
+                await user.save();
+
+                // Tạo token
+                const token = jwt.sign(
+                    { id: user._id, role: user.role, session: Date.now },
+                    process.env.JWT_SECRET,
+                    { expiresIn: "7d" }
+                );
+
+                console.log(`Đăng nhập thành công với backup code: User ${user._id} (${user.email})`);
+                return res.status(200).json({
+                    token,
+                    user: { id: user._id, email: user.email, role: user.role },
+                    usedBackupCode: true
+                });
+            }
+
+            return res.status(400).json({ message: "Mã OTP không hợp lệ hoặc đã hết hạn" });
+        }
+
+        // Xóa temp token sau khi verify thành công
+        user.temp2FAToken = null;
+        user.temp2FAExpires = null;
+        
+        // Lưu trusted device nếu user chọn remember
+        if (rememberDevice) {
+            const deviceInfo = getDeviceInfo(req);
+            addTrustedDevice(user, deviceInfo.deviceId, deviceInfo.deviceName, deviceInfo.userAgent, deviceInfo.ipAddress, 30);
+        }
+        
+        await user.save();
+
+        // Tạo token
+        const token = jwt.sign(
+            { id: user._id, role: user.role, session: Date.now },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        console.log(`Xác thực 2FA thành công: User ${user._id} (${user.email})`);
+        res.status(200).json({
+            token,
+            user: { id: user._id, email: user.email, role: user.role }
+        });
+    } catch (err) {
+        console.error("2FA verification error:", err);
+        res.status(500).json({ message: "Lỗi khi xác thực 2FA", error: err.message });
+    }
+};
+
+// Gửi lại OTP
+exports.resend2FAOTP = async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ message: "Vui lòng cung cấp userId" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "Người dùng không tồn tại!" });
+        }
+
+        if (!user.twoFactorAuth?.enabled) {
+            return res.status(400).json({ message: "Xác thực 2 lớp chưa được bật" });
+        }
+
+        // Generate OTP mới
+        const otpCode = generateOTP();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút
+
+        user.temp2FAToken = otpCode;
+        user.temp2FAExpires = expiresAt;
+        await user.save();
+
+        // Gửi OTP qua email
+        await send2FAOTPEmail(user.email, otpCode, user.name);
+
+        console.log(`Đã gửi lại OTP cho user ${user._id} (${user.email})`);
+        res.status(200).json({ message: "Đã gửi lại mã OTP đến email của bạn" });
+    } catch (err) {
+        console.error("Resend 2FA OTP error:", err);
+        res.status(500).json({ message: "Lỗi khi gửi lại mã OTP", error: err.message });
     }
 };
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { AccountCircle, Edit, Lock } from '@mui/icons-material';
+import { AccountCircle, Edit, Lock, Security } from '@mui/icons-material';
 import { OwnerLayout } from '@/features/owner/components';
 import api from '../../../../apis';
 import './Account.scss';
@@ -82,6 +82,13 @@ const OwnerProfileAccountPage = () => {
             >
               <Lock sx={{ fontSize: 20, marginRight: 1 }} />
               Đổi mật khẩu
+            </Link>
+            <Link 
+              to={`${basePath}/two-factor`} 
+              className={`menu-item ${location.pathname === `${basePath}/two-factor` ? 'active' : ''}`}
+            >
+              <Security sx={{ fontSize: 20, marginRight: 1 }} />
+              Xác thực 2 lớp
             </Link>
           </div>
 

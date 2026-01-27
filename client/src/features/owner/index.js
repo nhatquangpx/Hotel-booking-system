@@ -10,6 +10,7 @@ export { default as OwnerNotificationsPage } from './notifications';
 export { 
   OwnerProfileAccountPage,
   OwnerProfileEditPage,
-  OwnerProfileChangePasswordPage
+  OwnerProfileChangePasswordPage,
+  OwnerTwoFactorPage
 } from './profile';
 

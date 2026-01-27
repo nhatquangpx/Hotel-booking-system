@@ -10,6 +10,7 @@ export * from './bookings';
 export { 
   AdminProfileAccountPage,
   AdminProfileEditPage,
-  AdminProfileChangePasswordPage
+  AdminProfileChangePasswordPage,
+  AdminTwoFactorPage
 } from './profile';
 
