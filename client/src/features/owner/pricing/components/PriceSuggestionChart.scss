@@ -1,0 +1,77 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+
+.price-suggestion-chart {
+  background: $bg-white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid $border-light;
+  box-shadow: 0 2px 12px rgba(160, 130, 109, 0.06);
+
+  .chart-title {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .chart-scroll {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .chart-svg {
+    display: block;
+    width: 100%;
+    min-height: 340px;
+  }
+
+  .legend {
+    font-size: 11px;
+    fill: $text-secondary;
+
+    &--current {
+      fill: $blue-medium;
+    }
+
+    &--suggested {
+      fill: $luxury-gold;
+    }
+  }
+
+  .axis-label {
+    font-size: 10px;
+    fill: $text-secondary;
+  }
+
+  .bar {
+    &--current {
+      fill: $blue-medium;
+      opacity: 0.9;
+    }
+
+    &--suggested {
+      fill: $luxury-gold;
+      opacity: 0.95;
+    }
+  }
+
+  .x-label {
+    font-size: 11px;
+    fill: $text-primary;
+    font-weight: 600;
+  }
+
+  .x-sublabel {
+    font-size: 9px;
+    fill: $text-secondary;
+  }
+
+  &--empty {
+    .empty-msg {
+      margin: 0;
+      color: $text-secondary;
+      font-size: 0.95rem;
+    }
+  }
+}

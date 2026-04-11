@@ -62,5 +62,14 @@ const BookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+/** Hỗ trợ truy vấn overlap theo khoảng ngày (dynamic pricing, báo cáo). */
+BookingSchema.index({
+  hotel: 1,
+  room: 1,
+  paymentStatus: 1,
+  checkInDate: 1,
+  checkOutDate: 1,
+});
+
 const Booking = mongoose.model("Booking", BookingSchema);
 module.exports = Booking;

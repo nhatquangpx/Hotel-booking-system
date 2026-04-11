@@ -40,7 +40,16 @@ const HotelSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive", "maintenance"],
       default: "active"
-    }
+    },
+    /**
+     * Lịch sử áp dụng giá gợi ý hàng loạt từ trang dynamic pricing (theo roomType).
+     * { [roomType]: { lastBulkApplyAt, previousAvgNightly, appliedAvgNightly, daysWindow } }
+     * (Bản cũ: previousAvgRegular / appliedAvgRegular — cùng ý nghĩa TB đêm, đọc tương thích trong service.)
+     */
+    dynamicPricingByRoomType: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({}),
+    },
   },
   { timestamps: true }
 );

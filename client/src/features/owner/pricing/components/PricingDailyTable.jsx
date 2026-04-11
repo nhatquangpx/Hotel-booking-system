@@ -1,0 +1,118 @@
+import React from 'react';
+import { formatCurrency } from '@/shared/utils/format';
+
+/**
+ * Bảng chi tiết giá động theo từng ngày trong kỳ.
+ */
+const PricingDailyTable = ({ typeLabel, daily }) => {
+  if (!daily?.length) return null;
+
+  return (
+    <div className="table-wrap pricing-table-section">
+      <div className="pricing-table-section__head">
+        <div>
+          <h2 className="table-title">Chi tiết theo ngày</h2>
+          <p className="pricing-table-section__sub">
+            Loại <strong>{typeLabel}</strong> · {daily.length} ngày trong kỳ
+          </p>
+        </div>
+      </div>
+      <div className="table-scroll">
+        <table className="detail-table">
+          <colgroup>
+            <col className="detail-table__col detail-table__col--date" />
+            <col className="detail-table__col detail-table__col--occ" />
+            <col className="detail-table__col detail-table__col--book" />
+            <col className="detail-table__col detail-table__col--price" />
+            <col className="detail-table__col detail-table__col--suggested" />
+            <col className="detail-table__col detail-table__col--factors" />
+            <col className="detail-table__col detail-table__col--explain" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Ngày</th>
+              <th scope="col">Lấp đầy</th>
+              <th scope="col">Đã đặt / Tổng</th>
+              <th scope="col">Giá TB hiện tại</th>
+              <th scope="col">Giá đề xuất</th>
+              <th scope="col">Hệ số</th>
+              <th scope="col">Giải thích</th>
+            </tr>
+          </thead>
+          <tbody>
+            {daily.map((row) => {
+              const occPct = Math.round((row.occupancyRate || 0) * 100);
+              const occBand =
+                occPct <= 25 ? 'occ-pill--low' : occPct <= 75 ? 'occ-pill--mid' : 'occ-pill--high';
+              return (
+                <tr key={row.date}>
+                  <td className="cell-date">
+                    <span className="date-badge">{row.weekdayLabel}</span>
+                    <span className="date-iso">{row.date}</span>
+                  </td>
+                  <td className="cell-occ">
+                    <span className={`occ-pill ${occBand}`}>{occPct}%</span>
+                  </td>
+                  <td className="cell-booking">
+                    <span className="booking-num">{row.occupiedRooms}</span>
+                    <span className="booking-sep">/</span>
+                    <span className="booking-total">{row.totalRooms}</span>
+                  </td>
+                  <td className="cell-price cell-price--muted">{formatCurrency(row.avgCurrentNightly)}</td>
+                  <td className="cell-price cell-price--suggested">
+                    <span className="cell-price__box cell-price__box--suggested">
+                      {formatCurrency(row.suggestedNightly)}
+                    </span>
+                  </td>
+                  <td className="cell-factors">
+                    <div className="factors-inner" role="group" aria-label="Hệ số occ / mùa / thứ">
+                      <span className="factor-chip factor-chip--occ" title="Hệ số lấp đầy">
+                        {row.factors.occupancy}
+                      </span>
+                      <span className="factor-chip factor-chip--sea" title="Hệ số mùa / lễ">
+                        {row.factors.season}
+                      </span>
+                      <span className="factor-chip factor-chip--wd" title="Hệ số thứ trong tuần">
+                        {row.factors.historicalWeekday}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="factor-detail-cell">
+                    {row.factorBreakdown ? (
+                      <div className="factor-detail-wrap">
+                        <details className="factor-details">
+                          <summary>
+                            <span className="factor-details__label factor-details__label--open">Ẩn bớt</span>
+                            <span className="factor-details__label factor-details__label--closed">
+                              Xem chi tiết
+                            </span>
+                          </summary>
+                          <div className="factor-detail-lines">
+                            <p>
+                              <strong>Lấp đầy:</strong> {row.factorBreakdown.occupancy.detail}
+                            </p>
+                            <p>
+                              <strong>Mùa / lễ:</strong> {row.factorBreakdown.season.detail}
+                            </p>
+                            <p>
+                              <strong>Thứ trong tuần:</strong> {row.factorBreakdown.historicalWeekday.detail}
+                            </p>
+                            <p className="factor-formula">{row.factorBreakdown.formula}</p>
+                          </div>
+                        </details>
+                      </div>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default PricingDailyTable;

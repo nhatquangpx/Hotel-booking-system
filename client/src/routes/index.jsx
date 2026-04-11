@@ -41,6 +41,7 @@ import {
 } from "@/features/admin";
 import { 
   OwnerDashboardPage,
+  OwnerDynamicPricingPage,
   OwnerRoomMapPage,
   OwnerBookingListPage,
   OwnerReviewsPage,
@@ -129,6 +130,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={["owner"]} />}>
           <Route path="/owner" element={<OwnerDashboardPage />} />
           <Route path="/owner/rooms" element={<OwnerRoomMapPage />} />
+          <Route path="/owner/pricing" element={<OwnerDynamicPricingPage />} />
           <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
           <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
           <Route path="/owner/notifications" element={<OwnerNotificationsPage />} />

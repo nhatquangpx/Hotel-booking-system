@@ -51,7 +51,6 @@ const PaymentTransactionSchema = new mongoose.Schema(
     vnpOrderInfo: {
       type: String
     },
-    // Lưu toàn bộ raw data từ VNPay callback để debug
     vnpRawData: {
       type: mongoose.Schema.Types.Mixed
     },
