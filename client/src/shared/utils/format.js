@@ -24,16 +24,19 @@ export const formatDate = (dateString, options = {}) => {
 };
 
 /**
- * Format date and time
+ * Ngày giờ hiển thị locale vi-VN, múi giờ Asia/Ho_Chi_Minh (ứng dụng phục vụ khách sạn tại VN).
  */
 export const formatDateTime = (dateString) => {
   if (!dateString) return '';
-  return new Date(dateString).toLocaleString('vi-VN', {
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 };
 

@@ -1,0 +1,864 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.owner-dynamic-pricing {
+  width: calc(100% + 4rem);
+  margin-left: -2rem;
+  margin-right: -2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 2rem;
+  color: $text-primary;
+
+  .page-header {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1rem;
+
+    > div {
+      width: 100%;
+    }
+  }
+
+  .guide-toggle {
+    width: 28px;
+    height: 28px;
+    border: 1px solid $border-medium;
+    border-radius: 50%;
+    background: $bg-white;
+    color: $text-secondary;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $grey-light;
+      color: $text-primary;
+      border-color: $grey;
+    }
+  }
+
+  .page-desc {
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    text-align: center;
+    color: $text-secondary;
+    line-height: 1.55;
+    font-size: 0.95rem;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1.25rem;
+  }
+
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: $text-medium-alt;
+    }
+
+    select {
+      min-width: 220px;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid $border-medium;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: $bg-white;
+      color: $text-primary;
+    }
+  }
+
+  .btn-refresh {
+    padding: 0.55rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: $button-primary;
+    color: $text-white;
+    font-weight: 600;
+    cursor: pointer;
+    height: fit-content;
+    transition: background 0.2s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+  }
+
+  .guide-hover-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-end;
+  }
+
+  .pricing-guide-popover {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    right: 0;
+    width: min(520px, calc(100vw - 2rem));
+    text-align: left;
+    background: $bg-white;
+    border: 1px solid $border-medium;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 8px 24px rgba(160, 130, 109, 0.12);
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+    pointer-events: none;
+
+    h3 {
+      margin: 0 0 0.55rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: $lotte-primary-dark;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      display: grid;
+      gap: 0.35rem;
+      color: $text-secondary;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+  }
+
+  .guide-hover-wrap:hover .pricing-guide-popover,
+  .guide-hover-wrap:focus-within .pricing-guide-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .state-msg {
+    padding: 1rem;
+    border-radius: 8px;
+    background: $grey-light;
+    color: $text-medium-alt;
+    margin: 0 0 1rem;
+
+    &--error {
+      background: $danger-light;
+      color: $danger-dark;
+    }
+
+    &--success {
+      background: $success-light;
+      color: $success-dark;
+      border: 1px solid rgba($success, 0.35);
+    }
+
+    &--warn {
+      background: $status-warning-bg;
+      color: $lotte-primary-dark;
+    }
+  }
+
+  .pricing-history-banner {
+    padding: 1rem 1.1rem;
+    border-radius: 10px;
+    border: 1px solid rgba($lotte-primary, 0.35);
+    background: rgba($lotte-primary, 0.06);
+    color: $text-primary;
+    margin: 0 0 1.25rem;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    text-align: center;
+
+    strong {
+      color: $lotte-primary-dark;
+    }
+
+    p {
+      margin: 0.5rem 0 0;
+      line-height: 1.55;
+      font-size: 0.92rem;
+      color: $text-secondary;
+    }
+
+    & > strong {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    &__hint {
+      font-size: 0.88rem !important;
+      color: $text-medium-alt !important;
+    }
+  }
+
+  .apply-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .btn-apply-suggested {
+    padding: 0.55rem 1rem;
+    border: 1px solid $lotte-primary;
+    border-radius: 8px;
+    background: $bg-white;
+    color: $lotte-primary-dark;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba($lotte-primary, 0.08);
+      border-color: $lotte-primary-dark;
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  .apply-row-hint {
+    flex: 1;
+    min-width: 220px;
+    font-size: 0.88rem;
+    color: $text-secondary;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  .apply-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba($luxury-black, 0.4);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .apply-modal {
+    background: $bg-white;
+    border-radius: 12px;
+    max-width: 520px;
+    width: 100%;
+    padding: 1.5rem;
+    border: 1px solid $border-light;
+    box-shadow: 0 12px 40px rgba(160, 130, 109, 0.15);
+
+    h3 {
+      margin: 0 0 0.75rem;
+      font-size: 1.15rem;
+      color: $text-primary;
+    }
+
+    > p {
+      margin: 0 0 0.75rem;
+      font-size: 0.95rem;
+      color: $text-medium-alt;
+      line-height: 1.55;
+    }
+
+    .apply-modal-note {
+      font-size: 0.88rem;
+      color: $text-secondary;
+    }
+  }
+
+  .apply-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+  }
+
+  .btn-modal-cancel {
+    padding: 0.5rem 1rem;
+    border: 1px solid $border-medium;
+    border-radius: 8px;
+    background: $bg-white;
+    color: $text-secondary;
+    cursor: pointer;
+    font-weight: 600;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-modal-confirm {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: $button-primary;
+    color: $text-white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+  }
+
+  .factor-detail-cell {
+    vertical-align: middle;
+  }
+
+  /* Không dùng &__ bên trong .owner-dynamic-pricing .factor-details — Sass có thể ghép selector sai */
+  .factor-details__label--open {
+    display: none;
+  }
+
+  .factor-details[open] .factor-details__label--closed {
+    display: none;
+  }
+
+  .factor-details[open] .factor-details__label--open {
+    display: inline;
+  }
+
+  .factor-details {
+    &[open] summary {
+      margin-bottom: 0.5rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: $text-white;
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: $lotte-primary;
+      box-shadow: 0 2px 4px rgba(160, 130, 109, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        background: $lotte-primary-dark;
+        box-shadow: 0 4px 8px rgba(160, 130, 109, 0.28);
+      }
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+
+    &[open] summary {
+      background: $lotte-primary-dark;
+    }
+  }
+
+  .factor-detail-lines {
+    margin-top: 0.35rem;
+    padding: 0.75rem 0.85rem;
+    background: $grey-light;
+    border: 1px solid $border-light;
+    border-radius: 10px;
+
+    p {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      color: $text-medium-alt;
+      line-height: 1.5;
+
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+
+      strong {
+        color: $lotte-primary-dark;
+        font-weight: 600;
+      }
+    }
+
+    .factor-formula {
+      color: $text-primary;
+      font-size: 0.78rem;
+      padding-top: 0.6rem;
+      margin-top: 0.35rem;
+      border-top: 1px solid $border-medium;
+      line-height: 1.5;
+    }
+  }
+
+  .muted {
+    color: $text-disabled;
+    font-size: 0.85rem;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin: 0 0 0.75rem;
+
+    &--3 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+  }
+
+  .summary-type {
+    font-size: 1.15rem;
+    display: block;
+    line-height: 1.3;
+
+    .room-count {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: $text-secondary;
+    }
+  }
+
+  .summary-total {
+    margin: 0 0 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: $text-medium-alt;
+    line-height: 1.5;
+
+    .positive {
+      color: $success-dark;
+      font-weight: 700;
+    }
+
+    .negative {
+      color: $danger-dark;
+      font-weight: 700;
+    }
+
+    .summary-total-note {
+      font-weight: 400;
+      color: $text-secondary;
+      font-size: 0.88rem;
+    }
+  }
+
+  .summary-card {
+    background: $bg-white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid $border-light;
+    box-shadow: 0 2px 12px rgba(160, 130, 109, 0.06);
+
+    .label {
+      display: block;
+      font-size: 0.85rem;
+      color: $text-secondary;
+      margin-bottom: 0.5rem;
+    }
+
+    strong {
+      font-size: 1.35rem;
+      color: $text-primary;
+    }
+
+    &--highlight strong.positive {
+      color: $success-dark;
+    }
+
+    &--highlight strong.negative {
+      color: $danger-dark;
+    }
+  }
+
+  .summary-note {
+    font-size: 0.85rem;
+    color: $text-secondary;
+    line-height: 1.5;
+    margin: 0 0 1.25rem;
+    text-align: center;
+  }
+
+  .chart-wrap {
+    margin: 0 0 1.5rem;
+  }
+
+  .pricing-table-section {
+    margin: 0;
+  }
+
+  .pricing-table-section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid $admin-border;
+  }
+
+  .table-title {
+    font-size: 1.2rem;
+    margin: 0 0 0.2rem;
+    font-weight: 700;
+    color: $text-primary;
+    letter-spacing: -0.02em;
+  }
+
+  .pricing-table-section__sub {
+    margin: 0;
+    font-size: 0.88rem;
+    color: $text-secondary;
+
+    strong {
+      color: $lotte-primary-dark;
+      font-weight: 600;
+    }
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid $admin-border;
+    background: $bg-white;
+    box-shadow: 0 2px 12px rgba(160, 130, 109, 0.08);
+  }
+
+  .detail-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+
+    &__col {
+      &--date {
+        width: 13%;
+      }
+
+      &--occ {
+        width: 8%;
+      }
+
+      &--book {
+        width: 10%;
+      }
+
+      &--price {
+        width: 12%;
+      }
+
+      &--suggested {
+        width: 13%;
+      }
+
+      &--factors {
+        width: 22%;
+      }
+
+      &--explain {
+        width: 22%;
+      }
+    }
+
+    th,
+    td {
+      padding: 0.85rem 0.65rem;
+      text-align: center;
+      vertical-align: middle;
+      border-bottom: 1px solid $border-light;
+      box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      min-width: 0;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: linear-gradient(180deg, $lotte-primary-light 0%, $lotte-primary 100%);
+      color: $text-white;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      border-bottom: none;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+
+      &:first-child {
+        border-radius: 13px 0 0 0;
+      }
+
+      &:last-child {
+        border-radius: 0 13px 0 0;
+      }
+    }
+
+    tbody tr {
+      transition: background 0.15s ease;
+
+      &:nth-child(even) {
+        background: $bg-light-alt;
+      }
+
+      &:hover {
+        background: rgba($lotte-primary, 0.06);
+      }
+
+      &:last-child td {
+        border-bottom: none;
+      }
+
+      &:last-child td:first-child {
+        border-radius: 0 0 0 12px;
+      }
+
+      &:last-child td:last-child {
+        border-radius: 0 0 12px 0;
+      }
+    }
+
+    tbody td {
+      vertical-align: middle;
+    }
+
+    .cell-date {
+      white-space: nowrap;
+    }
+
+    .date-badge {
+      display: inline-block;
+      min-width: 2.25rem;
+      padding: 0.2rem 0.5rem;
+      margin-right: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: $lotte-primary-dark;
+      background: rgba($lotte-primary, 0.12);
+      border-radius: 6px;
+      vertical-align: middle;
+    }
+
+    .date-iso {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: $text-primary;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .occ-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3rem;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      border-radius: 999px;
+
+      &--low {
+        background: $status-info-bg;
+        color: $status-info-text;
+      }
+
+      &--mid {
+        background: $status-warning-bg;
+        color: $status-warning-text;
+      }
+
+      &--high {
+        background: $status-success-bg;
+        color: $status-success-text;
+      }
+    }
+
+    .cell-booking {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.88rem;
+    }
+
+    .booking-num {
+      font-weight: 700;
+      color: $text-primary;
+    }
+
+    .booking-sep {
+      margin: 0 0.2rem;
+      color: $grey-medium;
+    }
+
+    .booking-total {
+      color: $text-secondary;
+      font-weight: 500;
+    }
+
+    .cell-price {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.92rem;
+
+      &--muted {
+        color: $text-secondary;
+      }
+
+      &--suggested {
+        display: table-cell;
+        text-align: center;
+        vertical-align: middle;
+      }
+    }
+
+    .cell-price__box--suggested {
+      display: inline-block;
+      min-width: min(100%, 8.5rem);
+      padding: 0.35rem 0.5rem;
+      color: $luxury-gold-dark;
+      background: rgba($luxury-gold, 0.1);
+      box-shadow: inset 0 0 0 1px rgba($luxury-gold, 0.35);
+      border-radius: 8px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    td.cell-factors {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .factors-inner {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+    }
+
+    .factor-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.45rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      border-radius: 6px;
+      line-height: 1.2;
+
+      &--occ {
+        background: $status-info-bg;
+        color: $status-info-text;
+      }
+
+      &--sea {
+        background: $status-warning-bg;
+        color: $status-warning-text;
+      }
+
+      &--wd {
+        background: rgba($lotte-primary, 0.12);
+        color: $lotte-primary-dark;
+      }
+    }
+
+    td.factor-detail-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .factor-detail-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-width: 0;
+
+      .factor-details {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+
+        summary {
+          align-self: center;
+        }
+      }
+
+      .factor-detail-lines {
+        align-self: stretch;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-dynamic-pricing {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+
+    .detail-table {
+      th,
+      td {
+        padding: 0.65rem 0.55rem;
+        font-size: 0.82rem;
+      }
+
+      thead th {
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+      }
+
+      .date-iso {
+        display: block;
+        margin-top: 0.2rem;
+        margin-left: 0;
+      }
+
+      .date-badge {
+        margin-right: 0.35rem;
+      }
+    }
+  }
+}

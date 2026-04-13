@@ -5,7 +5,8 @@ import {
   FaHome, 
   FaBed, 
   FaCalendarCheck, 
-  FaUsers 
+  FaUsers,
+  FaChartLine
 } from 'react-icons/fa';
 import './OwnerLayout.scss';
 
@@ -47,6 +48,7 @@ const OwnerLayout = ({ children }) => {
       return 'Đặt phòng';
     }
     if (location.pathname.includes('/owner/reviews')) return 'Đánh giá';
+    if (location.pathname.includes('/owner/pricing')) return 'Giá động';
     if (location.pathname.includes('/owner/notifications')) return 'Thông báo';
     return 'Quản lý khách sạn';
   };
@@ -55,6 +57,7 @@ const OwnerLayout = ({ children }) => {
     { path: '/owner', label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
     { path: '/owner/rooms', label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
     { path: '/owner/bookings', label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
+    { path: '/owner/pricing', label: 'Giá động', icon: FaChartLine, title: 'Giá động' },
     { path: '/owner/reviews', label: 'Đánh giá', icon: FaUsers, title: 'Đánh giá' },
   ];
 

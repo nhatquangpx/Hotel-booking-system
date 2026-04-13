@@ -5,6 +5,7 @@ import { GuestLayout } from '../components/layout';
 import api from '@/apis';
 import { useSocket } from '@/shared/hooks';
 import { getNotificationPath } from '@/features/notifications/config/notificationConfig';
+import { formatDateTime } from '@/shared/utils/format';
 import './Notifications.scss';
 
 const GuestNotificationsPage = () => {
@@ -34,16 +35,6 @@ const GuestNotificationsPage = () => {
       const days = Math.floor(diffInSeconds / 86400);
       return `${days} ngày trước`;
     }
-  };
-
-  const formatDateTime = (date) => {
-    return new Date(date).toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   // Lấy icon theo loại thông báo

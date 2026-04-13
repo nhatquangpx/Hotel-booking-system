@@ -38,10 +38,10 @@ router.put('/bookings/:id/review', authenticate, reviewController.addReview);
 router.get('/bookings/:id', authenticate, bookingController.getBookingById);
 
 // Đánh giá và bình luận
-router.get('/reviews/hotel/:hotelId', reviewController.getReviewsByHotel); // PUBLIC
-router.get('/reviews/booking/:bookingId', authenticate, reviewController.getReviewByBooking); // PROTECTED
-router.put('/reviews/:id', authenticate, reviewController.updateReview); // PROTECTED - Cập nhật review
-router.delete('/reviews/:id', authenticate, reviewController.deleteReview); // PROTECTED - Xóa review
+router.get('/reviews/hotel/:hotelId', reviewController.getReviewsByHotel); 
+router.get('/reviews/booking/:bookingId', authenticate, reviewController.getReviewByBooking); 
+router.put('/reviews/:id', authenticate, reviewController.updateReview); 
+router.delete('/reviews/:id', authenticate, reviewController.deleteReview); 
 
 // Quản lý thông báo cho guest
 const notificationController = require('../controllers/notificationController');

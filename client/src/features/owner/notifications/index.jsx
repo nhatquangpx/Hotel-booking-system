@@ -4,6 +4,7 @@ import { FaCalendarAlt, FaDollarSign, FaExclamationTriangle, FaUser, FaBell, FaC
 import OwnerLayout from '../components/OwnerLayout';
 import api from '@/apis';
 import { useSocket } from '@/shared/hooks';
+import { formatDateTime } from '@/shared/utils/format';
 import './Notifications.scss';
 
 const OwnerNotificationsPage = () => {
@@ -33,16 +34,6 @@ const OwnerNotificationsPage = () => {
       const days = Math.floor(diffInSeconds / 86400);
       return `${days} ngày trước`;
     }
-  };
-
-  const formatDateTime = (date) => {
-    return new Date(date).toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   // Lấy icon theo loại thông báo

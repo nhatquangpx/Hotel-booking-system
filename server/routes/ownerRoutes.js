@@ -10,6 +10,7 @@ const bookingController = require('../controllers/bookingController');
 const reviewController = require('../controllers/reviewController');
 const notificationController = require('../controllers/notificationController');
 const dashboardController = require('../controllers/dashboardController');
+const pricingController = require('../controllers/pricingController');
 
 router.use(authenticate, isOwner);
 
@@ -55,5 +56,9 @@ router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
 router.get('/dashboard/revenue', dashboardController.getOwnerRevenueStats);
 router.get('/dashboard/rooms', dashboardController.getOwnerRoomStats);
 router.get('/dashboard/tasks', dashboardController.getOwnerTodayTasks);
+
+// Giá động (gợi ý)
+router.get('/pricing/dynamic', pricingController.getDynamicPricing);
+router.post('/pricing/apply-suggested', pricingController.applySuggestedPrices);
 
 module.exports = router;
