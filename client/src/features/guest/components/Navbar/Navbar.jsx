@@ -1,6 +1,6 @@
 import { IconButton } from "@mui/material"
 import { useState, useEffect, useRef } from 'react'
-import { Search, Hotel, AccountCircle, Logout, KeyboardArrowDown } from "@mui/icons-material"
+import { Search, Hotel, Favorite, AccountCircle, Logout, KeyboardArrowDown } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from 'react-router-dom'
 import { setLogout } from '@/store/slices/userSlice'
@@ -109,6 +109,12 @@ export const Navbar = () => {
                   <Hotel sx={{ fontSize: 20, marginRight: 1 }} />
                   Đặt phòng của tôi
                 </Link>
+                {user.role === 'guest' && (
+                  <Link to="/wishlist" onClick={() => setDropdownMenu(false)}>
+                    <Favorite sx={{ fontSize: 20, marginRight: 1 }} />
+                    Danh sách yêu thích
+                  </Link>
+                )}
                 <Link to={`/profile/${user.id}`} onClick={() => setDropdownMenu(false)}>
                   <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
                   Thông tin cá nhân

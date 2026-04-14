@@ -8,6 +8,7 @@ import userRoomAPI from './guest/room';
 import userBookingAPI from './guest/booking';
 import reviewAPI from './guest/review';
 import paymentAPI from './guest/payment';
+import guestWishlistAPI from './guest/wishlist';
 
 // Owner APIs
 import ownerHotelAPI from './owner/hotel';
@@ -33,6 +34,7 @@ export default {
   userBooking: userBookingAPI,
   review: reviewAPI,
   payment: paymentAPI,
+  guestWishlist: guestWishlistAPI,
 
   ownerHotel: ownerHotelAPI,
   ownerRoom: ownerRoomAPI,

@@ -61,6 +61,15 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
+    wishlist: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Hotel"
+        }
+      ],
+      default: []
+    },
     trustedDevices: [{
       deviceId: {
         type: String,

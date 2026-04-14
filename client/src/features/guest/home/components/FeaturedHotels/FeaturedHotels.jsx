@@ -6,6 +6,8 @@ import { Rating } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { LoadingSpinner, ErrorMessage } from '@/components';
 import { getImageUrl } from '@/constants/images';
+import { HotelWishlistButton } from '@/features/guest/hotels/components/HotelWishlistButton';
+import { useGuestWishlist } from '@/features/guest/hooks';
 import api from '@/apis';
 import './FeaturedHotels.scss';
 
@@ -23,6 +25,7 @@ const FeaturedHotels = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
 
   useEffect(() => {
     const fetchFeaturedHotels = async () => {
@@ -111,6 +114,11 @@ const FeaturedHotels = () => {
                     src={getImageUrl(hotel.images[0])} 
                     alt={hotel.name}
                     loading="lazy"
+                  />
+                  <HotelWishlistButton
+                    hotelId={hotel._id}
+                    isWishlisted={isWishlisted(hotel._id)}
+                    onWishlistedChange={applyWishlistedChange}
                   />
                   <div className="hotel-rating">
                     <StyledRating

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('../models/User.js');
+const Hotel = require('../models/Hotel.js');
 const bcrypt = require('bcryptjs');
 
 exports.getAllUsers = async (req, res) => {
@@ -95,6 +96,8 @@ exports.updateUser = async (req, res) => {
         if (req.body.status && !['active', 'inactive'].includes(req.body.status)) {
             return res.status(400).json({ message: 'Trạng thái không hợp lệ!' });
         }
+
+        delete req.body.wishlist;
 
         const updatedUser = await User.findByIdAndUpdate(userId, req.body, { new: true }).select('-password');
         if (!updatedUser) {
@@ -197,5 +200,58 @@ exports.changePassword = async (req, res) => {
       success: false,
       message: 'Có lỗi xảy ra khi thay đổi mật khẩu'
     });
+  }
+};
+
+exports.getWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate('wishlist');
+    if (!user) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại!' });
+    }
+    const hotels = (user.wishlist || []).filter((h) => h && h._id);
+    res.status(200).json({ hotels });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi khi lấy danh sách yêu thích!', error: err.message });
+  }
+};
+
+exports.toggleWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { hotelId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+      return res.status(400).json({ message: 'ID khách sạn không hợp lệ!' });
+    }
+
+    const hotel = await Hotel.findById(hotelId);
+    if (!hotel) {
+      return res.status(404).json({ message: 'Khách sạn không tồn tại!' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Người dùng không tồn tại!' });
+    }
+
+    if (!Array.isArray(user.wishlist)) {
+      user.wishlist = [];
+    }
+
+    const hid = new mongoose.Types.ObjectId(hotelId);
+    const wasIn = user.wishlist.some((id) => id.equals(hid));
+
+    if (wasIn) {
+      user.wishlist = user.wishlist.filter((id) => !id.equals(hid));
+    } else {
+      user.wishlist.push(hid);
+    }
+    await user.save();
+
+    res.status(200).json({ wishlisted: !wasIn });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi khi cập nhật danh sách yêu thích!', error: err.message });
   }
 };

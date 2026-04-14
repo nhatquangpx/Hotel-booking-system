@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require("../middlewares/authentication");
+const { isGuest } = require("../middlewares/authorization");
 const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
@@ -50,5 +51,8 @@ router.get('/notifications/unread-count', authenticate, notificationController.g
 router.put('/notifications/:id/read', authenticate, notificationController.markAsRead);
 router.put('/notifications/read-all', authenticate, notificationController.markAllAsRead);
 router.get('/notifications/load-more', authenticate, notificationController.loadMoreNotifications);
+
+router.get('/wishlist', authenticate, isGuest, userController.getWishlist);
+router.post('/wishlist/:hotelId', authenticate, isGuest, userController.toggleWishlist);
 
 module.exports = router;

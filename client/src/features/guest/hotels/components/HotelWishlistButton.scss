@@ -1,0 +1,23 @@
+@use "@/styles/variables" as *;
+
+.hotel-wishlist-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.92) !important;
+  padding: 6px !important;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 1) !important;
+  }
+
+  &.hotel-wishlist-btn--active {
+    background: rgba(255, 255, 255, 0.92) !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 1) !important;
+    }
+  }
+}

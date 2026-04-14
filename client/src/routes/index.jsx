@@ -16,6 +16,7 @@ import {
   GuestProfileEditPage,
   GuestProfileChangePasswordPage,
   GuestNotificationsPage,
+  GuestWishlistPage,
   VNPayCallbackPage
 } from "@/features/guest";
 import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/features/auth";
@@ -86,6 +87,7 @@ export default function AppRoutes() {
         {/* Guest - Booking */}
         <Route path="/booking/new" element={<GuestBookingPage />} />
         <Route path="/my-bookings" element={<GuestMyBookingsPage />} />
+        <Route path="/wishlist" element={<GuestWishlistPage />} />
         <Route path="/booking/:id" element={<GuestBookingDetailPage />} />
 
         {/* Guest - Payment */}

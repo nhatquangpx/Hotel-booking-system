@@ -1,14 +1,21 @@
 .base-layout {
+  --guest-navbar-height: 100px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 
   .navbar-spacer {
-    height: 100px;
+    height: var(--guest-navbar-height);
   }
 
   .base-layout-content {
     flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .base-layout {
+    --guest-navbar-height: 70px;
   }
 }
 

@@ -11,4 +11,6 @@ export { GuestContactPage } from './contact';
 export { GuestBookingPage, GuestMyBookingsPage, GuestBookingDetailPage } from './booking';
 export { GuestProfileAccountPage, GuestProfileEditPage, GuestProfileChangePasswordPage } from './profile';
 export { VNPayCallbackPage } from './payment';
+export { default as GuestWishlistPage } from './wishlist';
+export { useGuestWishlist } from './hooks';
 

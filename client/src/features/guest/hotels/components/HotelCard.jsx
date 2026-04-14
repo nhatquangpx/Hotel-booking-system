@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '@/constants/images';
+import { HotelWishlistButton } from './HotelWishlistButton';
 import './HotelCard.scss';
 
 /**
  * Hotel Card component
  * Displays hotel information in a card format
  */
-export const HotelCard = ({ hotel }) => {
+export const HotelCard = ({ hotel, isWishlisted, onWishlistedChange }) => {
   if (!hotel) return null;
 
   const imageUrl = hotel.images && hotel.images[0] 
@@ -17,6 +18,11 @@ export const HotelCard = ({ hotel }) => {
     <div className="hotel-card">
       <div className="hotel-image">
         <img src={imageUrl} alt={hotel.name} />
+        <HotelWishlistButton
+          hotelId={hotel._id}
+          isWishlisted={isWishlisted}
+          onWishlistedChange={onWishlistedChange}
+        />
       </div>
       <div className="hotel-info">
         <h3>{hotel.name}</h3>
