@@ -4,6 +4,7 @@
 @use "@/styles/breakpoints" as *;
 
 .navbar {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -14,14 +15,14 @@
   position: fixed;
   top: 0;
   left: 0;
-  height: 100px;
+  height: var(--guest-navbar-height, 100px);
   width: 100%;
   font-family: $main-font;
   z-index: 1000;
 
   @include sm {
     padding: 0 20px;
-    height: 70px;
+    height: var(--guest-navbar-height, 70px);
   }
 
   img {

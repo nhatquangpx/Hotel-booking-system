@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GuestLayout } from '@/features/guest/components/layout';
+import { useGuestWishlist } from '@/features/guest/hooks';
 import api from '@/apis';
 import HotelHeader from './HotelHeader';
 import HotelGallery from './HotelGallery';
@@ -20,6 +21,7 @@ import './HotelDetail.scss';
 const GuestHotelDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -159,7 +161,11 @@ const GuestHotelDetailPage = () => {
       <div className="hotel-detail-container">
         {hotel && (
           <>
-            <HotelHeader hotel={hotel} />
+            <HotelHeader
+              hotel={hotel}
+              isWishlisted={isWishlisted(hotel._id)}
+              onWishlistedChange={applyWishlistedChange}
+            />
             <HotelGallery hotel={hotel} />
             <HotelDescription hotel={hotel} />
             <HotelPolicies hotel={hotel} />

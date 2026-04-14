@@ -1,0 +1,47 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.guest-wishlist {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+
+  &__title {
+    @include heading-lg;
+    color: $text-medium;
+    margin: 0 0 8px 0;
+  }
+
+  &__subtitle {
+    @include body-sm;
+    color: $text-light;
+    margin: 0 0 28px 0;
+  }
+
+  &__state {
+    @include body-md;
+    color: $text-light;
+    text-align: center;
+    padding: 24px;
+
+    &--error {
+      color: $error;
+    }
+  }
+
+  &__empty {
+    @include body-md;
+    color: $text-light;
+    text-align: center;
+    padding: 48px 16px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 10px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+}

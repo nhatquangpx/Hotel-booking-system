@@ -6,10 +6,25 @@
   text-align: $align-center;
   margin-bottom: 30px;
 
+  .hotel-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
   h1 {
     @include heading-xl;
-    margin-bottom: 15px;
+    margin: 0;
+    line-height: 1.15;
     color: $text-medium;
+  }
+
+  .hotel-title-row .hotel-wishlist-btn {
+    flex-shrink: 0;
+    margin: 0;
+    transform: translateY(-1px);
   }
 
   .hotel-rating {
@@ -30,6 +45,10 @@
 
 @media (max-width: 768px) {
   .hotel-header {
+    .hotel-title-row {
+      gap: 8px;
+    }
+
     h1 {
       @include heading-lg;
     }

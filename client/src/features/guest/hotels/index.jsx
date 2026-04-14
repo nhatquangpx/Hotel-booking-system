@@ -1,6 +1,7 @@
 import { GuestLayout } from '@/features/guest/components/layout';
 import { HotelFilters, HotelCard, HotelListHeader } from './components';
 import { useHotelFilters } from './hooks/useHotelFilters';
+import { useGuestWishlist } from '@/features/guest/hooks';
 import './HotelList.scss';
 
 /**
@@ -8,6 +9,8 @@ import './HotelList.scss';
  * Displays list of hotels with filtering capabilities
  */
 export const GuestHotelListPage = () => {
+  const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
+
   const { 
     hotels, 
     cities, 
@@ -47,7 +50,12 @@ export const GuestHotelListPage = () => {
 
           <div className="hotel-grid">
             {hotels && hotels.map((hotel) => (
-              <HotelCard key={hotel._id} hotel={hotel} />
+              <HotelCard
+                key={hotel._id}
+                hotel={hotel}
+                isWishlisted={isWishlisted(hotel._id)}
+                onWishlistedChange={applyWishlistedChange}
+              />
             ))}
           </div>
         </div>
