@@ -71,7 +71,6 @@ const DynamicPricingPage = () => {
   const block =
     payload?.hotels?.find((h) => h.hotelId === hotelId) ?? payload?.hotels?.[0] ?? null;
   const roomTypes = block?.roomTypes || [];
-  const hotelSummary = block?.summary;
   const note = block?.note;
   const roomTypesKey = roomTypes.map((r) => r.type).join('|');
 
@@ -233,22 +232,6 @@ const DynamicPricingPage = () => {
                 </strong>
               </div>
             </div>
-            {hotelSummary && (
-              <p className="summary-total">
-                <strong>Tổng cả khách sạn (mọi loại):</strong>{' '}
-                <span
-                  className={
-                    hotelSummary.estimatedAdditionalRevenue >= 0 ? 'positive' : 'negative'
-                  }
-                >
-                  {hotelSummary.estimatedAdditionalRevenue >= 0 ? '+' : ''}
-                  {formatCurrency(hotelSummary.estimatedAdditionalRevenue)}
-                </span>
-                {hotelSummary.note && (
-                  <span className="summary-total-note"> — {hotelSummary.note}</span>
-                )}
-              </p>
-            )}
             {typeSummary?.note && <p className="summary-note">{typeSummary.note}</p>}
 
             <div className="apply-row">
