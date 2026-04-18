@@ -20,6 +20,24 @@ const getOwnerHotelIds = async (ownerId) => {
 };
 
 /**
+ * Danh sách khách sạn dùng cho thống kê/lọc: tất cả của owner, hoặc một khách sạn nếu hợp lệ.
+ * @param {String|null|undefined} hotelId - optional, phải thuộc owner
+ */
+const getScopedHotelIdsForOwner = async (ownerId, hotelId) => {
+  const allIds = await getOwnerHotelIds(ownerId);
+  if (allIds.length === 0) return [];
+  if (!hotelId) return allIds;
+  const sid = String(hotelId);
+  const match = allIds.find((id) => id.toString() === sid);
+  if (!match) {
+    const err = new Error('Khách sạn không thuộc tài khoản của bạn');
+    err.statusCode = 403;
+    throw err;
+  }
+  return [match];
+};
+
+/**
  * Get date range for today (start and end of day)
  * @returns {Object} { today, tomorrow }
  */
@@ -102,6 +120,7 @@ const calculateRevenueForOccupiedRooms = async (hotelIds, startDate, endDate) =>
 module.exports = {
   DAYS_OF_WEEK,
   getOwnerHotelIds,
+  getScopedHotelIdsForOwner,
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,

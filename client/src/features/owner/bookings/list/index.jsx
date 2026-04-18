@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaPhone, FaCalendarAlt } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
+import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import api from '@/apis';
 import { formatDate, formatDateTime } from '@/shared/utils';
 import './BookingList.scss';
@@ -10,6 +11,7 @@ import './BookingList.scss';
  * Quản lý đặt phòng cho chủ khách sạn
  */
 const OwnerBookingListPage = () => {
+  const { selectedHotelId, loading: hotelsLoading } = useOwnerHotel();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,14 +21,13 @@ const OwnerBookingListPage = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
+    if (hotelsLoading) {
+      return;
+    }
     try {
       setLoading(true);
-      const data = await api.ownerBooking.getOwnerBookings();
+      const data = await api.ownerBooking.getOwnerBookings(selectedHotelId || undefined);
       // Lọc chỉ các booking sắp tới (check-in date >= hôm nay)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -46,7 +47,11 @@ const OwnerBookingListPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedHotelId, hotelsLoading]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
 
   const openConfirmModal = (booking) => {
     setSelectedBooking(booking);
@@ -211,6 +216,44 @@ const OwnerBookingListPage = () => {
   return (
     <OwnerLayout>
       <div className="owner-booking-list">
+        <div className="booking-guide-card">
+          <div className="booking-guide-card__intro">
+            <h3>Hướng dẫn xử lý đặt phòng</h3>
+            <p>
+              Theo dõi các đơn sắp đến để xác nhận đúng lúc và hỗ trợ khách nhận, trả phòng thuận tiện hơn.
+            </p>
+          </div>
+          <div className="booking-guide-grid">
+            <div className="booking-guide-item">
+              <span className="booking-guide-item__step">1</span>
+              <div>
+                <strong>Kiểm tra danh sách khách sắp đến</strong>
+                <p>Xem nhanh tên khách, ngày nhận phòng, ngày trả phòng và phòng đã đặt.</p>
+              </div>
+            </div>
+            <div className="booking-guide-item">
+              <span className="booking-guide-item__step">2</span>
+              <div>
+                <strong>Xác nhận đơn đúng thời điểm</strong>
+                <p>Chuyển đơn từ chờ xác nhận sang đã xác nhận để sẵn sàng đón khách.</p>
+              </div>
+            </div>
+            <div className="booking-guide-item">
+              <span className="booking-guide-item__step">3</span>
+              <div>
+                <strong>Thực hiện nhận phòng</strong>
+                <p>Cập nhật ngay khi khách đến để tình trạng phòng và đơn đặt phòng luôn khớp thực tế.</p>
+              </div>
+            </div>
+            <div className="booking-guide-item">
+              <span className="booking-guide-item__step">4</span>
+              <div>
+                <strong>Hoàn tất trả phòng</strong>
+                <p>Hoàn tất trả phòng khi khách rời đi để kết thúc lượt lưu trú gọn gàng, chính xác.</p>
+              </div>
+            </div>
+          </div>
+        </div>
         {error && (
           <div className="error-message">
             {error}

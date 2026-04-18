@@ -3,7 +3,7 @@ const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
 const {
   DAYS_OF_WEEK,
-  getOwnerHotelIds,
+  getScopedHotelIdsForOwner,
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,
@@ -20,9 +20,9 @@ const {
  * @param {String} ownerId - Owner user ID
  * @returns {Promise<Object>} Dashboard stats
  */
-const getDashboardStats = async (ownerId) => {
-  const hotelIds = await getOwnerHotelIds(ownerId);
-  
+const getDashboardStats = async (ownerId, hotelId) => {
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId);
+
   if (hotelIds.length === 0) {
     return {
       todayRevenue: 0,
@@ -70,11 +70,12 @@ const getDashboardStats = async (ownerId) => {
 /**
  * Get weekly revenue statistics (last 7 days)
  * @param {String} ownerId - Owner user ID
+ * @param {String|null} hotelId - optional: one hotel (must belong to owner)
  * @returns {Promise<Array>} Array of { day, value } objects
  */
-const getWeeklyRevenue = async (ownerId) => {
-  const hotelIds = await getOwnerHotelIds(ownerId);
-  
+const getWeeklyRevenue = async (ownerId, hotelId) => {
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
+
   if (hotelIds.length === 0) {
     return [];
   }
@@ -100,9 +101,9 @@ const getWeeklyRevenue = async (ownerId) => {
  * @param {String} ownerId - Owner user ID
  * @returns {Promise<Array>} Array of { day, value } objects
  */
-const getRoomOccupancy = async (ownerId) => {
-  const hotelIds = await getOwnerHotelIds(ownerId);
-  
+const getRoomOccupancy = async (ownerId, hotelId) => {
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId);
+
   if (hotelIds.length === 0) {
     return [];
   }
@@ -128,17 +129,18 @@ const getRoomOccupancy = async (ownerId) => {
  * @param {String} ownerId - Owner user ID
  * @returns {Promise<Array>} Array of task objects
  */
-const getTodayTasks = async (ownerId) => {
-  const ownerHotels = await Hotel.find({ ownerId }).select('_id policies');
-  const hotelIds = ownerHotels.map(hotel => hotel._id);
-  const hotelPoliciesMap = {};
-  ownerHotels.forEach(hotel => {
-    hotelPoliciesMap[hotel._id.toString()] = hotel.policies;
-  });
-  
+const getTodayTasks = async (ownerId, hotelId) => {
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId);
+
   if (hotelIds.length === 0) {
     return [];
   }
+
+  const ownerHotels = await Hotel.find({ _id: { $in: hotelIds } }).select('_id policies');
+  const hotelPoliciesMap = {};
+  ownerHotels.forEach((hotel) => {
+    hotelPoliciesMap[hotel._id.toString()] = hotel.policies;
+  });
 
   const { today, tomorrow } = getTodayDateRange();
   const tasks = [];

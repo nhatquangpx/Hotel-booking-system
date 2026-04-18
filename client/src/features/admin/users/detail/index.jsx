@@ -5,6 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AdminLayout } from '@/features/admin/components';
 import api from '../../../../apis';
+import UserFormDialog from '../components/UserFormDialog';
 import './UserDetail.scss';
 
 /**
@@ -18,30 +19,31 @@ const AdminUserDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+      const data = await api.adminUser.getUserById(id);
+      setUser(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Có lỗi xảy ra khi tải thông tin người dùng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const data = await api.adminBooking.getUserBookings(id);
+      setBookings(data);
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+    }
+  };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const data = await api.adminUser.getUserById(id);
-        setUser(data);
-        setError(null);
-      } catch (err) {
-        setError(err.message || 'Có lỗi xảy ra khi tải thông tin người dùng');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchBookings = async () => {
-      try {
-        const data = await api.adminBooking.getUserBookings(id);
-        setBookings(data);
-      } catch (err) {
-        console.error('Error fetching bookings:', err);
-      }
-    };
-
     fetchUser();
     fetchBookings();
   }, [id]);
@@ -70,7 +72,7 @@ const AdminUserDetailPage = () => {
               <Tooltip title="Chỉnh sửa">
                 <IconButton 
                   color="primary"
-                  onClick={() => navigate(`/admin/users/edit/${id}`)}
+                  onClick={() => setIsEditDialogOpen(true)}
                 >
                   <EditIcon />
                 </IconButton>
@@ -179,6 +181,12 @@ const AdminUserDetailPage = () => {
           </>
         )}
       </div>
+      <UserFormDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        userId={id}
+        onSuccess={fetchUser}
+      />
     </AdminLayout>
   );
 };

@@ -25,6 +25,7 @@ const GuestBookingPage = () => {
     specialRequests: ''
   });
   const [totalAmount, setTotalAmount] = useState(0);
+  const [pricePreview, setPricePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showPaymentQRCode, setShowPaymentQRCode] = useState(false);
@@ -67,11 +68,24 @@ const GuestBookingPage = () => {
         setHotel(hotelResponse);
         const roomResponse = await api.userRoom.getRoomById(bookingData.roomId);
         setRoom(roomResponse);
-        const checkInDate = new Date(bookingData.checkInDate);
-        const checkOutDate = new Date(bookingData.checkOutDate);
-        const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-        const total = roomResponse.price.regular * nights;
-        setTotalAmount(total);
+        try {
+          const preview = await api.userBooking.getPricePreview({
+            hotelId: bookingData.hotelId,
+            roomId: bookingData.roomId,
+            checkInDate: bookingData.checkInDate,
+            checkOutDate: bookingData.checkOutDate,
+          });
+          setPricePreview(preview);
+          setTotalAmount(preview.finalAmount ?? 0);
+        } catch {
+          const checkInDate = new Date(bookingData.checkInDate);
+          const checkOutDate = new Date(bookingData.checkOutDate);
+          const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+          const pr = roomResponse.price;
+          const nightly = Math.max(0, (pr?.regular ?? 0) - (pr?.discount ?? 0));
+          setPricePreview(null);
+          setTotalAmount(nightly * nights);
+        }
         setLoading(false);
       } catch (err) {
         setError('Không thể tải thông tin đặt phòng');
@@ -134,7 +148,6 @@ const GuestBookingPage = () => {
           room: bookingData.roomId,
           checkInDate: bookingData.checkInDate,
           checkOutDate: bookingData.checkOutDate,
-          totalAmount: totalAmount,
           paymentMethod: formData.paymentMethod,
           specialRequests: formData.specialRequests || ''
         };
@@ -256,8 +269,12 @@ const GuestBookingPage = () => {
                       <span className="value">{room.type}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="label">Giá phòng:</span>
-                      <span className="value price">{room.price?.regular?.toLocaleString('vi-VN')} VNĐ/đêm</span>
+                      <span className="label">Giá phòng (ước tính):</span>
+                      <span className="value price">
+                        {pricePreview
+                          ? `${pricePreview.finalNightly?.toLocaleString('vi-VN')} VNĐ/đêm`
+                          : `${room.price?.regular?.toLocaleString('vi-VN')} VNĐ/đêm`}
+                      </span>
                     </div>
                     <div className="detail-item">
                       <span className="label">Số người tối đa:</span>
@@ -299,8 +316,26 @@ const GuestBookingPage = () => {
                     <span className="label">Ngày trả phòng:</span>
                     <span className="value">{new Date(bookingData.checkOutDate).toLocaleDateString('vi-VN')}</span>
                   </div>
+                  {pricePreview && pricePreview.discountAmount > 0 && (
+                    <>
+                      <div className="summary-item">
+                        <span className="label">Tạm tính (trước KM):</span>
+                        <span className="value">{pricePreview.basePrice?.toLocaleString('vi-VN')} VNĐ</span>
+                      </div>
+                      <div className="summary-item">
+                        <span className="label">Giảm khuyến mãi:</span>
+                        <span className="value">{pricePreview.discountAmount?.toLocaleString('vi-VN')} VNĐ</span>
+                      </div>
+                      {pricePreview.promotionApplied?.title && (
+                        <div className="summary-item">
+                          <span className="label">Chương trình:</span>
+                          <span className="value">{pricePreview.promotionApplied.title}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                   <div className="summary-item total">
-                    <span className="label">Tổng tiền:</span>
+                    <span className="label">Tổng thanh toán:</span>
                     <span className="value price">{totalAmount.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                 </div>

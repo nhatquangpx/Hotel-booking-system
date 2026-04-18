@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaStar } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
+import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import ReplyModal from './ReplyModal';
 import api from '@/apis';
 import { formatDate } from '@/shared/utils';
@@ -11,20 +12,20 @@ import './Reviews.scss';
  * Trang xem đánh giá của khách hàng cho chủ khách sạn
  */
 const OwnerReviewsPage = () => {
+  const { selectedHotelId, loading: hotelsLoading } = useOwnerHotel();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
+    if (hotelsLoading) {
+      return;
+    }
     try {
       setLoading(true);
-      const data = await api.ownerReview.getOwnerReviews();
+      const data = await api.ownerReview.getOwnerReviews(1, 20, selectedHotelId || undefined);
       setReviews(data.reviews || []);
       setError(null);
     } catch (err) {
@@ -32,7 +33,11 @@ const OwnerReviewsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedHotelId, hotelsLoading]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   // Tạo initials từ tên
   const getInitials = (name) => {
@@ -129,6 +134,44 @@ const OwnerReviewsPage = () => {
   return (
     <OwnerLayout>
       <div className="owner-reviews-page">
+        <div className="reviews-guide-card">
+          <div className="reviews-guide-card__intro">
+            <h3>Hướng dẫn theo dõi đánh giá</h3>
+            <p>
+              Xem phản hồi của khách để hiểu trải nghiệm thực tế và trả lời kịp thời khi cần.
+            </p>
+          </div>
+          <div className="reviews-guide-grid">
+            <div className="reviews-guide-item">
+              <span className="reviews-guide-item__step">1</span>
+              <div>
+                <strong>Xem nội dung khách đã chia sẻ</strong>
+                <p>Đọc điểm đánh giá, nhận xét và thông tin phòng để hiểu rõ vấn đề hoặc điểm mạnh.</p>
+              </div>
+            </div>
+            <div className="reviews-guide-item">
+              <span className="reviews-guide-item__step">2</span>
+              <div>
+                <strong>Dùng đánh giá để cải thiện dịch vụ</strong>
+                <p>Tập trung xử lý những phản hồi lặp lại để nâng chất lượng lưu trú lâu dài.</p>
+              </div>
+            </div>
+            <div className="reviews-guide-item">
+              <span className="reviews-guide-item__step">3</span>
+              <div>
+                <strong>Phản hồi ngắn gọn và lịch sự</strong>
+                <p>Trả lời để cảm ơn khách, giải thích thêm hoặc ghi nhận góp ý cần cải thiện.</p>
+              </div>
+            </div>
+            <div className="reviews-guide-item">
+              <span className="reviews-guide-item__step">4</span>
+              <div>
+                <strong>Theo dõi lại sau khi phản hồi</strong>
+                <p>Kiểm tra các góp ý quan trọng đã được xử lý chưa để tránh lặp lại trong những lần lưu trú sau.</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="reviews-section">          
           {reviews.length === 0 ? (
             <div className="empty-reviews">

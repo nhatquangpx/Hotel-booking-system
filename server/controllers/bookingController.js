@@ -22,7 +22,6 @@ exports.createBooking = async (req, res) => {
       checkInDate,
       checkOutDate,
       paymentMethod,
-      totalAmount,
       specialRequests
     } = req.body;
 
@@ -32,7 +31,6 @@ exports.createBooking = async (req, res) => {
       checkInDate,
       checkOutDate,
       paymentMethod,
-      totalAmount,
       specialRequests
     }, req.user.id);
 
@@ -43,6 +41,28 @@ exports.createBooking = async (req, res) => {
                       error.message.includes("không khả dụng") || 
                       error.message.includes("đã được đặt") ? 400 : 500;
     res.status(statusCode).json({ message: error.message || "Lỗi khi tạo đặt phòng" });
+  }
+};
+
+// Xem trước giá (guest) — cùng logic server khi tạo booking
+exports.getPricePreview = async (req, res) => {
+  try {
+    const { hotelId, roomId, checkInDate, checkOutDate } = req.query;
+    if (!hotelId || !roomId || !checkInDate || !checkOutDate) {
+      return res.status(400).json({ message: "Thiếu hotelId, roomId, checkInDate hoặc checkOutDate" });
+    }
+    const preview = await bookingService.previewBookingPrice(
+      hotelId,
+      roomId,
+      checkInDate,
+      checkOutDate
+    );
+    res.json(preview);
+  } catch (error) {
+    console.error("Lỗi xem trước giá:", error);
+    const statusCode =
+      error.message.includes("Không tìm thấy") ? 404 : error.message.includes("Ngày") ? 400 : 500;
+    res.status(statusCode).json({ message: error.message || "Lỗi xem trước giá" });
   }
 };
 
@@ -88,7 +108,8 @@ exports.getAllBookings = async (req, res) => {
 // Get bookings by owner (for owner's hotels)
 exports.getBookingsByOwner = async (req, res) => {
   try {
-    const bookings = await bookingService.getBookingsByOwner(req.user.id);
+    const { hotelId } = req.query;
+    const bookings = await bookingService.getBookingsByOwner(req.user.id, hotelId || null);
     res.status(200).json(bookings);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách đặt phòng của chủ khách sạn:", error);

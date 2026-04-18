@@ -95,7 +95,7 @@ const HotelFormDialog = ({
       const hotelData = await api.adminHotel.getHotelById(hotelId);
       setFormData({
         name: hotelData.name || '',
-        ownerId: hotelData.ownerId?._id || hotelData.ownerId || '',
+        ownerId: hotelData.ownerId?._id || '',
         description: hotelData.description || '',
         address: {
           number: hotelData.address?.number || '',
@@ -171,12 +171,26 @@ const HotelFormDialog = ({
       setError(null);
 
       if (isEdit) {
-        // For edit, send as JSON
-        const updateData = {
-          ...formData,
-          images: existingImages
-        };
-        await api.adminHotel.updateHotel(hotelId, updateData);
+        // For edit, send as FormData to support images + nested fields consistently
+        const formDataToSend = new FormData();
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description);
+        formDataToSend.append('starRating', formData.starRating);
+        formDataToSend.append('ownerId', formData.ownerId);
+        formDataToSend.append('status', formData.status);
+        formDataToSend.append('address[number]', formData.address.number);
+        formDataToSend.append('address[street]', formData.address.street);
+        formDataToSend.append('address[city]', formData.address.city);
+        formDataToSend.append('contactInfo[phone]', formData.contactInfo.phone);
+        formDataToSend.append('contactInfo[email]', formData.contactInfo.email);
+        formDataToSend.append('policies[checkInTime]', formData.policies.checkInTime);
+        formDataToSend.append('policies[checkOutTime]', formData.policies.checkOutTime);
+        formDataToSend.append('existingImages', JSON.stringify(existingImages));
+        selectedFiles.forEach((file) => {
+          formDataToSend.append('images', file);
+        });
+
+        await api.adminHotel.updateHotel(hotelId, formDataToSend);
       } else {
         // For create, send as FormData
         const formDataToSend = new FormData();

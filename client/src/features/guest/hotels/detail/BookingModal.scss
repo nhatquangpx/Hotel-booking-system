@@ -55,6 +55,37 @@
       }
     }
 
+    .modal-price-sale {
+      margin: 10px 0;
+      padding: 10px 0;
+      border-top: 1px dashed $border-light;
+      border-bottom: 1px dashed $border-light;
+    }
+
+    .modal-price-highlight {
+      color: $error;
+      font-weight: $font-semibold;
+    }
+
+    .modal-sale-badge {
+      display: inline-block;
+      margin-left: 6px;
+      background: linear-gradient(135deg, #e53935, #c62828);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      vertical-align: middle;
+    }
+
+    .modal-price-was {
+      color: $grey-text;
+      text-decoration: line-through;
+      font-weight: normal;
+      font-size: 0.9em;
+    }
+
     .modal-room-image {
       width: 100%;
       height: 200px;

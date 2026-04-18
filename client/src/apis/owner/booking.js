@@ -2,9 +2,11 @@ import api from '../config/axios';
 
 export const ownerBookingAPI = {
   // Cập nhật trạng thái đặt phòng
-  getOwnerBookings: async () => {
+  getOwnerBookings: async (hotelId) => {
     try {
-      const response = await api.get('/owner/bookings');
+      const params = {};
+      if (hotelId) params.hotelId = hotelId;
+      const response = await api.get('/owner/bookings', { params });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

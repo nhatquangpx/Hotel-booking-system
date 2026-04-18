@@ -7,6 +7,7 @@
 const {
   DAYS_OF_WEEK,
   getOwnerHotelIds,
+  getScopedHotelIdsForOwner,
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,
@@ -31,6 +32,7 @@ module.exports = {
   // Core functions
   DAYS_OF_WEEK,
   getOwnerHotelIds,
+  getScopedHotelIdsForOwner,
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,

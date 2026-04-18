@@ -1,5 +1,5 @@
 const Booking = require("../../models/Booking");
-const Hotel = require("../../models/Hotel");
+const { getScopedHotelIdsForOwner } = require("../dashboards/core");
 const {
   checkBookingPermission,
   getBookingById: getBookingByIdCore,
@@ -16,10 +16,8 @@ const {
  * @param {String} ownerId - Owner user ID
  * @returns {Promise<Array>} Array of bookings
  */
-const getBookingsByOwner = async (ownerId) => {
-  // Find all hotels owned by this owner
-  const ownerHotels = await Hotel.find({ ownerId: ownerId }).select('_id');
-  const hotelIds = ownerHotels.map(hotel => hotel._id);
+const getBookingsByOwner = async (ownerId, hotelId) => {
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
 
   if (hotelIds.length === 0) {
     return [];

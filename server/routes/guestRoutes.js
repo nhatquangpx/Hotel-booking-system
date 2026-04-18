@@ -32,6 +32,7 @@ router.put('/profile/:id/changepassword', authenticate, userController.changePas
 // Quản lý đặt phòng - PROTECTED
 router.get('/bookings', authenticate, bookingController.getMyBookings);
 router.get('/bookings/available-rooms', authenticate, bookingController.getAvailableRooms);
+router.get('/bookings/price-preview', authenticate, bookingController.getPricePreview);
 router.post('/bookings', authenticate, bookingController.createBooking);
 router.put('/bookings/:id/cancel', authenticate, bookingController.cancelBooking);
 // Route đánh giá phải đặt trước route /bookings/:id để tránh conflict

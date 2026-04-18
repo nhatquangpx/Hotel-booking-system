@@ -3,6 +3,7 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const { notifyNewReview } = require("../services/notifications");
+const { getScopedHotelIdsForOwner } = require("../services/dashboards/core");
 
 // Thêm đánh giá cho booking sau khi checkout
 exports.addReview = async (req, res) => {
@@ -386,13 +387,11 @@ exports.deleteReview = async (req, res) => {
 exports.getReviewsByOwner = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, hotelId } = req.query;
 
     console.log(`Lấy danh sách đánh giá cho owner ${ownerId}`);
 
-    // Tìm tất cả khách sạn thuộc về owner này
-    const ownerHotels = await Hotel.find({ ownerId }).select('_id');
-    const hotelIds = ownerHotels.map(hotel => hotel._id);
+    const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
 
     if (hotelIds.length === 0) {
       return res.status(200).json({
@@ -448,6 +447,9 @@ exports.getReviewsByOwner = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi lấy danh sách đánh giá của owner:", error);
+    if (error.statusCode === 403) {
+      return res.status(403).json({ message: error.message });
+    }
     res.status(500).json({ 
       message: "Lỗi khi lấy danh sách đánh giá", 
       error: error.message 

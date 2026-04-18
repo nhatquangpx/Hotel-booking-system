@@ -17,6 +17,7 @@ const Header = ({
   isSidebarCollapsed, 
   onToggleSidebar,
   getPageTitle,
+  headerExtra,
   className = ''
 }) => {
   const location = useLocation();
@@ -89,6 +90,7 @@ const Header = ({
             </button>
           )}
           <h1>{title}</h1>
+          {headerExtra}
         </div>
         <div className="header-right">
           <NotificationBell />

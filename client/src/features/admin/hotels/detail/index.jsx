@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar } from 'react-icons/fa';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AdminLayout } from '@/features/admin/components';
 import api from '../../../../apis';
+import HotelFormDialog from '../components/HotelFormDialog';
 import { getImageUrl } from '../../../../constants/images';
 import '@/features/admin/components/AdminComponents.scss';
 import '@/features/admin/components/AdminDetailPage.scss';
@@ -22,23 +23,24 @@ const AdminHotelDetailPage = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const fetchHotelData = async () => {
+    try {
+      setLoading(true);
+      const hotelData = await api.adminHotel.getHotelById(id);
+      setHotel(hotelData);
+      const roomsData = await api.adminRoom.getRoomsByHotel(id);
+      setRooms(roomsData);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Có lỗi xảy ra khi tải thông tin khách sạn');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchHotelData = async () => {
-      try {
-        setLoading(true);
-        const hotelData = await api.adminHotel.getHotelById(id);
-        setHotel(hotelData);
-        const roomsData = await api.adminRoom.getRoomsByHotel(id);
-        setRooms(roomsData);
-        setError(null);
-      } catch (err) {
-        setError(err.message || 'Có lỗi xảy ra khi tải thông tin khách sạn');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchHotelData();
   }, [id]);
 
@@ -109,7 +111,7 @@ const AdminHotelDetailPage = () => {
               <Tooltip title="Chỉnh sửa">
                 <IconButton 
                   color="primary"
-                  onClick={() => navigate(`/admin/hotels/${id}/edit`)}
+                  onClick={() => setIsEditDialogOpen(true)}
                 >
                   <EditIcon />
                 </IconButton>
@@ -220,6 +222,12 @@ const AdminHotelDetailPage = () => {
           </table>
         </div>
       </div>
+      <HotelFormDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        hotelId={id}
+        onSuccess={fetchHotelData}
+      />
     </AdminLayout>
   );
 };

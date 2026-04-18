@@ -23,13 +23,9 @@ export const ROUTES = {
   // Admin routes
   ADMIN_HOME: '/admin',
   ADMIN_USERS: '/admin/users',
-  ADMIN_USER_CREATE: '/admin/users/create',
   ADMIN_USER_DETAIL: (id) => `/admin/users/${id}`,
-  ADMIN_USER_EDIT: (id) => `/admin/users/edit/${id}`,
   ADMIN_HOTELS: '/admin/hotels',
-  ADMIN_HOTEL_CREATE: '/admin/hotels/create',
   ADMIN_HOTEL_DETAIL: (id) => `/admin/hotels/${id}`,
-  ADMIN_HOTEL_EDIT: (id) => `/admin/hotels/${id}/edit`,
   ADMIN_ROOM_CREATE: (hotelId) => `/admin/hotels/${hotelId}/rooms/create`,
   ADMIN_ROOM_DETAIL: (id) => `/admin/rooms/${id}`,
   ADMIN_ROOM_EDIT: (id) => `/admin/rooms/${id}/edit`,

@@ -4,30 +4,38 @@ import { RoomFormDialog } from '../components';
 import api from '@/apis';
 import './CreateRoomButton.scss';
 
-const CreateRoomButton = ({ onSuccess }) => {
+const CreateRoomButton = ({ onSuccess, hotelId: hotelIdProp }) => {
   const [showDialog, setShowDialog] = useState(false);
-  const [hotelId, setHotelId] = useState(null);
+  const [hotelId, setHotelId] = useState(hotelIdProp || null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchHotelId();
-  }, []);
-
-  const fetchHotelId = async () => {
-    try {
-      setLoading(true);
-      const hotels = await api.ownerHotel.getOwnerHotels();
-      
-      if (hotels && hotels.length > 0) {
-        const firstHotelId = hotels[0]._id || hotels[0].id;
-        setHotelId(firstHotelId);
-      }
-    } catch (err) {
-      console.error('Error fetching hotels:', err);
-    } finally {
+    if (hotelIdProp) {
+      setHotelId(hotelIdProp);
       setLoading(false);
+      return;
     }
-  };
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        const hotels = await api.ownerHotel.getOwnerHotels();
+
+        if (cancelled) return;
+        if (hotels && hotels.length > 0) {
+          const firstHotelId = hotels[0]._id || hotels[0].id;
+          setHotelId(firstHotelId);
+        }
+      } catch (err) {
+        console.error('Error fetching hotels:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hotelIdProp]);
 
   const handleOpenDialog = () => {
     setShowDialog(true);
