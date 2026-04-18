@@ -28,40 +28,56 @@ exports.getRecentActivities = async (req, res) => {
 // Owner Dashboard Controllers
 exports.getOwnerDashboardStats = async (req, res) => {
   try {
-    const stats = await dashboardService.getOwnerDashboardStats(req.user.id);
+    const hotelId = req.query.hotelId || null;
+    const stats = await dashboardService.getOwnerDashboardStats(req.user.id, hotelId);
     res.json(stats);
   } catch (error) {
     console.error("Lỗi khi lấy thống kê dashboard owner:", error);
+    if (error.statusCode === 403) {
+      return res.status(403).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Lỗi lấy thống kê', error: error.message });
   }
 };
 
 exports.getOwnerRevenueStats = async (req, res) => {
   try {
-    const revenueData = await dashboardService.getWeeklyRevenue(req.user.id);
+    const hotelId = req.query.hotelId || null;
+    const revenueData = await dashboardService.getWeeklyRevenue(req.user.id, hotelId);
     res.json(revenueData);
   } catch (error) {
     console.error("Lỗi khi lấy thống kê doanh thu owner:", error);
+    if (error.statusCode === 403) {
+      return res.status(403).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Lỗi lấy thống kê doanh thu', error: error.message });
   }
 };
 
 exports.getOwnerRoomStats = async (req, res) => {
   try {
-    const occupancyData = await dashboardService.getRoomOccupancy(req.user.id);
+    const hotelId = req.query.hotelId || null;
+    const occupancyData = await dashboardService.getRoomOccupancy(req.user.id, hotelId);
     res.json(occupancyData);
   } catch (error) {
     console.error("Lỗi khi lấy thống kê phòng owner:", error);
+    if (error.statusCode === 403) {
+      return res.status(403).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Lỗi lấy thống kê phòng', error: error.message });
   }
 };
 
 exports.getOwnerTodayTasks = async (req, res) => {
   try {
-    const tasks = await dashboardService.getTodayTasks(req.user.id);
+    const hotelId = req.query.hotelId || null;
+    const tasks = await dashboardService.getTodayTasks(req.user.id, hotelId);
     res.json(tasks);
   } catch (error) {
     console.error("Lỗi khi lấy công việc hôm nay owner:", error);
+    if (error.statusCode === 403) {
+      return res.status(403).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Lỗi lấy công việc hôm nay', error: error.message });
   }
 };

@@ -21,10 +21,16 @@
 
   h2 {
     @include heading-md;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     color: $text-medium;
     border-bottom: 2px solid $star-orange;
     padding-bottom: 10px;
+  }
+
+  .room-list-dates {
+    @include body-sm;
+    color: $text-light;
+    margin-bottom: 20px;
   }
 
   .no-rooms {
@@ -79,6 +85,63 @@
         margin-bottom: 15px;
         @include body-base;
         text-transform: $transform-capitalize;
+      }
+
+      .room-price-block {
+        margin-bottom: 16px;
+      }
+
+      .room-price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+
+        .price-label {
+          @include body-sm;
+          color: $text-light;
+        }
+
+        .price-original {
+          @include body-base;
+          text-decoration: line-through;
+          color: $grey-text;
+        }
+
+        &--promo {
+          align-items: center;
+        }
+
+        .sale-badge {
+          display: inline-block;
+          background: linear-gradient(135deg, #e53935, #c62828);
+          color: #fff;
+          font-size: 0.75rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 999px;
+        }
+
+        .price-final {
+          @include body-lg-alt;
+          font-weight: $font-semibold;
+          color: $error;
+        }
+      }
+
+      .price-stay-total {
+        @include body-sm;
+        color: $text-medium;
+        margin-top: 8px;
+        line-height: 1.4;
+
+        .price-stay-compare {
+          color: $grey-text;
+          text-decoration: line-through;
+          font-weight: normal;
+        }
       }
 
       .room-price {

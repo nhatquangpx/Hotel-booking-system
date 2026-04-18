@@ -6,8 +6,10 @@ import {
   FaBed, 
   FaCalendarCheck, 
   FaUsers,
-  FaChartLine
+  FaChartLine,
+  FaTags
 } from 'react-icons/fa';
+import OwnerHotelSelect from './OwnerHotelSelect';
 import './OwnerLayout.scss';
 
 const SIDEBAR_STORAGE_KEY = 'owner_sidebar_collapsed';
@@ -49,6 +51,7 @@ const OwnerLayout = ({ children }) => {
     }
     if (location.pathname.includes('/owner/reviews')) return 'Đánh giá';
     if (location.pathname.includes('/owner/pricing')) return 'Giá động';
+    if (location.pathname.includes('/owner/sale')) return 'Khuyến mãi';
     if (location.pathname.includes('/owner/notifications')) return 'Thông báo';
     return 'Quản lý khách sạn';
   };
@@ -58,6 +61,7 @@ const OwnerLayout = ({ children }) => {
     { path: '/owner/rooms', label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
     { path: '/owner/bookings', label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
     { path: '/owner/pricing', label: 'Giá động', icon: FaChartLine, title: 'Giá động' },
+    { path: '/owner/sale', label: 'Khuyến mãi', icon: FaTags, title: 'Khuyến mãi' },
     { path: '/owner/reviews', label: 'Đánh giá', icon: FaUsers, title: 'Đánh giá' },
   ];
 
@@ -73,6 +77,7 @@ const OwnerLayout = ({ children }) => {
           isSidebarCollapsed={isSidebarCollapsed} 
           onToggleSidebar={toggleSidebar}
           getPageTitle={getPageTitle}
+          headerExtra={<OwnerHotelSelect />}
         />
         <div className="content-body">
           {children}

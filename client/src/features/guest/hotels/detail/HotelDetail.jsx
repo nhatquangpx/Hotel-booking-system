@@ -177,6 +177,7 @@ const GuestHotelDetailPage = () => {
             />
             <RoomList
               rooms={rooms}
+              bookingDates={bookingDates}
               onRoomSelect={handleRoomSelect}
               loading={loading}
               searchPerformed={searchPerformed}

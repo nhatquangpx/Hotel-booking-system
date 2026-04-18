@@ -11,6 +11,7 @@ const reviewController = require('../controllers/reviewController');
 const notificationController = require('../controllers/notificationController');
 const dashboardController = require('../controllers/dashboardController');
 const pricingController = require('../controllers/pricingController');
+const saleController = require('../controllers/saleController');
 
 router.use(authenticate, isOwner);
 
@@ -60,5 +61,11 @@ router.get('/dashboard/tasks', dashboardController.getOwnerTodayTasks);
 // Giá động (gợi ý)
 router.get('/pricing/dynamic', pricingController.getDynamicPricing);
 router.post('/pricing/apply-suggested', pricingController.applySuggestedPrices);
+
+// Chương trình sale
+router.get('/sales', saleController.listSales);
+router.post('/sales', saleController.createSale);
+router.put('/sales/:id', saleController.updateSale);
+router.delete('/sales/:id', saleController.deactivateSale);
 
 module.exports = router;

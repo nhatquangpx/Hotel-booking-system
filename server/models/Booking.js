@@ -29,6 +29,27 @@ const BookingSchema = new mongoose.Schema(
       type: Number,
       required: true
     },
+    /** Tổng tiền trước chương trình sale (regular − discount phòng) × số đêm */
+    basePrice: {
+      type: Number,
+    },
+    /** Giảm giá do chương trình sale (server tính, không tin client) */
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    /** Thành tiền sau sale (= totalAmount khi thanh toán) */
+    finalAmount: {
+      type: Number,
+    },
+    promotionApplied: {
+      sale: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "SalePromotion",
+      },
+      title: { type: String },
+      discountPercent: { type: Number },
+    },
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "cancelled"],

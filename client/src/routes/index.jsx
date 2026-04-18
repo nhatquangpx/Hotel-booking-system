@@ -23,13 +23,9 @@ import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/featu
 import { 
   AdminDashboardPage,
   AdminUserListPage,
-  AdminUserCreatePage,
   AdminUserDetailPage,
-  AdminUserEditPage,
   AdminHotelListPage,
-  AdminHotelCreatePage,
   AdminHotelDetailPage,
-  AdminHotelEditPage,
   AdminRoomCreatePage,
   AdminRoomDetailPage,
   AdminRoomEditPage,
@@ -43,6 +39,7 @@ import {
 import { 
   OwnerDashboardPage,
   OwnerDynamicPricingPage,
+  OwnerSalePage,
   OwnerRoomMapPage,
   OwnerBookingListPage,
   OwnerReviewsPage,
@@ -52,6 +49,7 @@ import {
   OwnerProfileChangePasswordPage,
   OwnerTwoFactorPage
 } from "@/features/owner";
+import { OwnerHotelOutlet } from "@/features/owner/context/OwnerHotelContext";
 
 /**
  * App Routes
@@ -102,15 +100,11 @@ export default function AppRoutes() {
 
           {/* Users */}
           <Route path="/admin/users" element={<AdminUserListPage />} />
-          <Route path="/admin/users/create" element={<AdminUserCreatePage />} />
           <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
-          <Route path="/admin/users/edit/:id" element={<AdminUserEditPage />} />
 
           {/* Hotels */}
           <Route path="/admin/hotels" element={<AdminHotelListPage />} />
-          <Route path="/admin/hotels/create" element={<AdminHotelCreatePage />} />
           <Route path="/admin/hotels/:id" element={<AdminHotelDetailPage />} />
-          <Route path="/admin/hotels/:id/edit" element={<AdminHotelEditPage />} />
           <Route path="/admin/hotels/:id/rooms/create" element={<AdminRoomCreatePage />} />
 
           {/* Rooms */}
@@ -128,20 +122,23 @@ export default function AppRoutes() {
           <Route path="/admin/profile/two-factor" element={<AdminTwoFactorPage />} />
         </Route>
 
-        {/* Owner (protected) */}
+        {/* Owner (protected) — chọn khách sạn dùng chung qua OwnerHotelOutlet */}
         <Route element={<ProtectedRoute allowedRoles={["owner"]} />}>
-          <Route path="/owner" element={<OwnerDashboardPage />} />
-          <Route path="/owner/rooms" element={<OwnerRoomMapPage />} />
-          <Route path="/owner/pricing" element={<OwnerDynamicPricingPage />} />
-          <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
-          <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
-          <Route path="/owner/notifications" element={<OwnerNotificationsPage />} />
-          
-          {/* Profile */}
-          <Route path="/owner/profile" element={<OwnerProfileAccountPage />} />
-          <Route path="/owner/profile/edit" element={<OwnerProfileEditPage />} />
-          <Route path="/owner/profile/changepassword" element={<OwnerProfileChangePasswordPage />} />
-          <Route path="/owner/profile/two-factor" element={<OwnerTwoFactorPage />} />
+          <Route element={<OwnerHotelOutlet />}>
+            <Route path="/owner" element={<OwnerDashboardPage />} />
+            <Route path="/owner/rooms" element={<OwnerRoomMapPage />} />
+            <Route path="/owner/pricing" element={<OwnerDynamicPricingPage />} />
+            <Route path="/owner/sale" element={<OwnerSalePage />} />
+            <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
+            <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
+            <Route path="/owner/notifications" element={<OwnerNotificationsPage />} />
+
+            {/* Profile */}
+            <Route path="/owner/profile" element={<OwnerProfileAccountPage />} />
+            <Route path="/owner/profile/edit" element={<OwnerProfileEditPage />} />
+            <Route path="/owner/profile/changepassword" element={<OwnerProfileChangePasswordPage />} />
+            <Route path="/owner/profile/two-factor" element={<OwnerTwoFactorPage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -2,8 +2,6 @@ const Booking = require("../../models/Booking");
 const Room = require("../../models/Room");
 const Hotel = require("../../models/Hotel");
 const {
-  calculateNights,
-  calculateAmount,
   checkRoomAvailability,
   validateBookingDates,
   checkBookingPermission,
@@ -12,6 +10,11 @@ const {
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus
 } = require("./core");
+const {
+  computeStaySalePricing,
+  computeStaySalePricingFromSales,
+  loadSalesOverlappingStay,
+} = require("../sale/salePricingService");
 
 /**
  * Guest Booking Service
@@ -26,13 +29,12 @@ const {
  * @param {Date|String} bookingData.checkInDate - Check-in date
  * @param {Date|String} bookingData.checkOutDate - Check-out date
  * @param {String} bookingData.paymentMethod - Payment method
- * @param {Number} bookingData.totalAmount - Total amount (optional)
  * @param {String} bookingData.specialRequests - Special requests (optional)
  * @param {String} guestId - Guest user ID
  * @returns {Promise<Object>} Created booking
  */
 const createBooking = async (bookingData, guestId) => {
-  const { hotelId, roomId, checkInDate, checkOutDate, paymentMethod, totalAmount, specialRequests } = bookingData;
+  const { hotelId, roomId, checkInDate, checkOutDate, paymentMethod, specialRequests } = bookingData;
 
   // 1. Validate dates
   const dateValidation = validateBookingDates(checkInDate, checkOutDate);
@@ -63,12 +65,9 @@ const createBooking = async (bookingData, guestId) => {
     throw new Error("Phòng không khả dụng cho đặt chỗ");
   }
 
-  // 6. Calculate total amount if not provided
-  const nights = calculateNights(checkInDate, checkOutDate);
-  let calculatedAmount = totalAmount;
-  if (!calculatedAmount) {
-    calculatedAmount = calculateAmount(room, nights);
-  }
+  // 6. Tính tiền và snapshot ở server (không tin totalAmount từ client)
+  const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
+  const calculatedAmount = pricing.finalAmount;
 
   // 7. Create new booking
   const newBooking = new Booking({
@@ -78,6 +77,10 @@ const createBooking = async (bookingData, guestId) => {
     checkInDate: new Date(checkInDate),
     checkOutDate: new Date(checkOutDate),
     totalAmount: calculatedAmount,
+    basePrice: pricing.basePrice,
+    discountAmount: pricing.discountAmount,
+    finalAmount: pricing.finalAmount,
+    promotionApplied: pricing.promotionApplied || undefined,
     paymentMethod: paymentMethod || "qr_code",
     specialRequests: specialRequests || "",
     cancellationReason: "",
@@ -95,6 +98,39 @@ const createBooking = async (bookingData, guestId) => {
     hotel: "name address images starRating",
     room: "roomNumber type price images"
   });
+};
+
+/**
+ * Xem trước giá (guest) — cùng logic với tạo đặt phòng
+ */
+const previewBookingPrice = async (hotelId, roomId, checkInDate, checkOutDate) => {
+  const dateValidation = validateBookingDates(checkInDate, checkOutDate);
+  if (!dateValidation.valid) {
+    throw new Error(dateValidation.error);
+  }
+
+  const hotel = await Hotel.findById(hotelId);
+  if (!hotel) {
+    throw new Error("Không tìm thấy khách sạn");
+  }
+
+  const room = await Room.findById(roomId);
+  if (!room) {
+    throw new Error("Không tìm thấy phòng");
+  }
+
+  if (room.hotelId.toString() !== hotelId) {
+    throw new Error("Phòng không thuộc về khách sạn đã chọn");
+  }
+
+  const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
+  return {
+    hotelId,
+    roomId,
+    checkInDate,
+    checkOutDate,
+    ...pricing,
+  };
 };
 
 /**
@@ -152,12 +188,26 @@ const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
 
   const availableRooms = [];
 
+  const sales = await loadSalesOverlappingStay(hotelId, checkInDate, checkOutDate);
+
   for (const room of allRooms) {
-    // Check if room is available (includes all necessary conditions)
     const isAvailable = await checkRoomAvailability(room, startDate, endDate);
-    
+
     if (isAvailable) {
-      availableRooms.push(room);
+      const pricing = computeStaySalePricingFromSales(room, checkInDate, checkOutDate, sales);
+      const roomObj = room.toObject ? room.toObject() : { ...room };
+      roomObj.salePricing = {
+        basePrice: pricing.basePrice,
+        finalAmount: pricing.finalAmount,
+        discountAmount: pricing.discountAmount,
+        displayPercentOff: pricing.displayPercentOff,
+        promotionTitle: pricing.promotionApplied?.title || null,
+        nightlyBase: pricing.nightlyBase,
+        finalNightly: pricing.finalNightly,
+        nights: pricing.nights,
+        regularNightly: room.price?.regular ?? 0,
+      };
+      availableRooms.push(roomObj);
     }
   }
 
@@ -210,5 +260,6 @@ module.exports = {
   getMyBookings,
   getBookingById,
   getAvailableRooms,
-  cancelBooking
+  cancelBooking,
+  previewBookingPrice,
 };

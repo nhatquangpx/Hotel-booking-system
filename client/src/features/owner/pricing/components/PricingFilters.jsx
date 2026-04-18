@@ -1,12 +1,10 @@
 import React from 'react';
 
 /**
- * Bộ lọc: khách sạn, loại phòng, số ngày, làm mới, popover hướng dẫn.
+ * Bộ lọc: loại phòng, số ngày, làm mới, popover hướng dẫn.
+ * Khách sạn chọn trên header (dùng chung toàn khu owner).
  */
 const PricingFilters = ({
-  hotels,
-  hotelId,
-  onHotelIdChange,
   roomTypes,
   selectedRoomType,
   onRoomTypeChange,
@@ -17,24 +15,6 @@ const PricingFilters = ({
 }) => {
   return (
     <div className="filters">
-      <label className="filter-field">
-        <span>Khách sạn</span>
-        <select
-          value={hotelId}
-          onChange={(e) => onHotelIdChange(e.target.value)}
-          disabled={!hotels.length}
-        >
-          {hotels.length === 0 ? (
-            <option value="">Chưa có khách sạn</option>
-          ) : (
-            hotels.map((h) => (
-              <option key={h._id} value={h._id}>
-                {h.name}
-              </option>
-            ))
-          )}
-        </select>
-      </label>
       <label className="filter-field">
         <span>Loại phòng</span>
         <select

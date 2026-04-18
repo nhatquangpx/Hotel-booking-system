@@ -20,7 +20,8 @@ const {
   getMyBookings,
   getBookingById: getGuestBookingById,
   getAvailableRooms,
-  cancelBooking: cancelGuestBooking
+  cancelBooking: cancelGuestBooking,
+  previewBookingPrice,
 } = require("./guest");
 
 // Owner booking services
@@ -56,6 +57,7 @@ module.exports = {
   getGuestBookingById,
   getAvailableRooms,
   cancelGuestBooking,
+  previewBookingPrice,
   
   // Owner services
   getBookingsByOwner,

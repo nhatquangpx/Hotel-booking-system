@@ -1,0 +1,498 @@
+@use '@/styles/variables' as *;
+@use '@/styles/global' as *;
+
+.owner-sale-page {
+  width: calc(100% + 4rem);
+  margin-left: -2rem;
+  margin-right: -2rem;
+  padding: 0 2rem 2rem;
+  color: $text-primary;
+
+  .page-desc {
+    color: $text-secondary;
+    line-height: 1.55;
+    max-width: none;
+    margin: 0;
+  }
+
+  .page-header {
+    width: 100%;
+  }
+
+  .sale-guide-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 1.5rem;
+    padding: 1.2rem 1.25rem;
+    border: 1px solid rgba($lotte-primary, 0.22);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba($lotte-primary, 0.08) 0%, rgba($lotte-primary, 0.03) 100%);
+    box-shadow: 0 4px 16px rgba(160, 130, 109, 0.08);
+    text-align: center;
+
+    &__intro {
+      margin-bottom: 1rem;
+
+      h3 {
+        margin: 0 0 0.45rem;
+        font-size: 1.05rem;
+        color: $lotte-primary-dark;
+      }
+    }
+  }
+
+  .sale-guide-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .sale-guide-item {
+    position: relative;
+    flex: 1 1 280px;
+    max-width: 360px;
+    padding: 0.9rem 1rem 0.9rem 3.1rem;
+    background: $bg-white;
+    border: 1px solid $border-light;
+    border-radius: 12px;
+    text-align: center;
+
+    strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: $text-primary;
+      font-size: 0.92rem;
+    }
+
+    p {
+      margin: 0;
+      color: $text-secondary;
+      line-height: 1.5;
+      font-size: 0.86rem;
+    }
+
+    &__step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: $lotte-primary;
+      color: $text-white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 3px 8px rgba(160, 130, 109, 0.18);
+      flex-shrink: 0;
+    }
+  }
+
+  .sale-guide-note {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: $status-warning-bg;
+    color: $status-warning-text;
+    line-height: 1.5;
+    font-size: 0.88rem;
+  }
+
+  .sale-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid $admin-border;
+    border-radius: 12px;
+    background: $bg-light-alt;
+
+    .sale-filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 240px;
+      span {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: $text-medium-alt;
+      }
+    }
+
+    select {
+      min-width: 240px;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid $border-medium;
+      background: $bg-white;
+      color: $text-primary;
+    }
+
+    .sale-toolbar-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-left: auto;
+      margin-right: 0.25rem;
+
+      .meta-item {
+        font-size: 0.82rem;
+        color: $text-secondary;
+        background: $bg-white;
+        border: 1px solid $border-light;
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        strong {
+          color: $lotte-primary-dark;
+        }
+      }
+    }
+  }
+
+  .state-msg {
+    padding: 1rem;
+    border-radius: 8px;
+    background: $grey-light;
+    margin-bottom: 1rem;
+    color: $text-medium-alt;
+
+    &--error {
+      background: $danger-light;
+      color: $danger-dark;
+    }
+  }
+
+  .btn-primary {
+    padding: 0.55rem 1.05rem;
+    background: $button-primary;
+    color: $text-white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .sale-table-wrap {
+    overflow-x: auto;
+    background: $bg-white;
+    border-radius: 12px;
+    border: 1px solid $admin-border;
+    box-shadow: 0 2px 12px rgba(160, 130, 109, 0.08);
+  }
+
+  .sale-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+
+    th,
+    td {
+      padding: 0.8rem 0.95rem;
+      text-align: center;
+      border-bottom: 1px solid $border-light;
+      vertical-align: middle;
+    }
+
+    th {
+      background: linear-gradient(180deg, $lotte-primary-light 0%, $lotte-primary 100%);
+      color: $text-white;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      border-bottom: none;
+      &:first-child {
+        border-top-left-radius: 11px;
+      }
+      &:last-child {
+        border-top-right-radius: 11px;
+      }
+    }
+
+    tbody tr {
+      &:nth-child(even) {
+        background: $bg-light-alt;
+      }
+      &:hover {
+        background: rgba($lotte-primary, 0.06);
+      }
+      &:last-child td {
+        border-bottom: none;
+      }
+    }
+
+    .sale-title-cell {
+      text-align: center;
+      strong {
+        color: $text-primary;
+        font-size: 0.95rem;
+      }
+    }
+
+    .scope-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+
+      &--hotel {
+        background: rgba($lotte-primary, 0.14);
+        color: $lotte-primary-dark;
+      }
+
+      &--type {
+        background: $status-info-bg;
+        color: $status-info-text;
+      }
+    }
+
+    .time-range {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-variant-numeric: tabular-nums;
+      .time-sep {
+        color: $text-disabled;
+      }
+    }
+
+    .discount-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 68px;
+      padding: 0.28rem 0.55rem;
+      border-radius: 8px;
+      background: rgba($danger, 0.14);
+      color: $danger-dark;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.28rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+
+      &--active {
+        background: $status-success-bg;
+        color: $status-success-text;
+      }
+      &--inactive {
+        background: $status-warning-bg;
+        color: $status-warning-text;
+      }
+    }
+  }
+
+  .sale-row-actions {
+    text-align: center;
+    white-space: nowrap;
+    display: flex;
+    justify-content: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+
+    .action-btn {
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0.32rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+
+      &--edit {
+        background: $status-info-bg;
+        color: $status-info-text;
+        border-color: rgba($status-info-text, 0.25);
+      }
+
+      &--danger {
+        background: $danger-light;
+        color: $danger-dark;
+        border-color: rgba($danger-dark, 0.2);
+      }
+
+      &--success {
+        background: $status-success-bg;
+        color: $status-success-text;
+        border-color: rgba($status-success-text, 0.25);
+      }
+    }
+  }
+}
+
+.sale-form {
+  .form-group {
+    margin-bottom: 1rem;
+    label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.9rem;
+    }
+    input[type='text'],
+    input[type='number'],
+    input[type='date'],
+    select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid $border-medium;
+      box-sizing: border-box;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .sale-scope-options {
+    display: flex;
+    gap: 1.5rem;
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: normal;
+    }
+  }
+
+  .sale-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .btn-primary {
+    padding: 0.55rem 1rem;
+    background: $button-primary;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    padding: 0.55rem 1rem;
+    background: $bg-white;
+    border: 1px solid $border-medium;
+    border-radius: 8px;
+    color: $text-secondary;
+    cursor: pointer;
+  }
+}
+
+.confirm-box {
+  p {
+    margin: 0 0 0.65rem;
+    color: $text-secondary;
+    line-height: 1.5;
+  }
+
+  &__title {
+    background: $bg-light-alt;
+    border: 1px solid $border-light;
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    color: $text-primary !important;
+    margin-bottom: 1rem !important;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+  }
+
+  .btn-danger {
+    background: $danger;
+    &:hover:not(:disabled) {
+      background: $danger-dark;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-sale-page {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem 1.25rem;
+
+    .sale-toolbar {
+      .sale-filter-field,
+      .sale-filter-field select {
+        min-width: 100%;
+      }
+      .sale-toolbar-meta {
+        margin-left: 0;
+      }
+    }
+
+    .sale-guide-item {
+      flex-basis: 100%;
+      max-width: none;
+    }
+
+    .sale-table {
+      th,
+      td {
+        padding: 0.68rem 0.58rem;
+        font-size: 0.82rem;
+      }
+      th {
+        font-size: 0.66rem;
+      }
+    }
+
+    .sale-form .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .confirm-box {
+    &__actions {
+      flex-direction: column-reverse;
+
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+      }
+    }
+  }
+}

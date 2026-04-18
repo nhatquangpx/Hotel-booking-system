@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaDollarSign, FaBed, FaExclamationCircle } from 'react-icons/fa';
 import { ownerDashboardAPI } from '@/apis/owner/dashboard';
+import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import MetricCard from '../../components/MetricCard';
 import HotelInfoCard from '../../components/HotelInfoCard';
 import EditHotelDialog from '../../components/EditHotelDialog';
@@ -15,6 +16,9 @@ import './OwnerDashboard.scss';
  * Displays overview statistics, charts, and tasks for hotel owner
  */
 export const OwnerDashboard = () => {
+  const { selectedHotelId, selectedHotel, refreshHotels, loading: hotelsLoading } =
+    useOwnerHotel();
+
   const [stats, setStats] = useState({
     todayRevenue: 0,
     availableRooms: 0,
@@ -22,7 +26,6 @@ export const OwnerDashboard = () => {
     roomsToClean: 0,
     brokenRooms: 0
   });
-  const [hotel, setHotel] = useState(null);
   const [weeklyRevenue, setWeeklyRevenue] = useState([]);
   const [roomOccupancy, setRoomOccupancy] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -30,25 +33,37 @@ export const OwnerDashboard = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
+    if (hotelsLoading) {
+      return;
+    }
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch all data in parallel
-        const [statsData, hotelData, revenueData, occupancyData, tasksData] = await Promise.allSettled([
-          ownerDashboardAPI.getStats(),
-          ownerDashboardAPI.getHotelInfo(),
-          ownerDashboardAPI.getWeeklyRevenue(),
-          ownerDashboardAPI.getRoomOccupancy(),
-          ownerDashboardAPI.getTodayTasks()
+
+        if (!selectedHotelId) {
+          setStats({
+            todayRevenue: 0,
+            availableRooms: 0,
+            totalRooms: 0,
+            roomsToClean: 0,
+            brokenRooms: 0
+          });
+          setWeeklyRevenue([]);
+          setRoomOccupancy([]);
+          setTasks([]);
+          return;
+        }
+
+        const [statsData, revenueData, occupancyData, tasksData] = await Promise.allSettled([
+          ownerDashboardAPI.getStats(selectedHotelId),
+          ownerDashboardAPI.getWeeklyRevenue(selectedHotelId),
+          ownerDashboardAPI.getRoomOccupancy(selectedHotelId),
+          ownerDashboardAPI.getTodayTasks(selectedHotelId)
         ]);
 
         if (statsData.status === 'fulfilled') {
           setStats(statsData.value);
-        }
-
-        if (hotelData.status === 'fulfilled') {
-          setHotel(hotelData.value);
         }
 
         if (revenueData.status === 'fulfilled') {
@@ -70,23 +85,14 @@ export const OwnerDashboard = () => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [selectedHotelId, hotelsLoading]);
 
   const handleEditHotel = () => {
     setShowEditDialog(true);
   };
 
-  const handleEditSuccess = () => {
-    // Refresh hotel data after successful update
-    const fetchHotelData = async () => {
-      try {
-        const hotelData = await ownerDashboardAPI.getHotelInfo();
-        setHotel(hotelData);
-      } catch (err) {
-        console.error('Error refreshing hotel data:', err);
-      }
-    };
-    fetchHotelData();
+  const handleEditSuccess = async () => {
+    await refreshHotels();
   };
 
   const formatRevenue = (amount) => {
@@ -96,19 +102,7 @@ export const OwnerDashboard = () => {
     return amount.toLocaleString('vi-VN');
   };
 
-  const getCurrentDate = () => {
-    const today = new Date();
-    const days = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    const dayName = days[today.getDay()];
-    const date = today.toLocaleDateString('vi-VN', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    });
-    return `${dayName}, ${date}`;
-  };
-
-  if (loading) {
+  if (hotelsLoading || loading) {
     return <div className="owner-dashboard-loading">Đang tải...</div>;
   }
 
@@ -117,17 +111,17 @@ export const OwnerDashboard = () => {
       {/* Today's Overview Section */}
       <div className="today-overview">
         <HotelInfoCard 
-          hotel={hotel}
+          hotel={selectedHotel}
           onEdit={handleEditHotel}
         />
       </div>
 
       {/* Edit Hotel Dialog */}
-      {hotel && (
+      {selectedHotel && (
         <EditHotelDialog
           isOpen={showEditDialog}
           onClose={() => setShowEditDialog(false)}
-          hotel={hotel}
+          hotel={selectedHotel}
           onSuccess={handleEditSuccess}
         />
       )}
@@ -174,4 +168,3 @@ export const OwnerDashboard = () => {
     </div>
   );
 };
-

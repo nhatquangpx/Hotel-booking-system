@@ -61,7 +61,19 @@ export const userBookingAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
+
+  /** Xem trước giá (server) — cùng logic khi tạo đặt phòng */
+  getPricePreview: async ({ hotelId, roomId, checkInDate, checkOutDate }) => {
+    try {
+      const response = await api.get('/guest/bookings/price-preview', {
+        params: { hotelId, roomId, checkInDate, checkOutDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default userBookingAPI; 

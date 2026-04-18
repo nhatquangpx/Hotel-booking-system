@@ -27,8 +27,8 @@ exports.getAllHotels = async (req, res) => {
     
     const hotels = await Hotel.find(query)
       .populate({
-        path: 'ownerId',
-        select: 'name email phone -_id'
+        path: "ownerId",
+        select: "name email phone _id"
       });
       
     res.status(200).json(hotels);
@@ -43,7 +43,7 @@ exports.getHotelById = async (req, res) => {
   try {
     const hotel = await Hotel.findById(req.params.id).populate({
       path: "ownerId",
-      select: "name email phone -_id"
+      select: "name email phone _id"
     }); 
     
     if (!hotel) {
@@ -118,11 +118,6 @@ exports.updateHotel = async (req, res) => {
     console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
     console.log("Files:", req.files);
 
-    // Không cho phép thay đổi trường ownerId
-    if (req.body.ownerId) {
-      delete req.body.ownerId;
-    }
-
     // Parse nested fields từ FormData (address[number], contactInfo[phone], etc.)
     const updateData = {};
     
@@ -131,6 +126,20 @@ exports.updateHotel = async (req, res) => {
     if (req.body.description) updateData.description = req.body.description;
     if (req.body.starRating) updateData.starRating = parseInt(req.body.starRating);
     if (req.body.status) updateData.status = req.body.status;
+
+    // Admin được phép đổi chủ khách sạn
+    if (req.body.ownerId && req.user?.role === "admin") {
+      const nextOwner = await User.findOne({
+        _id: req.body.ownerId,
+        role: "owner"
+      }).select("_id");
+
+      if (!nextOwner) {
+        return res.status(400).json({ message: "Owner không hợp lệ" });
+      }
+
+      updateData.ownerId = req.body.ownerId;
+    }
 
     // Parse address
     if (req.body['address[number]'] || req.body['address[street]'] || req.body['address[city]']) {
@@ -248,8 +257,8 @@ exports.getFeaturedHotels = async (req, res) => {
       status: "active" 
     })
     .populate({
-      path: 'ownerId',
-      select: 'name email phone -_id'
+      path: "ownerId",
+      select: "name email phone _id"
     })
     .limit(6); // Giới hạn 6 khách sạn nổi bật
     
@@ -363,8 +372,8 @@ exports.getHotelByFilter = async (req, res) => {
     // Tìm các khách sạn thỏa mãn điều kiện
     const hotels = await Hotel.find(hotelQuery)
       .populate({
-        path: 'ownerId',
-        select: 'name email phone -_id'
+        path: "ownerId",
+        select: "name email phone _id"
       })
       .sort({ createdAt: -1 });
       
