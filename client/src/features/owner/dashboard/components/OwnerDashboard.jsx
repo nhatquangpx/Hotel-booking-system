@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { FaDollarSign, FaBed, FaExclamationCircle } from 'react-icons/fa';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
+import { FaDollarSign, FaBed, FaExclamationCircle, FaFileExcel } from 'react-icons/fa';
 import { ownerDashboardAPI } from '@/apis/owner/dashboard';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import MetricCard from '../../components/MetricCard';
@@ -10,6 +11,21 @@ import RevenueChart from '../../components/RevenueChart';
 import RoomOccupancyChart from '../../components/RoomOccupancyChart';
 import TaskList from './TaskList';
 import './OwnerDashboard.scss';
+
+const formatYmd = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const defaultReportRange = () => {
+  const to = new Date();
+  to.setHours(0, 0, 0, 0);
+  const from = new Date(to);
+  from.setDate(from.getDate() - 6);
+  return { from: formatYmd(from), to: formatYmd(to) };
+};
 
 /**
  * Owner Dashboard component
@@ -31,6 +47,8 @@ export const OwnerDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [reportRange, setReportRange] = useState(defaultReportRange);
+  const [exportingReport, setExportingReport] = useState(false);
 
   useEffect(() => {
     if (hotelsLoading) {
@@ -95,6 +113,23 @@ export const OwnerDashboard = () => {
     await refreshHotels();
   };
 
+  const handleExportReport = useCallback(async () => {
+    if (!selectedHotelId || exportingReport) return;
+    setExportingReport(true);
+    try {
+      await ownerDashboardAPI.downloadReportExcel({
+        hotelId: selectedHotelId,
+        from: reportRange.from,
+        to: reportRange.to
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.message || 'Không thể xuất báo cáo');
+    } finally {
+      setExportingReport(false);
+    }
+  }, [selectedHotelId, exportingReport, reportRange.from, reportRange.to]);
+
   const formatRevenue = (amount) => {
     if (amount >= 1000000) {
       return `${(amount / 1000000).toFixed(1)}M`;
@@ -128,6 +163,57 @@ export const OwnerDashboard = () => {
 
       {/* Policies Section */}
       <PoliciesCard />
+
+      {selectedHotelId && (
+        <div className="owner-report-export">
+          <div className="owner-report-export__head">
+            <h3 className="owner-report-export__title">Xuất báo cáo Excel</h3>
+            <div className="owner-report-export__hint">
+              <p>
+                <strong>Hướng dẫn:</strong> chọn khoảng thời gian cần xem, rồi bấm « Tải file Excel ». Báo cáo áp
+                dụng cho <strong>khách sạn đang chọn</strong> trên thanh chọn khách sạn.
+              </p>
+              <p>
+                <strong>Nội dung file:</strong> có hai phần — <em>Tổng hợp kỳ</em> (tổng số phòng, doanh thu, số
+                đơn và đêm phòng bán trong cả kỳ) và <em>Chi tiết theo ngày</em>. Doanh thu và số đơn được tính
+                theo <strong>ngày tạo đơn</strong>, chỉ các đơn <strong>đã thanh toán</strong>; cột đêm phòng bán
+                phản ánh số đêm đã bán trong từng ngày của kỳ báo cáo.
+              </p>
+            </div>
+          </div>
+          <div className="owner-report-export__controls">
+            <label className="owner-report-export__field">
+              <span>Từ ngày</span>
+              <input
+                type="date"
+                value={reportRange.from}
+                onChange={(e) =>
+                  setReportRange((r) => ({ ...r, from: e.target.value }))
+                }
+              />
+            </label>
+            <label className="owner-report-export__field">
+              <span>Đến ngày</span>
+              <input
+                type="date"
+                value={reportRange.to}
+                onChange={(e) =>
+                  setReportRange((r) => ({ ...r, to: e.target.value }))
+                }
+              />
+            </label>
+            <button
+              type="button"
+              className="owner-report-export__btn"
+              disabled={exportingReport}
+              onClick={handleExportReport}
+            >
+              <FaFileExcel aria-hidden />
+              {exportingReport ? 'Đang tải…' : 'Tải file Excel'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Cards */}
       <div className="metrics-grid">
