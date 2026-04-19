@@ -47,6 +47,38 @@ export const ownerDashboardAPI = {
     }
   },
 
+  /** Xuất báo cáo Excel (.xlsx). */
+  downloadReportExcel: async ({ hotelId, from, to }) => {
+    const params = { from, to };
+    if (hotelId) params.hotelId = hotelId;
+    try {
+      const response = await api.get('/owner/reports/export', {
+        params,
+        responseType: 'blob'
+      });
+      const blob = response.data;
+      let filename = 'bao-cao-owner.xlsx';
+      const cd = response.headers['content-disposition'];
+      if (cd) {
+        const m = cd.match(/filename="([^"]+)"/);
+        if (m) filename = m[1];
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      if (error.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        const j = JSON.parse(text);
+        throw new Error(j.message || 'Lỗi xuất báo cáo');
+      }
+      throw error;
+    }
+  },
+
   // Lấy thông tin khách sạn (đã chọn trong context hoặc mặc định đầu tiên)
   getHotelInfo: async (hotelId) => {
     try {

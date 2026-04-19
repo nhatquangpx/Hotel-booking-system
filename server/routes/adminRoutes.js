@@ -8,6 +8,7 @@ const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
 const dashboardController = require('../controllers/dashboardController');
 const notificationController = require('../controllers/notificationController');
+const reportController = require('../controllers/reportController');
 const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
 // const { roomValidation, validate } = require('../validations/roomValidation');
 
@@ -51,6 +52,9 @@ router.put("/bookings/:id/status", bookingController.updateBookingStatus);
 // Thống kê
 router.get('/dashboard/stats', dashboardController.getAdminStats);
 router.get('/dashboard/recent-activities', dashboardController.getRecentActivities);
+
+// Báo cáo 
+router.get('/reports/export', reportController.exportAdminReport);
 
 // Quản lý thông báo cho admin
 router.get('/notifications', notificationController.getNotifications);

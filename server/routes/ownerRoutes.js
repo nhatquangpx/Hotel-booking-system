@@ -12,6 +12,7 @@ const notificationController = require('../controllers/notificationController');
 const dashboardController = require('../controllers/dashboardController');
 const pricingController = require('../controllers/pricingController');
 const saleController = require('../controllers/saleController');
+const reportController = require('../controllers/reportController');
 
 router.use(authenticate, isOwner);
 
@@ -57,6 +58,9 @@ router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
 router.get('/dashboard/revenue', dashboardController.getOwnerRevenueStats);
 router.get('/dashboard/rooms', dashboardController.getOwnerRoomStats);
 router.get('/dashboard/tasks', dashboardController.getOwnerTodayTasks);
+
+// Báo cáo 
+router.get('/reports/export', reportController.exportOwnerReport);
 
 // Giá động (gợi ý)
 router.get('/pricing/dynamic', pricingController.getDynamicPricing);
