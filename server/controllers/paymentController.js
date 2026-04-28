@@ -10,16 +10,87 @@ const {
 } = require("../services/notifications");
 const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../services/emails");
 
+const DEFAULT_SANDBOX_HOST = "https://sandbox.vnpayment.vn";
+
 // Helper function để khởi tạo VNPay instance
 const getVNPayInstance = () => {
+    const vnpayHost = (process.env.VNPAY_HOST || DEFAULT_SANDBOX_HOST).replace(/\/$/, "");
+    const testMode = process.env.VNPAY_TEST_MODE !== "false";
+
     return new VNPay({
         tmnCode: process.env.VNPAY_TMN_CODE,
         secureSecret: process.env.VNPAY_SECURE_SECRET,
-        vnpayHost: process.env.VNPAY_HOST,
-        testMode: true,
-        hashAlgorithm: 'SHA512',
+        vnpayHost,
+        testMode,
+        hashAlgorithm: "SHA512",
         loggerFn: ignoreLogger,
     });
+};
+
+const generateUniqueTransactionRef = async (bookingId) => {
+    const bookingSuffix = String(bookingId).slice(-6);
+
+    for (let i = 0; i < 5; i += 1) {
+        const timePart = Date.now().toString().slice(-10);
+        const randomPart = Math.floor(Math.random() * 10000)
+            .toString()
+            .padStart(4, "0");
+        const transactionRef = `${bookingSuffix}${timePart}${randomPart}`.slice(0, 20);
+
+        const existed = await PaymentTransaction.exists({ transactionRef });
+        if (!existed) {
+            return transactionRef;
+        }
+    }
+
+    throw new Error("Không thể tạo transactionRef duy nhất, vui lòng thử lại");
+};
+
+const isDuplicateKeyError = (error) => {
+    return error && (error.code === 11000 || String(error.message || "").includes("E11000"));
+};
+
+const createPaymentTransactionWithRetry = async (booking, payload, maxRetries = 3) => {
+    let lastError;
+
+    for (let attempt = 0; attempt < maxRetries; attempt += 1) {
+        try {
+            const transactionRef = await generateUniqueTransactionRef(booking._id);
+            return await PaymentTransaction.create({
+                ...payload,
+                booking: booking._id,
+                transactionRef
+            });
+        } catch (error) {
+            lastError = error;
+            if (!isDuplicateKeyError(error)) {
+                throw error;
+            }
+        }
+    }
+
+    throw lastError || new Error("Không thể tạo giao dịch thanh toán duy nhất");
+};
+
+const resolveProofImageUrl = (file) => {
+    if (!file) return null;
+
+    const candidate = file.path || file.secure_url || file.url || "";
+    if (/^https?:\/\//i.test(candidate)) {
+        return candidate;
+    }
+
+    if (file.filename) {
+        return `/uploads/payment-proofs/${file.filename}`;
+    }
+
+    const normalizedPath = String(candidate).replace(/\\/g, "/");
+    const uploadsIndex = normalizedPath.lastIndexOf("/uploads/");
+    if (uploadsIndex >= 0) {
+        return normalizedPath.slice(uploadsIndex);
+    }
+
+    return null;
 };
 
 // Tạo payment URL cho booking
@@ -56,9 +127,6 @@ exports.createVNPayPaymentUrl = async (req, res) => {
             return res.status(400).json({ message: "Phương thức thanh toán không phải VNPay" });
         }
 
-        // Tạo transaction reference từ booking ID và timestamp
-        const transactionRef = `${booking._id.toString().slice(-12)}${Date.now()}`.slice(0, 20);
-
         // Lấy IP address từ request
         const clientIp = req.ip || 
                         req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
@@ -67,15 +135,13 @@ exports.createVNPayPaymentUrl = async (req, res) => {
                         '127.0.0.1';
 
         // Tạo payment transaction record
-        const paymentTransaction = new PaymentTransaction({
-            booking: booking._id,
-            transactionRef: transactionRef,
+        const paymentTransaction = await createPaymentTransactionWithRetry(booking, {
             amount: booking.totalAmount,
             paymentMethod: "vnpay",
             status: "pending",
             clientIp: clientIp
         });
-        await paymentTransaction.save();
+        const transactionRef = paymentTransaction.transactionRef;
 
         // Lưu transaction reference vào booking
         booking.vnpTransactionRef = transactionRef;
@@ -114,6 +180,96 @@ exports.createVNPayPaymentUrl = async (req, res) => {
     } catch (error) {
         console.error("Lỗi khi tạo VNPay payment URL:", error);
         return res.status(500).json({ message: "Lỗi khi tạo payment URL", error: error.message });
+    }
+};
+
+exports.confirmQrPayment = async (req, res) => {
+    try {
+        const { bookingId } = req.body;
+        const userId = req.user.id;
+
+        if (!bookingId) {
+            return res.status(400).json({ message: "Vui lòng cung cấp bookingId" });
+        }
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
+        }
+
+        if (booking.guest.toString() !== userId) {
+            return res.status(403).json({ message: "Bạn không có quyền xác nhận đơn đặt phòng này" });
+        }
+
+        if (booking.paymentMethod !== "qr_code") {
+            return res.status(400).json({ message: "Đơn đặt phòng này không sử dụng thanh toán QR" });
+        }
+
+        if (booking.paymentStatus === "paid") {
+            return res.status(400).json({ message: "Đơn đặt phòng đã được thanh toán" });
+        }
+
+        if (booking.paymentStatus === "cancelled") {
+            return res.status(400).json({ message: "Đơn đặt phòng đã bị hủy" });
+        }
+
+        const proofImageUrl = resolveProofImageUrl(req.file);
+        if (booking.qrPaymentReportedAt) {
+            // Nếu đã báo thanh toán nhưng chưa có minh chứng thì bắt buộc phải nộp
+            if (!booking.qrPaymentProofUrl && !proofImageUrl) {
+                return res.status(400).json({
+                    message: "Bạn cần tải lên ảnh minh chứng chuyển khoản để hoàn tất xác nhận thanh toán."
+                });
+            }
+
+            // Cho phép guest cập nhật minh chứng sau lần báo đầu tiên
+            let needSave = false;
+            if (proofImageUrl) {
+                booking.qrPaymentProofUrl = proofImageUrl;
+                needSave = true;
+            }
+            if (needSave) {
+                await booking.save();
+            }
+            return res.status(200).json({
+                message: "Bạn đã báo thanh toán trước đó, vui lòng chờ khách sạn xác nhận",
+                qrPaymentReportedAt: booking.qrPaymentReportedAt,
+                qrPaymentProofUrl: booking.qrPaymentProofUrl || null
+            });
+        }
+
+        if (!proofImageUrl) {
+            return res.status(400).json({
+                message: "Vui lòng tải lên ảnh minh chứng chuyển khoản trước khi xác nhận thanh toán."
+            });
+        }
+
+        const clientIp = req.ip ||
+            req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+            req.connection.remoteAddress ||
+            req.socket.remoteAddress ||
+            "127.0.0.1";
+
+        booking.qrPaymentReportedAt = new Date();
+        booking.qrPaymentProofUrl = proofImageUrl;
+        await booking.save();
+
+        await createPaymentTransactionWithRetry(booking, {
+            amount: booking.totalAmount,
+            paymentMethod: "qr_code",
+            status: "pending",
+            clientIp,
+            proofImageUrl: booking.qrPaymentProofUrl || undefined
+        });
+
+        return res.status(200).json({
+            message: "Đã ghi nhận bạn đã chuyển khoản. Vui lòng chờ khách sạn xác nhận.",
+            qrPaymentReportedAt: booking.qrPaymentReportedAt,
+            qrPaymentProofUrl: booking.qrPaymentProofUrl || null
+        });
+    } catch (error) {
+        console.error("Lỗi khi xác nhận thanh toán QR:", error);
+        return res.status(500).json({ message: "Lỗi khi xác nhận thanh toán QR", error: error.message });
     }
 };
 

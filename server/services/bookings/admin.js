@@ -1,4 +1,5 @@
 const Booking = require("../../models/Booking");
+const PaymentTransaction = require("../../models/PaymentTransaction");
 const {
   checkBookingPermission,
   getBookingById: getBookingByIdCore,
@@ -116,9 +117,30 @@ const updateBookingStatus = async (bookingId, status, user) => {
     throw new Error("Trạng thái không hợp lệ");
   }
 
+  if (
+    status === "paid" &&
+    booking.paymentMethod === "qr_code" &&
+    !booking.qrPaymentProofUrl
+  ) {
+    throw new Error("Đơn QR chưa có minh chứng chuyển khoản, không thể cập nhật đã thanh toán");
+  }
+
   // Update status
   booking.paymentStatus = status;
   await booking.save();
+
+  // Keep payment transaction history consistent with booking status.
+  if (status === "paid") {
+    await PaymentTransaction.updateMany(
+      { booking: booking._id, status: "pending" },
+      { $set: { status: "success", errorMessage: undefined } }
+    );
+  } else if (status === "cancelled") {
+    await PaymentTransaction.updateMany(
+      { booking: booking._id, status: "pending" },
+      { $set: { status: "cancelled" } }
+    );
+  }
 
   // Refresh room bookingStatus (especially when admin cancels or reactivates a booking)
   if (booking.room) {

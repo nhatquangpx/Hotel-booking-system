@@ -1,4 +1,5 @@
 const Booking = require("../../models/Booking");
+const PaymentTransaction = require("../../models/PaymentTransaction");
 const { getScopedHotelIdsForOwner } = require("../dashboards/core");
 const {
   checkBookingPermission,
@@ -84,9 +85,32 @@ const updateBookingStatus = async (bookingId, status, user) => {
     throw new Error("Trạng thái không hợp lệ");
   }
 
+  if (
+    status === "paid" &&
+    booking.paymentMethod === "qr_code" &&
+    !booking.qrPaymentProofUrl
+  ) {
+    throw new Error("Đơn QR chưa có minh chứng chuyển khoản, không thể xác nhận đã thanh toán");
+  }
+
   // Update status
   booking.paymentStatus = status;
   await booking.save();
+
+  if (status === "paid" || status === "cancelled") {
+    const latestTransaction = await PaymentTransaction.findOne({
+      booking: booking._id,
+      paymentMethod: booking.paymentMethod
+    }).sort({ createdAt: -1 });
+
+    if (latestTransaction) {
+      latestTransaction.status = status === "paid" ? "success" : "cancelled";
+      if (status === "paid") {
+        latestTransaction.errorMessage = undefined;
+      }
+      await latestTransaction.save();
+    }
+  }
 
   // Refresh room bookingStatus (in case status change affects occupancy state)
   if (booking.room) {

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { GuestLayout } from '@/features/guest/components/layout';
+import BookingDetailModal from '../detail/BookingDetailModal';
+import BookingListItem from './BookingListItem';
 import api from '@/apis';
-import { getImageUrl } from '@/constants/images';
-import { formatDate } from '@/shared/utils';
 import './MyBookings.scss';
 
 /**
@@ -21,6 +21,10 @@ const GuestMyBookingsPage = () => {
   const [cancelBookingId, setCancelBookingId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [payingBookingId, setPayingBookingId] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailBooking, setDetailBooking] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -106,10 +110,30 @@ const GuestMyBookingsPage = () => {
     
     // Chờ thanh toán
     if (booking.paymentStatus === 'pending') {
+      if (booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) {
+        return <span className="status pending">Chờ xác nhận thanh toán</span>;
+      }
       return <span className="status pending">Chờ thanh toán</span>;
     }
     
     return <span className="status">{booking.paymentStatus}</span>;
+  };
+
+  const handleContinuePayment = async (b) => {
+    if (b.paymentMethod === 'vnpay') {
+      try {
+        setPayingBookingId(b._id);
+        setError(null);
+        const res = await api.payment.createVNPayPaymentUrl(b._id);
+        window.location.href = res.paymentUrl;
+      } catch (err) {
+        const msg = typeof err === 'string' ? err : err?.message || 'Không thể tạo link thanh toán';
+        setError(msg);
+        setPayingBookingId(null);
+      }
+    } else {
+      navigate('/booking/new', { state: { bookingId: b._id } });
+    }
   };
 
   const canCancelBooking = (booking) => {
@@ -131,6 +155,36 @@ const GuestMyBookingsPage = () => {
     return daysUntilCheckIn >= 2;
   };
 
+  const openDetailModal = async (bookingId) => {
+    try {
+      setShowDetailModal(true);
+      setDetailLoading(true);
+      setDetailBooking(null);
+      const data = await api.userBooking.getBookingById(bookingId);
+      setDetailBooking(data);
+    } catch (err) {
+      setError('Không thể tải chi tiết đặt phòng');
+      setShowDetailModal(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setDetailBooking(null);
+  };
+
+  const handleDetailReviewUpdate = async () => {
+    if (!detailBooking?._id) return;
+    try {
+      const updated = await api.userBooking.getBookingById(detailBooking._id);
+      setDetailBooking(updated);
+      setBookings((prev) => prev.map((b) => (b._id === updated._id ? { ...b, review: updated.review } : b)));
+    } catch (err) {
+      console.error('Error refreshing detail booking:', err);
+    }
+  };
 
   return (
     <GuestLayout>
@@ -159,65 +213,16 @@ const GuestMyBookingsPage = () => {
         {!loading && !error && bookings && bookings.length > 0 && (
           <div className="bookings-list">
             {bookings.map((booking) => (
-              <div className="booking-card" key={booking._id}>
-                <div className="booking-header">
-                  <div className="hotel-info">
-                    <h2>{booking.hotel?.name || 'Không có tên khách sạn'}</h2>
-                    <p className="booking-dates">
-                      {formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}
-                    </p>
-                  </div>
-                  <div className="booking-status">
-                    {renderBookingStatus(booking)}
-                  </div>
-                </div>
-                
-                <div className="booking-details">
-                  <div className="room-info">
-                    <div className="room-image">
-                      {booking.room?.images?.[0] ? (
-                        <img 
-                          src={getImageUrl(booking.room.images[0])}
-                          alt={booking.room?.name || 'Không có tên phòng'} 
-                        />
-                      ) : (
-                        <div className="no-image">Không có ảnh</div>
-                      )}
-                    </div>
-                    <div className="room-details">
-                      <h3>{booking.room?.roomNumber || 'Không có số phòng'}</h3>
-                      <p className="room-type">{booking.room?.type || 'Không có loại phòng'}</p>
-                      <p className="room-price">
-                        {(booking.room?.price?.regular || 0).toLocaleString('vi-VN')} VNĐ/đêm
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="booking-actions">
-                    <div className="price-info">
-                      <span className="total-price">
-                        {(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ
-                      </span>
-                    </div>
-                    <div className="action-buttons">
-                      <button 
-                        className={booking.checkedOutAt ? "review-btn" : "view-details-btn"}
-                        onClick={() => navigate(`/booking/${booking._id}`)}
-                      >
-                        {booking.checkedOutAt ? 'Đánh giá phòng' : 'Xem chi tiết'}
-                      </button>
-                      {canCancelBooking(booking) && (
-                        <button 
-                          className="cancel-booking-btn"
-                          onClick={() => openCancelModal(booking._id)}
-                        >
-                          Hủy đặt phòng
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <BookingListItem
+                key={booking._id}
+                booking={booking}
+                statusNode={renderBookingStatus(booking)}
+                payingBookingId={payingBookingId}
+                canCancel={canCancelBooking(booking)}
+                onOpenDetail={openDetailModal}
+                onContinuePayment={handleContinuePayment}
+                onOpenCancel={openCancelModal}
+              />
             ))}
           </div>
         )}
@@ -259,6 +264,28 @@ const GuestMyBookingsPage = () => {
             </div>
           </div>
         )}
+        <BookingDetailModal
+          show={showDetailModal}
+          loading={detailLoading}
+          booking={detailBooking}
+          onClose={closeDetailModal}
+          onDetailBookingChange={setDetailBooking}
+          onListBookingPatch={(bookingId, patch) =>
+            setBookings((prev) =>
+              prev.map((b) =>
+                b._id === bookingId
+                  ? {
+                      ...b,
+                      ...(patch.qrPaymentReportedAt ? { qrPaymentReportedAt: patch.qrPaymentReportedAt } : {}),
+                      ...(patch.qrPaymentProofUrl ? { qrPaymentProofUrl: patch.qrPaymentProofUrl } : {}),
+                    }
+                  : b
+              )
+            )
+          }
+          onReviewUpdate={handleDetailReviewUpdate}
+          onError={setError}
+        />
       </div>
     </GuestLayout>
   );

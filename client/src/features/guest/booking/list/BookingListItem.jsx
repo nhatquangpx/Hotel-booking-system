@@ -1,0 +1,76 @@
+import { getImageUrl } from '@/constants/images';
+import { formatDate } from '@/shared/utils';
+
+const BookingListItem = ({
+  booking,
+  statusNode,
+  payingBookingId,
+  canCancel,
+  onOpenDetail,
+  onContinuePayment,
+  onOpenCancel,
+}) => {
+  return (
+    <div className="booking-card">
+      <div className="booking-header">
+        <div className="hotel-info">
+          <h2>{booking.hotel?.name || 'Không có tên khách sạn'}</h2>
+          <p className="booking-dates">
+            {formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}
+          </p>
+        </div>
+        <div className="booking-status">{statusNode}</div>
+      </div>
+
+      <div className="booking-details">
+        <div className="room-info">
+          <div className="room-image">
+            {booking.room?.images?.[0] ? (
+              <img src={getImageUrl(booking.room.images[0])} alt={booking.room?.name || 'Không có tên phòng'} />
+            ) : (
+              <div className="no-image">Không có ảnh</div>
+            )}
+          </div>
+          <div className="room-details">
+            <h3>{booking.room?.roomNumber || 'Không có số phòng'}</h3>
+            <p className="room-type">{booking.room?.type || 'Không có loại phòng'}</p>
+            <p className="room-price">{(booking.room?.price?.regular || 0).toLocaleString('vi-VN')} VNĐ/đêm</p>
+          </div>
+        </div>
+
+        <div className="booking-actions">
+          <div className="price-info">
+            <span className="total-price">{(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</span>
+          </div>
+          <div className="action-buttons">
+            <button
+              className={booking.checkedOutAt ? 'review-btn' : 'view-details-btn'}
+              onClick={() => onOpenDetail(booking._id)}
+            >
+              {booking.checkedOutAt ? 'Đánh giá phòng' : 'Xem chi tiết'}
+            </button>
+            {booking.paymentStatus === 'pending' &&
+              !(booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) && (
+                <button
+                  type="button"
+                  className="pay-continue-btn"
+                  onClick={() => onContinuePayment(booking)}
+                  disabled={payingBookingId === booking._id}
+                >
+                  {payingBookingId === booking._id ? 'Đang mở thanh toán...' : 'Tiếp tục thanh toán'}
+                </button>
+              )}
+            {canCancel && (
+              <button className="cancel-booking-btn" onClick={() => onOpenCancel(booking._id)}>
+                Hủy đặt phòng
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BookingListItem;
+

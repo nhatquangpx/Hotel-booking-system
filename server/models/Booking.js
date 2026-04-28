@@ -63,6 +63,12 @@ const BookingSchema = new mongoose.Schema(
     vnpTransactionRef: {
       type: String
     },
+    qrPaymentReportedAt: {
+      type: Date
+    },
+    qrPaymentProofUrl: {
+      type: String
+    },
     specialRequests: {
       type: String
     },
