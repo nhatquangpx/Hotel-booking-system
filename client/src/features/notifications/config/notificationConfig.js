@@ -45,7 +45,7 @@ export const notificationConfig = {
     apiPrefix: '/guest',
     routes: {
       list: '/notifications',
-      booking: (id) => `/booking/${id}`,
+      booking: (id) => `/my-bookings?bookingId=${id}`,
       profile: '/profile'
     },
     supportedTypes: [
