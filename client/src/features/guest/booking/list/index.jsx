@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { GuestLayout } from '@/features/guest/components/layout';
 import BookingDetailModal from '../detail/BookingDetailModal';
@@ -13,6 +13,7 @@ import './MyBookings.scss';
  */
 const GuestMyBookingsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const user = useSelector(state => state.user.user);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -185,6 +186,19 @@ const GuestMyBookingsPage = () => {
       console.error('Error refreshing detail booking:', err);
     }
   };
+
+  useEffect(() => {
+    const bookingIdFromQuery = searchParams.get('bookingId');
+    if (!bookingIdFromQuery || loading || !bookings.length) return;
+
+    const matchedBooking = bookings.find((b) => b._id === bookingIdFromQuery);
+    if (!matchedBooking) return;
+
+    openDetailModal(bookingIdFromQuery);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('bookingId');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams, loading, bookings]);
 
   return (
     <GuestLayout>

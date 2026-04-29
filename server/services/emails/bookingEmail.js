@@ -397,7 +397,7 @@ const sendCheckInReminderEmail = async (booking, daysUntilCheckIn = 2) => {
 
     // Link đến booking detail
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const bookingDetailUrl = `${frontendUrl}/booking/${booking._id}`;
+    const bookingDetailUrl = `${frontendUrl}/my-bookings?bookingId=${booking._id}`;
 
     // Tạo thông điệp nhắc nhở dựa trên số ngày còn lại
     const reminderMessage = daysUntilCheckIn === 1 
