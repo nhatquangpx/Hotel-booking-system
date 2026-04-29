@@ -8,7 +8,7 @@ export { default as GuestNotificationsPage } from './notifications';
 export { GuestHotelDetailPage } from './hotels/detail';
 export { GuestAboutPage } from './about';
 export { GuestContactPage } from './contact';
-export { GuestBookingPage, GuestMyBookingsPage, GuestBookingDetailPage } from './booking';
+export { GuestBookingPage, GuestMyBookingsPage } from './booking';
 export { GuestProfileAccountPage, GuestProfileEditPage, GuestProfileChangePasswordPage } from './profile';
 export { VNPayCallbackPage } from './payment';
 export { default as GuestWishlistPage } from './wishlist';

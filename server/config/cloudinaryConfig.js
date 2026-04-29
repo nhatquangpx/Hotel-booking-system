@@ -40,9 +40,26 @@ const roomStorage = new CloudinaryStorage({
   }
 });
 
+// Storage cho minh chứng thanh toán QR
+const paymentProofStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async () => {
+    return {
+      folder: 'hotel-booking/payment-proofs',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      transformation: [
+        { width: 1600, height: 1600, crop: 'limit' },
+        { quality: 'auto' }
+      ],
+      public_id: `payment-proof-${Date.now()}-${Math.round(Math.random() * 1E9)}`
+    };
+  }
+});
+
 module.exports = {
   cloudinary,
   hotelStorage,
-  roomStorage
+  roomStorage,
+  paymentProofStorage
 };
 

@@ -8,13 +8,18 @@ const hasCloudinaryConfig =
   process.env.CLOUDINARY_API_KEY && 
   process.env.CLOUDINARY_API_SECRET;
 
-let hotelStorage, roomStorage;
+let hotelStorage, roomStorage, paymentProofStorage;
 
 if (hasCloudinaryConfig) {
   // Sử dụng Cloudinary cho production
-  const { hotelStorage: cloudinaryHotelStorage, roomStorage: cloudinaryRoomStorage } = require('./cloudinaryConfig');
+  const {
+    hotelStorage: cloudinaryHotelStorage,
+    roomStorage: cloudinaryRoomStorage,
+    paymentProofStorage: cloudinaryPaymentProofStorage
+  } = require('./cloudinaryConfig');
   hotelStorage = cloudinaryHotelStorage;
   roomStorage = cloudinaryRoomStorage;
+  paymentProofStorage = cloudinaryPaymentProofStorage;
   console.log('✅ Sử dụng Cloudinary để lưu trữ ảnh');
 } else {
   // Fallback về local storage cho development (nếu chưa có Cloudinary config)
@@ -22,7 +27,7 @@ if (hasCloudinaryConfig) {
   
   // Tạo thư mục uploads nếu chưa tồn tại
   const createUploadDirs = () => {
-    const dirs = ['uploads/hotels', 'uploads/rooms'];
+    const dirs = ['uploads/hotels', 'uploads/rooms', 'uploads/payment-proofs'];
     dirs.forEach(dir => {
       const fullPath = path.join(__dirname, '..', dir);
       if (!fs.existsSync(fullPath)) {
@@ -52,6 +57,16 @@ if (hasCloudinaryConfig) {
       cb(null, 'room-' + uniqueSuffix + path.extname(file.originalname));
     }
   });
+
+  paymentProofStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, path.join(__dirname, '../uploads/payment-proofs'));
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'payment-proof-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
 }
 
 // Filter file ảnh
@@ -64,6 +79,18 @@ const imageFilter = (req, file, cb) => {
     return cb(null, true);
   }
   cb('Error: Chỉ cho phép tải ảnh (jpeg, jpg, png, gif)!');
+};
+
+// Payment proof allows webp as well (aligned with Cloudinary allowed formats).
+const paymentProofFilter = (req, file, cb) => {
+  const filetypes = /jpeg|jpg|png|gif|webp/;
+  const mimetype = filetypes.test(file.mimetype);
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  }
+  cb('Error: Chỉ cho phép tải ảnh minh chứng (jpeg, jpg, png, gif, webp)!');
 };
 
 // Upload middleware cho hotels
@@ -80,8 +107,15 @@ const uploadRoomImages = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 }).array('images', 10); // cho phép tối đa 10 ảnh
 
+const uploadPaymentProof = multer({
+  storage: paymentProofStorage,
+  fileFilter: paymentProofFilter,
+  limits: { fileSize: 8 * 1024 * 1024 } // 8MB
+}).single('proofImage');
+
 module.exports = {
   uploadHotelImages,
   uploadRoomImages,
+  uploadPaymentProof,
   hasCloudinaryConfig
 }; 

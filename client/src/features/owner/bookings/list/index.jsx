@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaPhone, FaCalendarAlt } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import api from '@/apis';
-import { formatDate, formatDateTime } from '@/shared/utils';
+import OwnerBookingCard from './OwnerBookingCard';
+import OwnerBookingDetailModal from './OwnerBookingDetailModal';
+import OwnerBookingActionModal from './OwnerBookingActionModal';
 import './BookingList.scss';
 
 /**
@@ -20,6 +21,13 @@ const OwnerBookingListPage = () => {
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [methodFilter, setMethodFilter] = useState('all');
+  const [proofFilter, setProofFilter] = useState('all');
+  const [previewProofUrl, setPreviewProofUrl] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailBooking, setDetailBooking] = useState(null);
 
   const fetchBookings = useCallback(async () => {
     if (hotelsLoading) {
@@ -77,6 +85,13 @@ const OwnerBookingListPage = () => {
 
   const handleConfirmBooking = async () => {
     if (!selectedBooking) return;
+
+    const isQrProofMissing =
+      selectedBooking.paymentMethod === 'qr_code' && !selectedBooking.qrPaymentProofUrl;
+    if (isQrProofMissing) {
+      setError('Đơn QR chưa có minh chứng chuyển khoản, không thể xác nhận đã thanh toán');
+      return;
+    }
     
     try {
       setProcessing(true);
@@ -136,82 +151,51 @@ const OwnerBookingListPage = () => {
     return booking.source || null;
   };
 
-  const getStatusButtons = (booking) => {
-    const { paymentStatus, _id } = booking;
-    const isCheckedIn = booking.checkedInAt !== null && booking.checkedInAt !== undefined;
-    const isCheckedOut = booking.checkedOutAt !== null && booking.checkedOutAt !== undefined;
-
-    // Nếu đã check-out
-    if (isCheckedOut) {
-      return (
-        <button className="status-btn checked-out" disabled>
-          Đã trả phòng
-        </button>
-      );
+  const filteredBookings = bookings.filter((booking) => {
+    if (statusFilter !== 'all' && booking.paymentStatus !== statusFilter) {
+      return false;
     }
 
-    // Nếu đã check-in
-    if (isCheckedIn) {
-      return (
-        <>
-          <button className="status-btn checked-in">
-            Đã nhận phòng
-          </button>
-          <button 
-            className="status-btn check-out"
-            onClick={() => openCheckOutModal(booking)}
-          >
-            Check-out
-          </button>
-        </>
-      );
+    if (methodFilter !== 'all' && booking.paymentMethod !== methodFilter) {
+      return false;
     }
 
-    // Nếu đã thanh toán nhưng chưa check-in
-    if (paymentStatus === 'paid') {
-      return (
-        <>
-          <button className="status-btn confirmed">
-            Đã xác nhận
-          </button>
-          <button 
-            className="status-btn check-in"
-            onClick={() => openCheckInModal(booking)}
-          >
-            Check-in
-          </button>
-        </>
-      );
+    if (proofFilter === 'proof_submitted') {
+      return booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt);
     }
 
-    // Nếu đang chờ xác nhận
-    if (paymentStatus === 'pending') {
-      return (
-        <>
-          <button className="status-btn pending">
-            Chờ xác nhận
-          </button>
-          <button 
-            className="status-btn confirm"
-            onClick={() => openConfirmModal(booking)}
-          >
-            Xác nhận
-          </button>
-        </>
-      );
+    if (proofFilter === 'proof_missing') {
+      return booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt;
     }
 
-    // Nếu đã hủy
-    if (paymentStatus === 'cancelled') {
-      return (
-        <button className="status-btn cancelled" disabled>
-          Đã hủy
-        </button>
-      );
-    }
+    return true;
+  });
 
-    return null;
+  const openDetailModal = async (bookingId) => {
+    try {
+      setShowDetailModal(true);
+      setDetailLoading(true);
+      setDetailBooking(null);
+      const data = await api.ownerBooking.getBookingById(bookingId);
+      setDetailBooking(data);
+    } catch (err) {
+      setError(err.message || 'Không thể tải chi tiết đơn đặt phòng');
+      setShowDetailModal(false);
+    } finally {
+      setDetailLoading(false);
+    }
   };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setDetailBooking(null);
+  };
+
+  const isQrProofMissingForSelectedBooking = Boolean(
+    selectedBooking &&
+    selectedBooking.paymentMethod === 'qr_code' &&
+    !selectedBooking.qrPaymentProofUrl
+  );
 
   return (
     <OwnerLayout>
@@ -260,219 +244,135 @@ const OwnerBookingListPage = () => {
           </div>
         )}
 
+        {!loading && (
+          <div className="booking-filters">
+            <div className="filter-group">
+              <label htmlFor="statusFilter">Trạng thái</label>
+              <select
+                id="statusFilter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Tất cả</option>
+                <option value="pending">Chờ xác nhận</option>
+                <option value="paid">Đã xác nhận</option>
+                <option value="cancelled">Đã hủy</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label htmlFor="methodFilter">Phương thức</label>
+              <select
+                id="methodFilter"
+                value={methodFilter}
+                onChange={(e) => setMethodFilter(e.target.value)}
+              >
+                <option value="all">Tất cả</option>
+                <option value="qr_code">QR chuyển khoản</option>
+                <option value="vnpay">VNPay</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label htmlFor="proofFilter">Minh chứng QR</label>
+              <select
+                id="proofFilter"
+                value={proofFilter}
+                onChange={(e) => setProofFilter(e.target.value)}
+              >
+                <option value="all">Tất cả</option>
+                <option value="proof_submitted">Đã gửi minh chứng</option>
+                <option value="proof_missing">Chưa gửi minh chứng</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="loading-message">
             Đang tải danh sách đặt phòng...
           </div>
-        ) : bookings.length === 0 ? (
+        ) : filteredBookings.length === 0 ? (
           <div className="empty-message">
-            Không có đặt phòng sắp tới nào
+            Không có đặt phòng phù hợp với bộ lọc
           </div>
         ) : (
           <div className="booking-cards">
-            {bookings.map(booking => {
-              const guest = booking.guest || {};
-              const room = booking.room || {};
+            {filteredBookings.map(booking => {
               const source = getBookingSource(booking);
 
               return (
-                <div key={booking._id} className="booking-card">
-                  <div className="booking-info">
-                    <div className="guest-name">
-                      {guest.name || 'N/A'}
-                    </div>
-                    
-                    {guest.phone && (
-                      <div className="info-item">
-                        <FaPhone className="info-icon" />
-                        <span>{guest.phone}</span>
-                      </div>
-                    )}
-
-                    {booking.checkInDate && (
-                      <div className="info-item">
-                        <FaCalendarAlt className="info-icon" />
-                        <span>
-                          Nhận phòng: {formatDate(booking.checkInDate)}
-                          {booking.checkedInAt && (
-                            <span className="actual-time">
-                              {' '}(Đã check-in: {formatDateTime(booking.checkedInAt)})
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    )}
-
-                    {booking.checkOutDate && (
-                      <div className="info-item">
-                        <FaCalendarAlt className="info-icon" />
-                        <span>
-                          Trả phòng: {formatDate(booking.checkOutDate)}
-                          {booking.checkedOutAt && (
-                            <span className="actual-time">
-                              {' '}(Đã check-out: {formatDateTime(booking.checkedOutAt)})
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    )}
-
-                    {(room.roomNumber || source) && (
-                      <div className="booking-tags">
-                        {room.roomNumber && (
-                          <span className="tag room-tag">
-                            {room.roomNumber}
-                          </span>
-                        )}
-                        {source && (
-                          <span className="tag source-tag">
-                            {source}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="booking-actions">
-                    {getStatusButtons(booking)}
-                  </div>
-                </div>
+                <OwnerBookingCard
+                  key={booking._id}
+                  booking={booking}
+                  source={source}
+                  onOpenDetail={openDetailModal}
+                  onOpenConfirm={openConfirmModal}
+                  onOpenCheckIn={openCheckInModal}
+                  onOpenCheckOut={openCheckOutModal}
+                  onPreviewProof={setPreviewProofUrl}
+                />
               );
             })}
           </div>
         )}
 
-        {/* Modal xác nhận booking */}
-        {showConfirmModal && selectedBooking && (
-          <div className="confirmation-modal-overlay" onClick={closeModals}>
-            <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Xác nhận đặt phòng</h3>
-              <p>
-                Bạn có chắc chắn muốn xác nhận đặt phòng của{' '}
-                <strong>{selectedBooking.guest?.name || 'N/A'}</strong>?
-              </p>
-              <div className="modal-booking-info">
-                <div className="info-row">
-                  <span className="info-label">Phòng:</span>
-                  <span className="info-value"><strong>{selectedBooking.room?.roomNumber || 'N/A'}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ngày nhận:</span>
-                  <span className="info-value"><strong>{formatDate(selectedBooking.checkInDate)}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ngày trả:</span>
-                  <span className="info-value"><strong>{formatDate(selectedBooking.checkOutDate)}</strong></span>
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button 
-                  className="modal-btn confirm-btn"
-                  onClick={handleConfirmBooking}
-                  disabled={processing}
-                >
-                  {processing ? 'Đang xử lý...' : 'Xác nhận'}
-                </button>
-                <button 
-                  className="modal-btn cancel-btn"
-                  onClick={closeModals}
-                  disabled={processing}
-                >
-                  Hủy
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <OwnerBookingActionModal
+          show={showConfirmModal}
+          title="Xác nhận đặt phòng"
+          prompt="Bạn có chắc chắn muốn xác nhận đặt phòng của"
+          booking={selectedBooking}
+          processing={processing}
+          confirmText="Xác nhận"
+          onConfirm={handleConfirmBooking}
+          onClose={closeModals}
+          onPreviewProof={setPreviewProofUrl}
+          showQrProofDetails
+          qrProofMissing={isQrProofMissingForSelectedBooking}
+          disableConfirm={isQrProofMissingForSelectedBooking}
+          disableReason={
+            isQrProofMissingForSelectedBooking
+              ? 'Chưa có minh chứng chuyển khoản, chưa thể xác nhận'
+              : ''
+          }
+        />
 
-        {/* Modal xác nhận check-in */}
-        {showCheckInModal && selectedBooking && (
-          <div className="confirmation-modal-overlay" onClick={closeModals}>
-            <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Xác nhận check-in</h3>
-              <p>
-                Bạn có chắc chắn muốn thực hiện check-in cho khách hàng{' '}
-                <strong>{selectedBooking.guest?.name || 'N/A'}</strong>?
-              </p>
-              <div className="modal-booking-info">
-                <div className="info-row">
-                  <span className="info-label">Phòng:</span>
-                  <span className="info-value"><strong>{selectedBooking.room?.roomNumber || 'N/A'}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ngày nhận:</span>
-                  <span className="info-value"><strong>{formatDate(selectedBooking.checkInDate)}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ngày trả:</span>
-                  <span className="info-value"><strong>{formatDate(selectedBooking.checkOutDate)}</strong></span>
-                </div>
-              </div>
-              <div className="modal-actions">
-                <button 
-                  className="modal-btn confirm-btn"
-                  onClick={handleCheckIn}
-                  disabled={processing}
-                >
-                  {processing ? 'Đang xử lý...' : 'Xác nhận check-in'}
-                </button>
-                <button 
-                  className="modal-btn cancel-btn"
-                  onClick={closeModals}
-                  disabled={processing}
-                >
-                  Hủy
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <OwnerBookingActionModal
+          show={showCheckInModal}
+          title="Xác nhận check-in"
+          prompt="Bạn có chắc chắn muốn thực hiện check-in cho khách hàng"
+          booking={selectedBooking}
+          processing={processing}
+          confirmText="Xác nhận check-in"
+          onConfirm={handleCheckIn}
+          onClose={closeModals}
+          onPreviewProof={setPreviewProofUrl}
+        />
 
-        {/* Modal xác nhận check-out */}
-        {showCheckOutModal && selectedBooking && (
-          <div className="confirmation-modal-overlay" onClick={closeModals}>
-            <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Xác nhận check-out</h3>
-              <p>
-                Bạn có chắc chắn muốn thực hiện check-out cho khách hàng{' '}
-                <strong>{selectedBooking.guest?.name || 'N/A'}</strong>?
-              </p>
-              <div className="modal-booking-info">
-                <div className="info-row">
-                  <span className="info-label">Phòng:</span>
-                  <span className="info-value"><strong>{selectedBooking.room?.roomNumber || 'N/A'}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ngày nhận:</span>
-                  <span className="info-value"><strong>{formatDate(selectedBooking.checkInDate)}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ngày trả:</span>
-                  <span className="info-value"><strong>{formatDate(selectedBooking.checkOutDate)}</strong></span>
-                </div>
-                {selectedBooking.checkedInAt && (
-                  <div className="info-row">
-                    <span className="info-label">Đã check-in:</span>
-                    <span className="info-value"><strong>{formatDateTime(selectedBooking.checkedInAt)}</strong></span>
-                  </div>
-                )}
-              </div>
-              <div className="modal-actions">
-                <button 
-                  className="modal-btn confirm-btn"
-                  onClick={handleCheckOut}
-                  disabled={processing}
-                >
-                  {processing ? 'Đang xử lý...' : 'Xác nhận check-out'}
-                </button>
-                <button 
-                  className="modal-btn cancel-btn"
-                  onClick={closeModals}
-                  disabled={processing}
-                >
-                  Hủy
-                </button>
-              </div>
+        <OwnerBookingActionModal
+          show={showCheckOutModal}
+          title="Xác nhận check-out"
+          prompt="Bạn có chắc chắn muốn thực hiện check-out cho khách hàng"
+          booking={selectedBooking}
+          processing={processing}
+          confirmText="Xác nhận check-out"
+          onConfirm={handleCheckOut}
+          onClose={closeModals}
+          onPreviewProof={setPreviewProofUrl}
+          showCheckedInAt
+        />
+        <OwnerBookingDetailModal
+          show={showDetailModal}
+          loading={detailLoading}
+          booking={detailBooking}
+          onClose={closeDetailModal}
+          onPreviewProof={setPreviewProofUrl}
+        />
+        {previewProofUrl && (
+          <div className="proof-preview-overlay" onClick={() => setPreviewProofUrl(null)}>
+            <div className="proof-preview-modal" onClick={(e) => e.stopPropagation()}>
+              <img src={previewProofUrl} alt="Minh chứng chuyển khoản" />
+              <button type="button" className="close-proof-btn" onClick={() => setPreviewProofUrl(null)}>
+                Đóng
+              </button>
             </div>
           </div>
         )}

@@ -61,6 +61,9 @@ const PaymentTransactionSchema = new mongoose.Schema(
     // IP address của client
     clientIp: {
       type: String
+    },
+    proofImageUrl: {
+      type: String
     }
   },
   { timestamps: true }

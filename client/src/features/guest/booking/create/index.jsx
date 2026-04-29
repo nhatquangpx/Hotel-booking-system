@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { GuestLayout } from '@/features/guest/components/layout';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
+import { formatDate } from '@/shared/utils';
 import './Booking.scss';
 
 /**
@@ -13,7 +14,9 @@ import './Booking.scss';
 const GuestBookingPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const bookingData = location.state || {};
+  const resumeBookingId = bookingData.bookingId || searchParams.get('bookingId');
   
   const [hotel, setHotel] = useState(null);
   const [room, setRoom] = useState(null);
@@ -21,7 +24,7 @@ const GuestBookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    paymentMethod: 'qr_code',
+    paymentMethod: 'vnpay',
     specialRequests: ''
   });
   const [totalAmount, setTotalAmount] = useState(0);
@@ -32,19 +35,62 @@ const GuestBookingPage = () => {
   const [countdown, setCountdown] = useState(900); // 15 phút = 900 giây
   const countdownRef = useRef();
   const [guest, setGuest] = useState(null);
+  const [vnpayResuming, setVnpayResuming] = useState(false);
+  const [confirmingQrPayment, setConfirmingQrPayment] = useState(false);
+  const [proofImage, setProofImage] = useState(null);
+  const [previewProofUrl, setPreviewProofUrl] = useState(null);
+  const [qrActionError, setQrActionError] = useState('');
+  const [hotelImageIndex, setHotelImageIndex] = useState(0);
+  const [roomImageIndex, setRoomImageIndex] = useState(0);
   const user = useSelector((state) => state.user.user);
 
+  const hideBookingForm =
+    Boolean(resumeBookingId && booking) &&
+    booking.paymentStatus === 'pending' &&
+    booking.paymentMethod === 'vnpay';
+
+  const checkInDisplay = booking?.checkInDate ?? bookingData.checkInDate;
+  const checkOutDisplay = booking?.checkOutDate ?? bookingData.checkOutDate;
+
+  const transferContent =
+    guest && hotel && room && checkInDisplay && checkOutDisplay
+      ? `${guest.name || ''} - ${hotel.name || ''} - ${room.roomNumber || ''} - ${formatDate(checkInDisplay)} - ${formatDate(checkOutDisplay)}`
+      : null;
+
+  const qrPaymentReported = booking?.paymentMethod === 'qr_code' && Boolean(booking?.qrPaymentReportedAt);
+  const shouldRenderErrorFallback = Boolean(
+    error && !hotel && !room && !booking && !showPaymentQRCode
+  );
+
   useEffect(() => {
-    if (bookingData.bookingId) {
+    if (resumeBookingId) {
       const fetchBooking = async () => {
         try {
           setLoading(true);
-          const bookingRes = await api.userBooking.getBookingById(bookingData.bookingId);
+          const bookingRes = await api.userBooking.getBookingById(resumeBookingId);
+          if (bookingRes.paymentStatus === 'cancelled') {
+            setError('Đơn đặt phòng đã bị hủy.');
+            setLoading(false);
+            return;
+          }
+          if (bookingRes.paymentStatus === 'paid') {
+            setError('Đơn đặt phòng đã được thanh toán.');
+            setLoading(false);
+            return;
+          }
           setBooking(bookingRes);
           setGuest(bookingRes.guest);
           setHotel(bookingRes.hotel);
           setRoom(bookingRes.room);
           setTotalAmount(bookingRes.totalAmount);
+          if (bookingRes.paymentMethod === 'qr_code') {
+            setSuccessMessage(
+              bookingRes.qrPaymentReportedAt
+                ? 'Bạn đã báo đã chuyển khoản. Vui lòng chờ khách sạn xác nhận.'
+                : 'Vui lòng quét mã QR để hoàn tất thanh toán.'
+            );
+            setShowPaymentQRCode(true);
+          }
           setLoading(false);
         } catch (err) {
           setError('Không thể tải thông tin đặt phòng');
@@ -93,7 +139,49 @@ const GuestBookingPage = () => {
       }
     };
     fetchBookingDetails();
-  }, [bookingData, user]);
+  }, [bookingData, user, resumeBookingId]);
+
+  const handleResumeVNPay = async () => {
+    if (!booking?._id) return;
+    try {
+      setVnpayResuming(true);
+      setError(null);
+      const paymentResponse = await api.payment.createVNPayPaymentUrl(booking._id);
+      window.location.href = paymentResponse.paymentUrl;
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : err?.message || 'Không thể tạo link thanh toán VNPay';
+      setError(msg);
+      setVnpayResuming(false);
+    }
+  };
+
+  const handleConfirmQrPayment = async () => {
+    if (!booking?._id) return;
+    try {
+      setConfirmingQrPayment(true);
+      setQrActionError('');
+      const res = await api.payment.confirmQrPayment({
+        bookingId: booking._id,
+        proofImage
+      });
+      setBooking((prev) =>
+        prev
+          ? {
+              ...prev,
+              qrPaymentReportedAt: res.qrPaymentReportedAt || new Date().toISOString(),
+              qrPaymentProofUrl: res.qrPaymentProofUrl || prev.qrPaymentProofUrl,
+            }
+          : prev
+      );
+      setProofImage(null);
+      setSuccessMessage('Đã ghi nhận bạn đã chuyển khoản. Vui lòng chờ khách sạn xác nhận.');
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : err?.message || 'Không thể xác nhận đã chuyển khoản';
+      setQrActionError(msg);
+    } finally {
+      setConfirmingQrPayment(false);
+    }
+  };
 
   useEffect(() => {
     if (showPaymentQRCode) {
@@ -117,6 +205,14 @@ const GuestBookingPage = () => {
     }
   }, [showPaymentQRCode, countdown, navigate]);
 
+  useEffect(() => {
+    setHotelImageIndex(0);
+  }, [hotel?._id]);
+
+  useEffect(() => {
+    setRoomImageIndex(0);
+  }, [room?._id]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
@@ -138,7 +234,7 @@ const GuestBookingPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!bookingData.bookingId) {
+    if (!resumeBookingId) {
       try {
         setSubmitting(true);
         
@@ -167,6 +263,8 @@ const GuestBookingPage = () => {
           }
         } else {
           // QR code payment (giữ nguyên logic cũ)
+          setBooking(response);
+          setProofImage(null);
           setSuccessMessage('Đặt phòng thành công! Vui lòng quét mã QR để thanh toán.');
           setShowPaymentQRCode(true);
 
@@ -194,7 +292,7 @@ const GuestBookingPage = () => {
     );
   }
 
-  if (error) {
+  if (shouldRenderErrorFallback) {
     return (
       <GuestLayout>
         <div className="booking-container">
@@ -214,6 +312,9 @@ const GuestBookingPage = () => {
     <GuestLayout>
       <div className="booking-container">
         <h1>Đặt phòng</h1>
+        {error && !shouldRenderErrorFallback && (
+          <div className="error-message">{error}</div>
+        )}
         
         {successMessage && !showPaymentQRCode && (
           <div className="success-message">
@@ -226,13 +327,65 @@ const GuestBookingPage = () => {
             {hotel && hotel.images && hotel.images.length > 0 && (
               <div className="hotel-image-section">
                 <h3>Khách sạn</h3>
-                <img src={getImageUrl(hotel.images[0])} alt={hotel.name} className="hotel-photo" />
+                <div className="image-carousel">
+                  <img src={getImageUrl(hotel.images[hotelImageIndex])} alt={hotel.name} className="hotel-photo" />
+                  {hotel.images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        className="image-nav prev"
+                        onClick={() =>
+                          setHotelImageIndex((prev) => (prev === 0 ? hotel.images.length - 1 : prev - 1))
+                        }
+                        aria-label="Ảnh khách sạn trước"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        className="image-nav next"
+                        onClick={() =>
+                          setHotelImageIndex((prev) => (prev === hotel.images.length - 1 ? 0 : prev + 1))
+                        }
+                        aria-label="Ảnh khách sạn tiếp theo"
+                      >
+                        ›
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             )}
             {room && room.images && room.images.length > 0 && (
               <div className="room-image-section">
                 <h3>Phòng đã đặt</h3>
-                <img src={getImageUrl(room.images[0])} alt={room.name} className="room-photo" />
+                <div className="image-carousel">
+                  <img src={getImageUrl(room.images[roomImageIndex])} alt={room.name} className="room-photo" />
+                  {room.images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        className="image-nav prev"
+                        onClick={() =>
+                          setRoomImageIndex((prev) => (prev === 0 ? room.images.length - 1 : prev - 1))
+                        }
+                        aria-label="Ảnh phòng trước"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        className="image-nav next"
+                        onClick={() =>
+                          setRoomImageIndex((prev) => (prev === room.images.length - 1 ? 0 : prev + 1))
+                        }
+                        aria-label="Ảnh phòng tiếp theo"
+                      >
+                        ›
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             )}
             {showPaymentQRCode && (
@@ -241,15 +394,88 @@ const GuestBookingPage = () => {
                 <p className="payment-instructions">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán. Đơn đặt phòng của bạn sẽ được xác nhận sau khi nhận được thanh toán.</p>
                 <img src={IMAGE_PATHS.QR_CODE} alt="QR Code Thanh Toán" className="qr-code-image" />
                 <p className="payment-note">Sau khi thanh toán thành công, bạn sẽ được chuyển hướng đến trang đặt phòng của tôi.</p>
+                {qrPaymentReported && (
+                  <p className="payment-note">
+                    Bạn đã báo đã chuyển khoản. Vui lòng chờ khách sạn xác nhận để tránh thanh toán trùng.
+                  </p>
+                )}
                 <div className="countdown-timer">
                   Tự động chuyển hướng sau: <span className="countdown-value">{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</span> phút
                 </div>
+                {!qrPaymentReported && booking?._id && (
+                  <div className="proof-upload-form">
+                    <label htmlFor="qr-proof-file-create">Ảnh minh chứng <span className="required-mark">*</span></label>
+                    <input
+                      id="qr-proof-file-create"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        setProofImage(e.target.files?.[0] || null);
+                        setQrActionError('');
+                      }}
+                    />
+                  </div>
+                )}
+                {!qrPaymentReported && booking?._id && (
+                  <button
+                    className="back-to-bookings-btn"
+                    onClick={handleConfirmQrPayment}
+                    disabled={confirmingQrPayment || !proofImage}
+                  >
+                    {confirmingQrPayment ? 'Đang ghi nhận...' : 'Tôi đã chuyển khoản'}
+                  </button>
+                )}
+                {!qrPaymentReported && booking?._id && !proofImage && (
+                  <p className="proof-required-hint">Vui lòng tải lên ảnh minh chứng trước khi xác nhận thanh toán.</p>
+                )}
+                {!qrPaymentReported && qrActionError && (
+                  <p className="qr-action-error">{qrActionError}</p>
+                )}
+                {qrPaymentReported && booking?.paymentMethod === 'qr_code' && (
+                  <>
+                    <div className="proof-upload-form">
+                      <label htmlFor="qr-proof-file-create">Cập nhật ảnh minh chứng</label>
+                      <input
+                        id="qr-proof-file-create"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setProofImage(e.target.files?.[0] || null)}
+                      />
+                      {booking?.qrPaymentProofUrl && (
+                        <button
+                          type="button"
+                          className="proof-link"
+                          onClick={() => setPreviewProofUrl(getImageUrl(booking.qrPaymentProofUrl))}
+                        >
+                          Xem minh chứng đã gửi
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      className="back-to-bookings-btn"
+                      onClick={handleConfirmQrPayment}
+                      disabled={confirmingQrPayment}
+                    >
+                      {confirmingQrPayment ? 'Đang cập nhật...' : 'Cập nhật minh chứng'}
+                    </button>
+                  </>
+                )}
                 <button 
-                  className="back-to-bookings-btn" 
+                  className="back-to-bookings-btn view-my-bookings-btn" 
                   onClick={() => navigate('/my-bookings')}
                 >
                   Xem đơn đặt phòng của tôi
                 </button>
+                {previewProofUrl && (
+                  <div className="proof-preview-overlay" onClick={() => setPreviewProofUrl(null)}>
+                    <div className="proof-preview-modal" onClick={(e) => e.stopPropagation()}>
+                      <img src={previewProofUrl} alt="Minh chứng thanh toán" />
+                      <button type="button" className="close-proof-btn" onClick={() => setPreviewProofUrl(null)}>
+                        Đóng
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -310,11 +536,15 @@ const GuestBookingPage = () => {
                   </div>
                   <div className="summary-item">
                     <span className="label">Ngày nhận phòng:</span>
-                    <span className="value">{new Date(bookingData.checkInDate).toLocaleDateString('vi-VN')}</span>
+                    <span className="value">
+                      {checkInDisplay ? new Date(checkInDisplay).toLocaleDateString('vi-VN') : '—'}
+                    </span>
                   </div>
                   <div className="summary-item">
                     <span className="label">Ngày trả phòng:</span>
-                    <span className="value">{new Date(bookingData.checkOutDate).toLocaleDateString('vi-VN')}</span>
+                    <span className="value">
+                      {checkOutDisplay ? new Date(checkOutDisplay).toLocaleDateString('vi-VN') : '—'}
+                    </span>
                   </div>
                   {pricePreview && pricePreview.discountAmount > 0 && (
                     <>
@@ -346,10 +576,37 @@ const GuestBookingPage = () => {
                     <p>Chủ tài khoản: <span className="account-name">DOAN NHAT QUANG</span></p>
                     <p>Số tài khoản: <span className="account-number">0334978774</span></p>
                     <p>Ngân hàng: <span className="bank-name">Ngân hàng MB Bank</span></p>
-                    <p>Nội dung chuyển khoản: <span className="transfer-note">TEN_NGUOI_DUNG - KHACH_SAN - SO_PHONG_DA_DAT - NGAY_CHECKIN - NGAY_CHECKOUT</span></p>
+                    <p>
+                      Nội dung chuyển khoản:{' '}
+                      <span className="transfer-note">
+                        {transferContent || 'TEN_NGUOI_DUNG - KHACH_SAN - SO_PHONG_DA_DAT - NGAY_CHECKIN - NGAY_CHECKOUT'}
+                      </span>
+                    </p>
                   </div>
                 )}
-                {!showPaymentQRCode && (
+                {hideBookingForm && (
+                  <div className="booking-actions-confirm vnpay-resume-block">
+                    <p className="vnpay-resume-text">
+                      Đơn đặt phòng của bạn chưa thanh toán qua VNPay. Bạn có thể tiếp tục thanh toán bất cứ lúc nào.
+                    </p>
+                    <button
+                      type="button"
+                      className="submit-btn"
+                      onClick={handleResumeVNPay}
+                      disabled={vnpayResuming}
+                    >
+                      {vnpayResuming ? 'Đang chuyển đến VNPay...' : 'Tiếp tục thanh toán VNPay'}
+                    </button>
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => navigate('/my-bookings')}
+                    >
+                      Về danh sách đặt phòng
+                    </button>
+                  </div>
+                )}
+                {!showPaymentQRCode && !hideBookingForm && (
                   <div className="booking-actions-confirm">
                     <div className="form-group">
                       <label>Phương thức thanh toán</label>

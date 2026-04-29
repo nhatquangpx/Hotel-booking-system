@@ -13,6 +13,23 @@ export const paymentAPI = {
     }
   },
 
+  // Guest xác nhận đã chuyển khoản QR, chờ khách sạn đối soát
+  confirmQrPayment: async ({ bookingId, proofImage } = {}) => {
+    try {
+      const formData = new FormData();
+      formData.append('bookingId', bookingId);
+      if (proofImage) {
+        formData.append('proofImage', proofImage);
+      }
+      const response = await api.post('/payment/qr/confirm-payment', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Lấy danh sách payment transactions
   getPaymentTransactions: async (params = {}) => {
     try {
