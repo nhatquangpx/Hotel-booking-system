@@ -82,6 +82,14 @@ const AdminHotelDetailPage = () => {
     }
   };
 
+  const paymentQr = hotel?.paymentConfig?.qr || {};
+  const isQrReady = Boolean(
+    String(paymentQr.accountName || '').trim() &&
+    String(paymentQr.accountNumber || '').trim() &&
+    String(paymentQr.bankName || '').trim() &&
+    String(paymentQr.qrImageUrl || '').trim()
+  );
+
   if (loading) return (
     <AdminLayout>
       <div className="loading">Đang tải...</div>
@@ -158,6 +166,43 @@ const AdminHotelDetailPage = () => {
             <div className="detail-row">
               <div className="detail-label">Mô tả:</div>
               <div className="detail-value">{hotel.description}</div>
+            </div>
+            <div className="detail-row detail-row--payment">
+              <div className="detail-label">Phương thức thanh toán:</div>
+              <div className="detail-value">
+                <div className="payment-method-card">
+                  <div className="payment-method-card__header">
+                    <span className="payment-method-card__title">Chuyển khoản QR</span>
+                    <span className={`payment-method-card__status ${isQrReady ? 'is-ready' : 'is-missing'}`}>
+                      {isQrReady ? 'Đã cấu hình đầy đủ' : 'Thiếu thông tin'}
+                    </span>
+                  </div>
+                  <div className="payment-method-card__content">
+                    <div className="payment-method-card__info-grid">
+                      <div>
+                        <strong>Chủ tài khoản:</strong> {paymentQr.accountName || 'Chưa cấu hình'}
+                      </div>
+                      <div>
+                        <strong>Số tài khoản:</strong> {paymentQr.accountNumber || 'Chưa cấu hình'}
+                      </div>
+                      <div>
+                        <strong>Ngân hàng:</strong> {paymentQr.bankName || 'Chưa cấu hình'}
+                      </div>
+                    </div>
+                    <div className="payment-method-card__qr">
+                      {paymentQr.qrImageUrl ? (
+                        <img
+                          src={getImageUrl(paymentQr.qrImageUrl)}
+                          alt="QR thanh toán của khách sạn"
+                          className="payment-qr-image"
+                        />
+                      ) : (
+                        <div className="payment-qr-placeholder">Chưa có ảnh QR</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             {hotel.images && hotel.images.length > 0 && (
               <div className="detail-row">

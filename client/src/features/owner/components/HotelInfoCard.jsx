@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaEdit, FaClock } from 'react-icons/fa';
+import { FaEdit, FaClock, FaMoneyCheckAlt } from 'react-icons/fa';
+import Dialog from '@/components/ui/Dialog';
 import { getImageUrl } from '@/constants/images';
 import ImageSlider from './ImageSlider';
 import ImageModal from './ImageModal';
@@ -14,6 +15,7 @@ import './HotelInfoCard.scss';
 const HotelInfoCard = ({ hotel, onEdit }) => {
   const [showModal, setShowModal] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const formatTime = (time) => {
     if (!time) return '';
@@ -36,6 +38,13 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
   // Lấy check-in và check-out từ policies
   const checkInTime = hotel?.policies?.checkInTime || '14:00';
   const checkOutTime = hotel?.policies?.checkOutTime || '12:00';
+  const qrPayment = hotel?.paymentConfig?.qr || {};
+  const qrReady = Boolean(
+    String(qrPayment.accountName || '').trim() &&
+    String(qrPayment.accountNumber || '').trim() &&
+    String(qrPayment.bankName || '').trim() &&
+    String(qrPayment.qrImageUrl || '').trim()
+  );
 
   const handleImageClick = (index) => {
     setModalIndex(index);
@@ -67,6 +76,14 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
             Chỉnh sửa
           </button>
         )}
+        <button
+          type="button"
+          className="payment-detail-button"
+          onClick={() => setShowPaymentDialog(true)}
+        >
+          <FaMoneyCheckAlt />
+          Chi tiết thanh toán
+        </button>
       </div>
 
       <ImageModal
@@ -75,6 +92,54 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
         initialIndex={modalIndex}
         onClose={() => setShowModal(false)}
       />
+
+      <Dialog
+        isOpen={showPaymentDialog}
+        onClose={() => setShowPaymentDialog(false)}
+        title="Thông tin thanh toán khách sạn"
+        maxWidth="860px"
+        className="owner-payment-dialog"
+      >
+        <div className="owner-payment-dialog__content">
+          <div className="owner-payment-dialog__columns">
+            <div className="owner-payment-dialog__column owner-payment-dialog__column--qr">
+              <h4 className="owner-payment-dialog__column-title">Chuyển khoản QR</h4>
+              <div className={`owner-payment-dialog__status ${qrReady ? 'is-ready' : 'is-missing'}`}>
+                {qrReady ? 'Đã cấu hình đầy đủ thanh toán QR' : 'Thiếu thông tin thanh toán QR'}
+              </div>
+              <div className="owner-payment-dialog__grid">
+                <div>
+                  <strong>Chủ tài khoản:</strong> {qrPayment.accountName || 'Chưa cấu hình'}
+                </div>
+                <div>
+                  <strong>Số tài khoản:</strong> {qrPayment.accountNumber || 'Chưa cấu hình'}
+                </div>
+                <div>
+                  <strong>Ngân hàng:</strong> {qrPayment.bankName || 'Chưa cấu hình'}
+                </div>
+              </div>
+              <div className="owner-payment-dialog__qr-wrap">
+                {qrPayment.qrImageUrl ? (
+                  <img
+                    src={getImageUrl(qrPayment.qrImageUrl)}
+                    alt="Mã QR thanh toán"
+                    className="owner-payment-dialog__qr-image"
+                  />
+                ) : (
+                  <div className="owner-payment-dialog__qr-empty">Chưa có ảnh QR</div>
+                )}
+              </div>
+            </div>
+
+            <div className="owner-payment-dialog__column owner-payment-dialog__column--vnpay">
+              <h4 className="owner-payment-dialog__column-title">VNPay (mở rộng sau)</h4>
+              <div className="owner-payment-dialog__vnpay-placeholder">
+                Khu vực này đã được chừa sẵn để hiển thị cấu hình thanh toán VNPay theo từng khách sạn trong giai đoạn tiếp theo.
+              </div>
+            </div>
+          </div>
+        </div>
+      </Dialog>
       
       <div className="hotel-details">
         <div className="hotel-description">

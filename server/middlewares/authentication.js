@@ -22,4 +22,18 @@ const authenticate = (req, res, next) => {
     }
 };
 
-module.exports = { authenticate }; 
+/** Gắn req.user nếu có Bearer hợp lệ; không có token hoặc token lỗi thì bỏ qua (không 401). */
+const optionalAuthenticate = (req, res, next) => {
+    const token = getTokenFromHeader(req);
+    if (!token) {
+        return next();
+    }
+    try {
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+        req.user = undefined;
+    }
+    next();
+};
+
+module.exports = { authenticate, optionalAuthenticate }; 

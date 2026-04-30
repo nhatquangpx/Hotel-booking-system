@@ -92,6 +92,98 @@
             }
           }
         }
+
+        &.detail-row--payment {
+          .detail-value {
+            width: 100%;
+          }
+        }
+      }
+
+      .payment-method-card {
+        border: 1px solid $border-light;
+        border-radius: 8px;
+        padding: 12px;
+        background: $bg-light-alt;
+
+        &__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        &__title {
+          @include label-base;
+          color: $text-primary;
+          font-weight: $font-medium;
+        }
+
+        &__status {
+          @include body-sm;
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1px solid transparent;
+
+          &.is-ready {
+            color: #2e7d32;
+            border-color: rgba(46, 125, 50, 0.3);
+            background: rgba(46, 125, 50, 0.08);
+          }
+
+          &.is-missing {
+            color: #d32f2f;
+            border-color: rgba(211, 47, 47, 0.3);
+            background: rgba(211, 47, 47, 0.08);
+          }
+        }
+
+        &__content {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+
+        &__info-grid {
+          display: grid;
+          gap: 8px;
+          min-width: 260px;
+          flex: 1;
+        }
+
+        &__qr {
+          width: 140px;
+          min-height: 140px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+
+      .payment-qr-image {
+        width: 140px;
+        height: 140px;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid $border-light;
+        background: $bg-white;
+      }
+
+      .payment-qr-placeholder {
+        width: 140px;
+        height: 140px;
+        border-radius: 8px;
+        border: 1px dashed $border-light;
+        color: $text-secondary;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8px;
+        @include body-sm;
       }
     }
   }

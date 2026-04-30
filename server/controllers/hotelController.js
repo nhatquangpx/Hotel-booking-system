@@ -3,6 +3,82 @@ const Room = require("../models/Room");
 const User = require("../models/User");
 const { hasCloudinaryConfig } = require("../config/multerConfig");
 const mongoose = require("mongoose");
+
+function getHotelImageFiles(req) {
+  if (!req.files) return [];
+  if (Array.isArray(req.files)) return req.files;
+  return req.files.images || [];
+}
+
+function getQrUploadFile(req) {
+  if (!req.files || Array.isArray(req.files)) return null;
+  const arr = req.files.qrCodeImage;
+  return arr && arr[0] ? arr[0] : null;
+}
+
+function resolveHotelUploadedImageUrl(file) {
+  if (!file) return "";
+  if (hasCloudinaryConfig) {
+    return file.secure_url || file.url || file.path || "";
+  }
+  if (file.fieldname === "qrCodeImage") {
+    return `/uploads/hotel-qr/${file.filename}`;
+  }
+  return `/uploads/hotels/${file.filename}`;
+}
+
+function isQrConfigComplete(qr) {
+  return Boolean(
+    String(qr?.accountName || "").trim() &&
+    String(qr?.accountNumber || "").trim() &&
+    String(qr?.bankName || "").trim() &&
+    String(qr?.qrImageUrl || "").trim()
+  );
+}
+
+function resolveQrTextFields(body = {}, fallback = {}) {
+  const fromBracket = {
+    accountName: body["paymentConfig[qr][accountName]"],
+    accountNumber: body["paymentConfig[qr][accountNumber]"],
+    bankName: body["paymentConfig[qr][bankName]"]
+  };
+  const fromObject = body.paymentConfig?.qr || {};
+
+  return {
+    accountName:
+      fromBracket.accountName !== undefined
+        ? fromBracket.accountName
+        : (fromObject.accountName !== undefined ? fromObject.accountName : fallback.accountName),
+    accountNumber:
+      fromBracket.accountNumber !== undefined
+        ? fromBracket.accountNumber
+        : (fromObject.accountNumber !== undefined ? fromObject.accountNumber : fallback.accountNumber),
+    bankName:
+      fromBracket.bankName !== undefined
+        ? fromBracket.bankName
+        : (fromObject.bankName !== undefined ? fromObject.bankName : fallback.bankName)
+  };
+}
+
+function isGuestHotelByIdRequest(req) {
+  return req.baseUrl === "/api/guest" && /^\/hotels\/[^/]+$/.test(req.path || "");
+}
+
+/** Trả về paymentConfig trên response: owner/admin luôn; guest chỉ khi đặt phòng (đã login + query). */
+function shouldExposePaymentConfig(req) {
+  if (req.baseUrl === "/api/owner" || req.baseUrl === "/api/admin") {
+    return true;
+  }
+  if (isGuestHotelByIdRequest(req)) {
+    return (
+      req.query.forBooking === "true" &&
+      req.user &&
+      req.user.role === "guest"
+    );
+  }
+  return false;
+}
+
 const { 
   notifyAdminHotelRegistrationRequest,
   notifyAdminHotelApproved,
@@ -41,11 +117,16 @@ exports.getAllHotels = async (req, res) => {
 // Get hotel by ID
 exports.getHotelById = async (req, res) => {
   try {
-    const hotel = await Hotel.findById(req.params.id).populate({
+    let q = Hotel.findById(req.params.id);
+    if (shouldExposePaymentConfig(req)) {
+      q = q.select("+paymentConfig");
+    }
+    q = q.populate({
       path: "ownerId",
       select: "name email phone _id"
-    }); 
-    
+    });
+    const hotel = await q;
+
     if (!hotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
     }
@@ -60,7 +141,7 @@ exports.getHotelById = async (req, res) => {
 // Get hotels by owner
 exports.getHotelsByOwner = async (req, res) => {
   try {
-    const hotels = await Hotel.find({ ownerId: req.user.id });
+    const hotels = await Hotel.find({ ownerId: req.user.id }).select("+paymentConfig");
     res.status(200).json(hotels);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn của bạn:", error);
@@ -74,23 +155,65 @@ exports.createHotel = async (req, res) => {
     console.log("Dữ liệu khách sạn:", req.body);
     console.log("Files:", req.files);
 
-    // Lấy đường dẫn ảnh từ req.files
-    // Nếu dùng Cloudinary: file.secure_url hoặc file.url sẽ chứa URL đầy đủ
-    // Nếu dùng local: file.filename sẽ chứa tên file, cần thêm /uploads/hotels/
-    const images = req.files ? req.files.map(file => {
-      if (hasCloudinaryConfig) {
-        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
-        return file.secure_url || file.url || file.path;
-      } else {
-        // Local storage: tạo đường dẫn tương đối
-        return `/uploads/hotels/${file.filename}`;
-      }
-    }) : [];
+    const imageFiles = getHotelImageFiles(req);
+    const images = imageFiles.map(resolveHotelUploadedImageUrl);
+    const qrFile = getQrUploadFile(req);
+
+    const createData = {};
+    if (req.body.name) createData.name = req.body.name;
+    if (req.body.description) createData.description = req.body.description;
+    if (req.body.starRating) createData.starRating = parseInt(req.body.starRating);
+    if (req.body.status) createData.status = req.body.status;
+    if (req.body.ownerId) createData.ownerId = req.body.ownerId;
+
+    if (req.body["address[number]"] || req.body["address[street]"] || req.body["address[city]"]) {
+      createData.address = {
+        number: req.body["address[number]"] || req.body.address?.number || "",
+        street: req.body["address[street]"] || req.body.address?.street || "",
+        city: req.body["address[city]"] || req.body.address?.city || ""
+      };
+    } else if (req.body.address && typeof req.body.address === "object") {
+      createData.address = req.body.address;
+    }
+
+    if (req.body["contactInfo[phone]"] || req.body["contactInfo[email]"]) {
+      createData.contactInfo = {
+        phone: req.body["contactInfo[phone]"] || req.body.contactInfo?.phone || "",
+        email: req.body["contactInfo[email]"] || req.body.contactInfo?.email || ""
+      };
+    } else if (req.body.contactInfo && typeof req.body.contactInfo === "object") {
+      createData.contactInfo = req.body.contactInfo;
+    }
+
+    if (req.body["policies[checkInTime]"] || req.body["policies[checkOutTime]"]) {
+      createData.policies = {
+        checkInTime: req.body["policies[checkInTime]"] || req.body.policies?.checkInTime || "14:00",
+        checkOutTime: req.body["policies[checkOutTime]"] || req.body.policies?.checkOutTime || "12:00"
+      };
+    } else if (req.body.policies && typeof req.body.policies === "object") {
+      createData.policies = req.body.policies;
+    }
 
     const newHotel = new Hotel({
-      ...req.body,
+      ...createData,
       images: images
     });
+
+    const qrText = resolveQrTextFields(req.body, {});
+    const qrImageUrl = qrFile ? resolveHotelUploadedImageUrl(qrFile) : "";
+    const qrPayload = {
+      accountName: qrText.accountName || "",
+      accountNumber: qrText.accountNumber || "",
+      bankName: qrText.bankName || "",
+      qrImageUrl
+    };
+    if (!isQrConfigComplete(qrPayload)) {
+      return res.status(400).json({
+        message:
+          "Thiếu thông tin thanh toán QR: vui lòng cung cấp tên chủ TK, số TK, ngân hàng và ảnh QR."
+      });
+    }
+    newHotel.paymentConfig = { qr: qrPayload };
 
     const savedHotel = await newHotel.save();
     console.log(`Đã tạo khách sạn thành công: ${savedHotel._id} (${savedHotel.name}) bởi owner ${savedHotel.ownerId}`);
@@ -117,6 +240,13 @@ exports.updateHotel = async (req, res) => {
     console.log("Đang cập nhật khách sạn với ID:", req.params.id);
     console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
     console.log("Files:", req.files);
+
+    const existingHotel = await Hotel.findById(req.params.id).select("images +paymentConfig");
+    if (!existingHotel) {
+      return res.status(404).json({ message: "Không tìm thấy khách sạn" });
+    }
+
+    const qrFile = getQrUploadFile(req);
 
     // Parse nested fields từ FormData (address[number], contactInfo[phone], etc.)
     const updateData = {};
@@ -172,6 +302,56 @@ exports.updateHotel = async (req, res) => {
       updateData.policies = req.body.policies;
     }
 
+    // Parse paymentConfig.qr (ảnh QR chỉ từ upload `qrCodeImage` hoặc giữ URL đã lưu)
+    const hasPaymentQrBracket =
+      req.body['paymentConfig[qr][accountName]'] !== undefined ||
+      req.body['paymentConfig[qr][accountNumber]'] !== undefined ||
+      req.body['paymentConfig[qr][bankName]'] !== undefined;
+    const hasPaymentQrObject = req.body.paymentConfig?.qr && typeof req.body.paymentConfig.qr === 'object';
+
+    if (hasPaymentQrBracket) {
+      const prev = existingHotel.paymentConfig?.qr || {};
+      const uploadedUrl = qrFile ? resolveHotelUploadedImageUrl(qrFile) : "";
+      const qrImageUrl = uploadedUrl || (prev.qrImageUrl || "");
+      const qrText = resolveQrTextFields(req.body, prev);
+      const qrPayload = {
+        accountName: qrText.accountName ?? "",
+        accountNumber: qrText.accountNumber ?? "",
+        bankName: qrText.bankName ?? "",
+        qrImageUrl
+      };
+      if (!isQrConfigComplete(qrPayload)) {
+        return res.status(400).json({
+          message:
+            "Thiếu thông tin thanh toán QR: vui lòng cung cấp tên chủ TK, số TK, ngân hàng và ảnh QR."
+        });
+      }
+      updateData.paymentConfig = { qr: qrPayload };
+    } else if (hasPaymentQrObject || qrFile) {
+      const qr = req.body.paymentConfig?.qr || {};
+      const prev = existingHotel.paymentConfig?.qr || {};
+      const uploadedUrl = qrFile ? resolveHotelUploadedImageUrl(qrFile) : "";
+      const fromBody =
+        qr.qrImageUrl != null && String(qr.qrImageUrl).trim() !== ""
+          ? String(qr.qrImageUrl).trim()
+          : "";
+      const qrImageUrl = uploadedUrl || fromBody || (prev.qrImageUrl || "");
+      const qrText = resolveQrTextFields(req.body, prev);
+      const qrPayload = {
+        accountName: qrText.accountName ?? "",
+        accountNumber: qrText.accountNumber ?? "",
+        bankName: qrText.bankName ?? "",
+        qrImageUrl
+      };
+      if (!isQrConfigComplete(qrPayload)) {
+        return res.status(400).json({
+          message:
+            "Thiếu thông tin thanh toán QR: vui lòng cung cấp tên chủ TK, số TK, ngân hàng và ảnh QR."
+        });
+      }
+      updateData.paymentConfig = { qr: qrPayload };
+    }
+
     // Parse existingImages nếu là string (từ FormData)
     let existingImages = [];
     if (req.body.existingImages) {
@@ -182,16 +362,8 @@ exports.updateHotel = async (req, res) => {
       }
     }
 
-    // Lấy đường dẫn ảnh mới từ req.files
-    const newImages = req.files ? req.files.map(file => {
-      if (hasCloudinaryConfig) {
-        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
-        return file.secure_url || file.url || file.path;
-      } else {
-        // Local storage: tạo đường dẫn tương đối
-        return `/uploads/hotels/${file.filename}`;
-      }
-    }) : [];
+    const imageFiles = getHotelImageFiles(req);
+    const newImages = imageFiles.map(resolveHotelUploadedImageUrl);
 
     // Gộp ảnh cũ và mới (ưu tiên existingImages nếu có, nếu không có ảnh mới thì giữ nguyên ảnh cũ)
     if (existingImages.length > 0 || newImages.length > 0) {
@@ -202,7 +374,7 @@ exports.updateHotel = async (req, res) => {
       req.params.id,
       { $set: updateData },
       { new: true, runValidators: true }
-    );
+    ).select("+paymentConfig");
     
     console.log(`Đã cập nhật khách sạn thành công: ${req.params.id} (${updatedHotel?.name})`);
     res.status(200).json(updatedHotel);

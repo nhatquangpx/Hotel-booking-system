@@ -1,4 +1,4 @@
-import { FaPhone, FaCalendarAlt } from 'react-icons/fa';
+import { FaPhone, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
 import { formatDate, formatDateTime } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
 
@@ -14,6 +14,12 @@ const OwnerBookingCard = ({
   const guest = booking.guest || {};
   const room = booking.room || {};
   const { paymentStatus } = booking;
+  const paymentMethodLabel =
+    booking.paymentMethod === 'qr_code'
+      ? 'QR chuyển khoản'
+      : booking.paymentMethod === 'vnpay'
+        ? 'VNPay'
+        : 'Không xác định';
   const isCheckedIn = booking.checkedInAt !== null && booking.checkedInAt !== undefined;
   const isCheckedOut = booking.checkedOutAt !== null && booking.checkedOutAt !== undefined;
 
@@ -109,6 +115,11 @@ const OwnerBookingCard = ({
             </span>
           </div>
         )}
+
+        <div className="info-item">
+          <FaCreditCard className="info-icon" />
+          <span>Phương thức thanh toán: {paymentMethodLabel}</span>
+        </div>
 
         {(room.roomNumber || source) && (
           <div className="booking-tags">

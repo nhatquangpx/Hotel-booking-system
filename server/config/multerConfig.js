@@ -8,16 +8,18 @@ const hasCloudinaryConfig =
   process.env.CLOUDINARY_API_KEY && 
   process.env.CLOUDINARY_API_SECRET;
 
-let hotelStorage, roomStorage, paymentProofStorage;
+let hotelStorage, hotelPhotosAndQrUploadStorage, roomStorage, paymentProofStorage;
 
 if (hasCloudinaryConfig) {
   // Sử dụng Cloudinary cho production
   const {
     hotelStorage: cloudinaryHotelStorage,
+    hotelPhotosAndQrCloudinaryStorage,
     roomStorage: cloudinaryRoomStorage,
     paymentProofStorage: cloudinaryPaymentProofStorage
   } = require('./cloudinaryConfig');
   hotelStorage = cloudinaryHotelStorage;
+  hotelPhotosAndQrUploadStorage = hotelPhotosAndQrCloudinaryStorage;
   roomStorage = cloudinaryRoomStorage;
   paymentProofStorage = cloudinaryPaymentProofStorage;
   console.log('✅ Sử dụng Cloudinary để lưu trữ ảnh');
@@ -27,7 +29,7 @@ if (hasCloudinaryConfig) {
   
   // Tạo thư mục uploads nếu chưa tồn tại
   const createUploadDirs = () => {
-    const dirs = ['uploads/hotels', 'uploads/rooms', 'uploads/payment-proofs'];
+    const dirs = ['uploads/hotels', 'uploads/hotel-qr', 'uploads/rooms', 'uploads/payment-proofs'];
     dirs.forEach(dir => {
       const fullPath = path.join(__dirname, '..', dir);
       if (!fs.existsSync(fullPath)) {
@@ -38,15 +40,22 @@ if (hasCloudinaryConfig) {
 
   createUploadDirs();
 
-  hotelStorage = multer.diskStorage({
+  const hotelAssetDiskStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(__dirname, '../uploads/hotels'));
+      if (file.fieldname === 'qrCodeImage') {
+        cb(null, path.join(__dirname, '../uploads/hotel-qr'));
+      } else {
+        cb(null, path.join(__dirname, '../uploads/hotels'));
+      }
     },
     filename: function (req, file, cb) {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, 'hotel-' + uniqueSuffix + path.extname(file.originalname));
+      const prefix = file.fieldname === 'qrCodeImage' ? 'hotel-qr-' : 'hotel-';
+      cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
     }
   });
+  hotelStorage = hotelAssetDiskStorage;
+  hotelPhotosAndQrUploadStorage = hotelAssetDiskStorage;
 
   roomStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -93,12 +102,29 @@ const paymentProofFilter = (req, file, cb) => {
   cb('Error: Chỉ cho phép tải ảnh minh chứng (jpeg, jpg, png, gif, webp)!');
 };
 
+const hotelOrQrImageFilter = (req, file, cb) => {
+  if (file.fieldname === 'qrCodeImage') {
+    return paymentProofFilter(req, file, cb);
+  }
+  return imageFilter(req, file, cb);
+};
+
 // Upload middleware cho hotels
 const uploadHotelImages = multer({
   storage: hotelStorage,
   fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 }).array('images', 10); // cho phép tối đa 10 ảnh
+
+// Form khách sạn: tối đa 10 ảnh `images` + tối đa 1 `qrCodeImage` (cùng middleware, storage phân loại theo fieldname)
+const uploadHotelPhotosAndQr = multer({
+  storage: hotelPhotosAndQrUploadStorage,
+  fileFilter: hotelOrQrImageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+}).fields([
+  { name: 'images', maxCount: 10 },
+  { name: 'qrCodeImage', maxCount: 1 }
+]);
 
 // Upload middleware cho rooms
 const uploadRoomImages = multer({
@@ -115,6 +141,7 @@ const uploadPaymentProof = multer({
 
 module.exports = {
   uploadHotelImages,
+  uploadHotelPhotosAndQr,
   uploadRoomImages,
   uploadPaymentProof,
   hasCloudinaryConfig

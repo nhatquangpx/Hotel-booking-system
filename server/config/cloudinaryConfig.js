@@ -8,20 +8,24 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Storage cho hotels
-const hotelStorage = new CloudinaryStorage({
+const buildHotelAssetParams = (file) => {
+  const isQr = file?.fieldname === "qrCodeImage";
+  return {
+    folder: isQr ? "hotel-booking/hotel-qr" : "hotel-booking/hotels",
+    allowed_formats: isQr ? ["jpg", "jpeg", "png", "gif", "webp"] : ["jpg", "jpeg", "png", "gif"],
+    transformation: isQr
+      ? [{ width: 800, height: 800, crop: "limit" }, { quality: "auto" }]
+      : [{ width: 1000, height: 667, crop: "limit" }, { quality: "auto" }],
+    public_id: isQr
+      ? `hotel-qr-${Date.now()}-${Math.round(Math.random() * 1e9)}`
+      : `hotel-${Date.now()}-${Math.round(Math.random() * 1e9)}`
+  };
+};
+
+// Storage dùng chung cho tài nguyên khách sạn (`images` và `qrCodeImage`)
+const hotelAssetStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => {
-    return {
-      folder: 'hotel-booking/hotels',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
-      transformation: [
-        { width: 1000, height: 667, crop: 'limit' },
-        { quality: 'auto' }
-      ],
-      public_id: `hotel-${Date.now()}-${Math.round(Math.random() * 1E9)}`
-    };
-  }
+  params: async (req, file) => buildHotelAssetParams(file)
 });
 
 // Storage cho rooms
@@ -39,6 +43,10 @@ const roomStorage = new CloudinaryStorage({
     };
   }
 });
+
+// Giữ 2 tên export để code gọi bên ngoài rõ ngữ cảnh sử dụng
+const hotelStorage = hotelAssetStorage;
+const hotelPhotosAndQrCloudinaryStorage = hotelAssetStorage;
 
 // Storage cho minh chứng thanh toán QR
 const paymentProofStorage = new CloudinaryStorage({
@@ -59,6 +67,7 @@ const paymentProofStorage = new CloudinaryStorage({
 module.exports = {
   cloudinary,
   hotelStorage,
+  hotelPhotosAndQrCloudinaryStorage,
   roomStorage,
   paymentProofStorage
 };

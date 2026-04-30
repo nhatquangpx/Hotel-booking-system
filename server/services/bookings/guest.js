@@ -43,7 +43,7 @@ const createBooking = async (bookingData, guestId) => {
   }
 
   // 2. Check if hotel exists FIRST
-  const hotel = await Hotel.findById(hotelId);
+  const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
   }
@@ -69,6 +69,23 @@ const createBooking = async (bookingData, guestId) => {
   const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
   const calculatedAmount = pricing.finalAmount;
 
+  const method = paymentMethod || "qr_code";
+  if (method === "qr_code") {
+    const qr = hotel.paymentConfig?.qr;
+    const qrReady =
+      String(qr?.accountName || "").trim() &&
+      String(qr?.accountNumber || "").trim() &&
+      String(qr?.bankName || "").trim() &&
+      String(qr?.qrImageUrl || "").trim();
+    if (!qrReady) {
+      const err = new Error(
+        "Khách sạn chưa cấu hình đủ thanh toán QR (tên chủ TK, số TK, ngân hàng và ảnh mã QR). Vui lòng chọn VNPay hoặc liên hệ khách sạn."
+      );
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
   // 7. Create new booking
   const newBooking = new Booking({
     guest: guestId,
@@ -81,7 +98,7 @@ const createBooking = async (bookingData, guestId) => {
     discountAmount: pricing.discountAmount,
     finalAmount: pricing.finalAmount,
     promotionApplied: pricing.promotionApplied || undefined,
-    paymentMethod: paymentMethod || "qr_code",
+    paymentMethod: method,
     specialRequests: specialRequests || "",
     cancellationReason: "",
     paymentStatus: "pending"
@@ -95,7 +112,7 @@ const createBooking = async (bookingData, guestId) => {
 
   // 9. Return populated booking
   return await getBookingWithPopulate(savedBooking._id, {
-    hotel: "name address images starRating",
+    hotel: "name address images starRating +paymentConfig",
     room: "roomNumber type price images"
   });
 };
@@ -109,7 +126,7 @@ const previewBookingPrice = async (hotelId, roomId, checkInDate, checkOutDate) =
     throw new Error(dateValidation.error);
   }
 
-  const hotel = await Hotel.findById(hotelId);
+  const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
   }
@@ -142,7 +159,7 @@ const getMyBookings = async (guestId) => {
   const bookings = await Booking.find({ guest: guestId })
     .populate({
       path: "hotel",
-      select: "name address images starRating"
+      select: "name address images starRating +paymentConfig"
     })
     .populate({
       path: "room",
@@ -161,7 +178,7 @@ const getMyBookings = async (guestId) => {
  */
 const getBookingById = async (bookingId, user) => {
   return await getBookingByIdCore(bookingId, user, {
-    hotel: "name address images starRating contactInfo policies",
+    hotel: "name address images starRating contactInfo policies +paymentConfig",
     room: "roomNumber type price images maxPeople description facilities"
   });
 };
