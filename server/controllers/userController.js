@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User.js');
 const Hotel = require('../models/Hotel.js');
 const bcrypt = require('bcryptjs');
+const { isValidObjectId } = require('../utils/mongooseIds');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -21,7 +22,7 @@ exports.getUserById = async (req, res) => {
             return res.status(400).json({ message: 'ID người dùng không được cung cấp!' });
         }
         
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
+        if (!isValidObjectId(userId)) {
             return res.status(400).json({ message: 'ID người dùng không hợp lệ!' });
         }
 
@@ -89,7 +90,7 @@ exports.updateUser = async (req, res) => {
             return res.status(400).json({ message: 'ID người dùng không được cung cấp!' });
         }
         
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
+        if (!isValidObjectId(userId)) {
             return res.status(400).json({ message: 'ID người dùng không hợp lệ!' });
         }
 
@@ -114,7 +115,7 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
+        if (!isValidObjectId(userId)) {
             return res.status(400).json({ message: 'ID người dùng không hợp lệ!' });
         }
 
@@ -222,7 +223,7 @@ exports.toggleWishlist = async (req, res) => {
     const userId = req.user.id;
     const { hotelId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    if (!isValidObjectId(hotelId)) {
       return res.status(400).json({ message: 'ID khách sạn không hợp lệ!' });
     }
 

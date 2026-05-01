@@ -3,6 +3,93 @@ const Room = require("../models/Room");
 const User = require("../models/User");
 const { hasCloudinaryConfig } = require("../config/multerConfig");
 const mongoose = require("mongoose");
+const { resolveEffectiveQrConfig } = require("../utils/paymentQrConfig");
+const { isVnpayConfigComplete } = require("../utils/hotelPaymentConfig");
+
+function isQrConfigComplete(qr) {
+  return Boolean(
+    String(qr?.accountName || "").trim() &&
+      String(qr?.accountNumber || "").trim() &&
+      String(qr?.bankName || "").trim() &&
+      String(qr?.qrImageUrl || "").trim()
+  );
+}
+
+function resolveQrTextFields(body = {}, fallback = {}) {
+  const fromBracket = {
+    accountName: body["paymentConfig[qr][accountName]"],
+    accountNumber: body["paymentConfig[qr][accountNumber]"],
+    bankName: body["paymentConfig[qr][bankName]"]
+  };
+  const fromObject = body.paymentConfig?.qr || {};
+
+  return {
+    accountName:
+      fromBracket.accountName !== undefined
+        ? fromBracket.accountName
+        : fromObject.accountName !== undefined
+          ? fromObject.accountName
+          : fallback.accountName,
+    accountNumber:
+      fromBracket.accountNumber !== undefined
+        ? fromBracket.accountNumber
+        : fromObject.accountNumber !== undefined
+          ? fromObject.accountNumber
+          : fallback.accountNumber,
+    bankName:
+      fromBracket.bankName !== undefined
+        ? fromBracket.bankName
+        : fromObject.bankName !== undefined
+          ? fromObject.bankName
+          : fallback.bankName
+  };
+}
+
+function resolveVnpayFields(body = {}, fallback = {}) {
+  const fromBracket = {
+    tmnCode: body["paymentConfig[vnpay][tmnCode]"],
+    secureSecret: body["paymentConfig[vnpay][secureSecret]"]
+  };
+  const fromObject = body.paymentConfig?.vnpay || {};
+
+  return {
+    tmnCode:
+      fromBracket.tmnCode !== undefined
+        ? fromBracket.tmnCode
+        : fromObject.tmnCode !== undefined
+          ? fromObject.tmnCode
+          : fallback.tmnCode,
+    secureSecret:
+      fromBracket.secureSecret !== undefined
+        ? fromBracket.secureSecret
+        : fromObject.secureSecret !== undefined
+          ? fromObject.secureSecret
+          : fallback.secureSecret
+  };
+}
+
+/** VNPay trên JSON API: không trả secureSecret; client chỉ cần `isConfigured` + tmnCode. */
+function shapeVnpayForApiResponse(vnpay) {
+  if (!vnpay) return undefined;
+  const plain = vnpay.toObject ? vnpay.toObject() : { ...vnpay };
+  return {
+    tmnCode: String(plain.tmnCode || "").trim(),
+    isConfigured: isVnpayConfigComplete(plain)
+  };
+}
+
+function sanitizeHotelPaymentConfigResponse(hotel, { guestBookingQr = false } = {}) {
+  const plain = hotel.toObject ? hotel.toObject() : { ...hotel };
+  if (!plain.paymentConfig) return plain;
+  plain.paymentConfig = { ...plain.paymentConfig };
+  if (guestBookingQr) {
+    plain.paymentConfig.qr = resolveEffectiveQrConfig(plain.paymentConfig.qr || {});
+  }
+  if (plain.paymentConfig.vnpay) {
+    plain.paymentConfig.vnpay = shapeVnpayForApiResponse(plain.paymentConfig.vnpay);
+  }
+  return plain;
+}
 
 function getHotelImageFiles(req) {
   if (!req.files) return [];
@@ -25,39 +112,6 @@ function resolveHotelUploadedImageUrl(file) {
     return `/uploads/hotel-qr/${file.filename}`;
   }
   return `/uploads/hotels/${file.filename}`;
-}
-
-function isQrConfigComplete(qr) {
-  return Boolean(
-    String(qr?.accountName || "").trim() &&
-    String(qr?.accountNumber || "").trim() &&
-    String(qr?.bankName || "").trim() &&
-    String(qr?.qrImageUrl || "").trim()
-  );
-}
-
-function resolveQrTextFields(body = {}, fallback = {}) {
-  const fromBracket = {
-    accountName: body["paymentConfig[qr][accountName]"],
-    accountNumber: body["paymentConfig[qr][accountNumber]"],
-    bankName: body["paymentConfig[qr][bankName]"]
-  };
-  const fromObject = body.paymentConfig?.qr || {};
-
-  return {
-    accountName:
-      fromBracket.accountName !== undefined
-        ? fromBracket.accountName
-        : (fromObject.accountName !== undefined ? fromObject.accountName : fallback.accountName),
-    accountNumber:
-      fromBracket.accountNumber !== undefined
-        ? fromBracket.accountNumber
-        : (fromObject.accountNumber !== undefined ? fromObject.accountNumber : fallback.accountNumber),
-    bankName:
-      fromBracket.bankName !== undefined
-        ? fromBracket.bankName
-        : (fromObject.bankName !== undefined ? fromObject.bankName : fallback.bankName)
-  };
 }
 
 function isGuestHotelByIdRequest(req) {
@@ -119,7 +173,7 @@ exports.getHotelById = async (req, res) => {
   try {
     let q = Hotel.findById(req.params.id);
     if (shouldExposePaymentConfig(req)) {
-      q = q.select("+paymentConfig");
+      q = q.select(Hotel.PAYMENT_CONFIG_SELECT);
     }
     q = q.populate({
       path: "ownerId",
@@ -130,7 +184,14 @@ exports.getHotelById = async (req, res) => {
     if (!hotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
     }
-    
+    if (shouldExposePaymentConfig(req)) {
+      const guestBookingQr =
+        isGuestHotelByIdRequest(req) && req.query.forBooking === "true";
+      return res.status(200).json(
+        sanitizeHotelPaymentConfigResponse(hotel, { guestBookingQr })
+      );
+    }
+
     res.status(200).json(hotel);
   } catch (error) {
     console.error("Lỗi khi lấy thông tin khách sạn:", error);
@@ -141,8 +202,8 @@ exports.getHotelById = async (req, res) => {
 // Get hotels by owner
 exports.getHotelsByOwner = async (req, res) => {
   try {
-    const hotels = await Hotel.find({ ownerId: req.user.id }).select("+paymentConfig");
-    res.status(200).json(hotels);
+    const hotels = await Hotel.find({ ownerId: req.user.id }).select(Hotel.PAYMENT_CONFIG_SELECT);
+    res.status(200).json(hotels.map((h) => sanitizeHotelPaymentConfigResponse(h)));
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn của bạn:", error);
     res.status(500).json({ message: "Lỗi khi lấy danh sách khách sạn của bạn", error: error.message });
@@ -213,7 +274,30 @@ exports.createHotel = async (req, res) => {
           "Thiếu thông tin thanh toán QR: vui lòng cung cấp tên chủ TK, số TK, ngân hàng và ảnh QR."
       });
     }
-    newHotel.paymentConfig = { qr: qrPayload };
+    const paymentConfigPayload = { qr: qrPayload };
+    const vnpayText = resolveVnpayFields(req.body, {});
+    const hasVnpayInput =
+      vnpayText.tmnCode !== undefined ||
+      vnpayText.secureSecret !== undefined;
+    if (hasVnpayInput) {
+      const vnpayPayload = {
+        tmnCode: vnpayText.tmnCode || "",
+        secureSecret: vnpayText.secureSecret || ""
+      };
+      const isEmptyVnpay =
+        !String(vnpayPayload.tmnCode).trim() &&
+        !String(vnpayPayload.secureSecret).trim();
+      if (!isEmptyVnpay && !isVnpayConfigComplete(vnpayPayload)) {
+        return res.status(400).json({
+          message:
+            "Cấu hình VNPay chưa đầy đủ: vui lòng cung cấp cả TMN Code và Secure Secret, hoặc để trống cả hai."
+        });
+      }
+      if (!isEmptyVnpay) {
+        paymentConfigPayload.vnpay = vnpayPayload;
+      }
+    }
+    newHotel.paymentConfig = paymentConfigPayload;
 
     const savedHotel = await newHotel.save();
     console.log(`Đã tạo khách sạn thành công: ${savedHotel._id} (${savedHotel.name}) bởi owner ${savedHotel.ownerId}`);
@@ -226,7 +310,7 @@ exports.createHotel = async (req, res) => {
       });
     }
     
-    res.status(201).json(savedHotel);
+    res.status(201).json(sanitizeHotelPaymentConfigResponse(savedHotel));
   } catch (error) {
     console.error("Lỗi khi tạo khách sạn:", error);
     res.status(500).json({ message: "Lỗi khi tạo khách sạn", error: error.message });
@@ -241,7 +325,9 @@ exports.updateHotel = async (req, res) => {
     console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
     console.log("Files:", req.files);
 
-    const existingHotel = await Hotel.findById(req.params.id).select("images +paymentConfig");
+    const existingHotel = await Hotel.findById(req.params.id).select(
+      "images " + Hotel.PAYMENT_CONFIG_SELECT
+    );
     if (!existingHotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
     }
@@ -308,6 +394,13 @@ exports.updateHotel = async (req, res) => {
       req.body['paymentConfig[qr][accountNumber]'] !== undefined ||
       req.body['paymentConfig[qr][bankName]'] !== undefined;
     const hasPaymentQrObject = req.body.paymentConfig?.qr && typeof req.body.paymentConfig.qr === 'object';
+    const hasPaymentVnpayBracket =
+      req.body["paymentConfig[vnpay][tmnCode]"] !== undefined ||
+      req.body["paymentConfig[vnpay][secureSecret]"] !== undefined;
+    const hasPaymentVnpayObject =
+      req.body.paymentConfig?.vnpay && typeof req.body.paymentConfig.vnpay === "object";
+    const nextPaymentConfig = { ...(existingHotel.paymentConfig || {}) };
+    let shouldUpdatePaymentConfig = false;
 
     if (hasPaymentQrBracket) {
       const prev = existingHotel.paymentConfig?.qr || {};
@@ -326,7 +419,8 @@ exports.updateHotel = async (req, res) => {
             "Thiếu thông tin thanh toán QR: vui lòng cung cấp tên chủ TK, số TK, ngân hàng và ảnh QR."
         });
       }
-      updateData.paymentConfig = { qr: qrPayload };
+      nextPaymentConfig.qr = qrPayload;
+      shouldUpdatePaymentConfig = true;
     } else if (hasPaymentQrObject || qrFile) {
       const qr = req.body.paymentConfig?.qr || {};
       const prev = existingHotel.paymentConfig?.qr || {};
@@ -349,7 +443,66 @@ exports.updateHotel = async (req, res) => {
             "Thiếu thông tin thanh toán QR: vui lòng cung cấp tên chủ TK, số TK, ngân hàng và ảnh QR."
         });
       }
-      updateData.paymentConfig = { qr: qrPayload };
+      nextPaymentConfig.qr = qrPayload;
+      shouldUpdatePaymentConfig = true;
+    }
+
+    if (hasPaymentVnpayBracket || hasPaymentVnpayObject) {
+      const prevVnpay = existingHotel.paymentConfig?.vnpay || {};
+      const vnpayText = resolveVnpayFields(req.body, prevVnpay);
+      const trimmedTmn = String(vnpayText.tmnCode || "").trim();
+      const prevSecretTrimmed = String(prevVnpay?.secureSecret || "").trim();
+      const hasSecretFieldInBody =
+        req.body["paymentConfig[vnpay][secureSecret]"] !== undefined ||
+        (req.body.paymentConfig?.vnpay &&
+          Object.prototype.hasOwnProperty.call(
+            req.body.paymentConfig.vnpay,
+            "secureSecret"
+          ));
+      const incomingSecretTrimmed = hasSecretFieldInBody
+        ? String(
+            req.body["paymentConfig[vnpay][secureSecret]"] !== undefined
+              ? req.body["paymentConfig[vnpay][secureSecret]"]
+              : req.body.paymentConfig.vnpay.secureSecret ?? ""
+          ).trim()
+        : null;
+      const keepPrevSecret = Boolean(trimmedTmn && prevSecretTrimmed);
+      let nextSecret;
+      if (incomingSecretTrimmed !== null && incomingSecretTrimmed !== "") {
+        nextSecret = incomingSecretTrimmed;
+      } else {
+        nextSecret = keepPrevSecret ? prevVnpay.secureSecret : "";
+      }
+      const vnpayPayload = {
+        tmnCode: vnpayText.tmnCode || "",
+        secureSecret: nextSecret
+      };
+      const isEmptyVnpay =
+        !String(vnpayPayload.tmnCode).trim() &&
+        !String(vnpayPayload.secureSecret).trim();
+      if (!isEmptyVnpay && !isVnpayConfigComplete(vnpayPayload)) {
+        return res.status(400).json({
+          message:
+            "Cấu hình VNPay chưa đầy đủ: vui lòng cung cấp cả TMN Code và Secure Secret, hoặc để trống cả hai."
+        });
+      }
+      if (isEmptyVnpay) {
+        delete nextPaymentConfig.vnpay;
+      } else {
+        nextPaymentConfig.vnpay = vnpayPayload;
+      }
+      shouldUpdatePaymentConfig = true;
+    }
+
+    if (shouldUpdatePaymentConfig) {
+      const normalizedPaymentConfig = {};
+      if (nextPaymentConfig.qr) {
+        normalizedPaymentConfig.qr = nextPaymentConfig.qr;
+      }
+      if (nextPaymentConfig.vnpay) {
+        normalizedPaymentConfig.vnpay = nextPaymentConfig.vnpay;
+      }
+      updateData.paymentConfig = normalizedPaymentConfig;
     }
 
     // Parse existingImages nếu là string (từ FormData)
@@ -374,10 +527,10 @@ exports.updateHotel = async (req, res) => {
       req.params.id,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).select("+paymentConfig");
+    ).select(Hotel.PAYMENT_CONFIG_SELECT);
     
     console.log(`Đã cập nhật khách sạn thành công: ${req.params.id} (${updatedHotel?.name})`);
-    res.status(200).json(updatedHotel);
+    res.status(200).json(sanitizeHotelPaymentConfigResponse(updatedHotel));
   } catch (error) {
     console.error("Lỗi khi cập nhật khách sạn:", error);
     res.status(500).json({ message: "Lỗi khi cập nhật khách sạn", error: error.message });

@@ -10,9 +10,18 @@ const HotelPaymentQrSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const HotelPaymentVnpaySchema = new mongoose.Schema(
+  {
+    tmnCode: { type: String, trim: true },
+    secureSecret: { type: String, trim: true }
+  },
+  { _id: false }
+);
+
 const HotelPaymentConfigSchema = new mongoose.Schema(
   {
-    qr: HotelPaymentQrSchema
+    qr: HotelPaymentQrSchema,
+    vnpay: HotelPaymentVnpaySchema
   },
   { _id: false }
 );
@@ -53,7 +62,7 @@ const HotelSchema = new mongoose.Schema(
       checkInTime: { type: String, default: "14:00" },
       checkOutTime: { type: String, default: "12:00" }
     },
-    // Không trả về mặc định trên API public; dùng .select('+paymentConfig') khi cần
+    // Không trả về mặc định trên API public; server dùng Hotel.PAYMENT_CONFIG_SELECT khi cần đọc paymentConfig (kể cả VNPay secret).
     paymentConfig: {
       type: HotelPaymentConfigSchema,
       default: undefined,
@@ -78,4 +87,8 @@ const HotelSchema = new mongoose.Schema(
 );
 
 const Hotel = mongoose.model("Hotel", HotelSchema);
+
+/** Gộp vào .select() / populate — chỉ +paymentConfig (không thêm +paymentConfig.vnpay.secureSecret: MongoDB 31249 path collision). */
+Hotel.PAYMENT_CONFIG_SELECT = "+paymentConfig";
+
 module.exports = Hotel;

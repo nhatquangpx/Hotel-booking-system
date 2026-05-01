@@ -24,7 +24,7 @@ const GuestBookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    paymentMethod: 'vnpay',
+    paymentMethod: 'qr_code',
     specialRequests: ''
   });
   const [totalAmount, setTotalAmount] = useState(0);
@@ -57,14 +57,10 @@ const GuestBookingPage = () => {
       ? `${guest.name || ''} - ${hotel.name || ''} - ${room.roomNumber || ''} - ${formatDate(checkInDisplay)} - ${formatDate(checkOutDisplay)}`
       : null;
   const qrConfig = hotel?.paymentConfig?.qr || null;
-  const hasTrimmedText = (value) => String(value || '').trim().length > 0;
-  const qrIsEnabled = Boolean(
-    hasTrimmedText(qrConfig?.accountName) &&
-    hasTrimmedText(qrConfig?.accountNumber) &&
-    hasTrimmedText(qrConfig?.bankName) &&
-    hasTrimmedText(qrConfig?.qrImageUrl)
-  );
-  const qrImageSrc = qrConfig?.qrImageUrl ? getImageUrl(qrConfig.qrImageUrl) : IMAGE_PATHS.QR_CODE;
+  const qrIsEnabled = Boolean(qrConfig?.isConfigured);
+  /** Chỉ tin cờ từ server; không kiểm tra tmnCode/secureSecret trên client (secret không được gửi ra browser). */
+  const vnpayIsEnabled = Boolean(hotel?.paymentConfig?.vnpay?.isConfigured);
+  const qrImageSrc = getImageUrl(qrConfig?.qrImageUrl || IMAGE_PATHS.QR_CODE) || IMAGE_PATHS.QR_CODE;
 
   const qrPaymentReported = booking?.paymentMethod === 'qr_code' && Boolean(booking?.qrPaymentReportedAt);
   const shouldRenderErrorFallback = Boolean(
@@ -219,11 +215,15 @@ const GuestBookingPage = () => {
   useEffect(() => {
     if (resumeBookingId || !hotel) return;
     setFormData((prev) => {
-      if (prev.paymentMethod !== 'qr_code') return prev;
-      if (qrIsEnabled) return prev;
-      return { ...prev, paymentMethod: 'vnpay' };
+      if (prev.paymentMethod === 'qr_code' && !qrIsEnabled) {
+        return { ...prev, paymentMethod: 'vnpay' };
+      }
+      if (prev.paymentMethod === 'vnpay' && !vnpayIsEnabled) {
+        return { ...prev, paymentMethod: 'qr_code' };
+      }
+      return prev;
     });
-  }, [hotel, resumeBookingId, qrIsEnabled]);
+  }, [hotel, resumeBookingId, qrIsEnabled, vnpayIsEnabled]);
 
   useEffect(() => {
     setHotelImageIndex(0);
@@ -412,7 +412,15 @@ const GuestBookingPage = () => {
               <div className="payment-qr-code-section">
                 <h2>Thanh toán</h2>
                 <p className="payment-instructions">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán. Đơn đặt phòng của bạn sẽ được xác nhận sau khi nhận được thanh toán.</p>
-                <img src={qrImageSrc} alt="QR Code Thanh Toán" className="qr-code-image" />
+                <img
+                  src={qrImageSrc}
+                  alt="QR Code Thanh Toán"
+                  className="qr-code-image"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = IMAGE_PATHS.QR_CODE;
+                  }}
+                />
                 <p className="payment-note">Sau khi thanh toán thành công, bạn sẽ được chuyển hướng đến trang đặt phòng của tôi.</p>
                 {qrPaymentReported && (
                   <p className="payment-note">
@@ -448,13 +456,6 @@ const GuestBookingPage = () => {
                 {!qrPaymentReported && booking?._id && !proofImage && (
                   <p className="proof-required-hint">Vui lòng tải lên ảnh minh chứng trước khi xác nhận thanh toán.</p>
                 )}
-                {!qrPaymentReported && booking?._id && !qrIsEnabled && (
-                  <p className="proof-required-hint">
-                    Khách sạn chưa cấu hình đủ QR nhận tiền nên chưa thể ghi nhận chuyển khoản.
-                    Vui lòng liên hệ khách sạn
-                    {hotel?.contactInfo?.phone ? ` (${hotel.contactInfo.phone})` : ''} hoặc bộ phận hỗ trợ để được hướng dẫn đổi phương thức thanh toán.
-                  </p>
-                )}
                 {!qrPaymentReported && qrActionError && (
                   <p className="qr-action-error">{qrActionError}</p>
                 )}
@@ -486,11 +487,6 @@ const GuestBookingPage = () => {
                       {confirmingQrPayment ? 'Đang cập nhật...' : 'Cập nhật minh chứng'}
                     </button>
                   </>
-                )}
-                {!qrIsEnabled && (
-                  <p className="proof-required-hint">
-                    Thanh toán QR hiện không khả dụng vì khách sạn thiếu cấu hình bắt buộc.
-                  </p>
                 )}
                 <button 
                   className="back-to-bookings-btn view-my-bookings-btn" 
@@ -607,15 +603,15 @@ const GuestBookingPage = () => {
                     <p>Vui lòng chuyển khoản qua tài khoản sau:</p>
                     <p>
                       Chủ tài khoản:{' '}
-                      <span className="account-name">{qrConfig?.accountName || hotel?.name || 'N/A'}</span>
+                      <span className="account-name">{qrConfig?.accountName || 'N/A'}</span>
                     </p>
                     <p>
                       Số tài khoản:{' '}
-                      <span className="account-number">{qrConfig?.accountNumber || 'Vui lòng liên hệ khách sạn'}</span>
+                      <span className="account-number">{qrConfig?.accountNumber || 'N/A'}</span>
                     </p>
                     <p>
                       Ngân hàng:{' '}
-                      <span className="bank-name">{qrConfig?.bankName || 'Vui lòng liên hệ khách sạn'}</span>
+                      <span className="bank-name">{qrConfig?.bankName || 'N/A'}</span>
                     </p>
                     <p>
                       Nội dung chuyển khoản:{' '}
@@ -652,19 +648,6 @@ const GuestBookingPage = () => {
                     <div className="form-group">
                       <label>Phương thức thanh toán</label>
                       <div className="payment-method-options">
-                        <label className="payment-method-option">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="vnpay"
-                            checked={formData.paymentMethod === 'vnpay'}
-                            onChange={handleInputChange}
-                          />
-                          <div className="payment-method-content">
-                            <span className="payment-method-name">VNPay</span>
-                            <span className="payment-method-desc">Thanh toán trực tuyến qua VNPay</span>
-                          </div>
-                        </label>
                         <label
                           className={`payment-method-option${hotel && !qrIsEnabled ? ' payment-method-option--disabled' : ''}`}
                         >
@@ -678,10 +661,26 @@ const GuestBookingPage = () => {
                           />
                           <div className="payment-method-content">
                             <span className="payment-method-name">QR Code</span>
+                            <span className="payment-method-desc">Quét mã QR để chuyển khoản</span>
+                          </div>
+                        </label>
+                        <label
+                          className={`payment-method-option${hotel && !vnpayIsEnabled ? ' payment-method-option--disabled' : ''}`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="vnpay"
+                            checked={formData.paymentMethod === 'vnpay'}
+                            onChange={handleInputChange}
+                            disabled={Boolean(hotel && !vnpayIsEnabled)}
+                          />
+                          <div className="payment-method-content">
+                            <span className="payment-method-name">VNPay</span>
                             <span className="payment-method-desc">
-                              {hotel && !qrIsEnabled
-                                ? 'Khách sạn chưa bật cấu hình QR — chỉ có thể thanh toán VNPay'
-                                : 'Quét mã QR để chuyển khoản'}
+                              {hotel && !vnpayIsEnabled
+                                ? 'Khách sạn chưa cấu hình VNPay merchant riêng'
+                                : 'Thanh toán trực tuyến qua VNPay'}
                             </span>
                           </div>
                         </label>

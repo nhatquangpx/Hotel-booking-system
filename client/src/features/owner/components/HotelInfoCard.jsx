@@ -39,12 +39,14 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
   const checkInTime = hotel?.policies?.checkInTime || '14:00';
   const checkOutTime = hotel?.policies?.checkOutTime || '12:00';
   const qrPayment = hotel?.paymentConfig?.qr || {};
+  const vnpayPayment = hotel?.paymentConfig?.vnpay || {};
   const qrReady = Boolean(
     String(qrPayment.accountName || '').trim() &&
     String(qrPayment.accountNumber || '').trim() &&
     String(qrPayment.bankName || '').trim() &&
     String(qrPayment.qrImageUrl || '').trim()
   );
+  const vnpayReady = Boolean(vnpayPayment.isConfigured);
 
   const handleImageClick = (index) => {
     setModalIndex(index);
@@ -132,9 +134,21 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
             </div>
 
             <div className="owner-payment-dialog__column owner-payment-dialog__column--vnpay">
-              <h4 className="owner-payment-dialog__column-title">VNPay (mở rộng sau)</h4>
-              <div className="owner-payment-dialog__vnpay-placeholder">
-                Khu vực này đã được chừa sẵn để hiển thị cấu hình thanh toán VNPay theo từng khách sạn trong giai đoạn tiếp theo.
+              <h4 className="owner-payment-dialog__column-title">VNPay merchant riêng</h4>
+              <div className={`owner-payment-dialog__status ${vnpayReady ? 'is-ready' : 'is-missing'}`}>
+                {vnpayReady ? 'Đã cấu hình đầy đủ VNPay merchant' : 'Chưa cấu hình VNPay merchant'}
+              </div>
+              <div className="owner-payment-dialog__grid owner-payment-dialog__grid--vnpay">
+                <div>
+                  <strong>TMN Code:</strong> {vnpayPayment.tmnCode || 'Chưa cấu hình'}
+                </div>
+                <div>
+                  <strong>Secure Secret:</strong>{' '}
+                  {vnpayReady ? 'Đã lưu trên server (không hiển thị vì lý do bảo mật)' : 'Chưa cấu hình'}
+                </div>
+                <div className="owner-payment-dialog__note">
+                  Khi cấu hình đầy đủ, khách có thể chọn thanh toán VNPay cho khách sạn này.
+                </div>
               </div>
             </div>
           </div>

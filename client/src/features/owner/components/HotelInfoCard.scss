@@ -219,17 +219,19 @@
     padding: 8px;
   }
 
-  &__vnpay-placeholder {
-    min-height: 210px;
+  &__grid--vnpay {
+    margin-top: 10px;
+    background: $bg-white;
     border: 1px dashed $grey-light;
     border-radius: 8px;
-    background: $bg-white;
+    padding: 12px;
+  }
+
+  &__note {
+    margin-top: 4px;
     color: $text-secondary;
-    @include body-base;
-    line-height: 1.55;
-    padding: 14px;
-    display: flex;
-    align-items: center;
+    @include body-sm;
+    line-height: 1.5;
   }
 }
 

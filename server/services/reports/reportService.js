@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Hotel = require('../../models/Hotel');
+const { isValidObjectId } = require('../../utils/mongooseIds');
 const Booking = require('../../models/Booking');
 const Room = require('../../models/Room');
 const { getScopedHotelIdsForOwner, calculateRevenueInRange } = require('../dashboards/core');
@@ -12,7 +13,7 @@ const getScopedHotelIdsForAdmin = async (hotelId) => {
     const all = await Hotel.find().select('_id').lean();
     return all.map((h) => h._id);
   }
-  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+  if (!isValidObjectId(hotelId)) {
     const err = new Error('hotelId không hợp lệ');
     err.statusCode = 400;
     throw err;

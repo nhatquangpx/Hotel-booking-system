@@ -58,6 +58,34 @@
       gap: 16px;
     }
 
+    .secret-input-wrap {
+      position: relative;
+
+      input {
+        width: 100%;
+        padding-right: 42px;
+      }
+
+      .toggle-secret-btn {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: $text-secondary;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+
+        &:hover {
+          color: $text-primary;
+        }
+      }
+    }
+
     .image-previews {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
