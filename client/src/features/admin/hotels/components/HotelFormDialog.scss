@@ -106,6 +106,38 @@
       }
     }
 
+    .form-section-qr {
+      padding-top: 8px;
+      border-top: 1px solid $border-admin;
+
+      &__title {
+        margin: 0 0 8px;
+        @include body-base;
+        font-weight: $font-medium;
+        color: $text-primary;
+      }
+
+      &__hint {
+        margin: 0 0 12px;
+        @include body-sm;
+        color: $text-secondary;
+        line-height: 1.45;
+      }
+    }
+
+    .qr-image-preview {
+      margin-top: 10px;
+      max-width: 220px;
+
+      img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        border: 1px solid $border-admin;
+      }
+    }
+
     .form-group-policies {
       margin-bottom: 0;
 

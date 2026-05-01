@@ -1,5 +1,22 @@
 const mongoose = require("mongoose");
 
+const HotelPaymentQrSchema = new mongoose.Schema(
+  {
+    accountName: { type: String, trim: true },
+    accountNumber: { type: String, trim: true },
+    bankName: { type: String, trim: true },
+    qrImageUrl: { type: String, trim: true }
+  },
+  { _id: false }
+);
+
+const HotelPaymentConfigSchema = new mongoose.Schema(
+  {
+    qr: HotelPaymentQrSchema
+  },
+  { _id: false }
+);
+
 const HotelSchema = new mongoose.Schema(
   {
     name: {
@@ -35,6 +52,12 @@ const HotelSchema = new mongoose.Schema(
     policies: {
       checkInTime: { type: String, default: "14:00" },
       checkOutTime: { type: String, default: "12:00" }
+    },
+    // Không trả về mặc định trên API public; dùng .select('+paymentConfig') khi cần
+    paymentConfig: {
+      type: HotelPaymentConfigSchema,
+      default: undefined,
+      select: false
     },
     status: {
       type: String,

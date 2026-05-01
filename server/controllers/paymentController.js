@@ -192,7 +192,7 @@ exports.confirmQrPayment = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng cung cấp bookingId" });
         }
 
-        const booking = await Booking.findById(bookingId);
+        const booking = await Booking.findById(bookingId).populate("hotel", "+paymentConfig");
         if (!booking) {
             return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
         }
@@ -211,6 +211,18 @@ exports.confirmQrPayment = async (req, res) => {
 
         if (booking.paymentStatus === "cancelled") {
             return res.status(400).json({ message: "Đơn đặt phòng đã bị hủy" });
+        }
+
+        const qr = booking.hotel?.paymentConfig?.qr;
+        const qrReady =
+            String(qr?.accountName || "").trim() &&
+            String(qr?.accountNumber || "").trim() &&
+            String(qr?.bankName || "").trim() &&
+            String(qr?.qrImageUrl || "").trim();
+        if (!qrReady) {
+            return res.status(400).json({
+                message: "Khách sạn chưa cấu hình đủ thanh toán QR (thiếu tên chủ TK/số TK/ngân hàng/ảnh QR). Không thể ghi nhận chuyển khoản."
+            });
         }
 
         const proofImageUrl = resolveProofImageUrl(req.file);

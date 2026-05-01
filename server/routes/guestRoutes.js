@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require("../middlewares/authentication");
+const { authenticate, optionalAuthenticate } = require("../middlewares/authentication");
 const { isGuest } = require("../middlewares/authorization");
 const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
@@ -16,7 +16,7 @@ const reviewController = require('../controllers/reviewController');
 router.get('/hotels', hotelController.getAllHotels);
 router.get('/hotels/filter', hotelController.getHotelByFilter);
 router.get('/hotels/featured', hotelController.getFeaturedHotels);
-router.get('/hotels/:id', hotelController.getHotelById);
+router.get('/hotels/:id', optionalAuthenticate, hotelController.getHotelById);
 
 // Xem danh sách phòng - PUBLIC
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);

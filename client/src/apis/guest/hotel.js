@@ -22,9 +22,13 @@ export const userHotelAPI = {
   },
 
   // Lấy thông tin chi tiết khách sạn
-  getHotelById: async (id) => {
+  getHotelById: async (id, options = {}) => {
     try {
-      const response = await api.get(`/guest/hotels/${id}`);
+      const params = {};
+      if (options.forBooking) {
+        params.forBooking = "true";
+      }
+      const response = await api.get(`/guest/hotels/${id}`, { params });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

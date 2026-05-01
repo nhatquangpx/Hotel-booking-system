@@ -236,7 +236,7 @@ const getBookingWithPopulate = async (bookingId, populateOptions = {}) => {
 
   // Default populate options
   const defaults = {
-    hotel: "name address images starRating contactInfo policies",
+    hotel: "name address images starRating contactInfo policies +paymentConfig",
     room: "roomNumber type price images maxPeople description facilities",
     guest: "name email phone"
   };

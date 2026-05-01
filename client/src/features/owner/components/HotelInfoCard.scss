@@ -75,6 +75,32 @@
         font-size: 14px;
       }
     }
+
+    .payment-detail-button {
+      position: absolute;
+      top: 4.25rem;
+      right: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: $bg-white;
+      border: none;
+      border-radius: 8px;
+      color: $text-primary;
+      @include body-sm;
+      font-weight: $font-medium;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+
+      &:hover {
+        background: $grey-light;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+    }
   }
 
   .hotel-details {
@@ -105,6 +131,116 @@
           font-size: 16px;
         }
       }
+    }
+  }
+}
+
+.owner-payment-dialog {
+  &__content {
+    width: 100%;
+  }
+
+  &__columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  &__column {
+    border: 1px solid $grey-light;
+    border-radius: 10px;
+    padding: 14px;
+    background: $bg-light-alt;
+    min-height: 300px;
+  }
+
+  &__column-title {
+    margin: 0 0 10px;
+    @include label-base;
+    color: $text-primary;
+    font-weight: $font-medium;
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: 999px;
+    padding: 4px 10px;
+    @include body-sm;
+    border: 1px solid transparent;
+
+    &.is-ready {
+      color: #2e7d32;
+      border-color: rgba(46, 125, 50, 0.3);
+      background: rgba(46, 125, 50, 0.08);
+    }
+
+    &.is-missing {
+      color: #d32f2f;
+      border-color: rgba(211, 47, 47, 0.3);
+      background: rgba(211, 47, 47, 0.08);
+    }
+  }
+
+  &__grid {
+    display: grid;
+    gap: 8px;
+    @include body-base;
+    color: $text-primary;
+  }
+
+  &__qr-wrap {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+
+  &__qr-image {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid $grey-light;
+    background: $bg-white;
+  }
+
+  &__qr-empty {
+    width: 180px;
+    height: 180px;
+    border-radius: 8px;
+    border: 1px dashed $grey-light;
+    color: $text-secondary;
+    @include body-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
+  }
+
+  &__vnpay-placeholder {
+    min-height: 210px;
+    border: 1px dashed $grey-light;
+    border-radius: 8px;
+    background: $bg-white;
+    color: $text-secondary;
+    @include body-base;
+    line-height: 1.55;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 900px) {
+  .owner-payment-dialog {
+    &__columns {
+      grid-template-columns: 1fr;
+    }
+
+    &__column {
+      min-height: auto;
     }
   }
 }

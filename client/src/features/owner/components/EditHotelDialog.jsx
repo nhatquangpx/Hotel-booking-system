@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Dialog from '@/components/ui/Dialog';
 import { ownerHotelAPI } from '@/apis/owner/hotel';
 import { getImageUrl } from '@/constants/images';
@@ -25,8 +25,14 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
     policies: {
       checkInTime: '14:00',
       checkOutTime: '12:00'
+    },
+    paymentQr: {
+      accountName: '',
+      accountNumber: '',
+      bankName: ''
     }
   });
+  const [qrImageFile, setQrImageFile] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -51,14 +57,54 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
         policies: {
           checkInTime: hotel.policies?.checkInTime || '14:00',
           checkOutTime: hotel.policies?.checkOutTime || '12:00'
+        },
+        paymentQr: {
+          accountName: hotel.paymentConfig?.qr?.accountName || '',
+          accountNumber: hotel.paymentConfig?.qr?.accountNumber || '',
+          bankName: hotel.paymentConfig?.qr?.bankName || ''
         }
       });
       setExistingImages(hotel.images || []);
       setImagePreviews(hotel.images?.map(img => getImageUrl(img)) || []);
       setSelectedFiles([]);
+      setQrImageFile(null);
       setError(null);
     }
   }, [isOpen, hotel]);
+
+  const qrObjectUrl = useMemo(() => {
+    if (!qrImageFile) return null;
+    return URL.createObjectURL(qrImageFile);
+  }, [qrImageFile]);
+
+  useEffect(() => {
+    return () => {
+      if (qrObjectUrl) URL.revokeObjectURL(qrObjectUrl);
+    };
+  }, [qrObjectUrl]);
+
+  const existingQrSrc =
+    hotel?.paymentConfig?.qr?.qrImageUrl && getImageUrl(hotel.paymentConfig.qr.qrImageUrl);
+  const qrPreviewSrc = qrObjectUrl || existingQrSrc || null;
+
+  const handlePaymentQrChange = (e) => {
+    const { name, value } = e.target;
+    const field = name.replace('paymentQr.', '');
+    setFormData((prev) => ({
+      ...prev,
+      paymentQr: {
+        ...prev.paymentQr,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleQrImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setQrImageFile(file);
+    e.target.value = '';
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,6 +164,30 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
       submitData.append('policies[checkInTime]', formData.policies.checkInTime);
       submitData.append('policies[checkOutTime]', formData.policies.checkOutTime);
       submitData.append('existingImages', JSON.stringify(existingImages));
+
+      submitData.append('paymentConfig[qr][accountName]', formData.paymentQr.accountName || '');
+      submitData.append('paymentConfig[qr][accountNumber]', formData.paymentQr.accountNumber || '');
+      submitData.append('paymentConfig[qr][bankName]', formData.paymentQr.bankName || '');
+
+      const accountName = String(formData.paymentQr.accountName || '').trim();
+      const accountNumber = String(formData.paymentQr.accountNumber || '').trim();
+      const bankName = String(formData.paymentQr.bankName || '').trim();
+
+      if (!accountName || !accountNumber || !bankName) {
+        setError('Vui lòng nhập đầy đủ tên chủ tài khoản, số tài khoản và ngân hàng.');
+        setSaving(false);
+        return;
+      }
+
+      const hadQrImage = Boolean(hotel?.paymentConfig?.qr?.qrImageUrl);
+      if (!qrImageFile && !hadQrImage) {
+        setError('Vui lòng tải ảnh mã QR nhận tiền (tải lên server/Cloudinary).');
+        setSaving(false);
+        return;
+      }
+      if (qrImageFile) {
+        submitData.append('qrCodeImage', qrImageFile);
+      }
 
       // Thêm ảnh mới nếu có
       selectedFiles.forEach((file) => {
@@ -269,6 +339,65 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
               required
             />
           </div>
+        </div>
+
+        <div className="form-section-title">Thanh toán QR (chuyển khoản)</div>
+        <p className="form-section-hint">
+          Thanh toán QR là bắt buộc cho khách sạn. Vui lòng điền đủ thông tin tài khoản và ảnh QR nhận tiền.
+        </p>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="paymentQr.accountName">Chủ tài khoản *</label>
+            <input
+              type="text"
+              id="paymentQr.accountName"
+              name="paymentQr.accountName"
+              value={formData.paymentQr.accountName}
+              onChange={handlePaymentQrChange}
+              placeholder="Tên chủ TK nhận tiền"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="paymentQr.accountNumber">Số tài khoản *</label>
+            <input
+              type="text"
+              id="paymentQr.accountNumber"
+              name="paymentQr.accountNumber"
+              value={formData.paymentQr.accountNumber}
+              onChange={handlePaymentQrChange}
+              placeholder="Số TK ngân hàng"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="paymentQr.bankName">Ngân hàng *</label>
+            <input
+              type="text"
+              id="paymentQr.bankName"
+              name="paymentQr.bankName"
+              value={formData.paymentQr.bankName}
+              onChange={handlePaymentQrChange}
+              placeholder="VD: MB Bank, Vietcombank..."
+              required
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="qrCodeImage">Ảnh mã QR nhận tiền</label>
+          <input
+            type="file"
+            id="qrCodeImage"
+            name="qrCodeImage"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleQrImageChange}
+            required={!qrPreviewSrc}
+          />
+          {qrPreviewSrc && (
+            <div className="qr-image-preview">
+              <img src={qrPreviewSrc} alt="Mã QR nhận tiền" />
+            </div>
+          )}
         </div>
 
         <div className="form-group">

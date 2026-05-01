@@ -9,7 +9,7 @@ const bookingController = require("../controllers/bookingController");
 const dashboardController = require('../controllers/dashboardController');
 const notificationController = require('../controllers/notificationController');
 const reportController = require('../controllers/reportController');
-const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
+const { uploadHotelPhotosAndQr, uploadRoomImages } = require('../config/multerConfig');
 // const { roomValidation, validate } = require('../validations/roomValidation');
 
 
@@ -32,8 +32,8 @@ router.delete("/users/:id", userController.deleteUser);
 router.get("/hotels", hotelController.getAllHotels);
 router.get("/hotels/:id", hotelController.getHotelById);
 router.get("/hotels/owners/list", hotelController.getAllOwners);
-router.post("/hotels",  uploadHotelImages, hotelController.createHotel);
-router.put("/hotels/:id",uploadHotelImages, hotelController.updateHotel);
+router.post("/hotels", uploadHotelPhotosAndQr, hotelController.createHotel);
+router.put("/hotels/:id", uploadHotelPhotosAndQr, hotelController.updateHotel);
 router.delete("/hotels/:id", hotelController.deleteHotel);
 
 // Quản lý phòng

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require("../middlewares/authentication");
 const { isOwner } = require("../middlewares/authorization");
-const { uploadHotelImages, uploadRoomImages } = require('../config/multerConfig');
+const { uploadHotelPhotosAndQr, uploadRoomImages } = require('../config/multerConfig');
 const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
@@ -24,7 +24,7 @@ router.put('/profile/changepassword', userController.changePassword);
 // Quản lý khách sạn
 router.get('/hotels', hotelController.getHotelsByOwner);
 router.get('/hotels/:id', hotelController.getHotelById);
-router.put('/hotels/:id', uploadHotelImages, hotelController.updateHotel);
+router.put('/hotels/:id', uploadHotelPhotosAndQr, hotelController.updateHotel);
 
 // Quản lý phòng
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);

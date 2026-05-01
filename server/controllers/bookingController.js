@@ -37,9 +37,9 @@ exports.createBooking = async (req, res) => {
     res.status(201).json(booking);
   } catch (error) {
     console.error("Lỗi khi tạo đặt phòng:", error);
-    const statusCode = error.message.includes("Không tìm thấy") ? 404 : 
+    const statusCode = error.statusCode || (error.message.includes("Không tìm thấy") ? 404 : 
                       error.message.includes("không khả dụng") || 
-                      error.message.includes("đã được đặt") ? 400 : 500;
+                      error.message.includes("đã được đặt") ? 400 : 500);
     res.status(statusCode).json({ message: error.message || "Lỗi khi tạo đặt phòng" });
   }
 };

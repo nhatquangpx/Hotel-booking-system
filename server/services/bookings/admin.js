@@ -86,7 +86,7 @@ const getUserBookings = async (userId) => {
  */
 const getBookingById = async (bookingId, user) => {
   return await getBookingByIdCore(bookingId, user, {
-    hotel: "name address images starRating contactInfo policies",
+    hotel: "name address images starRating contactInfo policies +paymentConfig",
     room: "roomNumber type price images maxPeople description facilities",
     guest: "name email phone"
   });
@@ -95,7 +95,7 @@ const getBookingById = async (bookingId, user) => {
 /**
  * Update booking status (admin has full access)
  * @param {String} bookingId - Booking ID
- * @param {String} status - New status (pending, paid, cancelled)
+ * @param {String} status - New status
  * @param {Object} user - User object
  * @returns {Promise<Object>} Updated booking
  */

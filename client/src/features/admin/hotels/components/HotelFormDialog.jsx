@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
@@ -35,8 +35,15 @@ const HotelFormDialog = ({
     policies: {
       checkInTime: '14:00',
       checkOutTime: '12:00'
+    },
+    paymentQr: {
+      accountName: '',
+      accountNumber: '',
+      bankName: ''
     }
   });
+  const [existingQrImageUrl, setExistingQrImageUrl] = useState(null);
+  const [qrImageFile, setQrImageFile] = useState(null);
   const [owners, setOwners] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -70,15 +77,37 @@ const HotelFormDialog = ({
           policies: {
             checkInTime: '14:00',
             checkOutTime: '12:00'
+          },
+          paymentQr: {
+            accountName: '',
+            accountNumber: '',
+            bankName: ''
           }
         });
         setSelectedFiles([]);
         setImagePreviews([]);
         setExistingImages([]);
+        setExistingQrImageUrl(null);
+        setQrImageFile(null);
         setError(null);
       }
     }
   }, [isOpen, hotelId]);
+
+  const qrObjectUrl = useMemo(() => {
+    if (!qrImageFile) return null;
+    return URL.createObjectURL(qrImageFile);
+  }, [qrImageFile]);
+
+  useEffect(() => {
+    return () => {
+      if (qrObjectUrl) URL.revokeObjectURL(qrObjectUrl);
+    };
+  }, [qrObjectUrl]);
+
+  const qrPreviewSrc =
+    qrObjectUrl ||
+    (existingQrImageUrl ? getImageUrl(existingQrImageUrl) : null);
 
   const fetchOwners = async () => {
     try {
@@ -92,6 +121,8 @@ const HotelFormDialog = ({
   const fetchHotel = async () => {
     try {
       setLoading(true);
+      setQrImageFile(null);
+      setExistingQrImageUrl(null);
       const hotelData = await api.adminHotel.getHotelById(hotelId);
       setFormData({
         name: hotelData.name || '',
@@ -112,7 +143,14 @@ const HotelFormDialog = ({
           checkOutTime: hotelData.policies?.checkOutTime || '12:00',
         },
         status: hotelData.status || 'active',
+        paymentQr: {
+          accountName: hotelData.paymentConfig?.qr?.accountName || '',
+          accountNumber: hotelData.paymentConfig?.qr?.accountNumber || '',
+          bankName: hotelData.paymentConfig?.qr?.bankName || '',
+        },
       });
+      setExistingQrImageUrl(hotelData.paymentConfig?.qr?.qrImageUrl || null);
+      setQrImageFile(null);
       setExistingImages(hotelData.images || []);
       setImagePreviews(hotelData.images?.map(img => getImageUrl(img)) || []);
       setError(null);
@@ -121,6 +159,25 @@ const HotelFormDialog = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePaymentQrChange = (e) => {
+    const { name, value } = e.target;
+    const field = name.replace('paymentQr.', '');
+    setFormData((prev) => ({
+      ...prev,
+      paymentQr: {
+        ...prev.paymentQr,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleQrImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setQrImageFile(file);
+    e.target.value = '';
   };
 
   const handleChange = (e) => {
@@ -170,21 +227,46 @@ const HotelFormDialog = ({
       setSaving(true);
       setError(null);
 
+      const appendCommonFields = (fd) => {
+        fd.append('name', formData.name);
+        fd.append('description', formData.description);
+        fd.append('starRating', formData.starRating);
+        fd.append('ownerId', formData.ownerId);
+        fd.append('status', formData.status);
+        fd.append('address[number]', formData.address.number);
+        fd.append('address[street]', formData.address.street);
+        fd.append('address[city]', formData.address.city);
+        fd.append('contactInfo[phone]', formData.contactInfo.phone);
+        fd.append('contactInfo[email]', formData.contactInfo.email);
+        fd.append('policies[checkInTime]', formData.policies.checkInTime);
+        fd.append('policies[checkOutTime]', formData.policies.checkOutTime);
+        fd.append('paymentConfig[qr][accountName]', formData.paymentQr.accountName || '');
+        fd.append('paymentConfig[qr][accountNumber]', formData.paymentQr.accountNumber || '');
+        fd.append('paymentConfig[qr][bankName]', formData.paymentQr.bankName || '');
+        if (qrImageFile) {
+          fd.append('qrCodeImage', qrImageFile);
+        }
+      };
+
+      const accountName = String(formData.paymentQr.accountName || '').trim();
+      const accountNumber = String(formData.paymentQr.accountNumber || '').trim();
+      const bankName = String(formData.paymentQr.bankName || '').trim();
+
+      if (!accountName || !accountNumber || !bankName) {
+        setError('Vui lòng nhập đầy đủ tên chủ tài khoản, số tài khoản và ngân hàng.');
+        setSaving(false);
+        return;
+      }
+
+      if (!qrImageFile && !existingQrImageUrl) {
+        setError('Vui lòng tải ảnh mã QR nhận tiền (lưu trên Cloudinary khi server đã cấu hình).');
+        setSaving(false);
+        return;
+      }
+
       if (isEdit) {
-        // For edit, send as FormData to support images + nested fields consistently
         const formDataToSend = new FormData();
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description);
-        formDataToSend.append('starRating', formData.starRating);
-        formDataToSend.append('ownerId', formData.ownerId);
-        formDataToSend.append('status', formData.status);
-        formDataToSend.append('address[number]', formData.address.number);
-        formDataToSend.append('address[street]', formData.address.street);
-        formDataToSend.append('address[city]', formData.address.city);
-        formDataToSend.append('contactInfo[phone]', formData.contactInfo.phone);
-        formDataToSend.append('contactInfo[email]', formData.contactInfo.email);
-        formDataToSend.append('policies[checkInTime]', formData.policies.checkInTime);
-        formDataToSend.append('policies[checkOutTime]', formData.policies.checkOutTime);
+        appendCommonFields(formDataToSend);
         formDataToSend.append('existingImages', JSON.stringify(existingImages));
         selectedFiles.forEach((file) => {
           formDataToSend.append('images', file);
@@ -192,20 +274,8 @@ const HotelFormDialog = ({
 
         await api.adminHotel.updateHotel(hotelId, formDataToSend);
       } else {
-        // For create, send as FormData
         const formDataToSend = new FormData();
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description);
-        formDataToSend.append('starRating', formData.starRating);
-        formDataToSend.append('ownerId', formData.ownerId);
-        formDataToSend.append('status', formData.status);
-        formDataToSend.append('address[number]', formData.address.number);
-        formDataToSend.append('address[street]', formData.address.street);
-        formDataToSend.append('address[city]', formData.address.city);
-        formDataToSend.append('contactInfo[phone]', formData.contactInfo.phone);
-        formDataToSend.append('contactInfo[email]', formData.contactInfo.email);
-        formDataToSend.append('policies[checkInTime]', formData.policies.checkInTime);
-        formDataToSend.append('policies[checkOutTime]', formData.policies.checkOutTime);
+        appendCommonFields(formDataToSend);
         selectedFiles.forEach((file) => {
           formDataToSend.append('images', file);
         });
@@ -400,6 +470,67 @@ const HotelFormDialog = ({
               )}
             </div>
           )}
+
+          <div className="form-section-qr">
+            <h4 className="form-section-qr__title">Thanh toán QR (chuyển khoản)</h4>
+            <p className="form-section-qr__hint">
+              Bắt buộc: điền đủ thông tin tài khoản và ảnh QR nhận tiền để khách thanh toán chuyển khoản.
+            </p>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="paymentQr.accountName">Chủ tài khoản *</label>
+                <input
+                  type="text"
+                  id="paymentQr.accountName"
+                  name="paymentQr.accountName"
+                  value={formData.paymentQr.accountName}
+                  onChange={handlePaymentQrChange}
+                  placeholder="Tên chủ TK"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="paymentQr.accountNumber">Số tài khoản *</label>
+                <input
+                  type="text"
+                  id="paymentQr.accountNumber"
+                  name="paymentQr.accountNumber"
+                  value={formData.paymentQr.accountNumber}
+                  onChange={handlePaymentQrChange}
+                  placeholder="Số TK"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="paymentQr.bankName">Ngân hàng *</label>
+                <input
+                  type="text"
+                  id="paymentQr.bankName"
+                  name="paymentQr.bankName"
+                  value={formData.paymentQr.bankName}
+                  onChange={handlePaymentQrChange}
+                  placeholder="VD: MB Bank"
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label htmlFor="qrCodeImage">Ảnh mã QR nhận tiền *</label>
+              <input
+                type="file"
+                id="qrCodeImage"
+                name="qrCodeImage"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleQrImageChange}
+                required={!qrPreviewSrc}
+              />
+              {qrPreviewSrc && (
+                <div className="qr-image-preview">
+                  <img src={qrPreviewSrc} alt="Mã QR nhận tiền" />
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="form-group-policies">
             <label>Chính sách</label>
