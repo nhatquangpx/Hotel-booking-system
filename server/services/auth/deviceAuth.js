@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { getClientIp } = require('../../utils/requestIp');
 
 /**
  * Generate a unique device fingerprint
@@ -116,7 +117,7 @@ const getDeviceInfo = (req) => {
     deviceId,
     deviceName,
     userAgent,
-    ipAddress: ipAddress.split(',')[0].trim() // Get first IP if multiple
+    ipAddress
   };
 };
 

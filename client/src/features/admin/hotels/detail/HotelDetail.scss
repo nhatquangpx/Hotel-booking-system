@@ -163,6 +163,12 @@
         }
       }
 
+      .payment-method-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 12px;
+      }
+
       .payment-qr-image {
         width: 140px;
         height: 140px;

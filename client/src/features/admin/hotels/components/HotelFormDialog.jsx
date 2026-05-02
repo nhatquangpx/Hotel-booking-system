@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Dialog from '@/components/ui/Dialog';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
@@ -40,6 +41,10 @@ const HotelFormDialog = ({
       accountName: '',
       accountNumber: '',
       bankName: ''
+    },
+    paymentVnpay: {
+      tmnCode: '',
+      secureSecret: ''
     }
   });
   const [existingQrImageUrl, setExistingQrImageUrl] = useState(null);
@@ -48,9 +53,11 @@ const HotelFormDialog = ({
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [showVnpaySecret, setShowVnpaySecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [vnpayWasConfigured, setVnpayWasConfigured] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -82,6 +89,10 @@ const HotelFormDialog = ({
             accountName: '',
             accountNumber: '',
             bankName: ''
+          },
+          paymentVnpay: {
+            tmnCode: '',
+            secureSecret: ''
           }
         });
         setSelectedFiles([]);
@@ -89,7 +100,9 @@ const HotelFormDialog = ({
         setExistingImages([]);
         setExistingQrImageUrl(null);
         setQrImageFile(null);
+        setShowVnpaySecret(false);
         setError(null);
+        setVnpayWasConfigured(false);
       }
     }
   }, [isOpen, hotelId]);
@@ -148,9 +161,15 @@ const HotelFormDialog = ({
           accountNumber: hotelData.paymentConfig?.qr?.accountNumber || '',
           bankName: hotelData.paymentConfig?.qr?.bankName || '',
         },
+        paymentVnpay: {
+          tmnCode: hotelData.paymentConfig?.vnpay?.tmnCode || '',
+          secureSecret: '',
+        },
       });
+      setVnpayWasConfigured(Boolean(hotelData.paymentConfig?.vnpay?.isConfigured));
       setExistingQrImageUrl(hotelData.paymentConfig?.qr?.qrImageUrl || null);
       setQrImageFile(null);
+      setShowVnpaySecret(false);
       setExistingImages(hotelData.images || []);
       setImagePreviews(hotelData.images?.map(img => getImageUrl(img)) || []);
       setError(null);
@@ -168,6 +187,18 @@ const HotelFormDialog = ({
       ...prev,
       paymentQr: {
         ...prev.paymentQr,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handlePaymentVnpayChange = (e) => {
+    const { name, value } = e.target;
+    const field = name.replace('paymentVnpay.', '');
+    setFormData((prev) => ({
+      ...prev,
+      paymentVnpay: {
+        ...prev.paymentVnpay,
         [field]: value,
       },
     }));
@@ -243,6 +274,11 @@ const HotelFormDialog = ({
         fd.append('paymentConfig[qr][accountName]', formData.paymentQr.accountName || '');
         fd.append('paymentConfig[qr][accountNumber]', formData.paymentQr.accountNumber || '');
         fd.append('paymentConfig[qr][bankName]', formData.paymentQr.bankName || '');
+        fd.append('paymentConfig[vnpay][tmnCode]', formData.paymentVnpay.tmnCode || '');
+        const vnpaySecretTrimmed = String(formData.paymentVnpay.secureSecret || '').trim();
+        if (vnpaySecretTrimmed) {
+          fd.append('paymentConfig[vnpay][secureSecret]', vnpaySecretTrimmed);
+        }
         if (qrImageFile) {
           fd.append('qrCodeImage', qrImageFile);
         }
@@ -260,6 +296,19 @@ const HotelFormDialog = ({
 
       if (!qrImageFile && !existingQrImageUrl) {
         setError('Vui lòng tải ảnh mã QR nhận tiền (lưu trên Cloudinary khi server đã cấu hình).');
+        setSaving(false);
+        return;
+      }
+
+      const vnpayTmnCode = String(formData.paymentVnpay.tmnCode || '').trim();
+      const vnpaySecureSecret = String(formData.paymentVnpay.secureSecret || '').trim();
+      const hasAnyVnpayInput = Boolean(vnpayTmnCode || vnpaySecureSecret);
+      const vnpaySecretOptional =
+        Boolean(vnpayTmnCode) && !vnpaySecureSecret && vnpayWasConfigured;
+      if (hasAnyVnpayInput && (!vnpayTmnCode || !vnpaySecureSecret) && !vnpaySecretOptional) {
+        setError(
+          'VNPay là tùy chọn: nhập đủ TMN Code và Secure Secret, hoặc để trống cả hai. Nếu khách sạn đã cấu hình VNPay, có thể để trống Secret khi chỉ sửa TMN Code.'
+        );
         setSaving(false);
         return;
       }
@@ -529,6 +578,52 @@ const HotelFormDialog = ({
                   <img src={qrPreviewSrc} alt="Mã QR nhận tiền" />
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="form-section-qr">
+            <h4 className="form-section-qr__title">Thanh toán VNPay (merchant riêng)</h4>
+            <p className="form-section-qr__hint">
+              Tùy chọn: nhập đủ TMN và Secret khi cấu hình mới. Khi sửa khách sạn đã có VNPay, secret không tải từ server — để trống Secret nếu chỉ đổi TMN (giữ secret đã lưu); để trống cả hai để tắt VNPay.
+            </p>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="paymentVnpay.tmnCode">VNPay TMN Code</label>
+                <input
+                  type="text"
+                  id="paymentVnpay.tmnCode"
+                  name="paymentVnpay.tmnCode"
+                  value={formData.paymentVnpay.tmnCode}
+                  onChange={handlePaymentVnpayChange}
+                  placeholder="Ví dụ: 2QXUI4J4"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="paymentVnpay.secureSecret">VNPay Secure Secret</label>
+                <div className="secret-input-wrap">
+                  <input
+                    type={showVnpaySecret ? 'text' : 'password'}
+                    id="paymentVnpay.secureSecret"
+                    name="paymentVnpay.secureSecret"
+                    value={formData.paymentVnpay.secureSecret}
+                    onChange={handlePaymentVnpayChange}
+                    placeholder={
+                      isEdit
+                        ? 'Nhập secret mới hoặc để trống nếu giữ secret cũ'
+                        : 'Nhập secure secret của merchant'
+                    }
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="toggle-secret-btn"
+                    onClick={() => setShowVnpaySecret((prev) => !prev)}
+                    aria-label={showVnpaySecret ? 'Ẩn secure secret' : 'Hiện secure secret'}
+                  >
+                    {showVnpaySecret ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

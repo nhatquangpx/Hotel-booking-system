@@ -15,6 +15,27 @@ const {
   computeStaySalePricingFromSales,
   loadSalesOverlappingStay,
 } = require("../sale/salePricingService");
+const { resolveEffectiveQrConfig } = require("../../utils/paymentQrConfig");
+const { isVnpayConfigComplete } = require("../../utils/hotelPaymentConfig");
+
+const sanitizeGuestHotelPaymentConfig = (hotel) => {
+  if (!hotel) return hotel;
+  const hotelObj = hotel.toObject ? hotel.toObject() : { ...hotel };
+  hotelObj.paymentConfig = hotelObj.paymentConfig || {};
+  const effectiveQr = resolveEffectiveQrConfig(hotelObj.paymentConfig?.qr || {});
+  hotelObj.paymentConfig.qr = {
+    ...effectiveQr
+  };
+  if (hotelObj.paymentConfig?.vnpay) {
+    const vnpay = hotelObj.paymentConfig.vnpay;
+    hotelObj.paymentConfig.vnpay = {
+      ...vnpay,
+      isConfigured: isVnpayConfigComplete(vnpay)
+    };
+    delete hotelObj.paymentConfig.vnpay.secureSecret;
+  }
+  return hotelObj;
+};
 
 /**
  * Guest Booking Service
@@ -42,7 +63,7 @@ const createBooking = async (bookingData, guestId) => {
     throw new Error(dateValidation.error);
   }
 
-  // 2. Check if hotel exists FIRST
+  // 2. Check if hotel exists FIRST (chỉ +paymentConfig: secret VNPay không load — không cần cho bước này)
   const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
@@ -71,13 +92,8 @@ const createBooking = async (bookingData, guestId) => {
 
   const method = paymentMethod || "qr_code";
   if (method === "qr_code") {
-    const qr = hotel.paymentConfig?.qr;
-    const qrReady =
-      String(qr?.accountName || "").trim() &&
-      String(qr?.accountNumber || "").trim() &&
-      String(qr?.bankName || "").trim() &&
-      String(qr?.qrImageUrl || "").trim();
-    if (!qrReady) {
+    const qr = resolveEffectiveQrConfig(hotel.paymentConfig?.qr || {});
+    if (!qr.isConfigured) {
       const err = new Error(
         "Khách sạn chưa cấu hình đủ thanh toán QR (tên chủ TK, số TK, ngân hàng và ảnh mã QR). Vui lòng chọn VNPay hoặc liên hệ khách sạn."
       );
@@ -85,6 +101,7 @@ const createBooking = async (bookingData, guestId) => {
       throw err;
     }
   }
+  // Với VNPay, kiểm tra merchant config ở bước tạo payment URL để tránh false-negative.
 
   // 7. Create new booking
   const newBooking = new Booking({
@@ -111,10 +128,14 @@ const createBooking = async (bookingData, guestId) => {
   await refreshRoomBookingStatus(roomId);
 
   // 9. Return populated booking
-  return await getBookingWithPopulate(savedBooking._id, {
-    hotel: "name address images starRating +paymentConfig",
+  const booking = await getBookingWithPopulate(savedBooking._id, {
+    hotel: `name address images starRating ${Hotel.PAYMENT_CONFIG_SELECT}`,
     room: "roomNumber type price images"
   });
+  if (booking?.hotel) {
+    booking.hotel = sanitizeGuestHotelPaymentConfig(booking.hotel);
+  }
+  return booking;
 };
 
 /**
@@ -159,7 +180,7 @@ const getMyBookings = async (guestId) => {
   const bookings = await Booking.find({ guest: guestId })
     .populate({
       path: "hotel",
-      select: "name address images starRating +paymentConfig"
+      select: `name address images starRating ${Hotel.PAYMENT_CONFIG_SELECT}`
     })
     .populate({
       path: "room",
@@ -167,7 +188,11 @@ const getMyBookings = async (guestId) => {
     })
     .sort({ createdAt: -1 });
 
-  return bookings;
+  return bookings.map((booking) => {
+    const bookingObj = booking.toObject ? booking.toObject() : { ...booking };
+    bookingObj.hotel = sanitizeGuestHotelPaymentConfig(bookingObj.hotel);
+    return bookingObj;
+  });
 };
 
 /**
@@ -177,10 +202,14 @@ const getMyBookings = async (guestId) => {
  * @returns {Promise<Object>} Booking object
  */
 const getBookingById = async (bookingId, user) => {
-  return await getBookingByIdCore(bookingId, user, {
-    hotel: "name address images starRating contactInfo policies +paymentConfig",
+  const booking = await getBookingByIdCore(bookingId, user, {
+    hotel: `name address images starRating contactInfo policies ${Hotel.PAYMENT_CONFIG_SELECT}`,
     room: "roomNumber type price images maxPeople description facilities"
   });
+  if (booking?.hotel) {
+    booking.hotel = sanitizeGuestHotelPaymentConfig(booking.hotel);
+  }
+  return booking;
 };
 
 /**

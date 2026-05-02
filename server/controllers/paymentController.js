@@ -9,17 +9,22 @@ const {
   notifyAdminHighValueBooking
 } = require("../services/notifications");
 const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../services/emails");
+const { resolveEffectiveQrConfig } = require("../utils/paymentQrConfig");
+const { isVnpayConfigComplete } = require("../utils/hotelPaymentConfig");
+const { getClientIp } = require("../utils/requestIp");
 
 const DEFAULT_SANDBOX_HOST = "https://sandbox.vnpayment.vn";
 
 // Helper function để khởi tạo VNPay instance
-const getVNPayInstance = () => {
+const getVNPayInstance = (merchantConfig = {}) => {
     const vnpayHost = (process.env.VNPAY_HOST || DEFAULT_SANDBOX_HOST).replace(/\/$/, "");
     const testMode = process.env.VNPAY_TEST_MODE !== "false";
+    const tmnCode = merchantConfig.tmnCode || process.env.VNPAY_TMN_CODE;
+    const secureSecret = merchantConfig.secureSecret || process.env.VNPAY_SECURE_SECRET;
 
     return new VNPay({
-        tmnCode: process.env.VNPAY_TMN_CODE,
-        secureSecret: process.env.VNPAY_SECURE_SECRET,
+        tmnCode,
+        secureSecret,
         vnpayHost,
         testMode,
         hashAlgorithm: "SHA512",
@@ -105,7 +110,7 @@ exports.createVNPayPaymentUrl = async (req, res) => {
 
         // Tìm booking và kiểm tra quyền
         const booking = await Booking.findById(bookingId)
-            .populate('hotel', 'name')
+            .populate("hotel", "name " + Hotel.PAYMENT_CONFIG_SELECT)
             .populate('room', 'roomNumber type');
 
         if (!booking) {
@@ -127,12 +132,7 @@ exports.createVNPayPaymentUrl = async (req, res) => {
             return res.status(400).json({ message: "Phương thức thanh toán không phải VNPay" });
         }
 
-        // Lấy IP address từ request
-        const clientIp = req.ip || 
-                        req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-                        req.connection.remoteAddress || 
-                        req.socket.remoteAddress ||
-                        '127.0.0.1';
+        const clientIp = getClientIp(req);
 
         // Tạo payment transaction record
         const paymentTransaction = await createPaymentTransactionWithRetry(booking, {
@@ -147,8 +147,15 @@ exports.createVNPayPaymentUrl = async (req, res) => {
         booking.vnpTransactionRef = transactionRef;
         await booking.save();
 
-        // Khởi tạo VNPay
-        const vnpay = getVNPayInstance();
+        const merchantConfig = booking.hotel?.paymentConfig?.vnpay || {};
+        if (!isVnpayConfigComplete(merchantConfig)) {
+            return res.status(400).json({
+                message: "Khách sạn chưa cấu hình VNPay merchant (TMN Code/Secure Secret). Vui lòng chọn thanh toán QR."
+            });
+        }
+
+        // Khởi tạo VNPay theo merchant của khách sạn
+        const vnpay = getVNPayInstance(merchantConfig);
 
         // Tính ngày hết hạn (24 giờ từ bây giờ)
         const tomorrow = new Date();
@@ -192,7 +199,7 @@ exports.confirmQrPayment = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng cung cấp bookingId" });
         }
 
-        const booking = await Booking.findById(bookingId).populate("hotel", "+paymentConfig");
+        const booking = await Booking.findById(bookingId).populate("hotel", Hotel.PAYMENT_CONFIG_SELECT);
         if (!booking) {
             return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
         }
@@ -213,13 +220,8 @@ exports.confirmQrPayment = async (req, res) => {
             return res.status(400).json({ message: "Đơn đặt phòng đã bị hủy" });
         }
 
-        const qr = booking.hotel?.paymentConfig?.qr;
-        const qrReady =
-            String(qr?.accountName || "").trim() &&
-            String(qr?.accountNumber || "").trim() &&
-            String(qr?.bankName || "").trim() &&
-            String(qr?.qrImageUrl || "").trim();
-        if (!qrReady) {
+        const qr = resolveEffectiveQrConfig(booking.hotel?.paymentConfig?.qr || {});
+        if (!qr.isConfigured) {
             return res.status(400).json({
                 message: "Khách sạn chưa cấu hình đủ thanh toán QR (thiếu tên chủ TK/số TK/ngân hàng/ảnh QR). Không thể ghi nhận chuyển khoản."
             });
@@ -256,11 +258,7 @@ exports.confirmQrPayment = async (req, res) => {
             });
         }
 
-        const clientIp = req.ip ||
-            req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-            req.connection.remoteAddress ||
-            req.socket.remoteAddress ||
-            "127.0.0.1";
+        const clientIp = getClientIp(req);
 
         booking.qrPaymentReportedAt = new Date();
         booking.qrPaymentProofUrl = proofImageUrl;
@@ -288,7 +286,25 @@ exports.confirmQrPayment = async (req, res) => {
 // Xử lý callback từ VNPay
 exports.vnpayCallback = async (req, res) => {
     try {
-        const vnpay = getVNPayInstance();
+        const callbackTmnCode = String(req.query?.vnp_TmnCode || "").trim();
+        if (!callbackTmnCode) {
+            console.error("VNPay callback thiếu vnp_TmnCode, từ chối xử lý callback.");
+            return res.status(400).json({ message: "Callback VNPay không hợp lệ: thiếu vnp_TmnCode." });
+        }
+
+        const hotel = await Hotel.findOne({
+            "paymentConfig.vnpay.tmnCode": callbackTmnCode
+        }).select(Hotel.PAYMENT_CONFIG_SELECT);
+        if (!hotel?.paymentConfig?.vnpay?.secureSecret) {
+            console.error(`VNPay callback dùng TMN code không ánh xạ merchant khách sạn: ${callbackTmnCode}`);
+            return res.status(400).json({ message: "Callback VNPay không hợp lệ: TMN code không được cấu hình." });
+        }
+
+        const merchantConfig = {
+            tmnCode: hotel.paymentConfig.vnpay.tmnCode,
+            secureSecret: hotel.paymentConfig.vnpay.secureSecret
+        };
+        const vnpay = getVNPayInstance(merchantConfig);
         
         // Verify payment từ VNPay
         const paymentResult = await vnpay.verifyReturnUrl(req.query);

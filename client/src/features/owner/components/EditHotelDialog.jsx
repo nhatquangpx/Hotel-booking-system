@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Dialog from '@/components/ui/Dialog';
 import { ownerHotelAPI } from '@/apis/owner/hotel';
 import { getImageUrl } from '@/constants/images';
@@ -30,12 +31,17 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
       accountName: '',
       accountNumber: '',
       bankName: ''
+    },
+    paymentVnpay: {
+      tmnCode: '',
+      secureSecret: ''
     }
   });
   const [qrImageFile, setQrImageFile] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [showVnpaySecret, setShowVnpaySecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -62,12 +68,17 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
           accountName: hotel.paymentConfig?.qr?.accountName || '',
           accountNumber: hotel.paymentConfig?.qr?.accountNumber || '',
           bankName: hotel.paymentConfig?.qr?.bankName || ''
+        },
+        paymentVnpay: {
+          tmnCode: hotel.paymentConfig?.vnpay?.tmnCode || '',
+          secureSecret: ''
         }
       });
       setExistingImages(hotel.images || []);
       setImagePreviews(hotel.images?.map(img => getImageUrl(img)) || []);
       setSelectedFiles([]);
       setQrImageFile(null);
+      setShowVnpaySecret(false);
       setError(null);
     }
   }, [isOpen, hotel]);
@@ -104,6 +115,18 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
     if (!file) return;
     setQrImageFile(file);
     e.target.value = '';
+  };
+
+  const handlePaymentVnpayChange = (e) => {
+    const { name, value } = e.target;
+    const field = name.replace('paymentVnpay.', '');
+    setFormData((prev) => ({
+      ...prev,
+      paymentVnpay: {
+        ...prev.paymentVnpay,
+        [field]: value
+      }
+    }));
   };
 
   const handleChange = (e) => {
@@ -168,6 +191,11 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
       submitData.append('paymentConfig[qr][accountName]', formData.paymentQr.accountName || '');
       submitData.append('paymentConfig[qr][accountNumber]', formData.paymentQr.accountNumber || '');
       submitData.append('paymentConfig[qr][bankName]', formData.paymentQr.bankName || '');
+      submitData.append('paymentConfig[vnpay][tmnCode]', formData.paymentVnpay.tmnCode || '');
+      const vnpaySecretTrimmed = String(formData.paymentVnpay.secureSecret || '').trim();
+      if (vnpaySecretTrimmed) {
+        submitData.append('paymentConfig[vnpay][secureSecret]', vnpaySecretTrimmed);
+      }
 
       const accountName = String(formData.paymentQr.accountName || '').trim();
       const accountNumber = String(formData.paymentQr.accountNumber || '').trim();
@@ -182,6 +210,19 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
       const hadQrImage = Boolean(hotel?.paymentConfig?.qr?.qrImageUrl);
       if (!qrImageFile && !hadQrImage) {
         setError('Vui lòng tải ảnh mã QR nhận tiền (tải lên server/Cloudinary).');
+        setSaving(false);
+        return;
+      }
+      const wasVnpayConfigured = Boolean(hotel?.paymentConfig?.vnpay?.isConfigured);
+      const vnpayTmnCode = String(formData.paymentVnpay.tmnCode || '').trim();
+      const vnpaySecureSecret = String(formData.paymentVnpay.secureSecret || '').trim();
+      const hasAnyVnpayInput = Boolean(vnpayTmnCode || vnpaySecureSecret);
+      const vnpaySecretOptional =
+        Boolean(vnpayTmnCode) && !vnpaySecureSecret && wasVnpayConfigured;
+      if (hasAnyVnpayInput && (!vnpayTmnCode || !vnpaySecureSecret) && !vnpaySecretOptional) {
+        setError(
+          'VNPay là tùy chọn: nhập đủ TMN Code và Secure Secret, hoặc để trống cả hai. Nếu đã cấu hình VNPay, có thể để trống Secret khi chỉ sửa TMN Code.'
+        );
         setSaving(false);
         return;
       }
@@ -398,6 +439,46 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
               <img src={qrPreviewSrc} alt="Mã QR nhận tiền" />
             </div>
           )}
+        </div>
+
+        <div className="form-section-title">Thanh toán VNPay (merchant riêng)</div>
+        <p className="form-section-hint">
+          Tùy chọn: nhập đủ TMN Code và Secure Secret khi cấu hình mới. Secret không gửi từ server — để trống Secret nếu chỉ sửa TMN (giữ secret đã lưu); để trống cả hai để tắt VNPay.
+        </p>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="paymentVnpay.tmnCode">VNPay TMN Code</label>
+            <input
+              type="text"
+              id="paymentVnpay.tmnCode"
+              name="paymentVnpay.tmnCode"
+              value={formData.paymentVnpay.tmnCode}
+              onChange={handlePaymentVnpayChange}
+              placeholder="Ví dụ: 2QXUI4J4"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="paymentVnpay.secureSecret">VNPay Secure Secret</label>
+            <div className="secret-input-wrap">
+              <input
+                type={showVnpaySecret ? 'text' : 'password'}
+                id="paymentVnpay.secureSecret"
+                name="paymentVnpay.secureSecret"
+                value={formData.paymentVnpay.secureSecret}
+                onChange={handlePaymentVnpayChange}
+                placeholder="Nhập secret mới hoặc để trống nếu giữ secret cũ"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="toggle-secret-btn"
+                onClick={() => setShowVnpaySecret((prev) => !prev)}
+                aria-label={showVnpaySecret ? 'Ẩn secure secret' : 'Hiện secure secret'}
+              >
+                {showVnpaySecret ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="form-group">

@@ -143,6 +143,9 @@ exports.getBookingById = async (req, res) => {
     if (review) {
       bookingObj.review = review;
     }
+    if (bookingObj.hotel?.paymentConfig?.vnpay) {
+      delete bookingObj.hotel.paymentConfig.vnpay.secureSecret;
+    }
 
     res.status(200).json(bookingObj);
   } catch (error) {
