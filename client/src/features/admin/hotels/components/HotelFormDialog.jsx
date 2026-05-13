@@ -35,7 +35,8 @@ const HotelFormDialog = ({
     status: 'active',
     policies: {
       checkInTime: '14:00',
-      checkOutTime: '12:00'
+      checkOutTime: '12:00',
+      refundMinDaysBeforeCheckIn: 2,
     },
     paymentQr: {
       accountName: '',
@@ -83,7 +84,8 @@ const HotelFormDialog = ({
           status: 'active',
           policies: {
             checkInTime: '14:00',
-            checkOutTime: '12:00'
+            checkOutTime: '12:00',
+            refundMinDaysBeforeCheckIn: 2,
           },
           paymentQr: {
             accountName: '',
@@ -154,6 +156,7 @@ const HotelFormDialog = ({
         policies: {
           checkInTime: hotelData.policies?.checkInTime || '14:00',
           checkOutTime: hotelData.policies?.checkOutTime || '12:00',
+          refundMinDaysBeforeCheckIn: hotelData.policies?.refundMinDaysBeforeCheckIn ?? 2,
         },
         status: hotelData.status || 'active',
         paymentQr: {
@@ -271,6 +274,15 @@ const HotelFormDialog = ({
         fd.append('contactInfo[email]', formData.contactInfo.email);
         fd.append('policies[checkInTime]', formData.policies.checkInTime);
         fd.append('policies[checkOutTime]', formData.policies.checkOutTime);
+        fd.append(
+          'policies[refundMinDaysBeforeCheckIn]',
+          String(
+            Math.min(
+              90,
+              Math.max(0, parseInt(String(formData.policies.refundMinDaysBeforeCheckIn), 10) || 2)
+            )
+          )
+        );
         fd.append('paymentConfig[qr][accountName]', formData.paymentQr.accountName || '');
         fd.append('paymentConfig[qr][accountNumber]', formData.paymentQr.accountNumber || '');
         fd.append('paymentConfig[qr][bankName]', formData.paymentQr.bankName || '');
@@ -649,6 +661,20 @@ const HotelFormDialog = ({
                   onChange={handleChange}
                 />
                 <label htmlFor="policies.checkOutTime">Giờ trả phòng</label>
+              </div>
+              <div className="policy-item">
+                <input
+                  type="number"
+                  id="policies.refundMinDaysBeforeCheckIn"
+                  name="policies.refundMinDaysBeforeCheckIn"
+                  min={0}
+                  max={90}
+                  value={formData.policies.refundMinDaysBeforeCheckIn}
+                  onChange={handleChange}
+                />
+                <label htmlFor="policies.refundMinDaysBeforeCheckIn">
+                  Ngày trước check-in tối thiểu (hoàn tiền — đơn đã thanh toán)
+                </label>
               </div>
             </div>
           </div>

@@ -12,6 +12,7 @@ import RoomList from './RoomList';
 import BookingModal from './BookingModal';
 import HotelContact from './HotelContact';
 import HotelReviews from './HotelReviews';
+import { getEffectiveRefundMinDaysBeforeCheckIn } from '@/shared/utils/hotelPolicies';
 import './HotelDetail.scss';
 
 /**
@@ -26,6 +27,8 @@ const GuestHotelDetailPage = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  /** Lỗi tìm phòng (không dùng chung `error` để tránh che mất trang khi đã có hotel). */
+  const [roomSearchError, setRoomSearchError] = useState(null);
   const [bookingDates, setBookingDates] = useState({
     checkInDate: '',
     checkOutDate: ''
@@ -86,22 +89,35 @@ const GuestHotelDetailPage = () => {
 
   const handleBookingDateChange = (e) => {
     const { name, value } = e.target;
-    setBookingDates(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setBookingDates((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'checkInDate' && value) {
+        const d = new Date(`${value}T12:00:00`);
+        if (!Number.isNaN(d.getTime())) {
+          d.setDate(d.getDate() + 1);
+          const minOut = d.toISOString().slice(0, 10);
+          if (next.checkOutDate && next.checkOutDate < minOut) {
+            next.checkOutDate = minOut;
+          }
+        }
+      }
+      return next;
+    });
   };
 
   const searchAvailableRooms = async () => {
     try {
       setLoading(true);
+      setRoomSearchError(null);
       const response = await api.userBooking.getAvailableRooms(id, bookingDates.checkInDate, bookingDates.checkOutDate);
       console.log('Rooms Response:', response);
       setRooms(Array.isArray(response) ? response : []);
       setSearchPerformed(true);
       setLoading(false);
     } catch (err) {
-      setError('Không thể tải danh sách phòng');
+      const msg =
+        err?.response?.data?.message || err?.message || 'Không thể tải danh sách phòng';
+      setRoomSearchError(msg);
       setLoading(false);
       console.error(err);
     }
@@ -169,11 +185,17 @@ const GuestHotelDetailPage = () => {
             <HotelGallery hotel={hotel} />
             <HotelDescription hotel={hotel} />
             <HotelPolicies hotel={hotel} />
+            {roomSearchError ? (
+              <div className="error-message hotel-detail-container__search-error" role="alert">
+                {roomSearchError}
+              </div>
+            ) : null}
             <BookingSearch
               bookingDates={bookingDates}
               onDateChange={handleBookingDateChange}
               onSearch={searchAvailableRooms}
               loading={loading && searchPerformed}
+              refundMinDaysBeforeCheckIn={getEffectiveRefundMinDaysBeforeCheckIn(hotel.policies)}
             />
             <RoomList
               rooms={rooms}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { formatDate } from '@/shared/utils';
+import { formatDate, formatDateTime } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
 
 const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewProof }) => {
@@ -134,6 +134,50 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                   <span className="info-label"><strong>Tổng tiền:</strong></span>
                   <span className="info-value"><strong>{(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</strong></span>
                 </div>
+                {booking.cancellationReason && (
+                  <div className="info-row">
+                    <span className="info-label">Lý do hủy (khách):</span>
+                    <span className="info-value">{booking.cancellationReason}</span>
+                  </div>
+                )}
+                {booking.guestCancelRequestedAt && (
+                  <div className="info-row">
+                    <span className="info-label">Khách hủy lúc:</span>
+                    <span className="info-value">{formatDateTime(booking.guestCancelRequestedAt)}</span>
+                  </div>
+                )}
+                {(booking.guestRefundBankAccountName ||
+                  booking.guestRefundBankAccountNumber ||
+                  booking.guestRefundBankName) && (
+                  <div className="info-row">
+                    <span className="info-label">STK nhận hoàn:</span>
+                    <span className="info-value">
+                      {[booking.guestRefundBankAccountName, booking.guestRefundBankAccountNumber, booking.guestRefundBankName]
+                        .filter(Boolean)
+                        .join(' — ')}
+                    </span>
+                  </div>
+                )}
+                {booking.ownerRefundCompletedAt && (
+                  <div className="info-row">
+                    <span className="info-label">Đã xác nhận hoàn tiền:</span>
+                    <span className="info-value">{formatDateTime(booking.ownerRefundCompletedAt)}</span>
+                  </div>
+                )}
+                {booking.ownerRefundProofUrl && (
+                  <div className="info-row">
+                    <span className="info-label">Minh chứng hoàn tiền:</span>
+                    <span className="info-value">
+                      <button
+                        type="button"
+                        className="proof-link"
+                        onClick={() => onPreviewProof(getImageUrl(booking.ownerRefundProofUrl))}
+                      >
+                        Mở ảnh minh chứng hoàn
+                      </button>
+                    </span>
+                  </div>
+                )}
                 {booking.qrPaymentProofUrl && (
                   <div className="info-row">
                     <span className="info-label">Minh chứng:</span>

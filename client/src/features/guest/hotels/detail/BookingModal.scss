@@ -13,6 +13,8 @@
   justify-content: center;
   align-items: center;
   z-index: 1001;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .booking-modal-content {
@@ -22,6 +24,8 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 90%;
   max-width: 500px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   position: relative;
   animation: fadeIn 0.3s ease-out;
 
@@ -177,6 +181,22 @@
         background-color: $button-primary-hover;
       }
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-modal-overlay {
+    padding: 12px;
+  }
+
+  .booking-modal-content {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+    padding: 18px;
+  }
+
+  .booking-modal-content .modal-image-container {
+    height: 180px;
   }
 }
 

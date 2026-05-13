@@ -16,6 +16,14 @@
   .error-message {
     color: $error;
   }
+
+  &__search-error {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    text-align: left;
+    background: rgba($error, 0.08);
+    border-radius: 6px;
+  }
 }
 
 @media (max-width: 768px) {

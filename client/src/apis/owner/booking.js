@@ -61,7 +61,23 @@ export const ownerBookingAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
+
+  /** Xác nhận đã hoàn tiền cho đơn khách đã hủy (đủ điều kiện hoàn), kèm ảnh minh chứng. */
+  confirmGuestRefund: async (id, proofImageFile) => {
+    try {
+      const fd = new FormData();
+      if (proofImageFile) {
+        fd.append('proofImage', proofImageFile);
+      }
+      const response = await api.post(`/owner/bookings/${id}/confirm-guest-refund`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default ownerBookingAPI; 

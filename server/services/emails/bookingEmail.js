@@ -628,7 +628,109 @@ const sendCheckInReminderEmail = async (booking, daysUntilCheckIn = 2) => {
   }
 };
 
+/**
+ * Gửi email thông báo đã hoàn tiền cho khách, kèm ảnh minh chứng.
+ * @param {Object} booking - Booking đã populate guest/hotel/room
+ * @param {String} refundProofImageUrl - URL ảnh minh chứng hoàn tiền (public URL)
+ * @returns {Promise<Boolean>}
+ */
+const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
+  try {
+    const guest = booking?.guest;
+    const hotel = booking?.hotel;
+    if (!guest?.email) {
+      return false;
+    }
+
+    const bookingIdShort = String(booking._id || "").slice(-8).toUpperCase();
+    const amount = Number(booking.finalAmount ?? booking.totalAmount ?? 0);
+    const amountStr = new Intl.NumberFormat("vi-VN").format(amount);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const bookingDetailUrl = `${frontendUrl}/my-bookings?bookingId=${booking._id}`;
+
+    const proofHtml = refundProofImageUrl
+      ? `
+      <div style="margin-top:16px;padding:16px;border:1px solid #e6e6e6;border-radius:8px;background:#fafafa;text-align:center;">
+        <div style="font-size:14px;font-weight:600;color:#1C1B1F;margin-bottom:10px;">Minh chứng hoàn tiền từ khách sạn</div>
+        <div style="font-size:13px;line-height:1.7;color:#444;">
+          Vui lòng mở ảnh minh chứng tại link bên dưới:<br />
+          <a href="${refundProofImageUrl}" target="_blank" rel="noopener noreferrer" style="color:#0d6efd;word-break:break-all;">${refundProofImageUrl}</a>
+        </div>
+      </div>
+      `
+      : `
+      <div style="margin-top:16px;padding:12px 14px;border:1px solid #f0d9a7;border-radius:8px;background:#fff8e8;color:#7a5b18;font-size:13px;line-height:1.6;text-align:center;">
+        Khách sạn đã xác nhận hoàn tiền nhưng chưa đính kèm ảnh minh chứng trong hệ thống.
+      </div>`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1C1B1F;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f4f6f8;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="620" style="max-width:620px;width:100%;background:#ffffff;border:1px solid #ececec;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="padding:24px 24px 16px;background:#fffaf5;border-bottom:1px solid #f0e5d8;text-align:center;">
+                <h2 style="margin:0;font-size:22px;line-height:1.3;color:#A0826D;">Thông báo hoàn tiền đơn đặt phòng</h2>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 24px 8px;font-size:15px;line-height:1.7;color:#333;text-align:center;">
+                Đơn <strong>#BK${bookingIdShort}</strong> tại <strong>${hotel?.name || "khách sạn"}</strong> đã được xác nhận hoàn tiền.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 24px 0;" align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e7e9ec;border-radius:8px;background:#f9fafb;">
+                  <tr>
+                    <td style="padding:12px 14px;border-bottom:1px solid #eceff3;font-size:14px;color:#79747E;width:50%;text-align:right;font-weight:600;">
+                      Số tiền hoàn:
+                    </td>
+                    <td style="padding:12px 14px;border-bottom:1px solid #eceff3;font-size:14px;color:#1C1B1F;width:50%;text-align:left;">
+                      ${amountStr} VNĐ
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:12px 14px;font-size:14px;color:#79747E;text-align:right;font-weight:600;">
+                      Phương thức thanh toán ban đầu:
+                    </td>
+                    <td style="padding:12px 14px;font-size:14px;color:#1C1B1F;text-align:left;">
+                      ${booking.paymentMethod === "vnpay" ? "VNPay" : "QR chuyển khoản"}
+                    </td>
+                  </tr>
+                </table>
+                ${proofHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 24px 0;font-size:14px;line-height:1.7;color:#333;text-align:center;">
+                Bạn có thể xem lại chi tiết đơn tại:<br />
+                <a href="${bookingDetailUrl}" style="color:#0d6efd;word-break:break-all;">${bookingDetailUrl}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 24px 24px;font-size:13px;line-height:1.7;color:#6d7278;text-align:center;">
+                Nếu đã quá thời gian mà bạn chưa nhận tiền, vui lòng liên hệ trực tiếp khách sạn để được hỗ trợ.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+    return await sendEmail(guest.email, `Đã hoàn tiền đơn #BK${bookingIdShort}`, html);
+  } catch (error) {
+    console.error("Lỗi khi gửi email hoàn tiền:", error);
+    return false;
+  }
+};
+
 module.exports = {
   sendReceiptEmail,
   sendCheckInReminderEmail,
+  sendRefundProcessedEmail,
 };

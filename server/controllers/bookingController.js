@@ -61,7 +61,11 @@ exports.getPricePreview = async (req, res) => {
   } catch (error) {
     console.error("Lỗi xem trước giá:", error);
     const statusCode =
-      error.message.includes("Không tìm thấy") ? 404 : error.message.includes("Ngày") ? 400 : 500;
+      error.message.includes("Không tìm thấy")
+        ? 404
+        : error.message.includes("Ngày") || error.message.includes("Phải đặt ít nhất")
+          ? 400
+          : 500;
     res.status(statusCode).json({ message: error.message || "Lỗi xem trước giá" });
   }
 };
@@ -169,18 +173,30 @@ exports.getAvailableRooms = async (req, res) => {
     res.status(200).json(availableRooms);
   } catch (error) {
     console.error("Lỗi khi tìm kiếm phòng trống:", error);
-    const statusCode = error.message.includes("Ngày không hợp lệ") || 
-                      error.message.includes("ngày check-in") ? 400 : 500;
+    const statusCode = error.message.includes("Không tìm thấy khách sạn")
+      ? 404
+      : error.message.includes("Ngày không hợp lệ") ||
+          error.message.includes("ngày check-in") ||
+          error.message.includes("Phải đặt ít nhất") ||
+          error.message.includes("Ngày check-out phải sau")
+        ? 400
+        : 500;
     res.status(statusCode).json({ message: error.message || "Lỗi khi tìm kiếm phòng trống" });
   }
 };
 
-// Update booking status (Admin, Owner)
+// Cập nhật trạng thái đơn (Owner only — admin chỉ đọc đơn qua GET /admin/bookings)
 exports.updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
     const { role } = req.user;
+
+    if (role === "admin") {
+      return res.status(403).json({
+        message: "Admin chỉ được xem đơn đặt phòng và thống kê, không được chỉnh trạng thái đơn."
+      });
+    }
 
     let booking;
     let oldStatus;
@@ -191,10 +207,7 @@ exports.updateBookingStatus = async (req, res) => {
       oldStatus = oldBooking.paymentStatus;
     }
 
-    // Use appropriate service based on user role
-    if (role === "admin") {
-      booking = await bookingService.updateAdminBookingStatus(id, status, req.user);
-    } else if (role === "owner") {
+    if (role === "owner") {
       booking = await bookingService.updateOwnerBookingStatus(id, status, req.user);
     } else {
       return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này" });
@@ -258,9 +271,8 @@ exports.updateBookingStatus = async (req, res) => {
 exports.cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
-    const { cancellationReason } = req.body;
 
-    const booking = await bookingService.cancelGuestBooking(id, cancellationReason, req.user);
+    const booking = await bookingService.cancelGuestBooking(id, req.body || {}, req.user);
 
     // Send notifications
     notifyBookingCancelled(id).catch(err => {
@@ -277,11 +289,48 @@ exports.cancelBooking = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi hủy đơn đặt phòng:", error);
-    const statusCode = error.message.includes("Không tìm thấy") ? 404 : 
-                      error.message.includes("không có quyền") ? 403 :
-                      error.message.includes("không thể hủy") || 
-                      error.message.includes("đã được hủy") ? 400 : 500;
+    const statusCode =
+      error.statusCode ||
+      (error.message.includes("Không tìm thấy")
+        ? 404
+        : error.message.includes("không có quyền")
+          ? 403
+          : error.message.includes("không thể hủy") ||
+              error.message.includes("đã được hủy") ||
+              error.message.includes("Theo quy định khách sạn") ||
+              error.message.includes("Vui lòng nhập")
+            ? 400
+            : 500);
     res.status(statusCode).json({ message: error.message || "Lỗi khi hủy đơn đặt phòng" });
+  }
+};
+
+// Chủ KS xác nhận đã hoàn tiền (đơn khách đã hủy, đủ điều kiện hoàn)
+exports.confirmGuestRefund = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await bookingService.confirmOwnerGuestRefund(id, req.user, req.file);
+    res.status(200).json({
+      message: "Đã xác nhận hoàn tiền cho khách",
+      booking
+    });
+  } catch (error) {
+    console.error("Lỗi khi xác nhận hoàn tiền:", error);
+    const statusCode =
+      error.statusCode ||
+      (error.message.includes("Không tìm thấy") || error.message.includes("không tồn tại")
+        ? 404
+        : error.message.includes("không có quyền")
+          ? 403
+          : error.message.includes("Chỉ xác nhận") ||
+              error.message.includes("Không thể") ||
+              error.message.includes("Vui lòng tải lên ảnh minh chứng") ||
+              error.message.includes("chưa gửi") ||
+              error.message.includes("không thuộc") ||
+              error.message.includes("Đã xác nhận")
+            ? 400
+            : 500);
+    res.status(statusCode).json({ message: error.message || "Lỗi khi xác nhận hoàn tiền" });
   }
 };
 

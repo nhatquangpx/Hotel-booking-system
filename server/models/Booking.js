@@ -75,6 +75,28 @@ const BookingSchema = new mongoose.Schema(
     cancellationReason: {
       type: String
     },
+    /** Khách gửi yêu cầu hủy (luôn set khi khách hủy từ app). */
+    guestCancelRequestedAt: {
+      type: Date
+    },
+    /** Snapshot tại thời điểm khách hủy (để chủ KS xử lý hoàn tiền). */
+    guestCancelSnapshot: {
+      wasPaid: { type: Boolean },
+      paymentMethod: { type: String, enum: ["qr_code", "vnpay"] },
+      refundPolicyEligible: { type: Boolean }
+    },
+    /** STK nhận hoàn tiền do khách cung cấp khi hủy đơn đủ điều kiện hoàn (đã thanh toán). */
+    guestRefundBankAccountName: { type: String, trim: true },
+    guestRefundBankAccountNumber: { type: String, trim: true },
+    guestRefundBankName: { type: String, trim: true },
+    /** Chủ KS xác nhận đã hoàn tiền (đơn đã hủy, đủ điều kiện hoàn). */
+    ownerRefundCompletedAt: {
+      type: Date
+    },
+    /** Ảnh minh chứng hoàn tiền do chủ khách sạn tải lên khi xác nhận hoàn. */
+    ownerRefundProofUrl: {
+      type: String
+    },
     checkedInAt: {
       type: Date
     },

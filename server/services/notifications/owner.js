@@ -75,13 +75,20 @@ const notifyBookingCancelled = async (bookingId) => {
     // Format booking ID (lấy 6 ký tự cuối)
     const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
     const reason = booking.cancellationReason ? ` Lý do: ${booking.cancellationReason}.` : '';
+    const refundPending =
+      booking.guestCancelSnapshot?.wasPaid &&
+      booking.guestCancelSnapshot?.refundPolicyEligible &&
+      !booking.ownerRefundCompletedAt;
+    const refundHint = refundPending
+      ? ' Đơn đã thanh toán — cần hoàn tiền cho khách (xem chi tiết đơn: STK nhận hoàn nếu thanh toán QR, hoặc hoàn qua cổng VNPay).'
+      : '';
 
     await createNotification(
       ownerIdStr,
       'owner',
       'booking_cancelled',
       'Khách hủy phòng',
-      `Đơn hàng #BK${bookingIdShort} đã bị hủy bởi khách hàng ${booking.guest?.name || 'Khách'}.${reason}`,
+      `Đơn hàng #BK${bookingIdShort} đã bị hủy bởi khách hàng ${booking.guest?.name || 'Khách'}.${reason}${refundHint}`,
       bookingId,
       'Booking'
     );

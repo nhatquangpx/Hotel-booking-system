@@ -85,6 +85,16 @@
     }
   }
 
+  .booking-info .admin-booking-detail-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+    @include body-sm;
+    color: var(--admin-text, $text-medium);
+    line-height: 1.5;
+  }
+
   @media (max-width: 600px) {
     padding: 12px 2px;
     h2 {

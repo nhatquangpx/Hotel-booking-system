@@ -5,7 +5,8 @@ const {
   checkRoomAvailability,
   validateBookingDates,
   checkBookingPermission,
-  canCancelBooking,
+  canGuestCancelBooking,
+  getGuestRefundPolicyEligibility,
   getBookingWithPopulate,
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus
@@ -57,36 +58,34 @@ const sanitizeGuestHotelPaymentConfig = (hotel) => {
 const createBooking = async (bookingData, guestId) => {
   const { hotelId, roomId, checkInDate, checkOutDate, paymentMethod, specialRequests } = bookingData;
 
-  // 1. Validate dates
-  const dateValidation = validateBookingDates(checkInDate, checkOutDate);
-  if (!dateValidation.valid) {
-    throw new Error(dateValidation.error);
-  }
-
-  // 2. Check if hotel exists FIRST (chỉ +paymentConfig: secret VNPay không load — không cần cho bước này)
   const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
   }
 
-  // 3. Check if room exists
+  const dateValidation = validateBookingDates(checkInDate, checkOutDate);
+  if (!dateValidation.valid) {
+    throw new Error(dateValidation.error);
+  }
+
+  // Check if room exists
   const room = await Room.findById(roomId);
   if (!room) {
     throw new Error("Không tìm thấy phòng");
   }
 
-  // 4. Verify room belongs to the hotel (Security check)
+  // Verify room belongs to the hotel (Security check)
   if (room.hotelId.toString() !== hotelId) {
     throw new Error("Phòng không thuộc về khách sạn đã chọn");
   }
 
-  // 5. Check room availability (includes room status, booking status, and date conflicts)
+  // Check room availability (includes room status, booking status, and date conflicts)
   const isAvailable = await checkRoomAvailability(room, checkInDate, checkOutDate);
   if (!isAvailable) {
     throw new Error("Phòng không khả dụng cho đặt chỗ");
   }
 
-  // 6. Tính tiền và snapshot ở server (không tin totalAmount từ client)
+  // Tính tiền và snapshot ở server (không tin totalAmount từ client)
   const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
   const calculatedAmount = pricing.finalAmount;
 
@@ -103,7 +102,7 @@ const createBooking = async (bookingData, guestId) => {
   }
   // Với VNPay, kiểm tra merchant config ở bước tạo payment URL để tránh false-negative.
 
-  // 7. Create new booking
+  // Create new booking
   const newBooking = new Booking({
     guest: guestId,
     hotel: hotelId,
@@ -121,13 +120,13 @@ const createBooking = async (bookingData, guestId) => {
     paymentStatus: "pending"
   });
 
-  // 8. Save booking to database
+  // Save booking to database
   const savedBooking = await newBooking.save();
 
   // Update room bookingStatus based on today's bookings (pending/empty/occupied)
   await refreshRoomBookingStatus(roomId);
 
-  // 9. Return populated booking
+  // Return populated booking
   const booking = await getBookingWithPopulate(savedBooking._id, {
     hotel: `name address images starRating ${Hotel.PAYMENT_CONFIG_SELECT}`,
     room: "roomNumber type price images"
@@ -142,14 +141,13 @@ const createBooking = async (bookingData, guestId) => {
  * Xem trước giá (guest) — cùng logic với tạo đặt phòng
  */
 const previewBookingPrice = async (hotelId, roomId, checkInDate, checkOutDate) => {
-  const dateValidation = validateBookingDates(checkInDate, checkOutDate);
-  if (!dateValidation.valid) {
-    throw new Error(dateValidation.error);
-  }
-
   const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
+  }
+  const dateValidation = validateBookingDates(checkInDate, checkOutDate);
+  if (!dateValidation.valid) {
+    throw new Error(dateValidation.error);
   }
 
   const room = await Room.findById(roomId);
@@ -180,7 +178,7 @@ const getMyBookings = async (guestId) => {
   const bookings = await Booking.find({ guest: guestId })
     .populate({
       path: "hotel",
-      select: `name address images starRating ${Hotel.PAYMENT_CONFIG_SELECT}`
+      select: `name address images starRating policies ${Hotel.PAYMENT_CONFIG_SELECT}`
     })
     .populate({
       path: "room",
@@ -220,10 +218,13 @@ const getBookingById = async (bookingId, user) => {
  * @returns {Promise<Array>} Array of available rooms
  */
 const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
-  // Validate dates
   const dateValidation = validateBookingDates(checkInDate, checkOutDate);
   if (!dateValidation.valid) {
     throw new Error(dateValidation.error);
+  }
+  const hotel = await Hotel.findById(hotelId);
+  if (!hotel) {
+    throw new Error("Không tìm thấy khách sạn");
   }
 
   // Find all rooms in the hotel
@@ -260,45 +261,86 @@ const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
   return availableRooms;
 };
 
+const trimStr = (v) => String(v ?? "").trim();
+
 /**
- * Cancel a booking
- * @param {String} bookingId - Booking ID
- * @param {String} cancellationReason - Cancellation reason
- * @param {Object} user - User object
- * @returns {Promise<Object>} Updated booking
+ * Cancel a booking (guest)
+ * @param {String} bookingId
+ * @param {Object} payload - cancellationReason, refundBankAccountName, refundBankAccountNumber, refundBankName
+ * @param {Object} user
  */
-const cancelBooking = async (bookingId, cancellationReason, user) => {
+const cancelBooking = async (bookingId, payload, user) => {
+  const cancellationReason = trimStr(payload?.cancellationReason);
   const booking = await Booking.findById(bookingId).populate("hotel");
 
   if (!booking) {
     throw new Error("Không tìm thấy đơn đặt phòng");
   }
 
-  // Check permission (guest can only cancel their own bookings)
   if (!checkBookingPermission(booking, user)) {
     throw new Error("Bạn không có quyền hủy đơn đặt phòng này");
   }
 
-  // Check if booking can be cancelled
-  const cancelValidation = canCancelBooking(booking);
+  const cancelValidation = canGuestCancelBooking(booking);
   if (!cancelValidation.canCancel) {
     throw new Error(cancelValidation.error);
   }
 
-  // Update booking status to cancelled
-  const updatedBooking = await Booking.findByIdAndUpdate(
-    bookingId,
-    {
-      paymentStatus: "cancelled",
-      cancellationReason: cancellationReason || ""
-    },
-    { new: true }
-  );
+  const previousPaymentStatus = booking.paymentStatus;
+  const refundEligibility = getGuestRefundPolicyEligibility(booking);
+  const bankName = trimStr(payload?.refundBankAccountName);
+  const bankNumber = trimStr(payload?.refundBankAccountNumber);
+  const bankBranch = trimStr(payload?.refundBankName);
 
-  // Refresh room bookingStatus after cancellation
+  if (previousPaymentStatus === "paid" && refundEligibility.eligible) {
+    if (!bankName || !bankNumber || !bankBranch) {
+      const err = new Error(
+        "Vui lòng nhập đầy đủ tên chủ tài khoản, số tài khoản và tên ngân hàng để nhận hoàn tiền."
+      );
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
+  const now = new Date();
+  const update = {
+    paymentStatus: "cancelled",
+    cancellationReason: cancellationReason || "Khách hủy đặt phòng",
+    guestCancelRequestedAt: now,
+    guestCancelSnapshot: {
+      wasPaid: previousPaymentStatus === "paid",
+      paymentMethod: booking.paymentMethod,
+      refundPolicyEligible: Boolean(refundEligibility.eligible && previousPaymentStatus === "paid")
+    }
+  };
+
+  if (previousPaymentStatus === "paid" && refundEligibility.eligible) {
+    update.guestRefundBankAccountName = bankName;
+    update.guestRefundBankAccountNumber = bankNumber;
+    update.guestRefundBankName = bankBranch;
+  } else {
+    update.guestRefundBankAccountName = null;
+    update.guestRefundBankAccountNumber = null;
+    update.guestRefundBankName = null;
+  }
+
+  await Booking.findByIdAndUpdate(bookingId, update, { new: true });
+
+  // Giữ PaymentTransaction ở trạng thái "success" để đối soát / lịch sử giao dịch.
+  // Việc hủy đơn và hoàn tiền biểu diễn qua Booking (paymentStatus cancelled,
+  // guestCancelSnapshot, guestRefundBank*, ownerRefundCompletedAt).
+
   await refreshRoomBookingStatus(booking.room);
 
-  return updatedBooking;
+  const populated = await getBookingWithPopulate(bookingId, {
+    hotel: `name address images starRating contactInfo policies ${Hotel.PAYMENT_CONFIG_SELECT}`,
+    room: "roomNumber type price images maxPeople description facilities",
+    guest: "name email phone"
+  });
+  if (populated?.hotel) {
+    populated.hotel = sanitizeGuestHotelPaymentConfig(populated.hotel);
+  }
+  return populated;
 };
 
 module.exports = {

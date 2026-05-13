@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { IconButton, Tooltip, Paper, TextField, MenuItem } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
 import api from '@/apis';
 import { AdminLayout } from '@/features/admin/components';
 import { formatDate } from '@/shared/utils';
 import './BookingList.scss';
 
 /**
- * Admin Booking List page feature
- * List and manage bookings for admin
+ * Admin Booking List — chỉ xem danh sách & tổng thu (đơn đã thanh toán), không chỉnh trạng thái đơn.
  */
 const AdminBookingListPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -23,9 +21,12 @@ const AdminBookingListPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [hotels, setHotels] = useState([]);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [bookingToUpdate, setBookingToUpdate] = useState(null);
-  const [newPaymentStatus, setNewPaymentStatus] = useState('');
+
+  const paidBookingStats = useMemo(() => {
+    const paid = bookings.filter((b) => b.paymentStatus === 'paid');
+    const sum = paid.reduce((acc, b) => acc + (Number(b.totalAmount) || 0), 0);
+    return { count: paid.length, sum };
+  }, [bookings]);
 
   useEffect(() => {
     fetchBookings();
@@ -179,6 +180,19 @@ const AdminBookingListPage = () => {
           </div>
         </Paper>
 
+        {!loading && bookings.length > 0 && (
+          <div className="admin-booking-readonly-summary">
+            <strong>Tổng quan thanh toán (toàn hệ thống)</strong>
+            <span>
+              Đơn đã thanh toán: <strong>{paidBookingStats.count}</strong> — Tổng tiền:{' '}
+              <strong>{paidBookingStats.sum.toLocaleString('vi-VN')} VND</strong>
+            </span>
+            <span className="admin-booking-readonly-summary__hint">
+              Admin chỉ xem; cập nhật trạng thái đơn do chủ khách sạn trên trang owner.
+            </span>
+          </div>
+        )}
+
         {error && <div className="error-message">{error}</div>}
 
         <div className="booking-table">
@@ -225,20 +239,13 @@ const AdminBookingListPage = () => {
                       </span>
                     </td>
                     <td>
-                      <div className="action-buttons">
-                        <Tooltip title="Xem chi tiết">
-                          <Link to={`/admin/bookings/${booking._id}`}>
-                            <IconButton size="small" color="primary">
-                              <VisibilityIcon />
-                            </IconButton>
-                          </Link>
-                        </Tooltip>
-                        <Tooltip title="Cập nhật trạng thái thanh toán">
-                          <IconButton size="small" color="secondary" onClick={() => handleEditPaymentStatus(booking)}>
-                            <EditIcon />
+                      <Tooltip title="Xem chi tiết (chỉ đọc)">
+                        <Link to={`/admin/bookings/${booking._id}`}>
+                          <IconButton size="small" color="primary" aria-label="Xem chi tiết">
+                            <VisibilityIcon />
                           </IconButton>
-                        </Tooltip>
-                      </div>
+                        </Link>
+                      </Tooltip>
                     </td>
                   </tr>
                 ))
@@ -246,38 +253,6 @@ const AdminBookingListPage = () => {
             </tbody>
           </table>
         </div>
-        {showUpdateModal && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h2>Cập nhật trạng thái thanh toán</h2>
-                <button className="close-button" onClick={handleCancelUpdate}>&times;</button>
-              </div>
-              <div className="modal-body">
-                <p>
-                  Đơn đặt phòng #{bookingToUpdate?._id.slice(-6).toUpperCase()} - {bookingToUpdate?.guest?.name || bookingToUpdate?.userName}
-                </p>
-                <div className="form-group">
-                  <label htmlFor="paymentStatus">Trạng thái thanh toán</label>
-                  <select
-                    id="paymentStatus"
-                    value={newPaymentStatus}
-                    onChange={e => setNewPaymentStatus(e.target.value)}
-                    required
-                  >
-                    <option value="pending">Chưa thanh toán</option>
-                    <option value="paid">Đã thanh toán</option>
-                    <option value="cancelled">Đã hủy</option>
-                  </select>
-                </div>
-                <div className="form-actions">
-                  <button className="submit-btn" onClick={handleConfirmUpdate}>Cập nhật</button>
-                  <button className="cancel-btn" onClick={handleCancelUpdate}>Hủy</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </AdminLayout>
   );

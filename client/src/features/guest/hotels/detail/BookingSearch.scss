@@ -17,6 +17,20 @@
     padding-bottom: 10px;
   }
 
+  &__hint {
+    @include body-base;
+    margin: -8px 0 16px;
+    color: $text-medium;
+
+    p {
+      margin: 0 0 8px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
   .date-picker {
     display: flex;
     flex-wrap: wrap;

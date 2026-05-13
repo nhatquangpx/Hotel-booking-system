@@ -5,6 +5,7 @@ import { GuestLayout } from '@/features/guest/components/layout';
 import BookingDetailModal from '../detail/BookingDetailModal';
 import BookingListItem from './BookingListItem';
 import api from '@/apis';
+import { computeGuestRefundEligibility } from '@/shared/utils/hotelPolicies';
 import './MyBookings.scss';
 
 /**
@@ -19,6 +20,9 @@ const GuestMyBookingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [refundBankAccountName, setRefundBankAccountName] = useState('');
+  const [refundBankAccountNumber, setRefundBankAccountNumber] = useState('');
+  const [refundBankName, setRefundBankName] = useState('');
   const [cancelBookingId, setCancelBookingId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -55,34 +59,56 @@ const GuestMyBookingsPage = () => {
 
   const openCancelModal = (bookingId) => {
     setCancelBookingId(bookingId);
+    setCancelReason('');
+    setRefundBankAccountName('');
+    setRefundBankAccountNumber('');
+    setRefundBankName('');
     setShowCancelModal(true);
   };
 
   const closeCancelModal = () => {
     setCancelBookingId(null);
     setCancelReason('');
+    setRefundBankAccountName('');
+    setRefundBankAccountNumber('');
+    setRefundBankName('');
     setShowCancelModal(false);
   };
 
   const handleCancelBooking = async () => {
     if (!cancelBookingId) return;
+    const target = bookings.find((b) => b._id === cancelBookingId);
+    if (!target) return;
 
     try {
       setCancelling(true);
-      await api.userBooking.cancelBooking(cancelBookingId, cancelReason);
-      
-      setBookings(prevBookings => 
-        prevBookings.map(booking => 
-          booking._id === cancelBookingId 
-            ? { ...booking, paymentStatus: 'cancelled' } 
-            : booking
-        )
-      );
-      
+      const ref = computeGuestRefundEligibility(target);
+      const payload = { cancellationReason: cancelReason.trim() };
+      if (target.paymentStatus === 'paid' && ref.eligible) {
+        payload.refundBankAccountName = refundBankAccountName.trim();
+        payload.refundBankAccountNumber = refundBankAccountNumber.trim();
+        payload.refundBankName = refundBankName.trim();
+      }
+
+      const data = await api.userBooking.cancelBooking(cancelBookingId, payload);
+
+      if (data?.booking) {
+        setBookings((prev) =>
+          prev.map((booking) =>
+            booking._id === cancelBookingId ? { ...booking, ...data.booking } : booking
+          )
+        );
+      }
+
       closeCancelModal();
       setCancelling(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Không thể hủy đặt phòng');
+      const msg =
+        (typeof err === 'string' && err) ||
+        err?.message ||
+        err?.response?.data?.message ||
+        'Không thể hủy đặt phòng';
+      setError(msg);
       setCancelling(false);
       console.error(err);
     }
@@ -137,23 +163,10 @@ const GuestMyBookingsPage = () => {
     }
   };
 
-  const canCancelBooking = (booking) => {
-    // Không cho phép hủy nếu đã hủy, đã thanh toán, đã checkin hoặc đã checkout
-    if (
-      booking.paymentStatus === 'cancelled' || 
-      booking.paymentStatus === 'paid' ||
-      booking.checkedInAt ||
-      booking.checkedOutAt
-    ) {
-      return false;
-    }
-    
-    // Kiểm tra còn cách ngày check-in ít nhất 2 ngày
-    const checkInDate = new Date(booking.checkInDate);
-    const today = new Date();
-    const daysUntilCheckIn = Math.ceil((checkInDate - today) / (1000 * 60 * 60 * 24));
-    
-    return daysUntilCheckIn >= 2;
+  const canGuestSubmitCancel = (booking) => {
+    if (booking.paymentStatus === 'cancelled') return false;
+    if (booking.checkedInAt || booking.checkedOutAt) return false;
+    return booking.paymentStatus === 'pending' || booking.paymentStatus === 'paid';
   };
 
   const openDetailModal = async (bookingId) => {
@@ -200,12 +213,33 @@ const GuestMyBookingsPage = () => {
     setSearchParams(nextParams, { replace: true });
   }, [searchParams, setSearchParams, loading, bookings]);
 
+  const cancelTarget =
+    showCancelModal && cancelBookingId ? bookings.find((b) => b._id === cancelBookingId) : null;
+  const cancelRefundRef = cancelTarget
+    ? computeGuestRefundEligibility(cancelTarget)
+    : { eligible: false, minNoticeDays: 0, daysUntilCheckIn: 0 };
+  const showRefundBankForm = Boolean(
+    cancelTarget?.paymentStatus === 'paid' && cancelRefundRef.eligible
+  );
+  const cancelConfirmDisabled =
+    cancelling ||
+    !cancelReason.trim() ||
+    (showRefundBankForm &&
+      (!refundBankAccountName.trim() ||
+        !refundBankAccountNumber.trim() ||
+        !refundBankName.trim()));
+
   return (
     <GuestLayout>
       <div className="my-bookings-container">
         <h1>Danh sách đặt phòng của tôi</h1>
         <div className="cancel-policy-reminder">
-          <strong>Lưu ý:</strong> Bạn chỉ có thể hủy đơn đặt phòng nếu đơn chưa thanh toán và còn cách ngày nhận phòng ít nhất <strong>2 ngày</strong>. Nếu đơn đã thanh toán, vui lòng liên hệ hotline <a href="tel:0332915004">0332915004</a> để được hỗ trợ.
+          <strong>Lưu ý:</strong> Bạn có thể gửi hủy đơn khi chưa check-in. Với đơn <strong>đã thanh toán</strong>, chỉ
+          khi còn đủ số ngày trước ngày nhận phòng theo chính sách khách sạn thì bạn được hoàn tiền — hệ thống sẽ yêu cầu
+          nhập thông tin tài khoản ngân hàng để nhận hoàn. Nếu hủy ngoài thời hạn hoàn (áp dụng cho đơn đã thanh toán),
+          đơn vẫn hủy nhưng không kèm hoàn tiền theo quy định. Với đơn <strong>chưa thanh toán</strong>, mốc số ngày đó{' '}
+          <strong>không</strong> dùng để xét hoàn tiền (không có khoản đã thu). Hotline{' '}
+          <a href="tel:0332915004">0332915004</a>.
         </div>
         
         {loading && <div className="loading">Đang tải...</div>}
@@ -232,7 +266,7 @@ const GuestMyBookingsPage = () => {
                 booking={booking}
                 statusNode={renderBookingStatus(booking)}
                 payingBookingId={payingBookingId}
-                canCancel={canCancelBooking(booking)}
+                canCancel={canGuestSubmitCancel(booking)}
                 onOpenDetail={openDetailModal}
                 onContinuePayment={handleContinuePayment}
                 onOpenCancel={openCancelModal}
@@ -247,7 +281,28 @@ const GuestMyBookingsPage = () => {
             <div className="cancel-modal">
               <h2>Xác nhận hủy đặt phòng</h2>
               <p>Bạn có chắc chắn muốn hủy đặt phòng này?</p>
-              
+
+              {cancelTarget?.paymentStatus === 'paid' && cancelRefundRef.eligible && (
+                <p className="cancel-modal__hint cancel-modal__hint--ok">
+                  Đơn đã thanh toán và còn ít nhất <strong>{cancelRefundRef.minNoticeDays}</strong> ngày trước ngày
+                  nhận phòng — bạn <strong>được hoàn tiền</strong> theo quy định. Vui lòng nhập thông tin tài khoản ngân
+                  hàng bên dưới để nhận hoàn tiền.
+                </p>
+              )}
+              {cancelTarget?.paymentStatus === 'paid' && !cancelRefundRef.eligible && (
+                <p className="cancel-modal__hint cancel-modal__hint--warn">
+                  Đơn đã thanh toán nhưng <strong>không còn đủ</strong> số ngày trước nhận phòng theo chính sách (cần
+                  ít nhất <strong>{cancelRefundRef.minNoticeDays}</strong> ngày, hiện còn{' '}
+                  <strong>{cancelRefundRef.daysUntilCheckIn}</strong>). Bạn vẫn có thể hủy, nhưng{' '}
+                  <strong>không áp dụng hoàn tiền</strong> theo quy định chung của khách sạn.
+                </p>
+              )}
+              {cancelTarget?.paymentStatus === 'pending' && (
+                <p className="cancel-modal__hint">
+                  Đơn chưa thanh toán — sau khi hủy bạn không cần thanh toán. Không phát sinh hoàn tiền.
+                </p>
+              )}
+
               <div className="form-group">
                 <label htmlFor="cancelReason">Lý do hủy</label>
                 <textarea
@@ -256,21 +311,55 @@ const GuestMyBookingsPage = () => {
                   onChange={(e) => setCancelReason(e.target.value)}
                   placeholder="Vui lòng cho biết lý do hủy đặt phòng"
                   rows="4"
-                ></textarea>
+                />
               </div>
-              
+
+              {showRefundBankForm && (
+                <div className="cancel-modal__bank-block">
+                  <h3>Thông tin nhận hoàn tiền</h3>
+                  <div className="form-group">
+                    <label htmlFor="refundBankAccountName">Tên chủ tài khoản *</label>
+                    <input
+                      id="refundBankAccountName"
+                      type="text"
+                      value={refundBankAccountName}
+                      onChange={(e) => setRefundBankAccountName(e.target.value)}
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="refundBankAccountNumber">Số tài khoản *</label>
+                    <input
+                      id="refundBankAccountNumber"
+                      type="text"
+                      inputMode="numeric"
+                      value={refundBankAccountNumber}
+                      onChange={(e) => setRefundBankAccountNumber(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="refundBankName">Tên ngân hàng *</label>
+                    <input
+                      id="refundBankName"
+                      type="text"
+                      value={refundBankName}
+                      onChange={(e) => setRefundBankName(e.target.value)}
+                      placeholder="Ví dụ: Vietcombank, Techcombank…"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="modal-actions">
-                <button 
-                  className="cancel-btn"
-                  onClick={closeCancelModal}
-                  disabled={cancelling}
-                >
+                <button type="button" className="cancel-btn" onClick={closeCancelModal} disabled={cancelling}>
                   Đóng
                 </button>
-                <button 
+                <button
+                  type="button"
                   className="confirm-btn"
                   onClick={handleCancelBooking}
-                  disabled={cancelling || !cancelReason.trim()}
+                  disabled={cancelConfirmDisabled}
                 >
                   {cancelling ? 'Đang xử lý...' : 'Xác nhận hủy'}
                 </button>

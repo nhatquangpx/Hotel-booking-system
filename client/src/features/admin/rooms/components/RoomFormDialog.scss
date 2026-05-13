@@ -172,6 +172,7 @@
       margin-top: 8px;
 
       button {
+        flex: 1;
         min-width: 140px;
         padding: 12px 24px;
         border-radius: 6px;
@@ -204,7 +205,6 @@
       .cancel-btn {
         background: $button-cancel;
         color: white;
-        margin-left: auto;
 
         &:hover {
           background: $button-cancel-hover;

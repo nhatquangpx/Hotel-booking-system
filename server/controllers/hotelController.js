@@ -5,6 +5,7 @@ const { hasCloudinaryConfig } = require("../config/multerConfig");
 const mongoose = require("mongoose");
 const { resolveEffectiveQrConfig } = require("../utils/paymentQrConfig");
 const { isVnpayConfigComplete } = require("../utils/hotelPaymentConfig");
+const { normalizeRefundMinDaysBeforeCheckIn } = require("../services/bookings/core");
 
 function isQrConfigComplete(qr) {
   return Boolean(
@@ -13,6 +14,23 @@ function isQrConfigComplete(qr) {
       String(qr?.bankName || "").trim() &&
       String(qr?.qrImageUrl || "").trim()
   );
+}
+
+/** Đọc policies.refundMinDaysBeforeCheckIn từ body (bracket hoặc object), fallback prev; chuẩn hoá qua booking core. */
+function resolvePoliciesRefundMinDaysBeforeCheckIn(body, prevVal) {
+  const fromBracket = body["policies[refundMinDaysBeforeCheckIn]"];
+  const fromObject = body.policies?.refundMinDaysBeforeCheckIn;
+  const hasBracket = fromBracket !== undefined && fromBracket !== null && fromBracket !== "";
+  const hasObject = fromObject !== undefined && fromObject !== null && fromObject !== "";
+  const raw = hasBracket ? fromBracket : hasObject ? fromObject : undefined;
+  if (raw === undefined || raw === null || raw === "") {
+    return normalizeRefundMinDaysBeforeCheckIn(prevVal);
+  }
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) {
+    return normalizeRefundMinDaysBeforeCheckIn(prevVal);
+  }
+  return normalizeRefundMinDaysBeforeCheckIn(raw);
 }
 
 function resolveQrTextFields(body = {}, fallback = {}) {
@@ -246,13 +264,23 @@ exports.createHotel = async (req, res) => {
       createData.contactInfo = req.body.contactInfo;
     }
 
-    if (req.body["policies[checkInTime]"] || req.body["policies[checkOutTime]"]) {
+    if (
+      req.body["policies[checkInTime]"] ||
+      req.body["policies[checkOutTime]"] ||
+      req.body["policies[refundMinDaysBeforeCheckIn]"] !== undefined
+    ) {
       createData.policies = {
         checkInTime: req.body["policies[checkInTime]"] || req.body.policies?.checkInTime || "14:00",
-        checkOutTime: req.body["policies[checkOutTime]"] || req.body.policies?.checkOutTime || "12:00"
+        checkOutTime: req.body["policies[checkOutTime]"] || req.body.policies?.checkOutTime || "12:00",
+        refundMinDaysBeforeCheckIn: resolvePoliciesRefundMinDaysBeforeCheckIn(req.body, undefined)
       };
     } else if (req.body.policies && typeof req.body.policies === "object") {
-      createData.policies = req.body.policies;
+      createData.policies = {
+        ...req.body.policies,
+        checkInTime: req.body.policies.checkInTime || "14:00",
+        checkOutTime: req.body.policies.checkOutTime || "12:00",
+        refundMinDaysBeforeCheckIn: resolvePoliciesRefundMinDaysBeforeCheckIn(req.body, undefined)
+      };
     }
 
     const newHotel = new Hotel({
@@ -379,13 +407,32 @@ exports.updateHotel = async (req, res) => {
     }
 
     // Parse policies
-    if (req.body['policies[checkInTime]'] || req.body['policies[checkOutTime]']) {
+    const prevPolicies = existingHotel.policies || {};
+    if (
+      req.body["policies[checkInTime]"] ||
+      req.body["policies[checkOutTime]"] ||
+      req.body["policies[refundMinDaysBeforeCheckIn]"] !== undefined
+    ) {
       updateData.policies = {
-        checkInTime: req.body['policies[checkInTime]'] || req.body.policies?.checkInTime || '14:00',
-        checkOutTime: req.body['policies[checkOutTime]'] || req.body.policies?.checkOutTime || '12:00'
+        checkInTime:
+          req.body["policies[checkInTime]"] || req.body.policies?.checkInTime || prevPolicies.checkInTime || "14:00",
+        checkOutTime:
+          req.body["policies[checkOutTime]"] || req.body.policies?.checkOutTime || prevPolicies.checkOutTime || "12:00",
+        refundMinDaysBeforeCheckIn: resolvePoliciesRefundMinDaysBeforeCheckIn(
+          req.body,
+          prevPolicies.refundMinDaysBeforeCheckIn
+        )
       };
-    } else if (req.body.policies && typeof req.body.policies === 'object') {
-      updateData.policies = req.body.policies;
+    } else if (req.body.policies && typeof req.body.policies === "object") {
+      updateData.policies = {
+        ...req.body.policies,
+        checkInTime: req.body.policies.checkInTime || prevPolicies.checkInTime || "14:00",
+        checkOutTime: req.body.policies.checkOutTime || prevPolicies.checkOutTime || "12:00",
+        refundMinDaysBeforeCheckIn: resolvePoliciesRefundMinDaysBeforeCheckIn(
+          req.body,
+          prevPolicies.refundMinDaysBeforeCheckIn
+        )
+      };
     }
 
     // Parse paymentConfig.qr (ảnh QR chỉ từ upload `qrCodeImage` hoặc giữ URL đã lưu)

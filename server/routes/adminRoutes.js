@@ -43,11 +43,10 @@ router.post("/rooms", uploadRoomImages, roomController.createRoom);
 router.put("/rooms/:id", uploadRoomImages, roomController.updateRoom);
 router.delete("/rooms/:id", roomController.deleteRoom);
 
-// Quản lý đặt phòng
+// Đặt phòng: admin chỉ xem (GET), không chỉnh trạng thái — owner xử lý thanh toán/hủy/hoàn.
 router.get("/bookings", bookingController.getAllBookings);
 router.get("/bookings/user/:userId", bookingController.getUserBookings);
 router.get("/bookings/:id", bookingController.getBookingById);
-router.put("/bookings/:id/status", bookingController.updateBookingStatus);
 
 // Thống kê
 router.get('/dashboard/stats', dashboardController.getAdminStats);
