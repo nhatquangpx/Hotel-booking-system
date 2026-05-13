@@ -16,6 +16,9 @@ const OwnerBookingActionModal = ({
   disableConfirm = false,
   disableReason = '',
   showCheckedInAt = false,
+  showRefundProofUpload = false,
+  refundProofFile = null,
+  onRefundProofChange = null,
 }) => {
   if (!show || !booking) return null;
 
@@ -82,10 +85,43 @@ const OwnerBookingActionModal = ({
           )}
         </div>
 
+        {(booking.guestRefundBankAccountName ||
+          booking.guestRefundBankAccountNumber ||
+          booking.guestRefundBankName) && (
+          <div className="modal-booking-info">
+            <div className="info-row">
+              <span className="info-label">Nhận hoàn (khách cung cấp):</span>
+              <span className="info-value">
+                <strong>
+                  {[booking.guestRefundBankAccountName, booking.guestRefundBankAccountNumber, booking.guestRefundBankName]
+                    .filter(Boolean)
+                    .join(' — ')}
+                </strong>
+              </span>
+            </div>
+          </div>
+        )}
+
         {qrProofMissing && (
           <p className="modal-inline-error">
             Đơn QR chưa có minh chứng chuyển khoản, chưa thể xác nhận đã thanh toán.
           </p>
+        )}
+
+        {showRefundProofUpload && (
+          <div className="modal-refund-proof-block">
+            <label className="refund-proof-label">Minh chứng hoàn tiền:</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => onRefundProofChange?.(e.target.files?.[0] || null)}
+            />
+            <p className="refund-proof-hint">
+              {refundProofFile
+                ? `Đã chọn: ${refundProofFile.name}`
+                : 'Bắt buộc tải ảnh minh chứng trước khi xác nhận hoàn tiền.'}
+            </p>
+          </div>
         )}
 
         <div className="modal-actions">

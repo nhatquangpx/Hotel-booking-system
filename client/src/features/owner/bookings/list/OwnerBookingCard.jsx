@@ -9,6 +9,7 @@ const OwnerBookingCard = ({
   onOpenConfirm,
   onOpenCheckIn,
   onOpenCheckOut,
+  onOpenRefund,
   onPreviewProof,
 }) => {
   const guest = booking.guest || {};
@@ -22,6 +23,13 @@ const OwnerBookingCard = ({
         : 'Không xác định';
   const isCheckedIn = booking.checkedInAt !== null && booking.checkedInAt !== undefined;
   const isCheckedOut = booking.checkedOutAt !== null && booking.checkedOutAt !== undefined;
+
+  const needsOwnerRefundConfirm =
+    paymentStatus === 'cancelled' &&
+    booking.guestCancelSnapshot?.wasPaid &&
+    booking.guestCancelSnapshot?.refundPolicyEligible &&
+    booking.guestCancelRequestedAt &&
+    !booking.ownerRefundCompletedAt;
 
   const renderStatusButtons = () => {
     if (isCheckedOut) {
@@ -46,8 +54,10 @@ const OwnerBookingCard = ({
     if (paymentStatus === 'paid') {
       return (
         <>
-          <button className="status-btn confirmed">Đã xác nhận</button>
-          <button className="status-btn check-in" onClick={() => onOpenCheckIn(booking)}>
+          <button type="button" className="status-btn confirmed" disabled>
+            Đã thanh toán
+          </button>
+          <button type="button" className="status-btn check-in" onClick={() => onOpenCheckIn(booking)}>
             Check-in
           </button>
         </>
@@ -70,9 +80,23 @@ const OwnerBookingCard = ({
     }
 
     if (paymentStatus === 'cancelled') {
+      if (needsOwnerRefundConfirm) {
+        return (
+          <>
+            <button type="button" className="status-btn cancelled" disabled>
+              Đã hủy (chờ hoàn tiền)
+            </button>
+            <button type="button" className="status-btn refund" onClick={() => onOpenRefund(booking)}>
+              Xác nhận đã hoàn tiền
+            </button>
+          </>
+        );
+      }
       return (
         <button className="status-btn cancelled" disabled>
-          Đã hủy
+          {booking.guestCancelSnapshot?.wasPaid && booking.ownerRefundCompletedAt
+            ? 'Đã hủy — đã hoàn tiền'
+            : 'Đã hủy'}
         </button>
       );
     }
@@ -83,6 +107,10 @@ const OwnerBookingCard = ({
   return (
     <div className="booking-card">
       <div className="booking-info">
+        <div className="booking-id-row">
+          <span className="booking-id-label">Mã đơn:</span>
+          <span className="booking-id-value">{booking._id}</span>
+        </div>
         <div className="guest-name">{guest.name || 'N/A'}</div>
 
         {guest.phone && (

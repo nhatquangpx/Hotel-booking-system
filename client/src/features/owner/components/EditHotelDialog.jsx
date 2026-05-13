@@ -25,7 +25,8 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
     starRating: 3,
     policies: {
       checkInTime: '14:00',
-      checkOutTime: '12:00'
+      checkOutTime: '12:00',
+      refundMinDaysBeforeCheckIn: 2
     },
     paymentQr: {
       accountName: '',
@@ -62,7 +63,8 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
         starRating: hotel.starRating || 3,
         policies: {
           checkInTime: hotel.policies?.checkInTime || '14:00',
-          checkOutTime: hotel.policies?.checkOutTime || '12:00'
+          checkOutTime: hotel.policies?.checkOutTime || '12:00',
+          refundMinDaysBeforeCheckIn: hotel.policies?.refundMinDaysBeforeCheckIn ?? 2
         },
         paymentQr: {
           accountName: hotel.paymentConfig?.qr?.accountName || '',
@@ -186,6 +188,12 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
       submitData.append('contactInfo[email]', formData.contactInfo.email);
       submitData.append('policies[checkInTime]', formData.policies.checkInTime);
       submitData.append('policies[checkOutTime]', formData.policies.checkOutTime);
+      submitData.append(
+        'policies[refundMinDaysBeforeCheckIn]',
+        String(
+          Math.min(90, Math.max(0, parseInt(String(formData.policies.refundMinDaysBeforeCheckIn), 10) || 2))
+        )
+      );
       submitData.append('existingImages', JSON.stringify(existingImages));
 
       submitData.append('paymentConfig[qr][accountName]', formData.paymentQr.accountName || '');
@@ -379,6 +387,26 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="form-group">
+            <label htmlFor="policies.refundMinDaysBeforeCheckIn">
+              Ngày tối thiểu trước check-in (điều kiện hoàn tiền — đơn đã thanh toán) *
+            </label>
+            <input
+              type="number"
+              id="policies.refundMinDaysBeforeCheckIn"
+              name="policies.refundMinDaysBeforeCheckIn"
+              min={0}
+              max={90}
+              value={formData.policies.refundMinDaysBeforeCheckIn}
+              onChange={handleChange}
+              required
+            />
+            <p className="form-section-hint">
+              X: với đơn <strong>đã thanh toán</strong>, khách chỉ được coi là đủ điều kiện hoàn tiền khi hủy nếu còn ít
+              nhất X ngày (theo lịch) trước ngày nhận phòng. Hủy đơn chưa thanh toán không dùng ngưỡng này cho hoàn tiền.
+              Mặc định 2.
+            </p>
           </div>
         </div>
 

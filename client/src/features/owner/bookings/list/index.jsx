@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { FaSearch, FaHistory } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import api from '@/apis';
@@ -19,11 +20,15 @@ const OwnerBookingListPage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [refundProofFile, setRefundProofFile] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [proofFilter, setProofFilter] = useState('all');
+  const [showPastBookings, setShowPastBookings] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [previewProofUrl, setPreviewProofUrl] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -36,19 +41,8 @@ const OwnerBookingListPage = () => {
     try {
       setLoading(true);
       const data = await api.ownerBooking.getOwnerBookings(selectedHotelId || undefined);
-      // Lọc chỉ các booking sắp tới (check-in date >= hôm nay)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const upcomingBookings = data.filter(booking => {
-        const checkInDate = new Date(booking.checkInDate);
-        checkInDate.setHours(0, 0, 0, 0);
-        return checkInDate >= today;
-      });
-      // Sắp xếp theo check-in date tăng dần
-      upcomingBookings.sort((a, b) => {
-        return new Date(a.checkInDate) - new Date(b.checkInDate);
-      });
-      setBookings(upcomingBookings);
+      const sorted = [...data].sort((a, b) => new Date(a.checkInDate) - new Date(b.checkInDate));
+      setBookings(sorted);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách đặt phòng');
@@ -76,11 +70,19 @@ const OwnerBookingListPage = () => {
     setShowCheckOutModal(true);
   };
 
+  const openRefundModal = (booking) => {
+    setSelectedBooking(booking);
+    setRefundProofFile(null);
+    setShowRefundModal(true);
+  };
+
   const closeModals = () => {
     setShowConfirmModal(false);
     setShowCheckInModal(false);
     setShowCheckOutModal(false);
+    setShowRefundModal(false);
     setSelectedBooking(null);
+    setRefundProofFile(null);
   };
 
   const handleConfirmBooking = async () => {
@@ -145,31 +147,85 @@ const OwnerBookingListPage = () => {
     }
   };
 
+  const apiErrorMessage = (err) =>
+    (typeof err === 'string' && err) ||
+    (err &&
+      typeof err === 'object' &&
+      (err.response?.data?.message || err.message)) ||
+    'Có lỗi xảy ra';
+
+  const handleConfirmGuestRefund = async () => {
+    if (!selectedBooking) return;
+    try {
+      setProcessing(true);
+      setError(null);
+      const data = await api.ownerBooking.confirmGuestRefund(selectedBooking._id, refundProofFile);
+      const updated = data?.booking;
+      setBookings((prev) =>
+        prev.map((b) =>
+          b._id === selectedBooking._id
+            ? { ...b, ...(updated || {}), ownerRefundCompletedAt: updated?.ownerRefundCompletedAt || new Date() }
+            : b
+        )
+      );
+      closeModals();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const getBookingSource = (booking) => {
     // Nếu không có trường source trong dữ liệu, có thể dựa vào paymentMethod hoặc bỏ qua
     // Tạm thời trả về null nếu không có
     return booking.source || null;
   };
 
-  const filteredBookings = bookings.filter((booking) => {
-    if (statusFilter !== 'all' && booking.paymentStatus !== statusFilter) {
-      return false;
-    }
+  const filteredBookings = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const query = searchQuery.trim().toLowerCase();
 
-    if (methodFilter !== 'all' && booking.paymentMethod !== methodFilter) {
-      return false;
-    }
+    return bookings.filter((booking) => {
+      if (!showPastBookings) {
+        const checkInDate = new Date(booking.checkInDate);
+        checkInDate.setHours(0, 0, 0, 0);
+        if (checkInDate < today) return false;
+      }
 
-    if (proofFilter === 'proof_submitted') {
-      return booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt);
-    }
+      if (query) {
+        const guestName = (booking.guest?.name || '').toLowerCase();
+        const guestPhone = (booking.guest?.phone || '').toLowerCase();
+        const bookingId = (booking._id || '').toLowerCase();
+        if (
+          !guestName.includes(query) &&
+          !guestPhone.includes(query) &&
+          !bookingId.includes(query)
+        ) {
+          return false;
+        }
+      }
 
-    if (proofFilter === 'proof_missing') {
-      return booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt;
-    }
+      if (statusFilter !== 'all' && booking.paymentStatus !== statusFilter) {
+        return false;
+      }
 
-    return true;
-  });
+      if (methodFilter !== 'all' && booking.paymentMethod !== methodFilter) {
+        return false;
+      }
+
+      if (proofFilter === 'proof_submitted') {
+        return booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt);
+      }
+
+      if (proofFilter === 'proof_missing') {
+        return booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt;
+      }
+
+      return true;
+    });
+  }, [bookings, showPastBookings, searchQuery, statusFilter, methodFilter, proofFilter]);
 
   const openDetailModal = async (bookingId) => {
     try {
@@ -219,7 +275,7 @@ const OwnerBookingListPage = () => {
               <span className="booking-guide-item__step">2</span>
               <div>
                 <strong>Xác nhận đơn đúng thời điểm</strong>
-                <p>Chuyển đơn từ chờ xác nhận sang đã xác nhận để sẵn sàng đón khách.</p>
+                <p>Chuyển đơn từ chờ xác nhận sang đã xác nhận để sẵn sàng đón khách. Hoàn tiền chỉ xử lý sau khi khách đã tự hủy đơn đúng chính sách.</p>
               </div>
             </div>
             <div className="booking-guide-item">
@@ -245,6 +301,27 @@ const OwnerBookingListPage = () => {
         )}
 
         {!loading && (
+          <>
+          <div className="booking-search-bar">
+            <div className="search-input-wrapper">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Tìm theo tên khách, SĐT hoặc mã đơn..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className={`past-bookings-toggle ${showPastBookings ? 'active' : ''}`}
+              onClick={() => setShowPastBookings((prev) => !prev)}
+            >
+              <FaHistory />
+              <span>{showPastBookings ? 'Ẩn đơn quá khứ' : 'Hiện đơn quá khứ'}</span>
+            </button>
+          </div>
+
           <div className="booking-filters">
             <div className="filter-group">
               <label htmlFor="statusFilter">Trạng thái</label>
@@ -284,6 +361,7 @@ const OwnerBookingListPage = () => {
               </select>
             </div>
           </div>
+          </>
         )}
 
         {loading ? (
@@ -308,6 +386,7 @@ const OwnerBookingListPage = () => {
                   onOpenConfirm={openConfirmModal}
                   onOpenCheckIn={openCheckInModal}
                   onOpenCheckOut={openCheckOutModal}
+                  onOpenRefund={openRefundModal}
                   onPreviewProof={setPreviewProofUrl}
                 />
               );
@@ -358,6 +437,23 @@ const OwnerBookingListPage = () => {
           onClose={closeModals}
           onPreviewProof={setPreviewProofUrl}
           showCheckedInAt
+        />
+
+        <OwnerBookingActionModal
+          show={showRefundModal}
+          title="Xác nhận hoàn tiền cho khách"
+          prompt="Khách đã hủy đơn (đủ điều kiện hoàn). Sau khi đã chuyển khoản hoàn / hoàn VNPay, xác nhận cho"
+          booking={selectedBooking}
+          processing={processing}
+          confirmText="Đã hoàn tiền cho khách"
+          onConfirm={handleConfirmGuestRefund}
+          onClose={closeModals}
+          onPreviewProof={setPreviewProofUrl}
+          showRefundProofUpload
+          refundProofFile={refundProofFile}
+          onRefundProofChange={setRefundProofFile}
+          disableConfirm={!refundProofFile}
+          disableReason={!refundProofFile ? 'Vui lòng tải ảnh minh chứng hoàn tiền' : ''}
         />
         <OwnerBookingDetailModal
           show={showDetailModal}

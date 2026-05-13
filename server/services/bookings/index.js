@@ -9,8 +9,12 @@ const {
   calculateAmount,
   checkRoomAvailability,
   validateBookingDates,
+  getEffectiveRefundMinDaysBeforeCheckIn,
+  normalizeRefundMinDaysBeforeCheckIn,
   checkBookingPermission,
+  canGuestCancelBooking,
   canCancelBooking,
+  getGuestRefundPolicyEligibility,
   getBookingWithPopulate
 } = require("./core");
 
@@ -29,16 +33,16 @@ const {
   getBookingsByOwner,
   getBookingById: getOwnerBookingById,
   updateBookingStatus: updateOwnerBookingStatus,
+  confirmGuestRefund: confirmOwnerGuestRefund,
   checkIn,
   checkOut
 } = require("./owner");
 
-// Admin booking services
+// Admin booking services (chỉ đọc — không cập nhật trạng thái đơn)
 const {
   getAllBookings,
   getUserBookings,
   getBookingById: getAdminBookingById,
-  updateBookingStatus: updateAdminBookingStatus
 } = require("./admin");
 
 module.exports = {
@@ -47,8 +51,12 @@ module.exports = {
   calculateAmount,
   checkRoomAvailability,
   validateBookingDates,
+  getEffectiveRefundMinDaysBeforeCheckIn,
+  normalizeRefundMinDaysBeforeCheckIn,
   checkBookingPermission,
+  canGuestCancelBooking,
   canCancelBooking,
+  getGuestRefundPolicyEligibility,
   getBookingWithPopulate,
   
   // Guest services
@@ -63,6 +71,7 @@ module.exports = {
   getBookingsByOwner,
   getOwnerBookingById,
   updateOwnerBookingStatus,
+  confirmOwnerGuestRefund,
   checkIn,
   checkOut,
   
@@ -70,5 +79,4 @@ module.exports = {
   getAllBookings,
   getUserBookings,
   getAdminBookingById,
-  updateAdminBookingStatus
 };

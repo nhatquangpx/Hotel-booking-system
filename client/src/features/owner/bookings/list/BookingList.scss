@@ -97,6 +97,77 @@
     font-size: 1.1rem;
   }
 
+  .booking-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+
+    .search-input-wrapper {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: $text-secondary;
+        font-size: 0.9rem;
+        pointer-events: none;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+        border: 1px solid $border-light;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background: $bg-white;
+        color: $text-primary;
+        transition: border-color 0.2s;
+
+        &::placeholder {
+          color: $text-secondary;
+          font-size: 0.88rem;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: $lotte-primary;
+          box-shadow: 0 0 0 2px rgba($lotte-primary, 0.12);
+        }
+      }
+    }
+
+    .past-bookings-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border: 1px solid $border-light;
+      border-radius: 8px;
+      background: $bg-white;
+      color: $text-secondary;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: $lotte-primary;
+        color: $lotte-primary;
+      }
+
+      &.active {
+        background: rgba($lotte-primary, 0.1);
+        border-color: $lotte-primary;
+        color: $lotte-primary;
+      }
+    }
+  }
+
   .booking-filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -150,6 +221,27 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+
+      .booking-id-row {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.82rem;
+        color: $text-secondary;
+
+        .booking-id-label {
+          font-weight: 600;
+        }
+
+        .booking-id-value {
+          font-family: 'Courier New', Courier, monospace;
+          background: rgba(0, 0, 0, 0.05);
+          padding: 0.1rem 0.4rem;
+          border-radius: 4px;
+          user-select: all;
+          letter-spacing: 0.02em;
+        }
+      }
 
       .guest-name {
         font-size: 1.25rem;
@@ -313,6 +405,16 @@
           opacity: 0.7;
         }
 
+        &.refund {
+          background-color: #fff0f0;
+          color: #9a1c1c;
+          border: 1px solid #e8a0a0;
+
+          &:hover {
+            background-color: #ffe4e4;
+          }
+        }
+
         &:disabled {
           cursor: not-allowed;
           opacity: 0.7;
@@ -334,6 +436,8 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 16px;
+  overflow-y: auto;
 
   .confirmation-modal {
     background-color: white;
@@ -341,6 +445,8 @@
     padding: 2rem;
     max-width: 500px;
     width: 90%;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
     h3 {
@@ -444,10 +550,12 @@
 
       .modal-btn-tooltip-wrapper {
         display: block;
+        width: 100%;
       }
 
       .modal-btn {
         flex: 1;
+        width: 100%;
         padding: 0.75rem 1.5rem;
         border: none;
         border-radius: 8px;
@@ -496,12 +604,42 @@
       font-size: 0.92rem;
       line-height: 1.45;
     }
+
+    .modal-refund-proof-block {
+      margin: 0.75rem 0;
+      padding: 0.85rem 1rem;
+      border: 1px solid $border-medium;
+      border-radius: 8px;
+      background: $luxury-white;
+
+      .refund-proof-label {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: $luxury-grey-dark;
+      }
+
+      input[type='file'] {
+        width: 100%;
+        font-size: 0.9rem;
+      }
+
+      .refund-proof-hint {
+        margin: 0.4rem 0 0;
+        font-size: 0.82rem;
+        color: #666;
+        line-height: 1.4;
+      }
+    }
   }
 }
 
 .confirmation-modal.booking-detail-modal {
   max-width: 980px;
   position: relative;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 
   .modal-close-x {
     position: absolute;
@@ -632,6 +770,15 @@
       max-width: none;
     }
 
+    .booking-search-bar {
+      flex-direction: column;
+      align-items: stretch;
+
+      .past-bookings-toggle {
+        justify-content: center;
+      }
+    }
+
     .booking-card {
       flex-direction: column;
       align-items: flex-start;
@@ -648,6 +795,7 @@
     .confirmation-modal {
       padding: 1.5rem;
       width: 95%;
+      max-height: calc(100vh - 24px);
 
       .modal-actions {
         flex-direction: column;

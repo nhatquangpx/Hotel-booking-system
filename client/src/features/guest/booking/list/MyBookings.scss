@@ -295,13 +295,17 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 16px;
+    overflow-y: auto;
 
     .cancel-modal {
       background-color: white;
       padding: 30px;
       border-radius: 8px;
       width: 90%;
-      max-width: 500px;
+      max-width: 560px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
       h2 {
@@ -327,7 +331,8 @@
           color: $text-medium;
         }
 
-        textarea {
+        textarea,
+        input[type='text'] {
           width: 100%;
           padding: 12px;
           border: 1px solid $border-medium;
@@ -341,6 +346,43 @@
             outline: none;
           }
         }
+
+        input[type='text'] {
+          min-height: auto;
+          resize: none;
+        }
+      }
+
+      .cancel-modal__hint {
+        @include body-base-alt;
+        padding: 12px;
+        border-radius: 6px;
+        background: $bg-light-alt;
+        border: 1px solid $border-medium;
+        margin-bottom: 16px;
+        color: $text-medium;
+
+        &--ok {
+          border-color: rgba(34, 139, 34, 0.35);
+          background: rgba(34, 139, 34, 0.06);
+        }
+
+        &--warn {
+          border-color: rgba(200, 120, 0, 0.4);
+          background: rgba(255, 193, 7, 0.12);
+        }
+      }
+
+      .cancel-modal__bank-block {
+        margin-bottom: 20px;
+        padding-top: 8px;
+        border-top: 1px solid $border-light;
+
+        h3 {
+          @include heading-sm;
+          margin: 12px 0 8px;
+          color: $text-medium;
+        }
       }
 
       .modal-actions {
@@ -349,6 +391,8 @@
         gap: 15px;
 
         button {
+          flex: 1;
+          min-width: 0;
           padding: 10px 20px;
           border: none;
           border-radius: 4px;
@@ -397,12 +441,14 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 16px;
+    overflow-y: auto;
 
     .booking-detail-modal {
       background: white;
       width: 92%;
       max-width: 900px;
-      max-height: 90vh;
+      max-height: calc(100vh - 32px);
       overflow: auto;
       border-radius: 10px;
       padding: 20px;

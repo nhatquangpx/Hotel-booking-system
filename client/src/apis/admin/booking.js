@@ -30,26 +30,6 @@ export const adminBookingAPI = {
       throw error.response?.data || error.message;
     }
   },
-
-  // Cập nhật trạng thái đặt phòng
-  updateBookingStatus: async (id, status) => {
-    try {
-      const response = await api.put(`/admin/bookings/${id}/status`, { status });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // Xóa đặt phòng
-  deleteBooking: async (id) => {
-    try {
-      const response = await api.delete(`/admin/bookings/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  }
 };
 
 export default adminBookingAPI; 

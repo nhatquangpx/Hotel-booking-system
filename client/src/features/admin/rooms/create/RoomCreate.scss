@@ -171,6 +171,7 @@
         background: $button-primary;
         color: $text-white;
         font-weight: $font-bold;
+        flex: 1;
         padding: 10px 24px;
         min-width: 120px;
         border: none;
@@ -192,13 +193,13 @@
         background: $button-cancel;
         color: white;
         font-weight: $font-bold;
+        flex: 1;
         padding: 10px 24px;
         min-width: 120px;
         border: none;
         border-radius: 6px;
         @include button-text;
         cursor: pointer;
-        margin-left: auto;
 
         &:hover {
           background: $button-cancel-hover;

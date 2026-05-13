@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require("../middlewares/authentication");
 const { isOwner } = require("../middlewares/authorization");
-const { uploadHotelPhotosAndQr, uploadRoomImages } = require('../config/multerConfig');
+const { uploadHotelPhotosAndQr, uploadRoomImages, uploadPaymentProof } = require('../config/multerConfig');
 const userController = require('../controllers/userController');
 const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
@@ -37,6 +37,7 @@ router.delete('/rooms/:id', roomController.deleteRoom);
 router.get('/bookings', bookingController.getBookingsByOwner);
 router.get('/bookings/:id', bookingController.getBookingById);
 router.put('/bookings/:id/status', bookingController.updateBookingStatus);
+router.post('/bookings/:id/confirm-guest-refund', uploadPaymentProof, bookingController.confirmGuestRefund);
 router.post('/bookings/:id/check-in', bookingController.checkIn);
 router.post('/bookings/:id/check-out', bookingController.checkOut);
 

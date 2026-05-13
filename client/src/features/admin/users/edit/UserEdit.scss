@@ -67,6 +67,7 @@
         color: $text-white;
         font-weight: $font-bold;
         @include button-text;
+        flex: 1;
         padding: 8px 20px;
         min-width: 120px;
         border-radius: 6px;
@@ -81,12 +82,12 @@
         color: white;
         font-weight: $font-bold;
         @include button-text;
+        flex: 1;
         padding: 8px 20px;
         min-width: 120px;
         border-radius: 6px;
         border: none;
         cursor: pointer;
-        margin-left: auto;
         &:hover {
           background: $button-cancel-hover;
         }

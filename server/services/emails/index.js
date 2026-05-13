@@ -5,7 +5,7 @@
 
 const { sendEmail } = require("./emailService");
 const { sendNewPasswordEmail } = require("./authEmail");
-const { sendReceiptEmail, sendCheckInReminderEmail } = require("./bookingEmail");
+const { sendReceiptEmail, sendCheckInReminderEmail, sendRefundProcessedEmail } = require("./bookingEmail");
 const { sendCheckInReminders, sendCheckInReminderIfNeeded } = require("./reminderEmailService");
 const { send2FAOTPEmail, send2FABackupCodesEmail } = require("./twoFactorEmail");
 
@@ -19,6 +19,7 @@ module.exports = {
   // Booking emails
   sendReceiptEmail,
   sendCheckInReminderEmail,
+  sendRefundProcessedEmail,
   
   // Reminder email service
   sendCheckInReminders,

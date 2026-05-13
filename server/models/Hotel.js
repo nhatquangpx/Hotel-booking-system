@@ -60,7 +60,12 @@ const HotelSchema = new mongoose.Schema(
     },
     policies: {
       checkInTime: { type: String, default: "14:00" },
-      checkOutTime: { type: String, default: "12:00" }
+      checkOutTime: { type: String, default: "12:00" },
+      /**
+       * X: số ngày (theo lịch) tối thiểu còn lại đến ngày nhận phòng để đơn đã thanh toán được coi là đủ điều kiện hoàn tiền khi khách hủy (getGuestRefundPolicyEligibility).
+       * Hủy đơn chưa thanh toán không dùng ngưỡng này. Mặc định 2.
+       */
+      refundMinDaysBeforeCheckIn: { type: Number, min: 0, max: 90, default: 2 }
     },
     // Không trả về mặc định trên API public; server dùng Hotel.PAYMENT_CONFIG_SELECT khi cần đọc paymentConfig (kể cả VNPay secret).
     paymentConfig: {

@@ -31,10 +31,12 @@ export const userBookingAPI = {
     }
   },
 
-  // Hủy đặt phòng
-  cancelBooking: async (id, reason) => {
+  // Hủy đặt phòng (body: cancellationReason, refundBankAccountName, refundBankAccountNumber, refundBankName)
+  cancelBooking: async (id, body) => {
     try {
-      const response = await api.put(`/guest/bookings/${id}/cancel`, { cancellationReason: reason });
+      const payload =
+        typeof body === 'string' ? { cancellationReason: body } : body || {};
+      const response = await api.put(`/guest/bookings/${id}/cancel`, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

@@ -1,9 +1,6 @@
 const Booking = require("../../models/Booking");
-const PaymentTransaction = require("../../models/PaymentTransaction");
 const {
-  checkBookingPermission,
   getBookingById: getBookingByIdCore,
-  refreshRoomBookingStatus
 } = require("./core");
 
 /**
@@ -92,67 +89,8 @@ const getBookingById = async (bookingId, user) => {
   });
 };
 
-/**
- * Update booking status (admin has full access)
- * @param {String} bookingId - Booking ID
- * @param {String} status - New status
- * @param {Object} user - User object
- * @returns {Promise<Object>} Updated booking
- */
-const updateBookingStatus = async (bookingId, status, user) => {
-  const booking = await Booking.findById(bookingId);
-
-  if (!booking) {
-    throw new Error("Đơn đặt phòng không tồn tại");
-  }
-
-  // Admin has full access, but we still check permission for consistency
-  if (!checkBookingPermission(booking, user)) {
-    throw new Error("Bạn không có quyền thực hiện thao tác này");
-  }
-
-  // Validate status
-  const validStatuses = ["pending", "paid", "cancelled"];
-  if (!validStatuses.includes(status)) {
-    throw new Error("Trạng thái không hợp lệ");
-  }
-
-  if (
-    status === "paid" &&
-    booking.paymentMethod === "qr_code" &&
-    !booking.qrPaymentProofUrl
-  ) {
-    throw new Error("Đơn QR chưa có minh chứng chuyển khoản, không thể cập nhật đã thanh toán");
-  }
-
-  // Update status
-  booking.paymentStatus = status;
-  await booking.save();
-
-  // Keep payment transaction history consistent with booking status.
-  if (status === "paid") {
-    await PaymentTransaction.updateMany(
-      { booking: booking._id, status: "pending" },
-      { $set: { status: "success", errorMessage: undefined } }
-    );
-  } else if (status === "cancelled") {
-    await PaymentTransaction.updateMany(
-      { booking: booking._id, status: "pending" },
-      { $set: { status: "cancelled" } }
-    );
-  }
-
-  // Refresh room bookingStatus (especially when admin cancels or reactivates a booking)
-  if (booking.room) {
-    await refreshRoomBookingStatus(booking.room);
-  }
-
-  return booking;
-};
-
 module.exports = {
   getAllBookings,
   getUserBookings,
   getBookingById,
-  updateBookingStatus
 };

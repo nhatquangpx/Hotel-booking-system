@@ -130,14 +130,23 @@ const GuestBookingPage = () => {
           });
           setPricePreview(preview);
           setTotalAmount(preview.finalAmount ?? 0);
-        } catch {
-          const checkInDate = new Date(bookingData.checkInDate);
-          const checkOutDate = new Date(bookingData.checkOutDate);
-          const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-          const pr = roomResponse.price;
-          const nightly = Math.max(0, (pr?.regular ?? 0) - (pr?.discount ?? 0));
-          setPricePreview(null);
-          setTotalAmount(nightly * nights);
+          setError(null);
+        } catch (previewErr) {
+          const status = previewErr?.response?.status;
+          const msg = previewErr?.response?.data?.message;
+          if ((status === 400 || status === 404) && msg) {
+            setError(msg);
+            setPricePreview(null);
+            setTotalAmount(0);
+          } else {
+            const checkInDate = new Date(bookingData.checkInDate);
+            const checkOutDate = new Date(bookingData.checkOutDate);
+            const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+            const pr = roomResponse.price;
+            const nightly = Math.max(0, (pr?.regular ?? 0) - (pr?.discount ?? 0));
+            setPricePreview(null);
+            setTotalAmount(nightly * nights);
+          }
         }
         setLoading(false);
       } catch (err) {
@@ -701,7 +710,10 @@ const GuestBookingPage = () => {
                       type="button"
                       className="submit-btn"
                       onClick={handleSubmit}
-                      disabled={submitting}
+                      disabled={
+                        submitting ||
+                        (!resumeBookingId && Boolean(error) && !pricePreview)
+                      }
                     >
                       {submitting 
                         ? (formData.paymentMethod === 'vnpay' ? 'Đang chuyển đến trang thanh toán...' : 'Đang xử lý...') 

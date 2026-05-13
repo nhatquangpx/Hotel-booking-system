@@ -8,6 +8,41 @@ const Hotel = require("../../models/Hotel");
  * Helper functions shared across all booking operations
  */
 
+const DEFAULT_REFUND_MIN_DAYS_BEFORE_CHECKIN = 2;
+
+/**
+ * Chuẩn hoá một giá trị policies.refundMinDaysBeforeCheckIn (0–90, mặc định khi thiếu/không hợp lệ).
+ * Dùng chung cho hotel API và booking (một nguồn sự thật).
+ * @param {unknown} raw
+ * @returns {number}
+ */
+const normalizeRefundMinDaysBeforeCheckIn = (raw) => {
+  let v = raw;
+  if (typeof v === "string") {
+    v = v.trim();
+  }
+  if (v === undefined || v === null || v === "") {
+    return DEFAULT_REFUND_MIN_DAYS_BEFORE_CHECKIN;
+  }
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) {
+    return DEFAULT_REFUND_MIN_DAYS_BEFORE_CHECKIN;
+  }
+  return Math.min(90, Math.floor(n));
+};
+
+/**
+ * X ngày tối thiểu trước ngày nhận phòng theo chính sách khách sạn — chỉ dùng khi xét **hoàn tiền cho đơn đã thanh toán**
+ * (getGuestRefundPolicyEligibility). Không áp dụng cho đơn pending.
+ */
+const getEffectiveRefundMinDaysBeforeCheckIn = (hotelOrPolicies) => {
+  const policies =
+    hotelOrPolicies && hotelOrPolicies.policies !== undefined
+      ? hotelOrPolicies.policies
+      : hotelOrPolicies;
+  return normalizeRefundMinDaysBeforeCheckIn(policies?.refundMinDaysBeforeCheckIn);
+};
+
 /**
  * Calculate number of nights between check-in and check-out dates
  * @param {Date|String} checkInDate - Check-in date
@@ -189,40 +224,55 @@ const checkBookingPermission = (booking, user) => {
 };
 
 /**
- * Check if booking can be cancelled
- * @param {Object} booking - Booking object
- * @returns {Object} { canCancel: Boolean, error: String|null }
+ * Khách có thể gửi hủy đơn (chưa check-in/out, chưa hủy).
+ * Điều kiện hoàn tiền tách riêng: {@link getGuestRefundPolicyEligibility}.
  */
-const canCancelBooking = (booking) => {
+const canGuestCancelBooking = (booking) => {
   if (!booking) {
     return { canCancel: false, error: "Không tìm thấy đơn đặt phòng" };
   }
 
-  // Check if already paid
-  if (booking.paymentStatus === "paid") {
-    return { canCancel: false, error: "Không thể hủy đơn đặt phòng đã thanh toán" };
-  }
-
-  // Check if already cancelled
   if (booking.paymentStatus === "cancelled") {
     return { canCancel: false, error: "Đơn đặt phòng đã được hủy trước đó" };
   }
 
-  // Check if check-in date is less than 2 days away
-  const checkInDate = new Date(booking.checkInDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const daysUntilCheckIn = Math.ceil((checkInDate - today) / (1000 * 60 * 60 * 24));
+  if (booking.paymentStatus !== "pending" && booking.paymentStatus !== "paid") {
+    return { canCancel: false, error: "Không thể hủy đơn đặt phòng này" };
+  }
 
-  if (daysUntilCheckIn < 2) {
+  if (booking.checkedInAt || booking.checkedOutAt) {
     return {
       canCancel: false,
-      error: "Không thể hủy đơn đặt phòng trong vòng 2 ngày trước ngày nhận phòng"
+      error:
+        "Không thể hủy đơn sau khi đã check-in hoặc check-out. Vui lòng liên hệ khách sạn."
     };
   }
 
   return { canCancel: true, error: null };
+};
+
+/** @deprecated Dùng canGuestCancelBooking */
+const canCancelBooking = canGuestCancelBooking;
+
+/**
+ * Đơn đã thanh toán có đủ số ngày trước check-in theo chính sách hoàn tiền của KS hay không.
+ * @returns {{ eligible: boolean, minNoticeDays: number, daysUntilCheckIn: number }}
+ */
+const getGuestRefundPolicyEligibility = (booking) => {
+  if (!booking || booking.paymentStatus !== "paid") {
+    return { eligible: false, minNoticeDays: 0, daysUntilCheckIn: 0 };
+  }
+  const minNoticeDays = getEffectiveRefundMinDaysBeforeCheckIn(booking.hotel || {});
+  const checkInDate = new Date(booking.checkInDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  checkInDate.setHours(0, 0, 0, 0);
+  const daysUntilCheckIn = Math.ceil((checkInDate - today) / (1000 * 60 * 60 * 24));
+  return {
+    eligible: daysUntilCheckIn >= minNoticeDays,
+    minNoticeDays,
+    daysUntilCheckIn
+  };
 };
 
 /**
@@ -340,9 +390,14 @@ module.exports = {
   calculateNights,
   calculateAmount,
   checkRoomAvailability,
+  DEFAULT_REFUND_MIN_DAYS_BEFORE_CHECKIN,
+  normalizeRefundMinDaysBeforeCheckIn,
+  getEffectiveRefundMinDaysBeforeCheckIn,
   validateBookingDates,
   checkBookingPermission,
+  canGuestCancelBooking,
   canCancelBooking,
+  getGuestRefundPolicyEligibility,
   getBookingWithPopulate,
   getBookingById,
   refreshRoomBookingStatus

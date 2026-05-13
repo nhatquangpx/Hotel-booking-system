@@ -18,16 +18,12 @@ const AdminBookingDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [newStatus, setNewStatus] = useState('');
-
   useEffect(() => {
     const fetchBookingData = async () => {
       try {
         setLoading(true);
         const data = await api.adminBooking.getBookingById(id);
         setBooking(data);
-        setNewStatus(data.status);
         setError(null);
       } catch (err) {
         setError(err.message || 'Có lỗi xảy ra khi tải thông tin đặt phòng');
@@ -38,26 +34,6 @@ const AdminBookingDetailPage = () => {
 
     fetchBookingData();
   }, [id]);
-
-  const handleUpdateClick = () => {
-    setShowUpdateModal(true);
-  };
-
-  const handleConfirmUpdate = async () => {
-    try {
-      await api.adminBooking.updateBookingStatus(id, { status: newStatus });
-      setBooking(prev => ({ ...prev, status: newStatus }));
-      setShowUpdateModal(false);
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi cập nhật trạng thái đặt phòng');
-    }
-  };
-
-  const handleCancelUpdate = () => {
-    setShowUpdateModal(false);
-    setNewStatus(booking.status);
-  };
-
 
   if (loading) return (
     <AdminLayout>
@@ -117,11 +93,11 @@ const AdminBookingDetailPage = () => {
             </tr>
             <tr>
               <td className="label">Nhận phòng:</td>
-              <td className="value">{formatDate(booking.checkInDate || booking.checkIn)}</td>
+              <td className="value">{formatDate(booking.checkInDate)}</td>
             </tr>
             <tr>
               <td className="label">Trả phòng:</td>
-              <td className="value">{formatDate(booking.checkOutDate || booking.checkOut)}</td>
+              <td className="value">{formatDate(booking.checkOutDate)}</td>
             </tr>
             <tr>
               <td className="label">Tổng tiền:</td>
@@ -140,8 +116,17 @@ const AdminBookingDetailPage = () => {
           </div>
           <div className="payment-method">
             <span className="label">Phương thức thanh toán:</span>
-            <span>Thanh toán qua mã QR</span>
+            <span>
+              {booking.paymentMethod === 'vnpay'
+                ? 'VNPay'
+                : booking.paymentMethod === 'qr_code'
+                  ? 'QR chuyển khoản'
+                  : booking.paymentMethod || '—'}
+            </span>
           </div>
+          <p className="admin-booking-detail-note">
+            Trang này chỉ xem thông tin đơn. Cập nhật trạng thái thanh toán / hoàn tiền do chủ khách sạn trên trang owner.
+          </p>
         </div>
         
         {booking.cancellationReason && (
@@ -160,43 +145,6 @@ const AdminBookingDetailPage = () => {
           </div>
         )}
       </div>
-
-      {showUpdateModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Cập nhật trạng thái đặt phòng</h2>
-              <button className="close-button" onClick={handleCancelUpdate}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <p>
-                Cập nhật trạng thái cho đơn đặt phòng #{booking._id.slice(-6).toUpperCase()} - 
-                {booking.hotelName} ({formatDate(booking.checkIn)} - {formatDate(booking.checkOut)})
-              </p>
-              
-              <div className="form-group">
-                <label htmlFor="status">Trạng thái mới</label>
-                <select
-                  id="status"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  required
-                >
-                  <option value="pending">Chờ xác nhận</option>
-                  <option value="confirmed">Đã xác nhận</option>
-                  <option value="cancelled">Đã hủy</option>
-                  <option value="completed">Hoàn thành</option>
-                </select>
-              </div>
-              
-              <div className="form-actions">
-                <button className="cancel-btn" onClick={handleCancelUpdate}>Hủy</button>
-                <button className="submit-btn" onClick={handleConfirmUpdate}>Cập nhật</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 };
