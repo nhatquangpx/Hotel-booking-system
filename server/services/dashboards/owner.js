@@ -1,6 +1,9 @@
 const Hotel = require('../../models/Hotel');
 const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
+const Review = require('../../models/Review');
+const SalePromotion = require('../../models/SalePromotion');
+const { vnDateKey } = require('../sale/salePricingService');
 const {
   DAYS_OF_WEEK,
   getScopedHotelIdsForOwner,
@@ -28,12 +31,15 @@ const getDashboardStats = async (ownerId, hotelId) => {
       todayRevenue: 0,
       availableRooms: 0,
       totalRooms: 0,
-      roomsToClean: 0,
-      brokenRooms: 0
+      equipmentAttentionCount: 0,
+      activeSalesCount: 0,
+      reviewsAwaitingReply: 0,
     };
   }
 
   const { today, tomorrow } = getTodayDateRange();
+  /** Cùng chuẩn YYYY-MM-DD (Asia/Ho_Chi_Minh) với SalePromotion & salePricingService */
+  const ymdToday = vnDateKey(new Date());
 
   // Calculate today's revenue
   const todayRevenue = await calculateRevenueInRange(hotelIds, today, tomorrow);
@@ -41,29 +47,40 @@ const getDashboardStats = async (ownerId, hotelId) => {
   // Get room statistics
   const rooms = await Room.find({ hotelId: { $in: hotelIds } });
   const totalRooms = rooms.length;
-  const availableRooms = rooms.filter(r => 
-    r.bookingStatus === 'empty' && r.roomStatus === 'active'
+  const availableRooms = rooms.filter(
+    (r) => r.bookingStatus === 'empty' && r.roomStatus === 'active'
   ).length;
-  const brokenRooms = rooms.filter(r => r.roomStatus === 'maintenance').length;
 
-  // Get rooms to clean (checked out today but not cleaned yet)
-  const todayCheckouts = await Booking.find({
+  /** Thiết bị Hỏng / Đang sửa chữa (roomEquipment) */
+  const equipmentAgg = await Room.aggregate([
+    { $match: { hotelId: { $in: hotelIds } } },
+    { $unwind: '$roomEquipment' },
+    { $match: { 'roomEquipment.status': { $in: ['broken', 'under_repair'] } } },
+    { $count: 'n' },
+  ]);
+  const equipmentAttentionCount = equipmentAgg[0]?.n || 0;
+
+  /** Chương trình sale bật và đang trong khoảng ngày (theo chuỗi YYYY-MM-DD) */
+  const activeSalesCount = await SalePromotion.countDocuments({
+    hotelId: { $in: hotelIds },
+    isActive: true,
+    startDate: { $lte: ymdToday },
+    endDate: { $gte: ymdToday },
+  });
+
+  /** Đánh giá chưa có phản hồi từ chủ khách sạn */
+  const reviewsAwaitingReply = await Review.countDocuments({
     hotel: { $in: hotelIds },
-    checkedOutAt: { $gte: today, $lt: tomorrow }
-  }).select('room').lean();
-  
-  const checkoutRoomIds = todayCheckouts.map(b => b.room);
-  const roomsToClean = await Room.countDocuments({
-    _id: { $in: checkoutRoomIds },
-    bookingStatus: { $in: ['occupied', 'pending'] }
+    $or: [{ ownerResponse: { $exists: false } }, { ownerResponse: null }, { ownerResponse: '' }],
   });
 
   return {
     todayRevenue,
     availableRooms,
     totalRooms,
-    roomsToClean,
-    brokenRooms
+    equipmentAttentionCount,
+    activeSalesCount,
+    reviewsAwaitingReply,
   };
 };
 
@@ -136,11 +153,15 @@ const getTodayTasks = async (ownerId, hotelId) => {
     return [];
   }
 
-  const ownerHotels = await Hotel.find({ _id: { $in: hotelIds } }).select('_id policies');
+  const ownerHotels = await Hotel.find({ _id: { $in: hotelIds } }).select('_id policies name');
   const hotelPoliciesMap = {};
+  const hotelNameMap = {};
   ownerHotels.forEach((hotel) => {
-    hotelPoliciesMap[hotel._id.toString()] = hotel.policies;
+    const id = hotel._id.toString();
+    hotelPoliciesMap[id] = hotel.policies;
+    hotelNameMap[id] = hotel.name || '';
   });
+  const multiHotelScope = hotelIds.length > 1;
 
   const { today, tomorrow } = getTodayDateRange();
   const tasks = [];
@@ -164,7 +185,8 @@ const getTodayTasks = async (ownerId, hotelId) => {
       type: 'checkin',
       text: `Khách đến - Phòng ${booking.room?.roomNumber || 'N/A'}`,
       time: checkInTime,
-      urgent: false
+      urgent: false,
+      linkTo: '/owner/bookings',
     });
   });
 
@@ -187,30 +209,10 @@ const getTodayTasks = async (ownerId, hotelId) => {
       type: 'checkout',
       text: `Check-out phòng ${booking.room?.roomNumber || 'N/A'}`,
       time: checkOutTime,
-      urgent: false
+      urgent: false,
+      linkTo: '/owner/bookings',
     });
   });
-
-  // Cleaning tasks (checked out today but not cleaned)
-  const checkedOutBookings = await Booking.find({
-    hotel: { $in: hotelIds },
-    checkedOutAt: { $gte: today, $lt: tomorrow }
-  })
-    .populate('room', 'roomNumber bookingStatus')
-    .lean();
-
-  const roomsToClean = checkedOutBookings
-    .filter(b => b.room && (b.room.bookingStatus === 'occupied' || b.room.bookingStatus === 'pending'))
-    .map(b => b.room.roomNumber);
-
-  if (roomsToClean.length > 0) {
-    tasks.push({
-      id: 'cleaning',
-      type: 'cleaning',
-      text: `Dọn phòng ${roomsToClean.join(', ')}`,
-      urgent: true
-    });
-  }
 
   // Maintenance tasks
   const brokenRooms = await Room.find({
@@ -223,9 +225,52 @@ const getTodayTasks = async (ownerId, hotelId) => {
       id: `maintenance-${room._id}`,
       type: 'maintenance',
       text: `Sửa chữa phòng ${room.roomNumber}`,
-      urgent: true
+      urgent: true,
+      linkTo: '/owner/rooms',
     });
   });
+
+  // Thiết bị phòng: Hỏng / Đang sửa chữa (roomEquipment)
+  const roomsWithEquipmentIssues = await Room.find({
+    hotelId: { $in: hotelIds },
+    roomEquipment: { $elemMatch: { status: { $in: ['broken', 'under_repair'] } } },
+  })
+    .select('roomNumber hotelId +roomEquipment')
+    .lean();
+
+  for (const room of roomsWithEquipmentIssues) {
+    const hotelKey = room.hotelId?.toString();
+    const prefix =
+      multiHotelScope && hotelKey && hotelNameMap[hotelKey]
+        ? `${hotelNameMap[hotelKey]} — `
+        : '';
+    const roomNo = room.roomNumber != null ? String(room.roomNumber) : '';
+
+    for (const eq of room.roomEquipment || []) {
+      if (eq.status !== 'broken' && eq.status !== 'under_repair') continue;
+      const eqId = eq._id != null ? String(eq._id) : '';
+      if (!eqId) continue;
+      const name = String(eq.name || 'Thiết bị').trim() || 'Thiết bị';
+
+      if (eq.status === 'broken') {
+        tasks.push({
+          id: `equipment-broken-${room._id}-${eqId}`,
+          type: 'equipment_broken',
+          text: `${prefix}Thiết bị hỏng — Phòng ${roomNo}: ${name}`,
+          urgent: true,
+          linkTo: '/owner/equipment',
+        });
+      } else {
+        tasks.push({
+          id: `equipment-repair-${room._id}-${eqId}`,
+          type: 'equipment_under_repair',
+          text: `${prefix}Thiết bị đang sửa — Phòng ${roomNo}: ${name}`,
+          urgent: false,
+          linkTo: '/owner/equipment',
+        });
+      }
+    }
+  }
 
   return tasks;
 };

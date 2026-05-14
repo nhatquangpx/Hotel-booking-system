@@ -1,0 +1,846 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+/** Màu trạng thái thiết bị: hoạt động / sửa chữa / hỏng — dùng chung cho select. */
+@mixin equipment-status-select-variants {
+  &--status-operational {
+    border-color: $success-dark;
+    color: $success-dark;
+    background: rgba($status-success-bg, 0.65);
+  }
+
+  &--status-under_repair {
+    border-color: $status-warning-text;
+    color: $status-warning-text;
+    background: rgba($status-warning-bg, 0.75);
+  }
+
+  &--status-broken {
+    border-color: $error;
+    color: $error-dark;
+    background: rgba($status-error-bg, 0.85);
+  }
+}
+
+.owner-equipment-page {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  min-height: 100%;
+
+  > .owner-guide-collapsible {
+    margin-bottom: 1.5rem;
+  }
+
+  &__guide-card {
+    margin-bottom: 0;
+    padding: 1.15rem 1.2rem;
+    border: 1px solid rgba($lotte-primary, 0.22);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba($lotte-primary, 0.08) 0%, rgba($lotte-primary, 0.03) 100%);
+    box-shadow: 0 4px 16px rgba(160, 130, 109, 0.08);
+    text-align: center;
+  }
+
+  &__guide-intro {
+    margin-bottom: 1rem;
+
+    h3 {
+      margin: 0 0 0.45rem;
+      color: $lotte-primary-dark;
+      font-size: 1.05rem;
+    }
+
+    p {
+      margin: 0;
+      color: $text-secondary;
+      line-height: 1.55;
+    }
+  }
+
+  &__guide-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.85rem;
+  }
+
+  &__guide-item {
+    position: relative;
+    flex: 1 1 280px;
+    max-width: 360px;
+    padding: 0.9rem 1rem 0.9rem 3.1rem;
+    background: $bg-white;
+    border: 1px solid $border-light;
+    border-radius: 12px;
+    text-align: center;
+
+    strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: $text-primary;
+      font-size: 0.92rem;
+    }
+
+    p {
+      margin: 0;
+      color: $text-secondary;
+      line-height: 1.5;
+      font-size: 0.86rem;
+    }
+  }
+
+  &__guide-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: $lotte-primary;
+    color: $text-white;
+    font-size: 0.82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  &__hint,
+  &__empty,
+  &__loading {
+    padding: 1rem 0;
+    color: $text-secondary;
+    font-size: 0.95rem;
+  }
+
+  &__loading {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  &__error {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: rgba($error, 0.08);
+    color: $error;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  &__repair-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1.1rem;
+  }
+
+  &__repair-notify {
+    height: 42px;
+    padding: 0 1.15rem;
+    border: 2px solid $lotte-primary;
+    border-radius: 8px;
+    background: rgba($lotte-primary, 0.1);
+    color: $lotte-primary-dark;
+    font-weight: $font-semibold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba($lotte-primary, 0.18);
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  &__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    width: 100%;
+    align-items: start;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__column {
+    min-width: 0;
+  }
+
+  @media (max-width: 768px) {
+    &__guide-item {
+      flex-basis: 100%;
+      max-width: none;
+    }
+  }
+}
+
+.owner-equipment-room-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+
+  &__item {
+    border: 1px solid $border-light;
+    border-radius: 12px;
+    overflow: hidden;
+    background: $bg-white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.owner-equipment-room-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  border: none;
+  background: $bg-white;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: $text-primary;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba($lotte-primary, 0.06);
+  }
+
+  &.is-open .owner-equipment-room-header__chevron {
+    transform: rotate(180deg);
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    display: flex;
+    color: $lotte-primary;
+    transition: transform 0.2s ease;
+    font-size: 0.85rem;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__number {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  &__meta {
+    font-size: 0.82rem;
+    color: $text-secondary;
+  }
+
+  &__count {
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    color: $text-secondary;
+  }
+}
+
+.owner-equipment-room-panel {
+  border-top: 1px solid $border-light;
+  padding: 0.75rem 1rem 1rem;
+  background: rgba($admin-bg, 0.5);
+
+  &__empty {
+    margin: 0.5rem 0 0;
+    font-size: 0.88rem;
+    color: $text-secondary;
+    line-height: 1.55;
+  }
+}
+
+.owner-equipment-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.55rem;
+  background: $bg-white;
+  border: 1px dashed rgba($lotte-primary, 0.35);
+  border-radius: 10px;
+
+  &__label {
+    flex: 0 0 auto;
+    align-self: center;
+    font-weight: $font-medium;
+    color: $text-secondary;
+    @include body-base;
+    white-space: nowrap;
+  }
+
+  &__input {
+    flex: 1 1 200px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid $border-admin;
+    background: $bg-white;
+    color: $text-primary;
+    @include body-base;
+
+    &:focus {
+      outline: none;
+      border-color: $button-primary;
+    }
+  }
+
+  &__select {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 2px solid $border-admin;
+    background: $bg-white;
+    color: $text-primary;
+    @include body-base;
+    font-weight: $font-medium;
+    min-height: 44px;
+    transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+    @include equipment-status-select-variants;
+
+    &:focus {
+      outline: none;
+      border-color: $button-primary;
+      box-shadow: 0 0 0 2px rgba($button-primary, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__btn {
+    flex-shrink: 0;
+    min-width: 120px;
+    padding: 12px 24px;
+    height: 44px;
+    border: none;
+    border-radius: 6px;
+    background: $button-primary;
+    color: $text-white;
+    cursor: pointer;
+    font-weight: $font-bold;
+    @include button-text;
+    font-size: 14px;
+    line-height: 1.5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.owner-equipment-device-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.65rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid rgba($border-light, 0.95);
+    border-left-width: 4px;
+    border-left-style: solid;
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &--status-operational {
+      border-left-color: $success-dark;
+      background: $status-success-bg;
+      border-color: rgba($success-dark, 0.22);
+    }
+
+    &--status-under_repair {
+      border-left-color: $status-warning-text;
+      background: $status-warning-bg;
+      border-color: rgba($status-warning-text, 0.28);
+    }
+
+    &--status-broken {
+      border-left-color: $error;
+      background: $status-error-bg;
+      border-color: rgba($error, 0.28);
+    }
+  }
+
+  &__name-wrap {
+    flex: 1 1 160px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  &__name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: $text-primary;
+    word-break: break-word;
+  }
+
+  &__name-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid $border-admin;
+    background: $bg-white;
+    color: $text-primary;
+    @include body-base;
+    font-weight: $font-medium;
+
+    &:focus {
+      outline: none;
+      border-color: $button-primary;
+    }
+  }
+
+  &__select {
+    min-width: 150px;
+    padding: 10px 12px;
+    min-height: 44px;
+    border-radius: 6px;
+    border: 2px solid $border-admin;
+    background: $bg-white;
+    color: $text-primary;
+    @include body-base;
+    font-weight: $font-medium;
+    transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+
+    @include equipment-status-select-variants;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba($button-primary, 0.2);
+      border-color: $button-primary;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__icon-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid $border-admin;
+    border-radius: 6px;
+    background: $bg-white;
+    color: $button-primary;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      border-color: $button-primary;
+      background: rgba($lotte-primary, 0.08);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--danger {
+      color: $error;
+
+      &:hover:not(:disabled) {
+        border-color: $error;
+        background: rgba($error, 0.08);
+      }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .owner-equipment-device-list__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .owner-equipment-device-list__select {
+    width: 100%;
+  }
+
+  .owner-equipment-device-list__name-wrap {
+    flex-basis: auto;
+  }
+}
+
+.owner-equipment-delete-dialog {
+  .owner-equipment-delete-dialog__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .owner-equipment-delete-dialog__error {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: $status-error-bg;
+    color: $status-error-text;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .owner-equipment-delete-dialog__lead {
+    margin: 0;
+    @include body-base;
+    color: $text-primary;
+    line-height: 1.55;
+
+    strong {
+      color: $lotte-primary-dark;
+    }
+  }
+
+  .owner-equipment-delete-dialog__note {
+    margin: 0;
+    @include body-sm;
+    color: $text-secondary;
+  }
+
+  .owner-equipment-delete-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .owner-equipment-delete-dialog__btn-cancel,
+  .owner-equipment-delete-dialog__btn-delete {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: $font-bold;
+    @include button-text;
+    font-size: 14px;
+    line-height: 1.5;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .owner-equipment-delete-dialog__btn-cancel {
+    background: $button-cancel;
+    color: $text-white;
+
+    &:hover:not(:disabled) {
+      background: $button-cancel-hover;
+    }
+  }
+
+  .owner-equipment-delete-dialog__btn-delete {
+    background: $error;
+    color: $text-white;
+
+    &:hover:not(:disabled) {
+      background: $error-dark;
+    }
+  }
+}
+
+.owner-equipment-repair-dialog {
+  .owner-equipment-repair-dialog__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .owner-equipment-repair-dialog__error {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: $status-error-bg;
+    color: $status-error-text;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .owner-equipment-repair-dialog__email-box {
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba($lotte-primary, 0.28);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba($lotte-primary, 0.07) 0%, rgba($lotte-primary, 0.02) 100%);
+  }
+
+  .owner-equipment-repair-dialog__section-title {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+    font-weight: $font-bold;
+    color: $lotte-primary-dark;
+
+    &--spaced {
+      margin-top: 0.35rem;
+    }
+  }
+
+  .owner-equipment-repair-dialog__email-hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.84rem;
+    color: $text-secondary;
+    line-height: 1.5;
+  }
+
+  .owner-equipment-repair-dialog__email-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 0.65rem;
+    align-items: stretch;
+  }
+
+  .owner-equipment-repair-dialog__email-input {
+    flex: 1 1 200px;
+    min-width: 0;
+    height: 42px;
+    padding: 0 0.75rem;
+    border: 1px solid $border-admin;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.92rem;
+    color: $text-primary;
+    background: $bg-white;
+
+    &:focus {
+      outline: none;
+      border-color: $button-primary;
+      box-shadow: 0 0 0 2px rgba($button-primary, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+  }
+
+  .owner-equipment-repair-dialog__email-save {
+    height: 42px;
+    padding: 0 1rem;
+    border: none;
+    border-radius: 8px;
+    background: $button-primary;
+    color: $text-white;
+    font-weight: $font-semibold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .owner-equipment-repair-dialog__empty {
+    margin: 0;
+    color: $text-secondary;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .owner-equipment-repair-dialog__lead {
+    margin: 0;
+    @include body-base;
+    color: $text-primary;
+    line-height: 1.55;
+  }
+
+  .owner-equipment-repair-dialog__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.65rem;
+    font-size: 0.88rem;
+  }
+
+  .owner-equipment-repair-dialog__toolbar-btn {
+    min-height: 38px;
+    padding: 0.45rem 0.95rem;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: $font-semibold;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--primary {
+      border: 2px solid $lotte-primary;
+      background: rgba($lotte-primary, 0.12);
+      color: $lotte-primary-dark;
+
+      &:hover:not(:disabled) {
+        background: rgba($lotte-primary, 0.2);
+        border-color: $lotte-primary-dark;
+      }
+    }
+
+    &--secondary {
+      border: 1px solid $border-admin;
+      background: $bg-white;
+      color: $text-primary;
+
+      &:hover:not(:disabled) {
+        border-color: $button-primary;
+        color: $button-primary;
+        background: rgba($lotte-primary, 0.06);
+      }
+    }
+  }
+
+  .owner-equipment-repair-dialog__count {
+    margin-left: auto;
+    color: $text-secondary;
+    font-weight: $font-medium;
+  }
+
+  .owner-equipment-repair-dialog__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid $border-light;
+    border-radius: 10px;
+    background: rgba($lotte-primary, 0.03);
+  }
+
+  .owner-equipment-repair-dialog__row {
+    border-bottom: 1px solid $border-light;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .owner-equipment-repair-dialog__label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.65rem 0.85rem;
+    cursor: pointer;
+    font: inherit;
+
+    input {
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .owner-equipment-repair-dialog__label-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .owner-equipment-repair-dialog__room {
+    font-weight: $font-bold;
+    font-size: 0.9rem;
+    color: $lotte-primary-dark;
+  }
+
+  .owner-equipment-repair-dialog__name {
+    font-size: 0.88rem;
+    color: $text-primary;
+    word-break: break-word;
+  }
+
+  .owner-equipment-repair-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+
+  .owner-equipment-repair-dialog__btn-send {
+    min-width: 108px;
+    padding: 0 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: $font-bold;
+    @include button-text;
+    font-size: 14px;
+    line-height: 1.5;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    background: $button-primary;
+    color: $text-white;
+
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+  }
+}

@@ -71,7 +71,7 @@ const sendReceiptEmail = async (booking, paymentMethod = 'qr_code', transactionR
     };
     const roomTypeName = roomTypeMap[room.type] || room.type;
 
-    const subject = `Hóa đơn điện tử - Đặt phòng #BK${bookingIdShort}`;
+    const subject = `[Hóa đơn điện tử] Đặt phòng #BK${bookingIdShort}`;
     
     const html = `
 <!DOCTYPE html>
@@ -404,7 +404,7 @@ const sendCheckInReminderEmail = async (booking, daysUntilCheckIn = 2) => {
       ? 'Ngày mai là ngày check-in của bạn!'
       : `Còn ${daysUntilCheckIn} ngày nữa là đến ngày check-in!`;
 
-    const subject = `Nhắc nhở check-in - Đặt phòng #BK${bookingIdShort}`;
+    const subject = `[Nhắc check-in] Đặt phòng #BK${bookingIdShort}`;
 
     const html = `
 <!DOCTYPE html>
@@ -722,7 +722,7 @@ const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
   </body>
 </html>`;
 
-    return await sendEmail(guest.email, `Đã hoàn tiền đơn #BK${bookingIdShort}`, html);
+    return await sendEmail(guest.email, `[Hoàn tiền] Đơn #BK${bookingIdShort}`, html);
   } catch (error) {
     console.error("Lỗi khi gửi email hoàn tiền:", error);
     return false;

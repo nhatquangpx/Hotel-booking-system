@@ -1,5 +1,18 @@
 const mongoose = require("mongoose");
 
+/** Trang thiết bị trong phòng (theo dõi vận hành / sửa chữa). */
+const RoomEquipmentItemSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    status: {
+      type: String,
+      enum: ["operational", "under_repair", "broken"],
+      default: "operational",
+    },
+  },
+  { _id: true }
+);
+
 const RoomSchema = new mongoose.Schema(
   {
     hotelId: {
@@ -31,6 +44,12 @@ const RoomSchema = new mongoose.Schema(
       min: 1
     },
     facilities: [String],
+    roomEquipment: {
+      type: [RoomEquipmentItemSchema],
+      default: [],
+      /** Không trả về mặc định (API guest / danh sách phòng). Owner: .select('+roomEquipment'). */
+      select: false,
+    },
     images: [String],
     roomStatus: {
       type: String,

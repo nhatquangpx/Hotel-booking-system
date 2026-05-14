@@ -13,6 +13,7 @@ import guestWishlistAPI from './guest/wishlist';
 // Owner APIs
 import ownerHotelAPI from './owner/hotel';
 import ownerRoomAPI from './owner/room';
+import ownerEquipmentAPI from './owner/equipment';
 import ownerBookingAPI from './owner/booking';
 import ownerReviewAPI from './owner/review';
 import notificationAPI from './shared/notification';
@@ -38,6 +39,7 @@ export default {
 
   ownerHotel: ownerHotelAPI,
   ownerRoom: ownerRoomAPI,
+  ownerEquipment: ownerEquipmentAPI,
   ownerBooking: ownerBookingAPI,
   ownerReview: ownerReviewAPI,
   ownerProfile: ownerProfileAPI,

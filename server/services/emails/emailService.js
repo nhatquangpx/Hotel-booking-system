@@ -32,7 +32,9 @@ transporter.verify(function(error, success) {
  */
 const sendEmail = async (to, subject, html) => {
   try {
+    const fromUser = process.env.EMAIL_USER;
     const mailOptions = {
+      ...(fromUser ? { from: fromUser } : {}),
       to,
       subject,
       html,

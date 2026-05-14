@@ -23,6 +23,8 @@ router.put('/profile/changepassword', userController.changePassword);
 
 // Quản lý khách sạn
 router.get('/hotels', hotelController.getHotelsByOwner);
+router.get('/hotels/:hotelId/maintenance-contact', hotelController.getOwnerHotelMaintenanceContact);
+router.put('/hotels/:hotelId/maintenance-contact', hotelController.updateOwnerHotelMaintenanceContact);
 router.get('/hotels/:id', hotelController.getHotelById);
 router.put('/hotels/:id', uploadHotelPhotosAndQr, hotelController.updateHotel);
 
@@ -32,6 +34,11 @@ router.get('/rooms/:id', roomController.getRoomById);
 router.post('/hotels/:hotelId/rooms', uploadRoomImages, roomController.createRoom);
 router.put('/rooms/:id', uploadRoomImages, roomController.updateRoom);
 router.delete('/rooms/:id', roomController.deleteRoom);
+router.get('/hotels/:hotelId/room-equipment', roomController.getOwnerRoomEquipment);
+router.post('/rooms/:roomId/equipment', roomController.postOwnerRoomEquipment);
+router.patch('/rooms/:roomId/equipment/:equipmentId', roomController.patchOwnerRoomEquipment);
+router.delete('/rooms/:roomId/equipment/:equipmentId', roomController.deleteOwnerRoomEquipment);
+router.post('/hotels/:hotelId/equipment-repair-request', roomController.postOwnerEquipmentRepairRequest);
 
 // Quản lý đặt phòng
 router.get('/bookings', bookingController.getBookingsByOwner);
