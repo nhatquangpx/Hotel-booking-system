@@ -5,6 +5,10 @@
 .owner-reviews-page {
   width: 100%;
 
+  > .owner-guide-collapsible {
+    width: 100%;
+  }
+
   .reviews-guide-card {
     margin-bottom: 1.5rem;
     padding: 1.15rem 1.2rem;

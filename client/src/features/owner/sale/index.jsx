@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import OwnerLayout from '../components/OwnerLayout';
+import OwnerGuideCollapsible from '../components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerSaleAPI } from '@/apis/owner/sale';
 import Dialog from '@/components/ui/Dialog';
@@ -244,49 +245,51 @@ const OwnerSalePage = () => {
     <OwnerLayout>
       <div className="owner-sale-page">
         <div className="page-header">
-          <div className="sale-guide-card">
-            <div className="sale-guide-card__intro">
-              <h3>Cách dùng chương trình sale</h3>
-              <p className="page-desc">
-                Tạo khuyến mãi theo thời gian cho toàn khách sạn hoặc từng loại phòng. Khi chương trình còn hiệu
-                lực, khách sẽ thấy ngay giá gốc, giá sau giảm và nhãn phần trăm ưu đãi trên danh sách phòng.
-              </p>
+          <OwnerGuideCollapsible label="Hướng dẫn chương trình sale — bấm để xem">
+            <div className="sale-guide-card">
+              <div className="sale-guide-card__intro">
+                <h3>Cách dùng chương trình sale</h3>
+                <p className="page-desc">
+                  Tạo khuyến mãi theo thời gian cho toàn khách sạn hoặc từng loại phòng. Khi chương trình còn hiệu
+                  lực, khách sẽ thấy ngay giá gốc, giá sau giảm và nhãn phần trăm ưu đãi trên danh sách phòng.
+                </p>
+              </div>
+              <div className="sale-guide-grid">
+                <div className="sale-guide-item">
+                  <span className="sale-guide-item__step">1</span>
+                  <div>
+                    <strong>Chọn phạm vi áp dụng</strong>
+                    <p>Tạo sale cho toàn khách sạn hoặc chỉ một loại phòng cụ thể.</p>
+                  </div>
+                </div>
+                <div className="sale-guide-item">
+                  <span className="sale-guide-item__step">2</span>
+                  <div>
+                    <strong>Đặt tên dễ nhớ cho chương trình</strong>
+                    <p>Đặt tên ngắn gọn để bạn dễ nhận ra từng đợt khuyến mãi khi xem lại danh sách.</p>
+                  </div>
+                </div>
+                <div className="sale-guide-item">
+                  <span className="sale-guide-item__step">3</span>
+                  <div>
+                    <strong>Đặt thời gian và mức giảm</strong>
+                    <p>Nhập ngày bắt đầu, ngày kết thúc và phần trăm ưu đãi muốn áp dụng.</p>
+                  </div>
+                </div>
+                <div className="sale-guide-item">
+                  <span className="sale-guide-item__step">4</span>
+                  <div>
+                    <strong>Giá giảm được áp dụng tự động</strong>
+                    <p>Khi khách đặt phòng, hệ thống sẽ tự lấy đúng mức giá ưu đãi còn hiệu lực.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="sale-guide-note">
+                <strong>Lưu ý:</strong> nếu có nhiều chương trình cùng chồng thời gian, hệ thống sẽ tự chọn mức giảm
+                cao nhất cho từng đêm.
+              </div>
             </div>
-            <div className="sale-guide-grid">
-              <div className="sale-guide-item">
-                <span className="sale-guide-item__step">1</span>
-                <div>
-                  <strong>Chọn phạm vi áp dụng</strong>
-                  <p>Tạo sale cho toàn khách sạn hoặc chỉ một loại phòng cụ thể.</p>
-                </div>
-              </div>
-              <div className="sale-guide-item">
-                <span className="sale-guide-item__step">2</span>
-                <div>
-                  <strong>Đặt tên dễ nhớ cho chương trình</strong>
-                  <p>Đặt tên ngắn gọn để bạn dễ nhận ra từng đợt khuyến mãi khi xem lại danh sách.</p>
-                </div>
-              </div>
-              <div className="sale-guide-item">
-                <span className="sale-guide-item__step">3</span>
-                <div>
-                  <strong>Đặt thời gian và mức giảm</strong>
-                  <p>Nhập ngày bắt đầu, ngày kết thúc và phần trăm ưu đãi muốn áp dụng.</p>
-                </div>
-              </div>
-              <div className="sale-guide-item">
-                <span className="sale-guide-item__step">4</span>
-                <div>
-                  <strong>Giá giảm được áp dụng tự động</strong>
-                  <p>Khi khách đặt phòng, hệ thống sẽ tự lấy đúng mức giá ưu đãi còn hiệu lực.</p>
-                </div>
-              </div>
-            </div>
-            <div className="sale-guide-note">
-              <strong>Lưu ý:</strong> nếu có nhiều chương trình cùng chồng thời gian, hệ thống sẽ tự chọn mức giảm
-              cao nhất cho từng đêm.
-            </div>
-          </div>
+          </OwnerGuideCollapsible>
         </div>
 
         <div className="sale-toolbar">

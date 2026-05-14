@@ -7,7 +7,7 @@ const { sendEmail } = require("./emailService");
  * @returns {Promise<Boolean>} - Success status
  */
 const sendNewPasswordEmail = async (to, newPassword) => {
-  const subject = "Mật khẩu mới của bạn";
+  const subject = "[Mật khẩu] Mật khẩu mới của bạn";
   const html = `
     <p>Xin chào,</p>
     <p>Đây là mật khẩu mới được tạo cho tài khoản của bạn:</p>

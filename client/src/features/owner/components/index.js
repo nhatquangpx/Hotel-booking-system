@@ -1,3 +1,4 @@
+export { default as OwnerGuideCollapsible } from './OwnerGuideCollapsible';
 export { default as OwnerLayout } from './OwnerLayout';
 export { default as MetricCard } from './MetricCard';
 export { default as HotelInfoCard } from './HotelInfoCard';

@@ -9,7 +9,7 @@ const { sendEmail } = require('./emailService');
  */
 const send2FAOTPEmail = async (email, otpCode, userName = '') => {
   try {
-    const subject = 'Mã xác thực 2 lớp - Đăng nhập';
+    const subject = '[Xác thực 2 lớp] Mã OTP đăng nhập';
     
     const html = `
 <!DOCTYPE html>
@@ -128,7 +128,7 @@ const send2FAOTPEmail = async (email, otpCode, userName = '') => {
  */
 const send2FABackupCodesEmail = async (email, backupCodes, userName = '') => {
   try {
-    const subject = 'Mã dự phòng xác thực 2 lớp';
+    const subject = '[Xác thực 2 lớp] Mã dự phòng đăng nhập';
     
     const codesList = backupCodes.map(code => `<li style="font-family: 'Courier New', monospace; font-size: 16px; margin: 5px 0;"><strong>${code.code}</strong></li>`).join('');
     

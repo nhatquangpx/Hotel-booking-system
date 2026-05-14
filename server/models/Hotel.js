@@ -87,6 +87,12 @@ const HotelSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: () => ({}),
     },
+    /** Email bên dịch vụ sửa chữa — owner cấu hình; không trả về qua API guest. */
+    maintenanceContactEmail: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { timestamps: true }
 );

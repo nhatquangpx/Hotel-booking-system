@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { FaDollarSign, FaBed, FaExclamationCircle, FaFileExcel } from 'react-icons/fa';
+import { FaDollarSign, FaBed, FaWrench, FaTags, FaCommentDots, FaFileExcel } from 'react-icons/fa';
 import { ownerDashboardAPI } from '@/apis/owner/dashboard';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import MetricCard from '../../components/MetricCard';
@@ -39,8 +39,9 @@ export const OwnerDashboard = () => {
     todayRevenue: 0,
     availableRooms: 0,
     totalRooms: 0,
-    roomsToClean: 0,
-    brokenRooms: 0
+    equipmentAttentionCount: 0,
+    activeSalesCount: 0,
+    reviewsAwaitingReply: 0,
   });
   const [weeklyRevenue, setWeeklyRevenue] = useState([]);
   const [roomOccupancy, setRoomOccupancy] = useState([]);
@@ -64,8 +65,9 @@ export const OwnerDashboard = () => {
             todayRevenue: 0,
             availableRooms: 0,
             totalRooms: 0,
-            roomsToClean: 0,
-            brokenRooms: 0
+            equipmentAttentionCount: 0,
+            activeSalesCount: 0,
+            reviewsAwaitingReply: 0,
           });
           setWeeklyRevenue([]);
           setRoomOccupancy([]);
@@ -222,24 +224,35 @@ export const OwnerDashboard = () => {
           value={formatRevenue(stats.todayRevenue)}
           icon={FaDollarSign}
           iconColor="green"
+          to="/owner/bookings"
         />
         <MetricCard
           title="Phòng trống"
           value={`${stats.availableRooms}/${stats.totalRooms}`}
           icon={FaBed}
           iconColor="blue"
+          to="/owner/rooms"
         />
         <MetricCard
-          title="Phòng cần dọn"
-          value={stats.roomsToClean}
-          icon={FaExclamationCircle}
+          title="Thiết bị cần xử lý"
+          value={stats.equipmentAttentionCount}
+          icon={FaWrench}
           iconColor="yellow"
+          to="/owner/equipment"
         />
         <MetricCard
-          title="Phòng hỏng"
-          value={stats.brokenRooms}
-          icon={FaExclamationCircle}
+          title="Sale đang chạy"
+          value={stats.activeSalesCount}
+          icon={FaTags}
+          iconColor="default"
+          to="/owner/sale"
+        />
+        <MetricCard
+          title="Đánh giá chưa phản hồi"
+          value={stats.reviewsAwaitingReply}
+          icon={FaCommentDots}
           iconColor="red"
+          to="/owner/reviews"
         />
       </div>
 

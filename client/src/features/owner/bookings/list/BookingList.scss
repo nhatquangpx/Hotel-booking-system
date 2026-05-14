@@ -4,6 +4,10 @@
 .owner-booking-list {
   width: 100%;
 
+  > .owner-guide-collapsible {
+    width: 100%;
+  }
+
   .booking-guide-card {
     margin-bottom: 1.5rem;
     padding: 1.15rem 1.2rem;

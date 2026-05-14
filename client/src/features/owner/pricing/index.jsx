@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import OwnerLayout from '../components/OwnerLayout';
+import OwnerGuideCollapsible from '../components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerPricingAPI } from '@/apis/owner/pricing';
 import { formatCurrency, formatDateTime } from '@/shared/utils/format';
@@ -114,45 +115,47 @@ const DynamicPricingPage = () => {
     <OwnerLayout>
       <div className="owner-dynamic-pricing">
         <div className="page-header">
-          <div className="pricing-guide-card">
-            <div className="pricing-guide-card__intro">
-              <h3>Hướng dẫn xem giá gợi ý</h3>
-              <p className="page-desc">
-                Tham khảo mức giá gợi ý cho từng loại phòng trong thời gian sắp tới để hỗ trợ ra quyết định nhanh
-                hơn. Bạn có thể xem theo từng ngày, từng loại phòng rồi chọn áp dụng hoặc giữ nguyên giá hiện tại.
-              </p>
+          <OwnerGuideCollapsible label="Hướng dẫn giá gợi ý — bấm để xem">
+            <div className="pricing-guide-card">
+              <div className="pricing-guide-card__intro">
+                <h3>Hướng dẫn xem giá gợi ý</h3>
+                <p className="page-desc">
+                  Tham khảo mức giá gợi ý cho từng loại phòng trong thời gian sắp tới để hỗ trợ ra quyết định nhanh
+                  hơn. Bạn có thể xem theo từng ngày, từng loại phòng rồi chọn áp dụng hoặc giữ nguyên giá hiện tại.
+                </p>
+              </div>
+              <div className="pricing-guide-grid">
+                <div className="pricing-guide-item">
+                  <span className="pricing-guide-item__step">1</span>
+                  <div>
+                    <strong>Chọn loại phòng (khách sạn chọn trên thanh phía trên)</strong>
+                    <p>Xem riêng từng nhóm phòng để so sánh mức giá đang dùng với mức giá được gợi ý.</p>
+                  </div>
+                </div>
+                <div className="pricing-guide-item">
+                  <span className="pricing-guide-item__step">2</span>
+                  <div>
+                    <strong>Chọn khoảng thời gian muốn xem</strong>
+                    <p>Xem ngắn ngày để điều chỉnh gần, hoặc xem dài hơn để chuẩn bị giá cho giai đoạn sắp tới.</p>
+                  </div>
+                </div>
+                <div className="pricing-guide-item">
+                  <span className="pricing-guide-item__step">3</span>
+                  <div>
+                    <strong>Xem biến động theo từng ngày</strong>
+                    <p>Theo dõi gợi ý giá trong cả giai đoạn để biết ngày nào nên tăng, giữ hoặc giảm giá.</p>
+                  </div>
+                </div>
+                <div className="pricing-guide-item">
+                  <span className="pricing-guide-item__step">4</span>
+                  <div>
+                    <strong>Áp dụng khi thấy phù hợp</strong>
+                    <p>Bạn có thể áp dụng nhanh cho cả loại phòng hoặc tiếp tục điều chỉnh riêng từng phòng.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="pricing-guide-grid">
-              <div className="pricing-guide-item">
-                <span className="pricing-guide-item__step">1</span>
-                <div>
-                  <strong>Chọn loại phòng (khách sạn chọn trên thanh phía trên)</strong>
-                  <p>Xem riêng từng nhóm phòng để so sánh mức giá đang dùng với mức giá được gợi ý.</p>
-                </div>
-              </div>
-              <div className="pricing-guide-item">
-                <span className="pricing-guide-item__step">2</span>
-                <div>
-                  <strong>Chọn khoảng thời gian muốn xem</strong>
-                  <p>Xem ngắn ngày để điều chỉnh gần, hoặc xem dài hơn để chuẩn bị giá cho giai đoạn sắp tới.</p>
-                </div>
-              </div>
-              <div className="pricing-guide-item">
-                <span className="pricing-guide-item__step">3</span>
-                <div>
-                  <strong>Xem biến động theo từng ngày</strong>
-                  <p>Theo dõi gợi ý giá trong cả giai đoạn để biết ngày nào nên tăng, giữ hoặc giảm giá.</p>
-                </div>
-              </div>
-              <div className="pricing-guide-item">
-                <span className="pricing-guide-item__step">4</span>
-                <div>
-                  <strong>Áp dụng khi thấy phù hợp</strong>
-                  <p>Bạn có thể áp dụng nhanh cho cả loại phòng hoặc tiếp tục điều chỉnh riêng từng phòng.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </OwnerGuideCollapsible>
         </div>
 
         <PricingFilters

@@ -61,7 +61,25 @@ export const ownerHotelAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
+
+  getMaintenanceContact: async (hotelId) => {
+    try {
+      const response = await api.get(`/owner/hotels/${hotelId}/maintenance-contact`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  updateMaintenanceContact: async (hotelId, payload) => {
+    try {
+      const response = await api.put(`/owner/hotels/${hotelId}/maintenance-contact`, payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default ownerHotelAPI; 

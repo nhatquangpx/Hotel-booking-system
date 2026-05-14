@@ -109,6 +109,18 @@ function sanitizeHotelPaymentConfigResponse(hotel, { guestBookingQr = false } = 
   return plain;
 }
 
+/** Không lộ email bảo trì cho khách (API guest). */
+function applyGuestHotelPayloadSanitize(req, payload) {
+  if (req.baseUrl !== "/api/guest" || !payload || typeof payload !== "object") {
+    return payload;
+  }
+  const out = { ...payload };
+  delete out.maintenanceContactEmail;
+  return out;
+}
+
+const MAINTENANCE_CONTACT_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function getHotelImageFiles(req) {
   if (!req.files) return [];
   if (Array.isArray(req.files)) return req.files;
@@ -179,7 +191,13 @@ exports.getAllHotels = async (req, res) => {
         select: "name email phone _id"
       });
       
-    res.status(200).json(hotels);
+    if (req.baseUrl === "/api/guest") {
+      res.status(200).json(
+        hotels.map((h) => applyGuestHotelPayloadSanitize(req, h.toObject ? h.toObject() : { ...h }))
+      );
+    } else {
+      res.status(200).json(hotels);
+    }
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn:", error);
     res.status(500).json({ message: "Lỗi khi lấy danh sách khách sạn", error: error.message });
@@ -205,12 +223,15 @@ exports.getHotelById = async (req, res) => {
     if (shouldExposePaymentConfig(req)) {
       const guestBookingQr =
         isGuestHotelByIdRequest(req) && req.query.forBooking === "true";
-      return res.status(200).json(
+      const body = applyGuestHotelPayloadSanitize(
+        req,
         sanitizeHotelPaymentConfigResponse(hotel, { guestBookingQr })
       );
+      return res.status(200).json(body);
     }
 
-    res.status(200).json(hotel);
+    const plainHotel = hotel.toObject ? hotel.toObject() : { ...hotel };
+    res.status(200).json(applyGuestHotelPayloadSanitize(req, plainHotel));
   } catch (error) {
     console.error("Lỗi khi lấy thông tin khách sạn:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin khách sạn", error: error.message });
@@ -634,7 +655,9 @@ exports.getFeaturedHotels = async (req, res) => {
     })
     .limit(6); // Giới hạn 6 khách sạn nổi bật
     
-    res.status(200).json(featuredHotels);
+    res.status(200).json(
+      featuredHotels.map((h) => applyGuestHotelPayloadSanitize(req, h.toObject ? h.toObject() : { ...h }))
+    );
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn nổi bật:", error);
     res.status(500).json({ 
@@ -749,12 +772,63 @@ exports.getHotelByFilter = async (req, res) => {
       })
       .sort({ createdAt: -1 });
       
-    res.status(200).json(hotels);
+    res.status(200).json(
+      hotels.map((h) => applyGuestHotelPayloadSanitize(req, h.toObject ? h.toObject() : { ...h }))
+    );
   } catch (error) {
     console.error("Lỗi khi lấy danh sách khách sạn theo bộ lọc:", error);
     res.status(500).json({ 
       message: "Lỗi khi lấy danh sách khách sạn theo bộ lọc", 
       error: error.message 
     });
+  }
+};
+
+/** Owner: đọc email liên hệ bên sửa chữa (theo khách sạn). */
+exports.getOwnerHotelMaintenanceContact = async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    if (!mongoose.isValidObjectId(hotelId)) {
+      return res.status(400).json({ message: "hotelId không hợp lệ" });
+    }
+    const hotel = await Hotel.findOne({ _id: hotelId, ownerId: req.user.id }).select(
+      "maintenanceContactEmail"
+    );
+    if (!hotel) {
+      return res.status(404).json({ message: "Không tìm thấy khách sạn hoặc bạn không có quyền truy cập" });
+    }
+    res.status(200).json({
+      maintenanceContactEmail: String(hotel.maintenanceContactEmail || "").trim(),
+    });
+  } catch (error) {
+    console.error("Lỗi khi đọc email bảo trì:", error);
+    res.status(500).json({ message: "Lỗi khi đọc cấu hình email", error: error.message });
+  }
+};
+
+/** Owner: cập nhật email liên hệ bên sửa chữa. */
+exports.updateOwnerHotelMaintenanceContact = async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    if (!mongoose.isValidObjectId(hotelId)) {
+      return res.status(400).json({ message: "hotelId không hợp lệ" });
+    }
+    const raw = req.body?.maintenanceContactEmail;
+    const trimmed = typeof raw === "string" ? raw.trim() : "";
+    if (trimmed && !MAINTENANCE_CONTACT_EMAIL_REGEX.test(trimmed)) {
+      return res.status(400).json({ message: "Địa chỉ email không hợp lệ" });
+    }
+    const hotel = await Hotel.findOne({ _id: hotelId, ownerId: req.user.id });
+    if (!hotel) {
+      return res.status(404).json({ message: "Không tìm thấy khách sạn hoặc bạn không có quyền truy cập" });
+    }
+    hotel.maintenanceContactEmail = trimmed;
+    await hotel.save();
+    res.status(200).json({
+      maintenanceContactEmail: String(hotel.maintenanceContactEmail || "").trim(),
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật email bảo trì:", error);
+    res.status(500).json({ message: "Lỗi khi lưu email", error: error.message });
   }
 };

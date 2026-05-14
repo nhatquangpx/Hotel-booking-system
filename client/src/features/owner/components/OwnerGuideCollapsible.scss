@@ -1,0 +1,71 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.owner-guide-collapsible {
+  margin-bottom: 1rem;
+
+  &__toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid rgba($lotte-primary, 0.22);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba($lotte-primary, 0.08) 0%, rgba($lotte-primary, 0.03) 100%);
+    box-shadow: 0 2px 8px rgba(160, 130, 109, 0.06);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    color: $lotte-primary-dark;
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(180deg, rgba($lotte-primary, 0.12) 0%, rgba($lotte-primary, 0.05) 100%);
+      border-color: rgba($lotte-primary, 0.32);
+    }
+  }
+
+  &__toggle-icon {
+    display: flex;
+    color: $lotte-primary;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+
+  &__toggle-label {
+    flex: 1;
+    min-width: 0;
+    font-weight: $font-semibold;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    color: $lotte-primary;
+    transition: transform 0.25s ease;
+  }
+
+  &--open &__chevron {
+    transform: rotate(180deg);
+  }
+
+  &__panel {
+    margin-top: 0.65rem;
+    animation: owner-guide-panel-in 0.2s ease-out;
+  }
+
+  @keyframes owner-guide-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

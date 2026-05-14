@@ -30,9 +30,15 @@
     background: $bg-light;
     border-radius: 8px;
     transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
 
     &:hover {
       background: $grey-light;
+    }
+
+    &--link {
+      cursor: pointer;
     }
 
     .task-icon-wrapper {
@@ -48,6 +54,10 @@
 
         &.completed {
           color: $footer-bg;
+        }
+
+        &.warning {
+          color: $status-warning-text;
         }
       }
     }
@@ -74,11 +84,9 @@
       padding: 0.25rem 0.75rem;
       background: $danger;
       color: $text-white;
-      border: none;
       border-radius: 12px;
       @include body-xs;
       font-weight: $font-medium;
-      cursor: default;
       flex-shrink: 0;
     }
   }

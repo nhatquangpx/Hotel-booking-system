@@ -1,51 +1,57 @@
-const Room = require("../models/Room");
-const Hotel = require("../models/Hotel");
-const BookingHistory = require("../models/Booking");
 const { hasCloudinaryConfig } = require("../config/multerConfig");
+const Hotel = require("../models/Hotel");
+const Room = require("../models/Room");
+const roomService = require("../services/rooms/roomService");
+const roomEquipmentService = require("../services/rooms/roomEquipmentService");
+
+function throwHttp(statusCode, message) {
+  const e = new Error(message);
+  e.statusCode = statusCode;
+  throw e;
+}
+
+/** Chủ KS: khách sạn phải tồn tại và thuộc user. */
+async function assertHotelOwnedByUser(hotelId, userId) {
+  const hotel = await Hotel.findById(hotelId).select("ownerId");
+  if (!hotel) {
+    throwHttp(404, "Không tìm thấy khách sạn");
+  }
+  if (hotel.ownerId.toString() !== userId) {
+    throwHttp(403, "Bạn không có quyền thực hiện hành động này");
+  }
+  return hotel;
+}
+
+/** Chủ KS: phòng phải thuộc một khách sạn của user. */
+async function assertRoomOwnedByUser(roomId, userId) {
+  const room = await Room.findById(roomId).select("hotelId");
+  if (!room) {
+    throwHttp(404, "Không tìm thấy phòng");
+  }
+  await assertHotelOwnedByUser(room.hotelId.toString(), userId);
+  return room;
+}
+
+function handleServiceError(res, error, logLabel, fallbackMessage) {
+  if (error && error.statusCode) {
+    return res.status(error.statusCode).json({ message: error.message });
+  }
+  console.error(logLabel, error);
+  return res.status(500).json({ message: fallbackMessage, error: error.message });
+}
 
 // Get all rooms for a specific hotel
 exports.getRoomsByHotel = async (req, res) => {
   try {
     const { hotelId } = req.params;
-    const { checkInDate, checkOutDate } = req.query;
-    
-    // Base query to find rooms in the specified hotel
-    let query = { hotelId: hotelId };
-    
-    // Get all rooms in the hotel
-    const rooms = await Room.find(query);
-    
-    // If dates are provided, check availability
-    if (checkInDate && checkOutDate) {
-      const startDate = new Date(checkInDate);
-      const endDate = new Date(checkOutDate);
-      
-      // Get all bookings that overlap with the requested dates
-      const bookings = await BookingHistory.find({
-        room: { $in: rooms.map(room => room._id) },
-        $or: [
-          { 
-            checkInDate: { $lte: endDate },
-            checkOutDate: { $gte: startDate }
-          }
-        ],
-        paymentStatus: { $in: ["pending", "paid"] }
-      });
-      
-      // Filter out rooms that already have bookings in the period and rooms that are not operational
-      const bookedRoomIds = bookings.map(booking => booking.room.toString());
-      const availableRooms = rooms.filter(room => 
-        !bookedRoomIds.includes(room._id.toString()) && 
-        room.roomStatus === "active"
-      );
-      
-      return res.status(200).json(availableRooms);
+    if (req.user?.role === "owner" && req.baseUrl === "/api/owner") {
+      await assertHotelOwnedByUser(hotelId, req.user.id);
     }
-    
+    const rooms = await roomService.listRoomsByHotel(hotelId, req.query);
     res.status(200).json(rooms);
   } catch (error) {
     console.error("Lỗi khi lấy danh sách phòng:", error);
-    res.status(500).json({ message: "Lỗi khi lấy danh sách phòng", error: error.message });
+    return handleServiceError(res, error, "Lỗi khi lấy danh sách phòng:", "Lỗi khi lấy danh sách phòng");
   }
 };
 
@@ -53,21 +59,21 @@ exports.getRoomsByHotel = async (req, res) => {
 exports.getRoomById = async (req, res) => {
   try {
     console.log(`Lấy thông tin phòng ID: ${req.params.id}`);
-    const room = await Room.findById(req.params.id).populate({
-      path: "hotelId",
-      select: "address starRating images"
-    });
-    
+    if (req.user?.role === "owner" && req.baseUrl === "/api/owner") {
+      await assertRoomOwnedByUser(req.params.id, req.user.id);
+    }
+    const room = await roomService.getRoomById(req.params.id);
+
     if (!room) {
       console.log(`Không tìm thấy phòng với ID: ${req.params.id}`);
       return res.status(404).json({ message: "Không tìm thấy phòng" });
     }
-    
-    console.log(`Đã tìm thấy phòng thuộc khách sạn: ${room.hotelId? room.hotelId._id : ''}`);
+
+    console.log(`Đã tìm thấy phòng thuộc khách sạn: ${room.hotelId ? room.hotelId._id : ""}`);
     res.status(200).json(room);
   } catch (error) {
     console.error("Lỗi khi lấy thông tin phòng:", error);
-    res.status(500).json({ message: "Lỗi khi lấy thông tin phòng", error: error.message });
+    return handleServiceError(res, error, "Lỗi khi lấy thông tin phòng:", "Lỗi khi lấy thông tin phòng");
   }
 };
 
@@ -77,81 +83,36 @@ exports.createRoom = async (req, res) => {
     console.log("Dữ liệu phòng:", req.body);
     console.log("Files:", req.files);
 
-    // Lấy đường dẫn ảnh từ req.files
-    // Nếu dùng Cloudinary: file.secure_url hoặc file.url sẽ chứa URL đầy đủ
-    // Nếu dùng local: file.filename sẽ chứa tên file, cần thêm /uploads/rooms/
-    const images = req.files ? req.files.map(file => {
-      if (hasCloudinaryConfig) {
-        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
-        return file.secure_url || file.url || file.path;
-      } else {
-        // Local storage: tạo đường dẫn tương đối
-        return `/uploads/rooms/${file.filename}`;
+    let hotelId;
+    if (req.params.hotelId) {
+      hotelId = req.params.hotelId;
+      await assertHotelOwnedByUser(hotelId, req.user.id);
+    } else if (req.user.role === "admin") {
+      hotelId = req.body.hotelId;
+      if (!hotelId) {
+        return res.status(400).json({ message: "hotelId là bắt buộc" });
       }
-    }) : [];
-
-    const { hotelId, roomNumber, type, price, maxPeople, description, facilities } = req.body;
-    
-    // Validate type enum
-    const validTypes = ['standard', 'deluxe', 'suite', 'family', 'executive'];
-    if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
-        message: `Loại phòng không hợp lệ. Loại phòng phải là một trong: ${validTypes.join(', ')}` 
-      });
+    } else {
+      return res.status(403).json({ message: "Bạn không có quyền tạo phòng theo cách này" });
     }
 
-    // Validate price
-    const priceNumber = Number(price);
-    if (isNaN(priceNumber) || priceNumber <= 0) {
-      return res.status(400).json({ 
-        message: "Giá phòng phải là một số dương hợp lệ"
-      });
-    }
-
-    // Parse facilities từ JSON string nếu cần
-    let parsedFacilities = facilities;
-    if (typeof facilities === 'string') {
-      try {
-        parsedFacilities = JSON.parse(facilities);
-      } catch (e) {
-        parsedFacilities = [];
-      }
-    }
-
-    // Kiểm tra số phòng đã tồn tại trong khách sạn chưa
-    const existingRoom = await Room.findOne({ 
-      hotelId: hotelId,
-      roomNumber: roomNumber 
-    });
-
-    if (existingRoom) {
-      return res.status(400).json({
-        message: "Số phòng này đã tồn tại trong khách sạn"
-      });
-    }
-    
-    const newRoom = new Room({
+    const savedRoom = await roomService.createRoom({
       hotelId,
-      roomNumber,
-      type,
-      description,
-      price: { 
-        regular: priceNumber,
-        discount: 0 
-      },
-      maxPeople: Number(maxPeople),
-      facilities: parsedFacilities,
-      images: images,
-      roomStatus: req.body.roomStatus || 'active',
-      bookingStatus: 'empty'
+      roomNumber: req.body.roomNumber,
+      type: req.body.type,
+      price: req.body.price,
+      maxPeople: req.body.maxPeople,
+      description: req.body.description,
+      facilities: req.body.facilities,
+      roomStatus: req.body.roomStatus,
+      files: req.files,
+      hasCloudinary: hasCloudinaryConfig,
     });
-    
-    const savedRoom = await newRoom.save();
+
     console.log("Đã tạo phòng thành công:", savedRoom);
     res.status(201).json(savedRoom);
   } catch (error) {
-    console.error("Lỗi khi tạo phòng:", error);
-    res.status(500).json({ message: "Lỗi khi tạo phòng", error: error.message });
+    return handleServiceError(res, error, "Lỗi khi tạo phòng:", "Lỗi khi tạo phòng");
   }
 };
 
@@ -161,80 +122,24 @@ exports.updateRoom = async (req, res) => {
     console.log(`Đang cập nhật phòng ID: ${req.params.id}`);
     console.log("Dữ liệu cập nhật:", JSON.stringify(req.body));
 
-    // Parse price nếu là string (từ FormData)
-    if (typeof req.body.price === 'string') {
-      try {
-        req.body.price = JSON.parse(req.body.price);
-      } catch (e) {
-        req.body.price = { regular: 0, discount: 0 };
-      }
+    let body = req.body;
+    if (req.user.role === "owner") {
+      await assertRoomOwnedByUser(req.params.id, req.user.id);
+      body = { ...req.body };
+      delete body.hotelId;
     }
 
-    // Parse facilities nếu là string
-    if (typeof req.body.facilities === 'string') {
-      try {
-        req.body.facilities = JSON.parse(req.body.facilities);
-      } catch (e) {
-        req.body.facilities = [];
-      }
-    }
-
-    // Parse existingImages nếu là string
-    let existingImages = [];
-    if (req.body.existingImages) {
-      try {
-        existingImages = JSON.parse(req.body.existingImages);
-      } catch (e) {
-        existingImages = [];
-      }
-    }
-
-    // Lấy đường dẫn ảnh mới từ req.files
-    const newImages = req.files ? req.files.map(file => {
-      if (hasCloudinaryConfig) {
-        // Cloudinary trả về URL đầy đủ trong file.secure_url (HTTPS) hoặc file.url (HTTP)
-        return file.secure_url || file.url || file.path;
-      } else {
-        // Local storage: tạo đường dẫn tương đối
-        return `/uploads/rooms/${file.filename}`;
-      }
-    }) : [];
-
-    // Gộp ảnh cũ và mới
-    req.body.images = [...existingImages, ...newImages];
-
-    const room = await Room.findById(req.params.id);
-
-    if (!room) {
-      console.log(`Không tìm thấy phòng với ID: ${req.params.id}`);
-      return res.status(404).json({ message: "Không tìm thấy phòng" });
-    }
-
-    // Kiểm tra nếu đang cập nhật roomStatus: chỉ cho phép khi bookingStatus là 'empty'
-    if (req.body.roomStatus && room.bookingStatus !== 'empty') {
-      return res.status(400).json({ 
-        message: "Chỉ có thể thay đổi trạng thái phòng khi phòng đang trống (empty)" 
-      });
-    }
-
-    // Không cho phép cập nhật bookingStatus trực tiếp từ owner
-    if (req.body.bookingStatus) {
-      delete req.body.bookingStatus;
-    }
-
-    // Không cần kiểm tra quyền sở hữu vì đã có middleware verifyOwner cho khách sạn
-
-    const updatedRoom = await Room.findByIdAndUpdate(
+    const updatedRoom = await roomService.updateRoom(
       req.params.id,
-      { $set: req.body },
-      { new: true, runValidators: true }
+      body,
+      req.files,
+      hasCloudinaryConfig
     );
 
     console.log(`Đã cập nhật phòng thành công: ${updatedRoom.roomNumber}`);
     res.status(200).json(updatedRoom);
   } catch (error) {
-    console.error("Lỗi khi cập nhật phòng:", error);
-    res.status(500).json({ message: "Lỗi khi cập nhật phòng", error: error.message });
+    return handleServiceError(res, error, "Lỗi khi cập nhật phòng:", "Lỗi khi cập nhật phòng");
   }
 };
 
@@ -242,31 +147,75 @@ exports.updateRoom = async (req, res) => {
 exports.deleteRoom = async (req, res) => {
   try {
     console.log(`Đang xóa phòng ID: ${req.params.id}`);
-    
-    const room = await Room.findById(req.params.id);
-    
-    if (!room) {
-      console.log(`Không tìm thấy phòng với ID: ${req.params.id}`);
-      return res.status(404).json({ message: "Không tìm thấy phòng" });
+    if (req.user.role === "owner") {
+      await assertRoomOwnedByUser(req.params.id, req.user.id);
     }
-    
-    // Check if room has active bookings
-    const activeBookings = await BookingHistory.countDocuments({
-      room: req.params.id,
-      paymentStatus: { $in: ["pending", "paid"] },
-      checkOutDate: { $gte: new Date() }
-    });
-    
-    if (activeBookings > 0) {
-      console.log(`Không thể xóa phòng ID: ${req.params.id} vì đang có ${activeBookings} đặt chỗ`);
-      return res.status(400).json({ message: "Không thể xóa phòng đang có đặt chỗ" });
-    }
-    
-    await Room.findByIdAndDelete(req.params.id);
+    await roomService.deleteRoom(req.params.id);
     console.log(`Đã xóa phòng thành công ID: ${req.params.id}`);
     res.status(200).json({ message: "Đã xóa phòng thành công" });
   } catch (error) {
-    console.error("Lỗi khi xóa phòng:", error);
-    res.status(500).json({ message: "Lỗi khi xóa phòng", error: error.message });
+    return handleServiceError(res, error, "Lỗi khi xóa phòng:", "Lỗi khi xóa phòng");
   }
-}; 
+};
+
+/** Owner: danh sách phòng + trang thiết bị (theo khách sạn). */
+exports.getOwnerRoomEquipment = async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    const payload = await roomEquipmentService.getOwnerRoomEquipmentForHotel(hotelId, req.user.id);
+    res.status(200).json(payload);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi lấy trang thiết bị phòng:", "Lỗi khi lấy danh sách thiết bị");
+  }
+};
+
+/** Owner: thêm thiết bị vào phòng (thủ công, không liên kết tiện ích). */
+exports.postOwnerRoomEquipment = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const data = await roomEquipmentService.postOwnerRoomEquipment(roomId, req.user.id, req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi thêm thiết bị:", "Lỗi khi thêm thiết bị");
+  }
+};
+
+/** Owner: cập nhật tên và/hoặc trạng thái thiết bị. */
+exports.patchOwnerRoomEquipment = async (req, res) => {
+  try {
+    const { roomId, equipmentId } = req.params;
+    const data = await roomEquipmentService.patchOwnerRoomEquipment(roomId, equipmentId, req.user.id, req.body);
+    res.status(200).json(data);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi cập nhật thiết bị:", "Lỗi khi cập nhật thiết bị");
+  }
+};
+
+/** Owner: xóa một thiết bị khỏi phòng. */
+exports.deleteOwnerRoomEquipment = async (req, res) => {
+  try {
+    const { roomId, equipmentId } = req.params;
+    const data = await roomEquipmentService.deleteOwnerRoomEquipment(roomId, equipmentId, req.user.id);
+    res.status(200).json(data);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi xóa thiết bị:", "Lỗi khi xóa thiết bị");
+  }
+};
+
+/** Owner: gửi email báo thiết bị hỏng tới địa chỉ bảo trì đã lưu. */
+exports.postOwnerEquipmentRepairRequest = async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    const { items } = req.body || {};
+    const ownerName = req.user?.name ? String(req.user.name).trim() : "";
+    const { count } = await roomEquipmentService.postOwnerEquipmentRepairRequest(
+      hotelId,
+      req.user.id,
+      ownerName,
+      items
+    );
+    res.status(200).json({ message: "Đã gửi email báo sửa chữa", count });
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi gửi email báo sửa chữa:", "Lỗi khi gửi email");
+  }
+};
