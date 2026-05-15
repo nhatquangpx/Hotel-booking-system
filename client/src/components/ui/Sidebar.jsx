@@ -27,6 +27,9 @@ const Sidebar = ({
     if (path === '/owner') {
       return location.pathname === '/owner';
     }
+    if (path === '/staff') {
+      return location.pathname === '/staff';
+    }
     
     // For other paths, check if pathname starts with the path
     // and ensure it's not just a prefix (e.g., /owner should not match /owner/rooms)

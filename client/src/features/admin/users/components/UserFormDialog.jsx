@@ -4,9 +4,19 @@ import api from '../../../../apis';
 import './UserFormDialog.scss';
 
 /**
- * User Form Dialog Component
- * Reusable dialog for creating and editing users
+ * Form tạo/sửa user.
+ * `staffHotelId`: khách sạn gán cho nhân viên (gửi API là assignedHotelId → cập nhật Hotel.staffIds, không lưu trên User).
  */
+const INITIAL_FORM = {
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  role: 'guest',
+  status: 'active',
+  staffHotelId: '',
+};
+
 const UserFormDialog = ({ 
   isOpen, 
   onClose, 
@@ -14,48 +24,51 @@ const UserFormDialog = ({
   onSuccess 
 }) => {
   const isEdit = !!userId;
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    role: 'guest',
-    status: 'active'
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM);
+  const [hotels, setHotels] = useState([]);
+  const [hotelsLoading, setHotelsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
+      fetchHotels();
       if (isEdit) {
         fetchUser();
       } else {
-        // Reset form for create
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          password: '',
-          role: 'guest',
-          status: 'active'
-        });
+        setFormData({ ...INITIAL_FORM });
         setError(null);
       }
     }
   }, [isOpen, userId]);
 
+  const fetchHotels = async () => {
+    try {
+      setHotelsLoading(true);
+      const data = await api.adminHotel.getAllHotels();
+      setHotels(Array.isArray(data) ? data : []);
+    } catch {
+      setHotels([]);
+    } finally {
+      setHotelsLoading(false);
+    }
+  };
+
   const fetchUser = async () => {
     try {
       setLoading(true);
       const data = await api.adminUser.getUserById(userId);
+      const hotelFromApi = data.assignedHotelId;
+      const hotelId = hotelFromApi?._id || hotelFromApi || '';
       setFormData({
         name: data.name || '',
         email: data.email || '',
         phone: data.phone || '',
         password: '',
         role: data.role || 'guest',
-        status: data.status || 'active'
+        status: data.status || 'active',
+        staffHotelId: hotelId ? String(hotelId) : '',
       });
       setError(null);
     } catch (err) {
@@ -67,10 +80,13 @@ const UserFormDialog = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'role' && value !== 'staff') {
+        next.staffHotelId = '';
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -79,10 +95,28 @@ const UserFormDialog = ({
       setSaving(true);
       setError(null);
       
+      const { staffHotelId, password, ...rest } = formData;
+      const payload = { ...rest };
+
       if (isEdit) {
-        await api.adminUser.updateUser(userId, formData);
+        delete payload.password;
+      } else if (password) {
+        payload.password = password;
+      }
+
+      if (payload.role === 'staff') {
+        if (!staffHotelId) {
+          setError('Vui lòng chọn khách sạn cho nhân viên');
+          setSaving(false);
+          return;
+        }
+        payload.assignedHotelId = staffHotelId;
+      }
+
+      if (isEdit) {
+        await api.adminUser.updateUser(userId, payload);
       } else {
-        await api.adminUser.createUser(formData);
+        await api.adminUser.createUser(payload);
       }
       
       onSuccess?.();
@@ -169,9 +203,33 @@ const UserFormDialog = ({
             >
               <option value="guest">Khách</option>
               <option value="owner">Chủ khách sạn</option>
+              <option value="staff">Nhân viên khách sạn</option>
               <option value="admin">Quản trị viên</option>
             </select>
           </div>
+
+          {formData.role === 'staff' && (
+            <div className="form-group">
+              <label htmlFor="staffHotelId">Khách sạn làm việc</label>
+              <select
+                id="staffHotelId"
+                name="staffHotelId"
+                value={formData.staffHotelId}
+                onChange={handleChange}
+                required
+                disabled={hotelsLoading}
+              >
+                <option value="">
+                  {hotelsLoading ? 'Đang tải khách sạn...' : 'Chọn khách sạn'}
+                </option>
+                {hotels.map((h) => (
+                  <option key={h._id} value={h._id}>
+                    {h.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           
           {isEdit && (
             <div className="form-group">

@@ -87,6 +87,13 @@ const HotelSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: () => ({}),
     },
+    /** Nhân viên làm việc tại khách sạn này (mỗi user staff chỉ thuộc tối đa một hotel). */
+    staffIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     /** Email bên dịch vụ sửa chữa — owner cấu hình; không trả về qua API guest. */
     maintenanceContactEmail: {
       type: String,

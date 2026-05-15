@@ -50,6 +50,15 @@ import {
   OwnerTwoFactorPage
 } from "@/features/owner";
 import { OwnerHotelOutlet } from "@/features/owner/context/OwnerHotelContext";
+import {
+  StaffDashboardPage,
+  StaffRoomMapPage,
+  StaffRoomDetailPage,
+  StaffBookingsPage,
+  StaffEquipmentPage,
+  StaffReviewsPage,
+} from "@/features/staff";
+import { StaffHotelOutlet } from "@/features/staff/context/StaffHotelContext";
 
 /**
  * App Routes
@@ -138,6 +147,18 @@ export default function AppRoutes() {
             <Route path="/owner/profile/edit" element={<OwnerProfileEditPage />} />
             <Route path="/owner/profile/changepassword" element={<OwnerProfileChangePasswordPage />} />
             <Route path="/owner/profile/two-factor" element={<OwnerTwoFactorPage />} />
+          </Route>
+        </Route>
+
+        {/* Staff (protected) */}
+        <Route element={<ProtectedRoute allowedRoles={["staff"]} />}>
+          <Route element={<StaffHotelOutlet />}>
+            <Route path="/staff" element={<StaffDashboardPage />} />
+            <Route path="/staff/rooms" element={<StaffRoomMapPage />} />
+            <Route path="/staff/rooms/:id" element={<StaffRoomDetailPage />} />
+            <Route path="/staff/bookings" element={<StaffBookingsPage />} />
+            <Route path="/staff/equipment" element={<StaffEquipmentPage />} />
+            <Route path="/staff/reviews" element={<StaffReviewsPage />} />
           </Route>
         </Route>
       </Routes>

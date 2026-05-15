@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header, Sidebar } from '@/components';
 import { FaHome, FaUsers, FaHotel, FaCalendarCheck } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
+import { readLocalStorageBoolean } from '@/shared/utils';
 import './AdminLayout.scss';
 
 const SIDEBAR_STORAGE_KEY = 'admin_sidebar_collapsed';
@@ -15,10 +16,9 @@ const AdminLayout = ({ children }) => {
   const location = useLocation();
   
   // Khôi phục trạng thái sidebar từ localStorage, mặc định là false (mở)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : false;
-  });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() =>
+    readLocalStorageBoolean(SIDEBAR_STORAGE_KEY, false)
+  );
 
   // Lưu trạng thái vào localStorage mỗi khi thay đổi
   useEffect(() => {

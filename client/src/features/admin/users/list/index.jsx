@@ -179,8 +179,9 @@ const AdminUserListPage = () => {
                     <td>{user.phone || 'Chưa cập nhật'}</td>
                     <td>
                       <span className={`role-badge ${user.role}`}>
-                        {user.role === 'admin' ? 'Quản trị viên' : 
-                         user.role === 'owner' ? 'Chủ khách sạn' : 'Khách'}
+                        {user.role === 'admin' ? 'Quản trị viên' :
+                         user.role === 'owner' ? 'Chủ khách sạn' :
+                         user.role === 'staff' ? 'Nhân viên khách sạn' : 'Khách'}
                       </span>
                     </td>
                     <td>

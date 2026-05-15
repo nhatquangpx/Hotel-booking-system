@@ -30,7 +30,7 @@ const Header = ({
   // Fetch user profile nếu là owner/admin và chưa có name đầy đủ hoặc thiếu _id
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (token && (user?.role === 'owner' || user?.role === 'admin')) {
+      if (token && (user?.role === 'owner' || user?.role === 'admin' || user?.role === 'staff')) {
         // Kiểm tra nếu thiếu name hoặc _id (hoặc chỉ có id)
         const hasId = user?.id || user?._id;
         const needsFetch = !user?.name || user?.name === 'User' || !user?._id;
@@ -120,6 +120,9 @@ const Header = ({
                 )}
                 {displayUser?.role === 'admin' && (
                   <span className="user-role">Quản trị viên</span>
+                )}
+                {displayUser?.role === 'staff' && (
+                  <span className="user-role">Nhân viên khách sạn</span>
                 )}
               </div>
               {isDropdownOpen ? <FaChevronUp /> : <FaChevronDown />}
