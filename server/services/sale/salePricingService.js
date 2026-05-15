@@ -1,22 +1,13 @@
 const mongoose = require("mongoose");
 const SalePromotion = require("../../models/SalePromotion");
+const { vnDateKey, saleOverlapStayFilter } = require("./saleShared");
 
-function vnDateKey(d) {
-  return new Date(d).toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
-}
-
-/**
- * Giá đêm hiệu dụng từ phòng (regular − discount cố định), trước chương trình sale.
- */
 function effectiveNightlyBase(room) {
   const r = room.price?.regular ?? 0;
   const disc = room.price?.discount ?? 0;
   return Math.max(0, r - disc);
 }
 
-/**
- * Các đêm (date key VN) trong [checkIn, checkOut)
- */
 function nightDateKeysVN(checkIn, checkOut) {
   const keys = [];
   const start = new Date(checkIn);
@@ -35,22 +26,15 @@ function saleAppliesToNight(sale, roomType, nightKey) {
   return sale.roomType === roomType;
 }
 
-/**
- * Chọn sale có % cao nhất cho một đêm (phạm vi hotel + room_type).
- */
 function pickBestSaleForNight(sales, roomType, nightKey) {
   let best = null;
   for (const s of sales) {
-    if (!s.isActive) continue;
-    if (!saleAppliesToNight(s, roomType, nightKey)) continue;
+    if (!s.isActive || !saleAppliesToNight(s, roomType, nightKey)) continue;
     if (!best || s.discountPercent > best.discountPercent) best = s;
   }
   return best;
 }
 
-/**
- * @param {Array} sales - kết quả lean từ SalePromotion (cùng khách sạn, đã lọc overlap tùy ý)
- */
 function computeStaySalePricingFromSales(room, checkIn, checkOut, sales = []) {
   const nights = nightDateKeysVN(checkIn, checkOut);
   if (nights.length === 0) {
@@ -75,8 +59,7 @@ function computeStaySalePricingFromSales(room, checkIn, checkOut, sales = []) {
   let dominantSale = null;
   let maxContrib = 0;
   for (const s of sales) {
-    const sid = String(s._id);
-    const v = discountBySaleId.get(sid) || 0;
+    const v = discountBySaleId.get(String(s._id)) || 0;
     if (v > maxContrib) {
       maxContrib = v;
       dominantSale = s;
@@ -117,14 +100,10 @@ async function loadSalesOverlappingStay(hotelId, checkIn, checkOut) {
 
   const nights = nightDateKeysVN(checkIn, checkOut);
   if (nights.length === 0) return [];
-  const minK = nights[0];
-  const maxK = nights[nights.length - 1];
 
   return SalePromotion.find({
     hotelId: new mongoose.Types.ObjectId(String(hotelId)),
-    isActive: true,
-    startDate: { $lte: maxK },
-    endDate: { $gte: minK },
+    ...saleOverlapStayFilter(nights[0], nights[nights.length - 1]),
   }).lean();
 }
 
@@ -134,7 +113,6 @@ async function computeStaySalePricing(room, hotelId, checkIn, checkOut) {
 }
 
 module.exports = {
-  vnDateKey,
   effectiveNightlyBase,
   computeStaySalePricingFromSales,
   computeStaySalePricing,

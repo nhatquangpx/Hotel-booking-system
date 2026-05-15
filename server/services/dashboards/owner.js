@@ -3,7 +3,7 @@ const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
 const Review = require('../../models/Review');
 const SalePromotion = require('../../models/SalePromotion');
-const { vnDateKey } = require('../sale/salePricingService');
+const { vnDateKey, activeSaleOnDateFilter } = require('../sale/saleShared');
 const {
   DAYS_OF_WEEK,
   getScopedHotelIdsForOwner,
@@ -60,12 +60,10 @@ const getDashboardStats = async (ownerId, hotelId) => {
   ]);
   const equipmentAttentionCount = equipmentAgg[0]?.n || 0;
 
-  /** Chương trình sale bật và đang trong khoảng ngày (theo chuỗi YYYY-MM-DD) */
+  /** Chương trình sale đang chạy (read-only filter, không ghi DB) */
   const activeSalesCount = await SalePromotion.countDocuments({
     hotelId: { $in: hotelIds },
-    isActive: true,
-    startDate: { $lte: ymdToday },
-    endDate: { $gte: ymdToday },
+    ...activeSaleOnDateFilter(ymdToday),
   });
 
   /** Đánh giá chưa có phản hồi từ chủ khách sạn */

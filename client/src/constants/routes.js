@@ -47,4 +47,3 @@ export const ROUTES = {
   REVIEWS: '/reviews',
   CREATE_REVIEW: (hotelId) => `/hotels/${hotelId}/review`,
 };
-

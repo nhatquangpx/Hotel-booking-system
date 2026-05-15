@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import OwnerLayout from '../components/OwnerLayout';
 import OwnerGuideCollapsible from '../components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerSaleAPI } from '@/apis/owner/sale';
 import Dialog from '@/components/ui/Dialog';
+import { saleStatusDisplay, countOpenSales, vnTodayYmd } from './saleUtils';
 import './SalePage.scss';
 
 const ROOM_TYPES = [
@@ -24,7 +25,6 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
   const [startDate, setStartDate] = useState(initial?.startDate || '');
   const [endDate, setEndDate] = useState(initial?.endDate || '');
   const [discountPercent, setDiscountPercent] = useState(initial?.discountPercent ?? 15);
-  const [isActive, setIsActive] = useState(initial?.isActive !== false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -35,9 +35,9 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
       startDate,
       endDate,
       discountPercent: Number(discountPercent),
-      isActive,
     };
     if (scope === 'room_type') body.roomType = roomType;
+    if (initial) body.isActive = initial.isOpen ?? initial.isActive !== false;
     onSubmit(body);
   };
 
@@ -50,7 +50,7 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
           onChange={(e) => setTitle(e.target.value)}
           required
           maxLength={200}
-          placeholder="Ví dụ: Flash sale tháng 4"
+          placeholder="Ví dụ: Sale 2/5–12/5"
         />
       </div>
       <div className="form-group">
@@ -90,14 +90,18 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
       )}
       <div className="form-row">
         <div className="form-group">
-          <label>Từ ngày</label>
+          <label>Lưu trú từ ngày</label>
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
         </div>
         <div className="form-group">
-          <label>Đến ngày</label>
+          <label>Lưu trú đến ngày</label>
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
         </div>
       </div>
+      <p className="sale-form-hint">
+        Giảm theo từng đêm ở trong khoảng này. Sau ngày kết thúc, chương trình tự đóng và các đêm từ ngày sau đó
+        tính giá mặc định.
+      </p>
       <div className="form-group">
         <label>Giảm giá (%)</label>
         <input
@@ -109,14 +113,6 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
           required
         />
       </div>
-      {initial && (
-        <div className="form-group">
-          <label>
-            <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-            Đang kích hoạt
-          </label>
-        </div>
-      )}
       <div className="sale-form-actions">
         <button type="button" className="btn-secondary" onClick={onCancel}>
           Hủy
@@ -129,9 +125,6 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
   );
 }
 
-/**
- * Trang quản lý chương trình sale (giảm % theo thời gian, phạm vi KS hoặc loại phòng)
- */
 const OwnerSalePage = () => {
   const { selectedHotelId: hotelId, loading: hotelsLoading, hotels } = useOwnerHotel();
   const [sales, setSales] = useState([]);
@@ -140,16 +133,12 @@ const OwnerSalePage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmState, setConfirmState] = useState({
-    isOpen: false,
-    type: null,
-    sale: null,
-  });
+  const [pendingToggle, setPendingToggle] = useState(null);
+
+  const openCount = useMemo(() => countOpenSales(sales), [sales]);
 
   const fetchSales = useCallback(async () => {
-    if (hotelsLoading) {
-      return;
-    }
+    if (hotelsLoading) return;
     if (!hotelId) {
       setSales([]);
       setLoading(false);
@@ -161,8 +150,7 @@ const OwnerSalePage = () => {
       const data = await ownerSaleAPI.list(hotelId);
       setSales(Array.isArray(data) ? data : []);
     } catch (e) {
-      const msg = e?.response?.data?.message || e?.message || 'Không tải được danh sách sale';
-      setError(msg);
+      setError(e?.response?.data?.message || e?.message || 'Không tải được danh sách sale');
       setSales([]);
     } finally {
       setLoading(false);
@@ -172,16 +160,6 @@ const OwnerSalePage = () => {
   useEffect(() => {
     fetchSales();
   }, [fetchSales]);
-
-  const openCreate = () => {
-    setEditing(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (row) => {
-    setEditing(row);
-    setModalOpen(true);
-  };
 
   const handleFormSubmit = async (body) => {
     setSubmitting(true);
@@ -196,46 +174,23 @@ const OwnerSalePage = () => {
       setEditing(null);
       await fetchSales();
     } catch (e) {
-      const msg = e?.response?.data?.message || e?.message || 'Không lưu được';
-      setError(msg);
+      setError(e?.response?.data?.message || e?.message || 'Không lưu được');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeactivate = async (sale) => {
-    setConfirmState({ isOpen: true, type: 'deactivate', sale });
-  };
-
-  const handleActivate = async (sale) => {
-    setConfirmState({ isOpen: true, type: 'activate', sale });
-  };
-
-  const closeConfirmModal = () => {
-    if (submitting) return;
-    setConfirmState({ isOpen: false, type: null, sale: null });
-  };
-
-  const handleConfirmAction = async () => {
-    const { sale, type } = confirmState;
-    if (!sale || !type) return;
-
-    setError(null);
+  const handleConfirmToggle = async () => {
+    if (!pendingToggle) return;
+    const { sale, open } = pendingToggle;
     setSubmitting(true);
+    setError(null);
     try {
-      if (type === 'deactivate') {
-        await ownerSaleAPI.deactivate(sale._id);
-      } else {
-        await ownerSaleAPI.update(sale._id, { isActive: true });
-      }
+      await ownerSaleAPI.setStatus(sale._id, open);
+      setPendingToggle(null);
       await fetchSales();
-      closeConfirmModal();
     } catch (e) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        (type === 'deactivate' ? 'Không tắt được' : 'Không bật lại được');
-      setError(msg);
+      setError(e?.response?.data?.message || e?.message || 'Không đổi trạng thái được');
     } finally {
       setSubmitting(false);
     }
@@ -248,45 +203,16 @@ const OwnerSalePage = () => {
           <OwnerGuideCollapsible label="Hướng dẫn chương trình sale — bấm để xem">
             <div className="sale-guide-card">
               <div className="sale-guide-card__intro">
-                <h3>Cách dùng chương trình sale</h3>
+                <h3>Chương trình sale theo ngày lưu trú</h3>
                 <p className="page-desc">
-                  Tạo khuyến mãi theo thời gian cho toàn khách sạn hoặc từng loại phòng. Khi chương trình còn hiệu
-                  lực, khách sẽ thấy ngay giá gốc, giá sau giảm và nhãn phần trăm ưu đãi trên danh sách phòng.
+                  Chỉ các <strong>đêm ở</strong> trong khoảng bạn chọn được giảm. Kỳ đặt trải cả đêm sale và không
+                  sale → hệ thống tính hai mức giá rồi cộng một tổng. Sau ngày kết thúc, chương trình{' '}
+                  <strong>đóng</strong> — đêm từ ngày sau đó giá mặc định.
                 </p>
               </div>
-              <div className="sale-guide-grid">
-                <div className="sale-guide-item">
-                  <span className="sale-guide-item__step">1</span>
-                  <div>
-                    <strong>Chọn phạm vi áp dụng</strong>
-                    <p>Tạo sale cho toàn khách sạn hoặc chỉ một loại phòng cụ thể.</p>
-                  </div>
-                </div>
-                <div className="sale-guide-item">
-                  <span className="sale-guide-item__step">2</span>
-                  <div>
-                    <strong>Đặt tên dễ nhớ cho chương trình</strong>
-                    <p>Đặt tên ngắn gọn để bạn dễ nhận ra từng đợt khuyến mãi khi xem lại danh sách.</p>
-                  </div>
-                </div>
-                <div className="sale-guide-item">
-                  <span className="sale-guide-item__step">3</span>
-                  <div>
-                    <strong>Đặt thời gian và mức giảm</strong>
-                    <p>Nhập ngày bắt đầu, ngày kết thúc và phần trăm ưu đãi muốn áp dụng.</p>
-                  </div>
-                </div>
-                <div className="sale-guide-item">
-                  <span className="sale-guide-item__step">4</span>
-                  <div>
-                    <strong>Giá giảm được áp dụng tự động</strong>
-                    <p>Khi khách đặt phòng, hệ thống sẽ tự lấy đúng mức giá ưu đãi còn hiệu lực.</p>
-                  </div>
-                </div>
-              </div>
               <div className="sale-guide-note">
-                <strong>Lưu ý:</strong> nếu có nhiều chương trình cùng chồng thời gian, hệ thống sẽ tự chọn mức giảm
-                cao nhất cho từng đêm.
+                <strong>Ví dụ:</strong> sale 2/5–12/5 → đêm 2–12/5 giảm; đơn ở 13/5 trở đi không sale. Nhiều chương
+                trình chồng nhau → mỗi đêm lấy % cao nhất.
               </div>
             </div>
           </OwnerGuideCollapsible>
@@ -295,13 +221,13 @@ const OwnerSalePage = () => {
         <div className="sale-toolbar">
           <div className="sale-toolbar-meta">
             <span className="meta-item">
-              Tổng chương trình: <strong>{sales.length}</strong>
+              Tổng: <strong>{sales.length}</strong>
             </span>
             <span className="meta-item">
-              Đang hoạt động: <strong>{sales.filter((s) => s.isActive).length}</strong>
+              Đang mở: <strong>{openCount}</strong>
             </span>
           </div>
-          <button type="button" className="btn-primary" onClick={openCreate} disabled={!hotelId}>
+          <button type="button" className="btn-primary" onClick={() => { setEditing(null); setModalOpen(true); }} disabled={!hotelId}>
             + Thêm chương trình
           </button>
         </div>
@@ -320,7 +246,7 @@ const OwnerSalePage = () => {
             <table className="sale-table">
               <thead>
                 <tr>
-                  <th>Thời gian</th>
+                  <th>Ngày lưu trú</th>
                   <th>Tên</th>
                   <th>Phạm vi</th>
                   <th>Loại</th>
@@ -330,59 +256,59 @@ const OwnerSalePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {sales.map((s) => (
-                  <tr key={s._id}>
-                    <td>
-                      <div className="time-range">
-                        <span>{s.startDate}</span>
-                        <span className="time-sep">→</span>
-                        <span>{s.endDate}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="sale-title-cell">
+                {sales.map((s) => {
+                  const status = saleStatusDisplay(s);
+                  return (
+                    <tr key={s._id}>
+                      <td>
+                        <div className="time-range">
+                          <span>{s.startDate}</span>
+                          <span className="time-sep">→</span>
+                          <span>{s.endDate}</span>
+                        </div>
+                      </td>
+                      <td>
                         <strong>{s.title}</strong>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`scope-chip ${s.scope === 'hotel' ? 'scope-chip--hotel' : 'scope-chip--type'}`}>
-                        {scopeLabel(s)}
-                      </span>
-                    </td>
-                    <td>{s.scope === 'room_type' ? roomTypeLabel(s.roomType) : 'Tất cả loại phòng'}</td>
-                    <td>
-                      <span className="discount-badge">-{s.discountPercent}%</span>
-                    </td>
-                    <td>
-                      <span className={`status-pill ${s.isActive ? 'status-pill--active' : 'status-pill--inactive'}`}>
-                        {s.isActive ? 'Hoạt động' : 'Tạm tắt'}
-                      </span>
-                    </td>
-                    <td className="sale-row-actions">
-                      <button type="button" className="action-btn action-btn--edit" onClick={() => openEdit(s)}>
-                        Sửa
-                      </button>
-                      {s.isActive && (
-                        <button
-                          type="button"
-                          className="action-btn action-btn--danger"
-                          onClick={() => handleDeactivate(s)}
-                        >
-                          Vô hiệu
+                      </td>
+                      <td>
+                        <span className={`scope-chip ${s.scope === 'hotel' ? 'scope-chip--hotel' : 'scope-chip--type'}`}>
+                          {scopeLabel(s)}
+                        </span>
+                      </td>
+                      <td>{s.scope === 'room_type' ? roomTypeLabel(s.roomType) : 'Tất cả loại phòng'}</td>
+                      <td>
+                        <span className="discount-badge">-{s.discountPercent}%</span>
+                      </td>
+                      <td>
+                        <span className={`status-pill ${status.pillClass}`}>{status.label}</span>
+                      </td>
+                      <td className="sale-row-actions">
+                        <button type="button" className="action-btn action-btn--edit" onClick={() => { setEditing(s); setModalOpen(true); }}>
+                          Sửa
                         </button>
-                      )}
-                      {!s.isActive && (
-                        <button
-                          type="button"
-                          className="action-btn action-btn--success"
-                          onClick={() => handleActivate(s)}
-                        >
-                          Bật lại
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                        {s.isOpen ? (
+                          <button
+                            type="button"
+                            className="action-btn action-btn--danger"
+                            onClick={() => setPendingToggle({ sale: s, open: false })}
+                          >
+                            Đóng
+                          </button>
+                        ) : (
+                          s.endDate >= vnTodayYmd() && (
+                            <button
+                              type="button"
+                              className="action-btn action-btn--success"
+                              onClick={() => setPendingToggle({ sale: s, open: true })}
+                            >
+                              Mở
+                            </button>
+                          )
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -406,35 +332,31 @@ const OwnerSalePage = () => {
         </Dialog>
 
         <Dialog
-          isOpen={confirmState.isOpen}
-          onClose={closeConfirmModal}
-          title={
-            confirmState.type === 'deactivate'
-              ? 'Xác nhận tắt chương trình'
-              : 'Xác nhận bật lại chương trình'
-          }
+          isOpen={!!pendingToggle}
+          onClose={() => !submitting && setPendingToggle(null)}
+          title={pendingToggle?.open ? 'Mở chương trình' : 'Đóng chương trình'}
           maxWidth="460px"
         >
           <div className="confirm-box">
             <p>
-              {confirmState.type === 'deactivate'
-                ? 'Bạn có chắc muốn tắt chương trình sale này không?'
-                : 'Bạn có chắc muốn bật lại chương trình sale này không?'}
+              {pendingToggle?.open
+                ? 'Bật lại chương trình sale này?'
+                : 'Đóng chương trình? Các đêm lưu trú sau đó sẽ không còn giảm giá.'}
             </p>
             <p className="confirm-box__title">
-              <strong>{confirmState.sale?.title || ''}</strong>
+              <strong>{pendingToggle?.sale?.title || ''}</strong>
             </p>
             <div className="confirm-box__actions">
-              <button type="button" className="btn-secondary" onClick={closeConfirmModal} disabled={submitting}>
+              <button type="button" className="btn-secondary" onClick={() => setPendingToggle(null)} disabled={submitting}>
                 Hủy
               </button>
               <button
                 type="button"
-                className={`btn-primary ${confirmState.type === 'deactivate' ? 'btn-danger' : ''}`}
-                onClick={handleConfirmAction}
+                className={`btn-primary ${pendingToggle?.open ? '' : 'btn-danger'}`}
+                onClick={handleConfirmToggle}
                 disabled={submitting}
               >
-                {submitting ? 'Đang xử lý...' : confirmState.type === 'deactivate' ? 'Xác nhận tắt' : 'Xác nhận bật'}
+                {submitting ? 'Đang xử lý...' : pendingToggle?.open ? 'Mở' : 'Đóng'}
               </button>
             </div>
           </div>
@@ -445,3 +367,4 @@ const OwnerSalePage = () => {
 };
 
 export default OwnerSalePage;
+
