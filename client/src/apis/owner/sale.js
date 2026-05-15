@@ -16,7 +16,12 @@ export const ownerSaleAPI = {
     return response.data;
   },
 
-  deactivate: async (id) => {
+  setStatus: async (id, isActive) => {
+    const response = await api.patch(`/owner/sales/${id}/status`, { isActive });
+    return response.data;
+  },
+
+  close: async (id) => {
     const response = await api.delete(`/owner/sales/${id}`);
     return response.data;
   },

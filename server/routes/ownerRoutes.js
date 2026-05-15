@@ -76,8 +76,10 @@ router.post('/pricing/apply-suggested', pricingController.applySuggestedPrices);
 
 // Chương trình sale
 router.get('/sales', saleController.listSales);
+router.post('/sales/sync-expired', saleController.syncExpiredSales);
 router.post('/sales', saleController.createSale);
 router.put('/sales/:id', saleController.updateSale);
+router.patch('/sales/:id/status', saleController.setSaleStatus);
 router.delete('/sales/:id', saleController.deactivateSale);
 
 module.exports = router;

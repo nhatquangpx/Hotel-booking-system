@@ -304,13 +304,13 @@
       font-size: 0.78rem;
       font-weight: 700;
 
-      &--active {
+      &--open {
         background: $status-success-bg;
         color: $status-success-text;
       }
-      &--inactive {
-        background: $status-warning-bg;
-        color: $status-warning-text;
+      &--closed {
+        background: rgba($text-medium-alt, 0.12);
+        color: $text-medium-alt;
       }
     }
   }
@@ -382,6 +382,13 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+  }
+
+  .sale-form-hint {
+    margin: -0.35rem 0 1rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: $text-secondary;
   }
 
   .sale-scope-options {

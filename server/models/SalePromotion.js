@@ -28,13 +28,13 @@ const SalePromotionSchema = new mongoose.Schema(
         return this.scope === "room_type";
       },
     },
-    /** Ngày bắt đầu (YYYY-MM-DD, múi giờ VN) */
+    /** Ngày lưu trú bắt đầu áp giảm (YYYY-MM-DD, múi giờ VN) — không phải ngày đặt phòng */
     startDate: {
       type: String,
       required: true,
       match: /^\d{4}-\d{2}-\d{2}$/,
     },
-    /** Ngày kết thúc (YYYY-MM-DD, inclusive) */
+    /** Ngày lưu trú kết thúc áp giảm (YYYY-MM-DD, inclusive) */
     endDate: {
       type: String,
       required: true,
