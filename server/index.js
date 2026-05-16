@@ -11,6 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const guestRoutes = require("./routes/guestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
+const staffRoutes = require("./routes/staffRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 
 const { initializeSocket } = require("./socket/socketServer");
@@ -61,6 +62,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/guest", guestRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/owner", ownerRoutes);
+app.use("/api/staff", staffRoutes);
 app.use("/api/payment", paymentRoutes);
 
 app.get('/health', (req, res) => {

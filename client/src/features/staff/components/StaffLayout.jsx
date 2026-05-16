@@ -31,10 +31,7 @@ const StaffLayout = ({ children }) => {
 
   const getPageTitle = (loc) => {
     if (loc.pathname === '/staff') return 'Tổng quan';
-    if (loc.pathname.includes('/staff/rooms')) {
-      if (loc.pathname.match(/\/staff\/rooms\/[^/]+$/)) return 'Chi tiết phòng';
-      return 'Sơ đồ phòng';
-    }
+    if (loc.pathname.includes('/staff/rooms')) return 'Sơ đồ phòng';
     if (loc.pathname.includes('/staff/bookings')) return 'Check-in / Check-out';
     if (loc.pathname.includes('/staff/equipment')) return 'Thiết bị';
     if (loc.pathname.includes('/staff/reviews')) return 'Đánh giá';

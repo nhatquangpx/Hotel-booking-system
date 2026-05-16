@@ -189,6 +189,29 @@ async function updateRoom(roomId, reqBody, files, hasCloudinary) {
   return Room.findByIdAndUpdate(roomId, { $set: body }, { new: true, runValidators: true });
 }
 
+/** Chỉ đổi roomStatus khi bookingStatus === empty (owner/staff). */
+async function updateRoomStatusOnly(roomId, roomStatus) {
+  const valid = ["active", "maintenance", "inactive"];
+  if (!valid.includes(roomStatus)) {
+    throwHttp(400, "Trạng thái phòng không hợp lệ");
+  }
+
+  const room = await Room.findById(roomId);
+  if (!room) {
+    throwHttp(404, "Không tìm thấy phòng");
+  }
+
+  if (room.bookingStatus !== "empty") {
+    throwHttp(400, "Chỉ có thể thay đổi trạng thái phòng khi phòng đang trống (empty)");
+  }
+
+  return Room.findByIdAndUpdate(
+    roomId,
+    { $set: { roomStatus } },
+    { new: true, runValidators: true }
+  );
+}
+
 async function deleteRoom(roomId) {
   const room = await Room.findById(roomId);
   if (!room) {
@@ -213,6 +236,7 @@ module.exports = {
   getRoomById,
   createRoom,
   updateRoom,
+  updateRoomStatusOnly,
   deleteRoom,
   VALID_ROOM_TYPES,
 };

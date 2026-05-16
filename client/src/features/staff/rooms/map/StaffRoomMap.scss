@@ -1,0 +1,16 @@
+.staff-room-map {
+  .staff-room-map__header {
+    width: 100%;
+  }
+
+  .room-map__instruction {
+    margin: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .staff-room-map .room-map__header-content {
+    padding: 0 0.25rem;
+  }
+}

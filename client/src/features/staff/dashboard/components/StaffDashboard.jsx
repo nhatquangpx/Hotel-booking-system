@@ -143,7 +143,7 @@ export const StaffDashboard = () => {
 
   const roomItems = MOCK_ROOMS.map((room) => ({
     id: room.id,
-    linkTo: `/staff/rooms/${room.number}`,
+    linkTo: '/staff/rooms',
     main: `Phòng ${room.number}`,
     trailing: (
       <span className={`staff-dash-badge ${roomBadgeClass(room.status)}`}>

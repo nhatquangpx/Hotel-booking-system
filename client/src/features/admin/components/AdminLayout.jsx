@@ -56,10 +56,10 @@ const AdminLayout = ({ children }) => {
   };
 
   const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: FaHome, title: 'Dashboard' },
-    { path: '/admin/users', label: 'Quản lý người dùng', icon: FaUsers, title: 'Quản lý người dùng' },
-    { path: '/admin/hotels', label: 'Quản lý khách sạn', icon: FaHotel, title: 'Quản lý khách sạn' },
-    { path: '/admin/bookings', label: 'Quản lý đặt phòng', icon: FaCalendarCheck, title: 'Quản lý đặt phòng' },
+    { path: '/admin', label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
+    { path: '/admin/users', label: 'Người dùng', icon: FaUsers, title: 'Người dùng' },
+    { path: '/admin/hotels', label: 'Khách sạn', icon: FaHotel, title: 'Khách sạn' },
+    { path: '/admin/bookings', label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
   ];
 
   return (
