@@ -3,6 +3,7 @@ const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const roomService = require("../services/rooms/roomService");
 const roomEquipmentService = require("../services/rooms/roomEquipmentService");
+const { staffCanAccessHotel } = require("../utils/staffHotel");
 
 function throwHttp(statusCode, message) {
   const e = new Error(message);
@@ -29,6 +30,19 @@ async function assertRoomOwnedByUser(roomId, userId) {
     throwHttp(404, "Không tìm thấy phòng");
   }
   await assertHotelOwnedByUser(room.hotelId.toString(), userId);
+  return room;
+}
+
+/** Nhân viên: phòng thuộc khách sạn đã gán. */
+async function assertStaffRoomAccess(roomId, userId) {
+  const room = await Room.findById(roomId).select("hotelId");
+  if (!room) {
+    throwHttp(404, "Không tìm thấy phòng");
+  }
+  const allowed = await staffCanAccessHotel(userId, room.hotelId.toString());
+  if (!allowed) {
+    throwHttp(403, "Bạn không có quyền thực hiện hành động này");
+  }
   return room;
 }
 
@@ -61,6 +75,9 @@ exports.getRoomById = async (req, res) => {
     console.log(`Lấy thông tin phòng ID: ${req.params.id}`);
     if (req.user?.role === "owner" && req.baseUrl === "/api/owner") {
       await assertRoomOwnedByUser(req.params.id, req.user.id);
+    }
+    if (req.user?.role === "staff") {
+      await assertStaffRoomAccess(req.params.id, req.user.id);
     }
     const room = await roomService.getRoomById(req.params.id);
 
@@ -199,6 +216,40 @@ exports.deleteOwnerRoomEquipment = async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     return handleServiceError(res, error, "Lỗi khi xóa thiết bị:", "Lỗi khi xóa thiết bị");
+  }
+};
+
+/** Staff: danh sách phòng khách sạn đã gán (req.staffHotelId từ attachStaffHotel). */
+exports.getStaffRooms = async (req, res) => {
+  try {
+    const hotelId = req.staffHotelId?.toString();
+    if (!hotelId) {
+      return res.status(403).json({ message: "Tài khoản nhân viên chưa được gán khách sạn" });
+    }
+    const rooms = await roomService.listRoomsByHotel(hotelId, req.query);
+    res.status(200).json(rooms);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi lấy danh sách phòng:", "Lỗi khi lấy danh sách phòng");
+  }
+};
+
+/** Staff: chỉ cập nhật roomStatus (logic giống owner). */
+exports.updateStaffRoomStatus = async (req, res) => {
+  try {
+    const { roomStatus } = req.body || {};
+    if (!roomStatus) {
+      return res.status(400).json({ message: "roomStatus là bắt buộc" });
+    }
+    await assertStaffRoomAccess(req.params.id, req.user.id);
+    const updatedRoom = await roomService.updateRoomStatusOnly(req.params.id, roomStatus);
+    res.status(200).json(updatedRoom);
+  } catch (error) {
+    return handleServiceError(
+      res,
+      error,
+      "Lỗi khi cập nhật trạng thái phòng:",
+      "Lỗi khi cập nhật trạng thái phòng"
+    );
   }
 };
 

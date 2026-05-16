@@ -361,19 +361,13 @@
 }
 
 .room-detail-modal__facility-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: inline-block;
   padding: 0.5rem 1rem;
   background-color: $status-success-bg;
   border-radius: 20px;
   @include body-sm;
   color: $status-success-text;
   font-weight: $font-medium;
-
-  svg {
-    font-size: 0.875rem;
-  }
 }
 
 .room-detail-modal__customer {

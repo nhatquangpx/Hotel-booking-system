@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaTimes, FaEdit, FaWifi, FaSnowflake, FaTv, FaWineBottle, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
+import { FaTimes, FaEdit, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { EditRoomDialog } from '../edit';
 import api from '@/apis';
 import './RoomDetailModal.scss';
@@ -74,25 +74,6 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
       style: 'currency',
       currency: 'VND'
     }).format(regularPrice);
-  };
-
-  const getFacilityIcon = (facility) => {
-    const facilityLower = facility?.toLowerCase() || '';
-    if (facilityLower.includes('wifi')) return FaWifi;
-    if (facilityLower.includes('điều hòa') || facilityLower.includes('air')) return FaSnowflake;
-    if (facilityLower.includes('tv')) return FaTv;
-    if (facilityLower.includes('minibar') || facilityLower.includes('bar')) return FaWineBottle;
-    return null;
-  };
-
-  const formatFacility = (facility) => {
-    const facilityMap = {
-      'wifi': 'Wifi miễn phí',
-      'air conditioning': 'Điều hòa',
-      'tv': 'TV',
-      'minibar': 'Minibar'
-    };
-    return facilityMap[facility?.toLowerCase()] || facility || '';
   };
 
   const handleEdit = () => {
@@ -267,15 +248,11 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
                   <div className="room-detail-modal__facilities">
                     <h3 className="room-detail-modal__section-title">Tiện nghi</h3>
                     <div className="room-detail-modal__facilities-list">
-                      {roomData.facilities.map((facility, index) => {
-                        const IconComponent = getFacilityIcon(facility);
-                        return (
-                          <div key={index} className="room-detail-modal__facility-tag">
-                            {IconComponent && <IconComponent />}
-                            <span>{formatFacility(facility)}</span>
-                          </div>
-                        );
-                      })}
+                      {roomData.facilities.map((facility, index) => (
+                        <span key={index} className="room-detail-modal__facility-tag">
+                          {facility}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}

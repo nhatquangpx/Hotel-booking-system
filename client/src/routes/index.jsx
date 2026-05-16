@@ -53,7 +53,6 @@ import { OwnerHotelOutlet } from "@/features/owner/context/OwnerHotelContext";
 import {
   StaffDashboardPage,
   StaffRoomMapPage,
-  StaffRoomDetailPage,
   StaffBookingsPage,
   StaffEquipmentPage,
   StaffReviewsPage,
@@ -155,7 +154,6 @@ export default function AppRoutes() {
           <Route element={<StaffHotelOutlet />}>
             <Route path="/staff" element={<StaffDashboardPage />} />
             <Route path="/staff/rooms" element={<StaffRoomMapPage />} />
-            <Route path="/staff/rooms/:id" element={<StaffRoomDetailPage />} />
             <Route path="/staff/bookings" element={<StaffBookingsPage />} />
             <Route path="/staff/equipment" element={<StaffEquipmentPage />} />
             <Route path="/staff/reviews" element={<StaffReviewsPage />} />
