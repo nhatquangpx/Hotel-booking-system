@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { FaSearch, FaHistory } from 'react-icons/fa';
+import { FaSearch, FaHistory, FaCalendarDay } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import api from '@/apis';
+import { isTodayCheckInOrCheckOut } from '@/shared/utils/bookingFilters';
 import OwnerBookingCard from './OwnerBookingCard';
 import OwnerBookingDetailModal from './OwnerBookingDetailModal';
 import OwnerBookingActionModal from './OwnerBookingActionModal';
@@ -29,6 +30,7 @@ const OwnerBookingListPage = () => {
   const [methodFilter, setMethodFilter] = useState('all');
   const [proofFilter, setProofFilter] = useState('all');
   const [showPastBookings, setShowPastBookings] = useState(false);
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [previewProofUrl, setPreviewProofUrl] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -183,13 +185,20 @@ const OwnerBookingListPage = () => {
     return booking.source || null;
   };
 
+  const todayBookingsCount = useMemo(
+    () => bookings.filter((b) => isTodayCheckInOrCheckOut(b)).length,
+    [bookings]
+  );
+
   const filteredBookings = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const query = searchQuery.trim().toLowerCase();
 
     return bookings.filter((booking) => {
-      if (!showPastBookings) {
+      if (showTodayOnly) {
+        if (!isTodayCheckInOrCheckOut(booking)) return false;
+      } else if (!showPastBookings) {
         const checkInDate = new Date(booking.checkInDate);
         checkInDate.setHours(0, 0, 0, 0);
         if (checkInDate < today) return false;
@@ -226,7 +235,7 @@ const OwnerBookingListPage = () => {
 
       return true;
     });
-  }, [bookings, showPastBookings, searchQuery, statusFilter, methodFilter, proofFilter]);
+  }, [bookings, showTodayOnly, showPastBookings, searchQuery, statusFilter, methodFilter, proofFilter]);
 
   const openDetailModal = async (bookingId) => {
     try {
@@ -270,7 +279,10 @@ const OwnerBookingListPage = () => {
                 <span className="booking-guide-item__step">1</span>
                 <div>
                   <strong>Kiểm tra danh sách khách sắp đến</strong>
-                  <p>Xem nhanh tên khách, ngày nhận phòng, ngày trả phòng và phòng đã đặt.</p>
+                  <p>
+                    Dùng nút &quot;Hôm nay check-in/out&quot; để xem đơn nhận hoặc trả phòng trong ngày, hoặc lọc theo
+                    tìm kiếm và trạng thái.
+                  </p>
                 </div>
               </div>
               <div className="booking-guide-item">
@@ -317,8 +329,22 @@ const OwnerBookingListPage = () => {
             </div>
             <button
               type="button"
-              className={`past-bookings-toggle ${showPastBookings ? 'active' : ''}`}
+              className={`booking-quick-filter today-check-toggle ${showTodayOnly ? 'active' : ''}`}
+              onClick={() => setShowTodayOnly((prev) => !prev)}
+              aria-pressed={showTodayOnly}
+            >
+              <FaCalendarDay />
+              <span>
+                {showTodayOnly ? 'Bỏ lọc hôm nay' : 'Hôm nay check-in/out'}
+                {!showTodayOnly && todayBookingsCount > 0 ? ` (${todayBookingsCount})` : ''}
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`booking-quick-filter past-bookings-toggle ${showPastBookings ? 'active' : ''}`}
               onClick={() => setShowPastBookings((prev) => !prev)}
+              disabled={showTodayOnly}
+              title={showTodayOnly ? 'Tắt lọc hôm nay để dùng hiện/ẩn đơn quá khứ' : undefined}
             >
               <FaHistory />
               <span>{showPastBookings ? 'Ẩn đơn quá khứ' : 'Hiện đơn quá khứ'}</span>
@@ -373,7 +399,9 @@ const OwnerBookingListPage = () => {
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="empty-message">
-            Không có đặt phòng phù hợp với bộ lọc
+            {showTodayOnly
+              ? 'Không có đơn check-in hoặc check-out hôm nay'
+              : 'Không có đặt phòng phù hợp với bộ lọc'}
           </div>
         ) : (
           <div className="booking-cards">

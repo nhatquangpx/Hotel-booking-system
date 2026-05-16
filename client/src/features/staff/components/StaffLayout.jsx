@@ -32,7 +32,7 @@ const StaffLayout = ({ children }) => {
   const getPageTitle = (loc) => {
     if (loc.pathname === '/staff') return 'Tổng quan';
     if (loc.pathname.includes('/staff/rooms')) return 'Sơ đồ phòng';
-    if (loc.pathname.includes('/staff/bookings')) return 'Check-in / Check-out';
+    if (loc.pathname.includes('/staff/bookings')) return 'Đặt phòng';
     if (loc.pathname.includes('/staff/equipment')) return 'Thiết bị';
     if (loc.pathname.includes('/staff/reviews')) return 'Đánh giá';
     return 'Nhân viên khách sạn';
@@ -43,9 +43,9 @@ const StaffLayout = ({ children }) => {
     { path: '/staff/rooms', label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
     {
       path: '/staff/bookings',
-      label: 'Check-in/out',
+      label: 'Đặt phòng',
       icon: FaCalendarCheck,
-      title: 'Check-in / Check-out',
+      title: 'Đặt phòng',
     },
     { path: '/staff/equipment', label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
     { path: '/staff/reviews', label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },

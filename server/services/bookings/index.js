@@ -45,6 +45,14 @@ const {
   getBookingById: getAdminBookingById,
 } = require("./admin");
 
+// Staff booking services (xem + check-in/out)
+const {
+  getBookingsByStaff,
+  getBookingById: getStaffBookingById,
+  checkIn: staffCheckIn,
+  checkOut: staffCheckOut,
+} = require("./staff");
+
 module.exports = {
   // Core functions
   calculateNights,
@@ -74,6 +82,12 @@ module.exports = {
   confirmOwnerGuestRefund,
   checkIn,
   checkOut,
+
+  // Staff services
+  getBookingsByStaff,
+  getStaffBookingById,
+  staffCheckIn,
+  staffCheckOut,
   
   // Admin services
   getAllBookings,

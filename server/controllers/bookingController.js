@@ -387,3 +387,90 @@ exports.checkOut = async (req, res) => {
     res.status(statusCode).json({ message: error.message || "Lỗi khi check-out" });
   }
 };
+
+function handleBookingServiceError(res, error, logLabel, fallbackMessage) {
+  if (error?.statusCode) {
+    return res.status(error.statusCode).json({ message: error.message });
+  }
+  console.error(logLabel, error);
+  const statusCode =
+    error.message?.includes("Không tìm thấy") || error.message?.includes("không tồn tại")
+      ? 404
+      : error.message?.includes("không có quyền")
+        ? 403
+        : error.message?.includes("đã được") ||
+            error.message?.includes("chưa") ||
+            error.message?.includes("Chỉ có thể")
+          ? 400
+          : 500;
+  return res.status(statusCode).json({ message: error.message || fallbackMessage });
+}
+
+/** Staff: danh sách đơn khách sạn đã gán. */
+exports.getStaffBookings = async (req, res) => {
+  try {
+    const bookings = await bookingService.getBookingsByStaff(req.user.id);
+    res.status(200).json(bookings);
+  } catch (error) {
+    return handleBookingServiceError(
+      res,
+      error,
+      "Lỗi khi lấy danh sách đặt phòng (staff):",
+      "Lỗi khi lấy danh sách đặt phòng"
+    );
+  }
+};
+
+/** Staff: chi tiết đơn. */
+exports.getStaffBookingById = async (req, res) => {
+  try {
+    const booking = await bookingService.getStaffBookingById(req.params.id, req.user);
+    const review = await Review.findOne({ booking: booking._id }).populate({
+      path: "guest",
+      select: "name email",
+    });
+    const bookingObj = booking.toObject ? booking.toObject() : { ...booking };
+    if (review) {
+      bookingObj.review = review;
+    }
+    if (bookingObj.hotel?.paymentConfig?.vnpay) {
+      delete bookingObj.hotel.paymentConfig.vnpay.secureSecret;
+    }
+    res.status(200).json(bookingObj);
+  } catch (error) {
+    return handleBookingServiceError(
+      res,
+      error,
+      "Lỗi khi lấy chi tiết đơn (staff):",
+      "Lỗi khi lấy thông tin đơn đặt phòng"
+    );
+  }
+};
+
+/** Staff: check-in. */
+exports.staffCheckIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await bookingService.staffCheckIn(id, req.user);
+    notifyCheckIn(id).catch((err) => {
+      console.error("Lỗi khi tạo thông báo check-in:", err);
+    });
+    res.status(200).json({ message: "Check-in thành công", booking });
+  } catch (error) {
+    return handleBookingServiceError(res, error, "Lỗi khi check-in (staff):", "Lỗi khi check-in");
+  }
+};
+
+/** Staff: check-out. */
+exports.staffCheckOut = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await bookingService.staffCheckOut(id, req.user);
+    notifyCheckOut(id).catch((err) => {
+      console.error("Lỗi khi tạo thông báo check-out:", err);
+    });
+    res.status(200).json({ message: "Check-out thành công", booking });
+  } catch (error) {
+    return handleBookingServiceError(res, error, "Lỗi khi check-out (staff):", "Lỗi khi check-out");
+  }
+};

@@ -104,6 +104,7 @@
   .booking-search-bar {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.75rem;
     margin-bottom: 0.75rem;
 
@@ -144,7 +145,8 @@
       }
     }
 
-    .past-bookings-toggle {
+    .past-bookings-toggle,
+    .booking-quick-filter {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
@@ -159,7 +161,7 @@
       white-space: nowrap;
       transition: all 0.2s;
 
-      &:hover {
+      &:hover:not(:disabled) {
         border-color: $lotte-primary;
         color: $lotte-primary;
       }
@@ -169,6 +171,15 @@
         border-color: $lotte-primary;
         color: $lotte-primary;
       }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .today-check-toggle.active {
+      font-weight: 600;
     }
   }
 
@@ -778,8 +789,15 @@
       flex-direction: column;
       align-items: stretch;
 
-      .past-bookings-toggle {
+      .search-input-wrapper {
+        flex: 1 1 100%;
+        min-width: 100%;
+      }
+
+      .past-bookings-toggle,
+      .booking-quick-filter {
         justify-content: center;
+        flex: 1 1 auto;
       }
     }
 
