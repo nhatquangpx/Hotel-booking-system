@@ -10,6 +10,7 @@ import {
   FaTags,
   FaWrench
 } from 'react-icons/fa';
+import { readLocalStorageBoolean } from '@/shared/utils';
 import OwnerHotelSelect from './OwnerHotelSelect';
 import './OwnerLayout.scss';
 
@@ -24,10 +25,9 @@ const OwnerLayout = ({ children }) => {
   const location = useLocation();
   
   // Khôi phục trạng thái sidebar từ localStorage, mặc định là false (mở)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : false;
-  });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() =>
+    readLocalStorageBoolean(SIDEBAR_STORAGE_KEY, false)
+  );
 
   // Lưu trạng thái vào localStorage mỗi khi thay đổi
   useEffect(() => {

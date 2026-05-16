@@ -92,6 +92,9 @@ export const LoginForm = () => {
           case 'owner':
             navigate('/owner');
             break;
+          case 'staff':
+            navigate('/staff');
+            break;
           default:
             navigate('/');
             break;
@@ -146,6 +149,9 @@ export const LoginForm = () => {
             break;
           case 'owner':
             navigate('/owner');
+            break;
+          case 'staff':
+            navigate('/staff');
             break;
           default:
             navigate('/');

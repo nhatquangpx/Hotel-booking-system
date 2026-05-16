@@ -19,8 +19,16 @@ const isGuest = (req, res, next) => {
     next();
 };
 
+const isStaff = (req, res, next) => {
+    if (!req.user || req.user.role !== 'staff') {
+        return res.status(403).json({ message: "Chỉ nhân viên khách sạn mới có quyền thực hiện!" });
+    }
+    next();
+};
+
 module.exports = { 
     isAdmin,
     isOwner,
-    isGuest
+    isGuest,
+    isStaff,
 }; 

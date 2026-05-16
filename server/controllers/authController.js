@@ -5,6 +5,22 @@ const crypto = require("crypto");
 const { sendNewPasswordEmail, send2FAOTPEmail } = require("../services/emails");
 const { generateOTP, verifyOTP, requires2FA, isDeviceTrusted, getDeviceInfo, addTrustedDevice } = require("../services/auth");
 
+const { findHotelByStaffId } = require("../utils/staffHotel");
+
+/**
+ * Cùng shape với enrichUserWithStaffHotel / admin API: assignedHotelId = { _id, name } | null
+ */
+const formatAuthUser = (user, staffHotel = null) => ({
+    id: user._id,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    assignedHotelId: staffHotel
+        ? { _id: staffHotel._id, name: staffHotel.name }
+        : null,
+});
+
 // Đăng ký
 exports.register = async (req, res) => {
     try {
@@ -40,6 +56,17 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Mật khẩu không chính xác!" });
 
+        let staffHotel = null;
+        if (user.role === "staff") {
+            staffHotel = await findHotelByStaffId(user._id);
+            if (!staffHotel) {
+                return res.status(403).json({
+                    message:
+                        "Tài khoản nhân viên chưa được gán khách sạn. Vui lòng liên hệ quản trị viên.",
+                });
+            }
+        }
+
         // Kiểm tra nếu role yêu cầu 2FA và user đã bật 2FA
         if (requires2FA(user.role) && user.twoFactorAuth?.enabled) {
             // Lấy thông tin device
@@ -57,7 +84,7 @@ exports.login = async (req, res) => {
                 console.log(`Đăng nhập thành công với trusted device: User ${user._id} (${user.email})`);
                 return res.status(200).json({
                     token,
-                    user: { id: user._id, email: user.email, role: user.role },
+                    user: formatAuthUser(user, staffHotel),
                     requires2FA: false,
                     trustedDevice: true
                 });
@@ -91,7 +118,7 @@ exports.login = async (req, res) => {
         console.log(`Đăng nhập thành công: User ${user._id} (${user.email}) với role ${user.role}`);
         res.status(200).json({
             token,
-            user: { id: user._id, email: user.email, role: user.role },
+            user: formatAuthUser(user, staffHotel),
             requires2FA: false
         });
     } catch (err) {
@@ -111,6 +138,16 @@ exports.verify2FA = async (req, res) => {
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "Người dùng không tồn tại!" });
+        }
+
+        const staffHotel =
+            user.role === "staff" ? await findHotelByStaffId(user._id) : null;
+
+        if (user.role === "staff" && !staffHotel) {
+            return res.status(403).json({
+                message:
+                    "Tài khoản nhân viên chưa được gán khách sạn. Vui lòng liên hệ quản trị viên.",
+            });
         }
 
         // Kiểm tra 2FA có được bật không
@@ -150,7 +187,7 @@ exports.verify2FA = async (req, res) => {
                 console.log(`Đăng nhập thành công với backup code: User ${user._id} (${user.email})`);
                 return res.status(200).json({
                     token,
-                    user: { id: user._id, email: user.email, role: user.role },
+                    user: formatAuthUser(user, staffHotel),
                     usedBackupCode: true
                 });
             }
@@ -180,7 +217,7 @@ exports.verify2FA = async (req, res) => {
         console.log(`Xác thực 2FA thành công: User ${user._id} (${user.email})`);
         res.status(200).json({
             token,
-            user: { id: user._id, email: user.email, role: user.role }
+            user: formatAuthUser(user, staffHotel)
         });
     } catch (err) {
         console.error("2FA verification error:", err);

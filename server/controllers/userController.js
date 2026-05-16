@@ -3,11 +3,22 @@ const User = require('../models/User.js');
 const Hotel = require('../models/Hotel.js');
 const bcrypt = require('bcryptjs');
 const { isValidObjectId } = require('../utils/mongooseIds');
+const {
+    syncStaffHotelAssignment,
+    removeStaffFromAllHotels,
+    enrichUserWithStaffHotel,
+    enrichUsersWithStaffHotels,
+    findHotelByStaffId,
+    assertHotelExists,
+    assertStaffNotInOtherHotel,
+    assignStaffToHotel,
+} = require('../utils/staffHotel');
 
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await User.find().select('-password');
-        res.status(200).json(users);
+        const enriched = await enrichUsersWithStaffHotels(users);
+        res.status(200).json(enriched);
     } catch (err) {
         res.status(500).json({ message: 'Lỗi khi lấy danh sách người dùng!', error: err.message });
     }
@@ -31,7 +42,8 @@ exports.getUserById = async (req, res) => {
             return res.status(404).json({ message: 'Người dùng không tồn tại!' });
         }
 
-        res.status(200).json(user);
+        const enriched = await enrichUserWithStaffHotel(user);
+        res.status(200).json(enriched);
     } catch (err) {
         res.status(500).json({ message: 'Lỗi khi lấy thông tin người dùng!', error: err.message });
     }
@@ -39,7 +51,7 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, phone, role, status} = req.body;
+        const { name, email, password, phone, role, status, assignedHotelId } = req.body;
         if (!name || !email || !password || !phone) {
             return res.status(400).json({ message: 'Không được để trống các trường bắt buộc!' });
         }
@@ -56,10 +68,23 @@ exports.createUser = async (req, res) => {
         }
 
         // Validate role
-        const validRoles = ['guest', 'admin', 'owner'];
+        const validRoles = ['guest', 'admin', 'owner', 'staff'];
         const userRole = role || 'guest';
         if (!validRoles.includes(userRole)) {
             return res.status(400).json({ message: 'Role không hợp lệ!' });
+        }
+
+        if (userRole === 'staff' && !assignedHotelId) {
+            return res.status(400).json({ message: 'Nhân viên phải được gán một khách sạn' });
+        }
+
+        if (userRole === 'staff') {
+            try {
+                await assertHotelExists(assignedHotelId);
+            } catch (e) {
+                const status = e.status || 400;
+                return res.status(status).json({ message: e.message || 'Khách sạn không hợp lệ' });
+            }
         }
 
         const saltRound = 10; // Số lần băm mật khẩu
@@ -71,14 +96,38 @@ exports.createUser = async (req, res) => {
             password: hashedPassword,
             phone,
             role: userRole,
-            status: status || "active"
+            status: status || "active",
         });
         await newUser.save();
+
+        try {
+            await syncStaffHotelAssignment({
+                userId: newUser._id,
+                nextRole: userRole,
+                hotelId: assignedHotelId,
+                currentRole: null,
+            });
+        } catch (syncErr) {
+            await User.findByIdAndDelete(newUser._id);
+            const status = syncErr.status || 500;
+            return res.status(status).json({
+                message: syncErr.message || 'Không thể gán nhân viên vào khách sạn',
+                error: syncErr.message,
+            });
+        }
+
+        const saved = await enrichUserWithStaffHotel(
+            await User.findById(newUser._id).select('-password')
+        );
         console.log(`Đã tạo user thành công: ${newUser._id} (${newUser.email}) với role ${newUser.role}`);
-        res.status(201).json({ message: 'Người dùng đã được tạo thành công!', user: newUser });
+        res.status(201).json({ message: 'Người dùng đã được tạo thành công!', user: saved });
     }
     catch (err) {
-        res.status(500).json({ message: 'Lỗi khi tạo người dùng!', error: err.message });
+        const status = err.status || 500;
+        res.status(status).json({
+            message: err.message || 'Lỗi khi tạo người dùng!',
+            error: err.message,
+        });
     }
 }
 exports.updateUser = async (req, res) => {
@@ -100,15 +149,120 @@ exports.updateUser = async (req, res) => {
 
         delete req.body.wishlist;
 
-        const updatedUser = await User.findByIdAndUpdate(userId, req.body, { new: true }).select('-password');
-        if (!updatedUser) {
+        const existingUser = await User.findById(userId);
+        if (!existingUser) {
             return res.status(404).json({ message: 'Người dùng không tồn tại!' });
         }
 
+        const nextRole = req.body.role ?? existingUser.role;
+        if (req.body.role && !['guest', 'admin', 'owner', 'staff'].includes(req.body.role)) {
+            return res.status(400).json({ message: 'Role không hợp lệ!' });
+        }
+
+        const staffHotelId = req.body.assignedHotelId;
+        const updatePayload = { ...req.body };
+        delete updatePayload.assignedHotelId;
+
+        if (Object.prototype.hasOwnProperty.call(updatePayload, 'password')) {
+            const raw = updatePayload.password;
+            if (raw === undefined || raw === null || String(raw).trim() === '') {
+                delete updatePayload.password;
+            } else {
+                const plain = String(raw);
+                if (plain.length < 6) {
+                    return res.status(400).json({
+                        message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                    });
+                }
+                updatePayload.password = await bcrypt.hash(plain, 10);
+            }
+        }
+
+        let currentStaffHotelId = null;
+        if (existingUser.role === 'staff') {
+            const h = await findHotelByStaffId(existingUser._id);
+            currentStaffHotelId = h?._id;
+        }
+
+        const hotelIdForStaff = staffHotelId ?? currentStaffHotelId;
+        const previousStaffHotelId = currentStaffHotelId;
+
+        if (nextRole === 'staff') {
+            if (!hotelIdForStaff) {
+                return res.status(400).json({ message: 'Nhân viên phải được gán một khách sạn' });
+            }
+            try {
+                await assertHotelExists(hotelIdForStaff);
+                await assertStaffNotInOtherHotel(userId, hotelIdForStaff);
+                await syncStaffHotelAssignment({
+                    userId,
+                    nextRole: 'staff',
+                    hotelId: hotelIdForStaff,
+                    currentRole: existingUser.role,
+                });
+            } catch (e) {
+                const status = e.status || 400;
+                return res.status(status).json({
+                    message: e.message || 'Không thể gán nhân viên vào khách sạn',
+                    error: e.message,
+                });
+            }
+        }
+
+        let updatedUser;
+        try {
+            updatedUser = await User.findByIdAndUpdate(userId, updatePayload, { new: true })
+                .select('-password');
+        } catch (updateErr) {
+            if (nextRole === 'staff') {
+                if (existingUser.role !== 'staff') {
+                    await removeStaffFromAllHotels(userId);
+                } else if (previousStaffHotelId) {
+                    await assignStaffToHotel(userId, previousStaffHotelId);
+                } else {
+                    await removeStaffFromAllHotels(userId);
+                }
+            }
+            throw updateErr;
+        }
+
+        if (!updatedUser) {
+            if (nextRole === 'staff') {
+                if (existingUser.role !== 'staff') {
+                    await removeStaffFromAllHotels(userId);
+                } else if (previousStaffHotelId) {
+                    await assignStaffToHotel(userId, previousStaffHotelId);
+                } else {
+                    await removeStaffFromAllHotels(userId);
+                }
+            }
+            return res.status(404).json({ message: 'Người dùng không tồn tại!' });
+        }
+
+        if (nextRole !== 'staff' && existingUser.role === 'staff') {
+            try {
+                await syncStaffHotelAssignment({
+                    userId: updatedUser._id,
+                    nextRole,
+                    hotelId: null,
+                    currentRole: 'staff',
+                });
+            } catch (demoteErr) {
+                await removeStaffFromAllHotels(userId);
+                throw demoteErr;
+            }
+        }
+
+        const enriched = await enrichUserWithStaffHotel(updatedUser);
+
         console.log(`Đã cập nhật user thành công: ${userId}`);
-        res.status(200).json(updatedUser);
+        res.status(200).json(enriched);
     } catch (err) {
-        res.status(500).json({ message: 'Lỗi khi cập nhật thông tin người dùng!', error: err.message });
+        const status = err.status || 500;
+        res.status(status).json({
+            message: err.message || 'Lỗi khi cập nhật thông tin người dùng!',
+            error: err.message,
+        });
     }
 }
 
@@ -122,6 +276,10 @@ exports.deleteUser = async (req, res) => {
         const deletedUser = await User.findByIdAndDelete(userId);
         if (!deletedUser) {
             return res.status(404).json({ message: 'Người dùng không tồn tại!' });
+        }
+
+        if (deletedUser.role === 'staff') {
+            await removeStaffFromAllHotels(deletedUser._id);
         }
 
         console.log(`Đã xóa user thành công: ${userId}`);

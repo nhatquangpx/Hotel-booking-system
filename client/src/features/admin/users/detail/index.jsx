@@ -102,10 +102,20 @@ const AdminUserDetailPage = () => {
             <div className="detail-row">
               <div className="detail-label">Vai trò:</div>
               <div className="detail-value">
-                {user.role === 'admin' ? 'Quản trị viên' : 
-                 user.role === 'owner' ? 'Chủ khách sạn' : 'Khách'}
+                {user.role === 'admin' ? 'Quản trị viên' :
+                 user.role === 'owner' ? 'Chủ khách sạn' :
+                 user.role === 'staff' ? 'Nhân viên khách sạn' : 'Khách'}
               </div>
             </div>
+
+            {user.role === 'staff' && (
+              <div className="detail-row">
+                <div className="detail-label">Khách sạn làm việc:</div>
+                <div className="detail-value">
+                  {user.assignedHotelId?.name || 'Chưa gán'}
+                </div>
+              </div>
+            )}
             
             <div className="detail-row">
               <div className="detail-label">Ngày tạo:</div>
@@ -192,4 +202,3 @@ const AdminUserDetailPage = () => {
 };
 
 export default AdminUserDetailPage;
-
