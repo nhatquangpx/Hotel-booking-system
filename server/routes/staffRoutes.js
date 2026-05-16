@@ -4,8 +4,14 @@ const { authenticate } = require("../middlewares/authentication");
 const { isStaff } = require("../middlewares/authorization");
 const { attachStaffHotel } = require("../middlewares/hotelMiddleware");
 const roomController = require("../controllers/roomController");
+const bookingController = require("../controllers/bookingController");
 
 router.use(authenticate, isStaff, attachStaffHotel);
+
+router.get("/bookings", bookingController.getStaffBookings);
+router.get("/bookings/:id", bookingController.getStaffBookingById);
+router.post("/bookings/:id/check-in", bookingController.staffCheckIn);
+router.post("/bookings/:id/check-out", bookingController.staffCheckOut);
 
 router.get("/rooms", roomController.getStaffRooms);
 router.get("/rooms/:id", roomController.getRoomById);

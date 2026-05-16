@@ -21,6 +21,7 @@ import ownerProfileAPI from './owner/profile';
 
 // Staff APIs
 import staffRoomAPI from './staff/room';
+import staffBookingAPI from './staff/booking';
 
 // Admin APIs
 import adminUserAPI from './admin/user';
@@ -47,6 +48,7 @@ export default {
   ownerReview: ownerReviewAPI,
   ownerProfile: ownerProfileAPI,
   staffRoom: staffRoomAPI,
+  staffBooking: staffBookingAPI,
   notification: notificationAPI,
   
   adminUser: adminUserAPI,
