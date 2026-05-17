@@ -37,7 +37,15 @@ const ReviewSchema = new mongoose.Schema(
     },
     ownerResponseAt: {
       type: Date
-    }
+    },
+    replyBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    replyRole: {
+      type: String,
+      enum: ["owner", "staff"],
+    },
   },
   { timestamps: true }
 );

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar, FaTimes } from 'react-icons/fa';
 import { formatDate } from '@/shared/utils';
-import api from '@/apis';
+import { getHotelReply } from '@/shared/utils/reviewReply';
 import './ReplyModal.scss';
 
 /**
- * Reply Modal Component
- * Modal để owner phản hồi review
+ * Modal phản hồi đánh giá (owner / staff).
+ * @param {{ replyToReview: (id: string, text: string) => Promise<unknown>, deleteReply: (id: string) => Promise<unknown> }} reviewApi
  */
-const ReplyModal = ({ review, isOpen, onClose, onSuccess }) => {
+const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
   const [response, setResponse] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -16,9 +16,9 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (review && isOpen) {
-      // Nếu review đã có phản hồi, set vào form và chuyển sang edit mode
-      if (review.ownerResponse) {
-        setResponse(review.ownerResponse);
+      const existing = getHotelReply(review);
+      if (existing?.text) {
+        setResponse(existing.text);
         setIsEditMode(true);
       } else {
         setResponse('');
@@ -51,7 +51,7 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess }) => {
     try {
       setSaving(true);
       setError(null);
-      await api.ownerReview.replyToReview(review._id, response.trim());
+      await reviewApi.replyToReview(review._id, response.trim());
       onSuccess?.();
       handleClose();
     } catch (err) {
@@ -69,7 +69,7 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess }) => {
     try {
       setSaving(true);
       setError(null);
-      await api.ownerReview.deleteReply(review._id);
+      await reviewApi.deleteReply(review._id);
       onSuccess?.();
       handleClose();
     } catch (err) {
