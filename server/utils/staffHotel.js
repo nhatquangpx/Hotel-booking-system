@@ -28,7 +28,9 @@ async function assertHotelExists(hotelId) {
 /** Khách sạn mà nhân viên đang được gán (tối đa một). */
 async function findHotelByStaffId(userId) {
   if (!userId || !isValidObjectId(userId)) return null;
-  return Hotel.findOne({ staffIds: userId }).select("name _id status staffIds");
+  return Hotel.findOne({ staffIds: userId }).select(
+    "name _id status staffIds maintenanceContactEmail address"
+  );
 }
 
 async function assertStaffNotInOtherHotel(userId, exceptHotelId = null) {

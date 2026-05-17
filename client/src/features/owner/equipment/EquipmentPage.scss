@@ -664,6 +664,22 @@
     }
   }
 
+  .owner-equipment-repair-dialog__email-readonly {
+    margin: 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid $border-admin;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    color: $text-primary;
+    background: $bg-light;
+    word-break: break-all;
+
+    &--empty {
+      color: $text-secondary;
+      font-style: italic;
+    }
+  }
+
   .owner-equipment-repair-dialog__email-save {
     height: 42px;
     padding: 0 1rem;

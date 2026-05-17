@@ -22,16 +22,22 @@ function formatHotelAddressLine(addr) {
 /**
  * Email HTML báo thiết bị hỏng cho đối tác bảo trì (cùng visual language với bookingEmail).
  * @param {string} to
- * @param {{ hotelName: string, hotelAddress?: { number?: string, street?: string, city?: string }, ownerName?: string, rows: { roomNumber: string, name: string }[] }} params
+ * @param {{ hotelName: string, hotelAddress?: { number?: string, street?: string, city?: string }, requesterName?: string, requesterRole?: 'owner'|'staff', ownerName?: string, rows: { roomNumber: string, name: string }[] }} params
  * @returns {Promise<boolean>}
  */
 async function sendMaintenanceRepairRequestEmail(to, params) {
   const hotelNameRaw = params?.hotelName != null ? String(params.hotelName) : "";
-  const ownerNameRaw = params?.ownerName != null ? String(params.ownerName).trim() : "";
+  const requesterNameRaw =
+    params?.requesterName != null
+      ? String(params.requesterName).trim()
+      : params?.ownerName != null
+        ? String(params.ownerName).trim()
+        : "";
+  const requesterRole = params?.requesterRole === "staff" ? "staff" : "owner";
   const rows = Array.isArray(params?.rows) ? params.rows : [];
 
   const safeHotel = escapeHtml(hotelNameRaw || "Khách sạn");
-  const safeOwner = escapeHtml(ownerNameRaw);
+  const safeRequester = escapeHtml(requesterNameRaw);
   const addressLine = formatHotelAddressLine(params?.hotelAddress);
   const safeAddress = addressLine ? escapeHtml(addressLine) : "";
   const count = rows.length;
@@ -44,10 +50,13 @@ async function sendMaintenanceRepairRequestEmail(to, params) {
     minute: "2-digit",
   });
 
-  const introHtml = ownerNameRaw
+  const requesterRoleLabel =
+    requesterRole === "staff" ? "nhân viên khách sạn" : "chủ khách sạn";
+
+  const introHtml = requesterNameRaw
     ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#333;">
         Kính gửi Quý đối tác bảo trì,<br /><br />
-        <strong>${safeOwner}</strong> (chủ khách sạn) gửi danh sách thiết bị cần xử lý tại <strong>${safeHotel}</strong>.
+        <strong>${safeRequester}</strong> (${requesterRoleLabel}) gửi danh sách thiết bị cần xử lý tại <strong>${safeHotel}</strong>.
       </p>`
     : `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#333;">
         Kính gửi Quý đối tác bảo trì,<br /><br />
@@ -143,13 +152,13 @@ async function sendMaintenanceRepairRequestEmail(to, params) {
                   </td>
                 </tr>
                 ${
-                  ownerNameRaw
+                  requesterNameRaw
                     ? `<tr>
                   <td style="padding:12px 14px;border-bottom:1px solid #eceff3;font-size:13px;color:#79747E;font-weight:600;">
                     Người gửi báo cáo
                   </td>
                   <td style="padding:12px 14px;border-bottom:1px solid #eceff3;font-size:14px;color:#1C1B1F;">
-                    ${safeOwner}
+                    ${safeRequester} <span style="color:#79747E;font-size:13px;">(${requesterRoleLabel})</span>
                   </td>
                 </tr>`
                     : ""

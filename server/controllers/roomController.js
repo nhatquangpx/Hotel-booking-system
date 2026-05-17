@@ -1,6 +1,7 @@
 const { hasCloudinaryConfig } = require("../config/multerConfig");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
+const User = require("../models/User");
 const roomService = require("../services/rooms/roomService");
 const roomEquipmentService = require("../services/rooms/roomEquipmentService");
 const { staffCanAccessHotel } = require("../utils/staffHotel");
@@ -9,6 +10,13 @@ function throwHttp(statusCode, message) {
   const e = new Error(message);
   e.statusCode = statusCode;
   throw e;
+}
+
+/** JWT chỉ có id/role — lấy tên hiển thị từ DB khi cần (email báo sửa chữa, …). */
+async function getUserDisplayName(userId) {
+  if (!userId) return "";
+  const user = await User.findById(userId).select("name").lean();
+  return user?.name ? String(user.name).trim() : "";
 }
 
 /** Chủ KS: khách sạn phải tồn tại và thuộc user. */
@@ -219,6 +227,61 @@ exports.deleteOwnerRoomEquipment = async (req, res) => {
   }
 };
 
+/** Staff: danh sách phòng + trang thiết bị (khách sạn đã gán). */
+exports.getStaffRoomEquipment = async (req, res) => {
+  try {
+    const payload = await roomEquipmentService.getStaffRoomEquipmentForHotel(req.user.id);
+    res.status(200).json(payload);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi lấy trang thiết bị phòng (staff):", "Lỗi khi lấy danh sách thiết bị");
+  }
+};
+
+exports.postStaffRoomEquipment = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const data = await roomEquipmentService.postStaffRoomEquipment(roomId, req.user.id, req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi thêm thiết bị (staff):", "Lỗi khi thêm thiết bị");
+  }
+};
+
+exports.patchStaffRoomEquipment = async (req, res) => {
+  try {
+    const { roomId, equipmentId } = req.params;
+    const data = await roomEquipmentService.patchStaffRoomEquipment(roomId, equipmentId, req.user.id, req.body);
+    res.status(200).json(data);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi cập nhật thiết bị (staff):", "Lỗi khi cập nhật thiết bị");
+  }
+};
+
+exports.deleteStaffRoomEquipment = async (req, res) => {
+  try {
+    const { roomId, equipmentId } = req.params;
+    const data = await roomEquipmentService.deleteStaffRoomEquipment(roomId, equipmentId, req.user.id);
+    res.status(200).json(data);
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi xóa thiết bị (staff):", "Lỗi khi xóa thiết bị");
+  }
+};
+
+exports.postStaffEquipmentRepairRequest = async (req, res) => {
+  try {
+    const { items } = req.body || {};
+    const staffName = await getUserDisplayName(req.user.id);
+    const { count } = await roomEquipmentService.postStaffEquipmentRepairRequest(
+      req.user.id,
+      staffName,
+      items
+    );
+    res.status(200).json({ message: "Đã gửi email báo sửa chữa", count });
+  } catch (error) {
+    return handleServiceError(res, error, "Lỗi khi gửi email báo sửa chữa (staff):", "Lỗi khi gửi email");
+  }
+};
+
 /** Staff: danh sách phòng khách sạn đã gán (req.staffHotelId từ attachStaffHotel). */
 exports.getStaffRooms = async (req, res) => {
   try {
@@ -258,7 +321,7 @@ exports.postOwnerEquipmentRepairRequest = async (req, res) => {
   try {
     const { hotelId } = req.params;
     const { items } = req.body || {};
-    const ownerName = req.user?.name ? String(req.user.name).trim() : "";
+    const ownerName = await getUserDisplayName(req.user.id);
     const { count } = await roomEquipmentService.postOwnerEquipmentRepairRequest(
       hotelId,
       req.user.id,
