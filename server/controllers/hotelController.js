@@ -832,3 +832,19 @@ exports.updateOwnerHotelMaintenanceContact = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi lưu email", error: error.message });
   }
 };
+
+/** Staff: đọc email bên sửa chữa (khách sạn đã gán). */
+exports.getStaffHotelMaintenanceContact = async (req, res) => {
+  try {
+    const hotel = req.hotel;
+    if (!hotel) {
+      return res.status(403).json({ message: "Tài khoản nhân viên chưa được gán khách sạn" });
+    }
+    res.status(200).json({
+      maintenanceContactEmail: String(hotel.maintenanceContactEmail || "").trim(),
+    });
+  } catch (error) {
+    console.error("Lỗi khi đọc email bảo trì (staff):", error);
+    res.status(500).json({ message: "Lỗi khi đọc cấu hình email", error: error.message });
+  }
+};

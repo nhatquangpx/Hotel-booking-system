@@ -4,9 +4,10 @@ import Dialog from '@/components/ui/Dialog';
 /**
  * @param {boolean} isOpen
  * @param {string} maintenanceEmailDraft
- * @param {(e: { target: { value: string } }) => void} onMaintenanceEmailChange
- * @param {() => void} onSaveMaintenanceEmail
- * @param {boolean} maintenanceSaving
+ * @param {(e: { target: { value: string } }) => void} [onMaintenanceEmailChange]
+ * @param {() => void} [onSaveMaintenanceEmail]
+ * @param {boolean} [maintenanceSaving]
+ * @param {boolean} [canEditMaintenanceEmail=true] — false: staff chỉ xem email do owner cấu hình
  * @param {boolean} pageLoading
  * @param {{ key: string, roomId: string, equipmentId: string, roomNumber: string, name: string }[]} brokenList
  * @param {Record<string, boolean>} selectedMap
@@ -23,7 +24,8 @@ const EquipmentRepairRequestDialog = ({
   maintenanceEmailDraft,
   onMaintenanceEmailChange,
   onSaveMaintenanceEmail,
-  maintenanceSaving,
+  maintenanceSaving = false,
+  canEditMaintenanceEmail = true,
   pageLoading,
   brokenList,
   selectedMap,
@@ -36,7 +38,13 @@ const EquipmentRepairRequestDialog = ({
   onClose,
 }) => {
   const selectedCount = brokenList.filter((row) => selectedMap[row.key]).length;
-  const busy = sending || maintenanceSaving;
+  const busy = sending || (canEditMaintenanceEmail && maintenanceSaving);
+  const hasMaintenanceEmail = Boolean(maintenanceEmailDraft?.trim());
+  const sendDisabled =
+    sending ||
+    brokenList.length === 0 ||
+    selectedCount === 0 ||
+    !hasMaintenanceEmail;
 
   return (
     <Dialog
@@ -57,31 +65,44 @@ const EquipmentRepairRequestDialog = ({
             Email bên sửa chữa
           </h3>
           <p id="owner-equipment-repair-email-hint" className="owner-equipment-repair-dialog__email-hint">
-            Địa chỉ nhận email báo thiết bị hỏng. Lưu lại trước khi gửi nếu bạn vừa chỉnh sửa.
+            {canEditMaintenanceEmail
+              ? 'Địa chỉ nhận email báo thiết bị hỏng. Lưu lại trước khi gửi nếu bạn vừa chỉnh sửa.'
+              : 'Email do chủ khách sạn cấu hình. Nhân viên không thể chỉnh sửa — liên hệ chủ KS nếu chưa có email.'}
           </p>
-          <div className="owner-equipment-repair-dialog__email-row">
-            <input
+          {canEditMaintenanceEmail ? (
+            <div className="owner-equipment-repair-dialog__email-row">
+              <input
+                id="owner-equipment-maintenance-email"
+                type="email"
+                className="owner-equipment-repair-dialog__email-input"
+                placeholder="vendor@example.com"
+                value={maintenanceEmailDraft}
+                onChange={onMaintenanceEmailChange}
+                autoComplete="email"
+                disabled={pageLoading}
+                aria-labelledby="owner-equipment-repair-email-heading"
+                aria-describedby="owner-equipment-repair-email-hint"
+              />
+              <button
+                type="button"
+                className="owner-equipment-repair-dialog__email-save"
+                onClick={onSaveMaintenanceEmail}
+                disabled={maintenanceSaving || pageLoading}
+                aria-label={maintenanceSaving ? 'Đang lưu địa chỉ email bên sửa chữa' : 'Lưu địa chỉ email bên sửa chữa'}
+              >
+                {maintenanceSaving ? 'Đang lưu…' : 'Lưu email'}
+              </button>
+            </div>
+          ) : (
+            <p
               id="owner-equipment-maintenance-email"
-              type="email"
-              className="owner-equipment-repair-dialog__email-input"
-              placeholder="vendor@example.com"
-              value={maintenanceEmailDraft}
-              onChange={onMaintenanceEmailChange}
-              autoComplete="email"
-              disabled={pageLoading}
+              className={`owner-equipment-repair-dialog__email-readonly${hasMaintenanceEmail ? '' : ' owner-equipment-repair-dialog__email-readonly--empty'}`}
               aria-labelledby="owner-equipment-repair-email-heading"
               aria-describedby="owner-equipment-repair-email-hint"
-            />
-            <button
-              type="button"
-              className="owner-equipment-repair-dialog__email-save"
-              onClick={onSaveMaintenanceEmail}
-              disabled={maintenanceSaving || pageLoading}
-              aria-label={maintenanceSaving ? 'Đang lưu địa chỉ email bên sửa chữa' : 'Lưu địa chỉ email bên sửa chữa'}
             >
-              {maintenanceSaving ? 'Đang lưu…' : 'Lưu email'}
-            </button>
-          </div>
+              {hasMaintenanceEmail ? maintenanceEmailDraft : 'Chưa có email bên sửa chữa'}
+            </p>
+          )}
         </div>
 
         <h3 className="owner-equipment-repair-dialog__section-title owner-equipment-repair-dialog__section-title--spaced">
@@ -90,7 +111,9 @@ const EquipmentRepairRequestDialog = ({
 
         {brokenList.length === 0 ? (
           <p className="owner-equipment-repair-dialog__empty">
-            Không có thiết bị nào đang ở trạng thái Hỏng. Bạn vẫn có thể cập nhật email đối tác ở khối phía trên.
+            {canEditMaintenanceEmail
+              ? 'Không có thiết bị nào đang ở trạng thái Hỏng. Bạn vẫn có thể cập nhật email đối tác ở khối phía trên.'
+              : 'Không có thiết bị nào đang ở trạng thái Hỏng.'}
           </p>
         ) : (
           <>
@@ -142,7 +165,8 @@ const EquipmentRepairRequestDialog = ({
             type="button"
             className="owner-equipment-repair-dialog__btn-send"
             onClick={onSend}
-            disabled={sending || brokenList.length === 0 || selectedCount === 0}
+            disabled={sendDisabled}
+            title={!hasMaintenanceEmail ? 'Chủ khách sạn cần cấu hình email bên sửa chữa trước' : undefined}
             aria-label={
               sending
                 ? 'Đang gửi email báo thiết bị hỏng cho bên sửa chữa'
