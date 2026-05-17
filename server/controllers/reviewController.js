@@ -3,7 +3,8 @@ const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const { notifyNewReview } = require("../services/notifications");
-const { getScopedHotelIdsForOwner } = require("../services/dashboards/core");
+const { enrichReviewDoc } = require("../utils/reviewReply");
+const hotelReviewService = require("../services/reviews/hotelReviewService");
 
 // Thêm đánh giá cho booking sau khi checkout
 exports.addReview = async (req, res) => {
@@ -151,17 +152,12 @@ exports.getReviewsByHotel = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Lấy tất cả reviews - không filter theo status (tất cả đều hiển thị)
-    const reviews = await Review.find({ 
-      hotel: hotelId
+    const reviews = await Review.find({
+      hotel: hotelId,
     })
-      .populate({
-        path: "guest",
-        select: "name email"
-      })
-      .populate({
-        path: "booking",
-        select: "checkInDate checkOutDate"
-      })
+      .populate({ path: "guest", select: "name email" })
+      .populate({ path: "booking", select: "checkInDate checkOutDate" })
+      .populate({ path: "replyBy", select: "name" })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -201,7 +197,7 @@ exports.getReviewsByHotel = async (req, res) => {
     });
 
     res.status(200).json({
-      reviews,
+      reviews: reviews.map(enrichReviewDoc),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -383,230 +379,104 @@ exports.deleteReview = async (req, res) => {
   }
 };
 
+function handleReviewServiceError(res, error, logLabel, fallbackMessage) {
+  if (error?.statusCode) {
+    return res.status(error.statusCode).json({ message: error.message });
+  }
+  console.error(logLabel, error);
+  return res.status(500).json({ message: fallbackMessage, error: error.message });
+}
+
 // Lấy danh sách đánh giá của các khách sạn thuộc về owner
 exports.getReviewsByOwner = async (req, res) => {
   try {
-    const ownerId = req.user.id;
     const { page = 1, limit = 20, hotelId } = req.query;
-
-    console.log(`Lấy danh sách đánh giá cho owner ${ownerId}`);
-
-    const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
-
-    if (hotelIds.length === 0) {
-      return res.status(200).json({
-        reviews: [],
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: 0,
-          pages: 0
-        }
-      });
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Lấy reviews của các khách sạn thuộc owner
-    const reviews = await Review.find({ 
-      hotel: { $in: hotelIds }
-    })
-      .populate({
-        path: "guest",
-        select: "name email phone"
-      })
-      .populate({
-        path: "hotel",
-        select: "name"
-      })
-      .populate({
-        path: "booking",
-        select: "checkInDate checkOutDate room",
-        populate: {
-          path: "room",
-          select: "roomNumber"
-        }
-      })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    // Đếm tổng số reviews
-    const totalReviews = await Review.countDocuments({ 
-      hotel: { $in: hotelIds }
-    });
-
-    res.status(200).json({
-      reviews,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total: totalReviews,
-        pages: Math.ceil(totalReviews / parseInt(limit))
-      }
-    });
+    const data = await hotelReviewService.getReviewsByOwner(
+      req.user.id,
+      page,
+      limit,
+      hotelId || null
+    );
+    res.status(200).json(data);
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách đánh giá của owner:", error);
-    if (error.statusCode === 403) {
-      return res.status(403).json({ message: error.message });
-    }
-    res.status(500).json({ 
-      message: "Lỗi khi lấy danh sách đánh giá", 
-      error: error.message 
-    });
+    return handleReviewServiceError(
+      res,
+      error,
+      "Lỗi khi lấy danh sách đánh giá của owner:",
+      "Lỗi khi lấy danh sách đánh giá"
+    );
+  }
+};
+
+/** Staff: danh sách đánh giá khách sạn đã gán. */
+exports.getStaffReviews = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const data = await hotelReviewService.getReviewsByStaff(req.user.id, page, limit);
+    res.status(200).json(data);
+  } catch (error) {
+    return handleReviewServiceError(
+      res,
+      error,
+      "Lỗi khi lấy danh sách đánh giá (staff):",
+      "Lỗi khi lấy danh sách đánh giá"
+    );
   }
 };
 
 // Owner phản hồi review
 exports.replyToReview = async (req, res) => {
   try {
-    const { id } = req.params; // review ID
-    const ownerId = req.user.id;
-    const { response } = req.body;
-
-    console.log(`Owner ${ownerId} đang phản hồi review ${id}`);
-
-    // Validate input
-    if (!response || !response.trim()) {
-      return res.status(400).json({ 
-        message: "Nội dung phản hồi không được để trống" 
-      });
-    }
-
-    if (response.trim().length > 2000) {
-      return res.status(400).json({ 
-        message: "Nội dung phản hồi không được vượt quá 2000 ký tự" 
-      });
-    }
-
-    // Tìm review
-    const review = await Review.findById(id).populate({
-      path: "hotel",
-      select: "ownerId"
-    });
-
-    if (!review) {
-      console.log(`Không tìm thấy review với ID: ${id}`);
-      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
-    }
-
-    // Kiểm tra quyền: chỉ owner của khách sạn mới có quyền phản hồi
-    if (review.hotel.ownerId.toString() !== ownerId) {
-      console.log(`Owner ${ownerId} không có quyền phản hồi review ${id}`);
-      return res.status(403).json({ 
-        message: "Bạn không có quyền phản hồi đánh giá này" 
-      });
-    }
-
-    // Cập nhật hoặc thêm phản hồi
-    review.ownerResponse = response.trim();
-    review.ownerResponseAt = new Date();
-    await review.save();
-
-    // Populate thông tin để trả về
-    await review.populate([
-      {
-        path: "guest",
-        select: "name email"
-      },
-      {
-        path: "hotel",
-        select: "name"
-      },
-      {
-        path: "booking",
-        select: "checkInDate checkOutDate room",
-        populate: {
-          path: "room",
-          select: "roomNumber"
-        }
-      }
-    ]);
-
-    console.log(`Đã phản hồi review ${id} thành công bởi owner ${ownerId}`);
-    res.status(200).json({
-      message: "Phản hồi đã được gửi thành công",
-      review
-    });
+    const { id } = req.params;
+    const { response } = req.body || {};
+    const review = await hotelReviewService.replyAsOwner(id, req.user.id, response);
+    res.status(200).json({ message: "Phản hồi đã được gửi thành công", review });
   } catch (error) {
-    console.error("Lỗi khi phản hồi đánh giá:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi phản hồi đánh giá", 
-      error: error.message 
-    });
+    return handleReviewServiceError(res, error, "Lỗi khi phản hồi đánh giá:", "Lỗi khi phản hồi đánh giá");
+  }
+};
+
+/** Staff phản hồi review. */
+exports.staffReplyToReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { response } = req.body || {};
+    const review = await hotelReviewService.replyAsStaff(id, req.user.id, response);
+    res.status(200).json({ message: "Phản hồi đã được gửi thành công", review });
+  } catch (error) {
+    return handleReviewServiceError(
+      res,
+      error,
+      "Lỗi khi phản hồi đánh giá (staff):",
+      "Lỗi khi phản hồi đánh giá"
+    );
   }
 };
 
 // Owner xóa phản hồi
 exports.deleteReply = async (req, res) => {
   try {
-    const { id } = req.params; // review ID
-    const ownerId = req.user.id;
-
-    console.log(`Owner ${ownerId} đang xóa phản hồi review ${id}`);
-
-    // Tìm review
-    const review = await Review.findById(id).populate({
-      path: "hotel",
-      select: "ownerId"
-    });
-
-    if (!review) {
-      console.log(`Không tìm thấy review với ID: ${id}`);
-      return res.status(404).json({ message: "Không tìm thấy đánh giá" });
-    }
-
-    // Kiểm tra quyền: chỉ owner của khách sạn mới có quyền xóa phản hồi
-    if (review.hotel.ownerId.toString() !== ownerId) {
-      console.log(`Owner ${ownerId} không có quyền xóa phản hồi review ${id}`);
-      return res.status(403).json({ 
-        message: "Bạn không có quyền xóa phản hồi này" 
-      });
-    }
-
-    // Kiểm tra có phản hồi không
-    if (!review.ownerResponse) {
-      return res.status(400).json({ 
-        message: "Không có phản hồi để xóa" 
-      });
-    }
-
-    // Xóa phản hồi
-    review.ownerResponse = null;
-    review.ownerResponseAt = null;
-    await review.save();
-
-    // Populate thông tin để trả về
-    await review.populate([
-      {
-        path: "guest",
-        select: "name email"
-      },
-      {
-        path: "hotel",
-        select: "name"
-      },
-      {
-        path: "booking",
-        select: "checkInDate checkOutDate room",
-        populate: {
-          path: "room",
-          select: "roomNumber"
-        }
-      }
-    ]);
-
-    console.log(`Đã xóa phản hồi review ${id} thành công bởi owner ${ownerId}`);
-    res.status(200).json({
-      message: "Phản hồi đã được xóa thành công",
-      review
-    });
+    const { id } = req.params;
+    const review = await hotelReviewService.deleteReplyAsOwner(id, req.user.id);
+    res.status(200).json({ message: "Phản hồi đã được xóa thành công", review });
   } catch (error) {
-    console.error("Lỗi khi xóa phản hồi:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi xóa phản hồi", 
-      error: error.message 
-    });
+    return handleReviewServiceError(res, error, "Lỗi khi xóa phản hồi:", "Lỗi khi xóa phản hồi");
+  }
+};
+
+/** Staff xóa phản hồi. */
+exports.staffDeleteReply = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const review = await hotelReviewService.deleteReplyAsStaff(id, req.user.id);
+    res.status(200).json({ message: "Phản hồi đã được xóa thành công", review });
+  } catch (error) {
+    return handleReviewServiceError(
+      res,
+      error,
+      "Lỗi khi xóa phản hồi (staff):",
+      "Lỗi khi xóa phản hồi"
+    );
   }
 };
 

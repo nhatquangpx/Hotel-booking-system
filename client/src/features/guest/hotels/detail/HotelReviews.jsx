@@ -1,5 +1,5 @@
 import { FaStar } from 'react-icons/fa';
-import { formatDate } from '@/shared/utils';
+import { formatDate, getHotelReply, formatReplyResponderLabel } from '@/shared/utils';
 import './HotelReviews.scss';
 
 /**
@@ -73,7 +73,9 @@ const HotelReviews = ({
       {!loading && reviews.length > 0 && (
         <>
           <div className="reviews-list">
-            {reviews.map((review) => (
+            {reviews.map((review) => {
+              const hotelReply = getHotelReply(review);
+              return (
               <div key={review._id} className="review-item">
                 <div className="review-header">
                   <div className="reviewer-info">
@@ -99,11 +101,12 @@ const HotelReviews = ({
                 <div className="review-comment">
                   <p>{review.comment}</p>
                 </div>
-                {/* Owner Response */}
-                {review.ownerResponse && (
+                {hotelReply && (
                   <div className="owner-response">
                     <div className="owner-response__header">
-                      <div className="owner-response__label">Phản hồi từ chủ khách sạn</div>
+                      <div className="owner-response__label">
+                        Phản hồi {formatReplyResponderLabel(hotelReply)}
+                      </div>
                       {review.ownerResponseAt && (
                         <div className="owner-response__date">
                           {formatDate(review.ownerResponseAt)}
@@ -116,7 +119,8 @@ const HotelReviews = ({
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {totalPages > 1 && (

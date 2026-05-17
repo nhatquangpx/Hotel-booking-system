@@ -5,7 +5,7 @@ import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollaps
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import ReplyModal from './ReplyModal';
 import api from '@/apis';
-import { formatDate } from '@/shared/utils';
+import { formatDate, getHotelReply, formatReplyResponderLabel } from '@/shared/utils';
 import './Reviews.scss';
 
 /**
@@ -217,11 +217,13 @@ const OwnerReviewsPage = () => {
                           {formatDate(review.createdAt)}
                         </div>
                       </div>
-                      {review.ownerResponse && (
+                      {getHotelReply(review) && (
                         <div className="review-response">
-                          <div className="review-response__label">Phản hồi của bạn:</div>
+                          <div className="review-response__label">
+                            Phản hồi {formatReplyResponderLabel(getHotelReply(review))}:
+                          </div>
                           <div className="review-response__content">
-                            {truncateText(review.ownerResponse, 150)}
+                            {truncateText(getHotelReply(review).text, 150)}
                           </div>
                         </div>
                       )}
@@ -231,7 +233,7 @@ const OwnerReviewsPage = () => {
                         className="reply-button"
                         onClick={() => handleReply(review._id)}
                       >
-                        {review.ownerResponse ? 'Chỉnh sửa phản hồi' : 'Phản hồi'}
+                        {getHotelReply(review) ? 'Chỉnh sửa phản hồi' : 'Phản hồi'}
                       </button>
                     </div>
                   </div>
@@ -248,6 +250,7 @@ const OwnerReviewsPage = () => {
             isOpen={isReplyModalOpen}
             onClose={handleCloseReplyModal}
             onSuccess={handleReplySuccess}
+            reviewApi={api.ownerReview}
           />
         )}
       </div>

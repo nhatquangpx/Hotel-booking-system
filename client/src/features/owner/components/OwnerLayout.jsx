@@ -5,7 +5,7 @@ import {
   FaHome, 
   FaBed, 
   FaCalendarCheck, 
-  FaUsers,
+  FaCommentDots,
   FaChartLine,
   FaTags,
   FaWrench
@@ -65,7 +65,7 @@ const OwnerLayout = ({ children }) => {
     { path: '/owner/equipment', label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
     { path: '/owner/pricing', label: 'Giá động', icon: FaChartLine, title: 'Giá động' },
     { path: '/owner/sale', label: 'Khuyến mãi', icon: FaTags, title: 'Khuyến mãi' },
-    { path: '/owner/reviews', label: 'Đánh giá', icon: FaUsers, title: 'Đánh giá' },
+    { path: '/owner/reviews', label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },
   ];
 
   return (
