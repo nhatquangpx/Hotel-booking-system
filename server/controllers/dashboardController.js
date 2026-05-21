@@ -81,3 +81,22 @@ exports.getOwnerTodayTasks = async (req, res) => {
     res.status(500).json({ message: 'Lỗi lấy công việc hôm nay', error: error.message });
   }
 };
+
+/** Staff: tổng quan dashboard (stats + panels). */
+exports.getStaffDashboard = async (req, res) => {
+  try {
+    if (!req.staffHotelId) {
+      return res.status(403).json({
+        message: "Tài khoản nhân viên chưa được gán khách sạn",
+      });
+    }
+    const data = await dashboardService.getStaffDashboard(req.staffHotelId);
+    res.json(data);
+  } catch (error) {
+    console.error("Lỗi khi lấy dashboard staff:", error);
+    if (error.statusCode === 403) {
+      return res.status(403).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Lỗi lấy dữ liệu tổng quan", error: error.message });
+  }
+};

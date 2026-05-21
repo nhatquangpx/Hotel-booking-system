@@ -7,8 +7,11 @@ const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
 const hotelController = require("../controllers/hotelController");
 const reviewController = require("../controllers/reviewController");
+const dashboardController = require("../controllers/dashboardController");
 
 router.use(authenticate, isStaff, attachStaffHotel);
+
+router.get("/dashboard", dashboardController.getStaffDashboard);
 
 router.get("/bookings", bookingController.getStaffBookings);
 router.get("/bookings/:id", bookingController.getStaffBookingById);
