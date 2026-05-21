@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useId } from 'react';
 import { Link } from 'react-router-dom';
 import './DashboardPanel.scss';
 
 /**
- * Panel dashboard — header + danh sách item (mock / API sau)
+ * Panel dashboard — header + danh sách item
+ * @param {number} [collapsibleLimit] — hiển thị tối đa N mục; nút toggle xem đầy đủ
+ * @param {'single' | 'two-column'} [listLayout] — bố cục danh sách (nhiệm vụ: 2 cột)
  */
 const DashboardPanel = ({
   icon: Icon,
@@ -12,9 +14,27 @@ const DashboardPanel = ({
   items = [],
   emptyText = 'Không có dữ liệu',
   viewAllTo,
+  collapsibleLimit,
+  listLayout = 'single',
+  className = '',
 }) => {
+  const [expanded, setExpanded] = useState(false);
+  const listId = useId();
+
+  const hasCollapse = collapsibleLimit != null && items.length > collapsibleLimit;
+  const visibleItems =
+    hasCollapse && !expanded ? items.slice(0, collapsibleLimit) : items;
+
+  const panelClass = [
+    'staff-dashboard-panel',
+    listLayout === 'two-column' ? 'staff-dashboard-panel--two-col' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <section className="staff-dashboard-panel">
+    <section className={panelClass}>
       <header className="staff-dashboard-panel__header">
         <div className="staff-dashboard-panel__title-row">
           {Icon && (
@@ -28,9 +48,9 @@ const DashboardPanel = ({
           <span className="staff-dashboard-panel__subtitle">{subtitle}</span>
         )}
       </header>
-      <ul className="staff-dashboard-panel__list">
-        {items.length > 0 ? (
-          items.map((item) => {
+      <ul className="staff-dashboard-panel__list" id={hasCollapse ? listId : undefined}>
+        {visibleItems.length > 0 ? (
+          visibleItems.map((item) => {
             const rowClass = `staff-dashboard-panel__item${
               item.linkTo ? ' staff-dashboard-panel__item--link' : ''
             }`;
@@ -65,7 +85,18 @@ const DashboardPanel = ({
           <li className="staff-dashboard-panel__empty">{emptyText}</li>
         )}
       </ul>
-      {viewAllTo && (
+      {hasCollapse && (
+        <button
+          type="button"
+          className="staff-dashboard-panel__toggle"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? 'Thu gọn' : `Xem tất cả (${items.length})`}
+        </button>
+      )}
+      {viewAllTo && !hasCollapse && (
         <Link to={viewAllTo} className="staff-dashboard-panel__view-all">
           Xem tất cả
         </Link>

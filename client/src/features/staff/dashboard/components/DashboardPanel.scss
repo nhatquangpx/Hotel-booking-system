@@ -67,6 +67,21 @@
     gap: 0.5rem;
   }
 
+  &--two-col {
+    min-height: auto;
+
+    .staff-dashboard-panel__list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem 1.25rem;
+      align-content: start;
+    }
+
+    .staff-dashboard-panel__empty {
+      grid-column: 1 / -1;
+    }
+  }
+
   &__item {
     display: flex;
     align-items: center;
@@ -104,6 +119,11 @@
   &__item-meta {
     @include body-xs;
     color: $text-secondary;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   &__empty {
@@ -113,13 +133,29 @@
     padding: 2rem 0.5rem;
   }
 
-  &__view-all {
+  &__view-all,
+  &__toggle {
     @include body-sm;
     color: $button-primary;
-    text-decoration: none;
     margin-top: 0.75rem;
     font-weight: $font-semibold;
     align-self: flex-start;
+  }
+
+  &__view-all {
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
 
     &:hover {
       text-decoration: underline;
@@ -145,6 +181,11 @@
     color: $warning-text;
   }
 
+  &--task-urgent {
+    background: rgba($danger, 0.12);
+    color: $danger;
+  }
+
   &--waiting {
     background: rgba($danger, 0.12);
     color: $danger;
@@ -158,6 +199,28 @@
   &--ready {
     background: rgba($success, 0.15);
     color: $success;
+  }
+
+  // Trạng thái phòng — khớp RoomCard / RoomStatusLegend
+  &--room-empty {
+    background: $status-success-bg;
+    color: $status-success-text;
+  }
+
+  &--room-occupied {
+    background: $status-info-bg;
+    color: $status-info-text;
+  }
+
+  &--room-pending {
+    background: $warning-bg;
+    color: $warning-text;
+  }
+
+  &--room-maintenance,
+  &--room-inactive {
+    background: $status-error-bg;
+    color: $status-error-text;
   }
 
   &--repair-pending {

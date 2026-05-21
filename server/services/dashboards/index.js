@@ -6,12 +6,13 @@
 // Core functions
 const {
   DAYS_OF_WEEK,
+  DASHBOARD_TZ,
   getOwnerHotelIds,
   getScopedHotelIdsForOwner,
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,
-  calculateRevenueForOccupiedRooms
+  calculateRevenueForOccupiedRooms,
 } = require('./core');
 
 // Owner dashboard services
@@ -28,9 +29,13 @@ const {
   getRecentActivities
 } = require('./admin');
 
+// Staff dashboard services
+const { getStaffDashboard } = require('./staff');
+
 module.exports = {
   // Core functions
   DAYS_OF_WEEK,
+  DASHBOARD_TZ,
   getOwnerHotelIds,
   getScopedHotelIdsForOwner,
   getTodayDateRange,
@@ -46,5 +51,8 @@ module.exports = {
   
   // Admin services
   getAdminDashboardStats,
-  getRecentActivities
+  getRecentActivities,
+
+  // Staff services
+  getStaffDashboard,
 };

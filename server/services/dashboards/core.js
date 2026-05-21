@@ -1,13 +1,16 @@
 const Hotel = require('../../models/Hotel');
 const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
+const { startOfDayReportTz, REPORT_TZ } = require('../reports/reportTz');
 
 /**
  * Dashboard Core Service
  * Shared helper functions for dashboard services
+ * Mốc ngày «hôm nay» theo Asia/Ho_Chi_Minh (khớp report/sale VN).
  */
 
 const DAYS_OF_WEEK = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const DASHBOARD_TZ = REPORT_TZ;
 
 /**
  * Get all hotel IDs for an owner
@@ -38,29 +41,30 @@ const getScopedHotelIdsForOwner = async (ownerId, hotelId) => {
 };
 
 /**
- * Get date range for today (start and end of day)
- * @returns {Object} { today, tomorrow }
+ * Khoảng [today, tomorrow) theo lịch DASHBOARD_TZ → Date UTC cho MongoDB.
+ * @returns {{ today: Date, tomorrow: Date }}
  */
 const getTodayDateRange = () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return { today, tomorrow };
+  const todayStart = startOfDayReportTz();
+  const tomorrowStart = todayStart.add(1, 'day');
+  return {
+    today: todayStart.toDate(),
+    tomorrow: tomorrowStart.toDate(),
+  };
 };
 
 /**
- * Get date range for a specific day (i days ago)
- * @param {Number} daysAgo - Number of days ago (0 = today, 1 = yesterday, etc.)
- * @returns {Object} { date, nextDate }
+ * Khoảng một ngày lịch (daysAgo = 0 là hôm nay theo DASHBOARD_TZ).
+ * @param {number} daysAgo
+ * @returns {{ date: Date, nextDate: Date }}
  */
 const getDateRangeForDay = (daysAgo) => {
-  const date = new Date();
-  date.setDate(date.getDate() - daysAgo);
-  date.setHours(0, 0, 0, 0);
-  const nextDate = new Date(date);
-  nextDate.setDate(nextDate.getDate() + 1);
-  return { date, nextDate };
+  const dateStart = startOfDayReportTz().subtract(daysAgo, 'day');
+  const nextDateStart = dateStart.add(1, 'day');
+  return {
+    date: dateStart.toDate(),
+    nextDate: nextDateStart.toDate(),
+  };
 };
 
 /**
@@ -119,10 +123,11 @@ const calculateRevenueForOccupiedRooms = async (hotelIds, startDate, endDate) =>
 
 module.exports = {
   DAYS_OF_WEEK,
+  DASHBOARD_TZ,
   getOwnerHotelIds,
   getScopedHotelIdsForOwner,
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,
-  calculateRevenueForOccupiedRooms
+  calculateRevenueForOccupiedRooms,
 };
