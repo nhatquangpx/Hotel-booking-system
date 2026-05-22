@@ -13,6 +13,8 @@ const {
     assertStaffNotInOtherHotel,
     assignStaffToHotel,
 } = require('../utils/staffHotel');
+const selfProfileService = require('../services/users');
+const { profileIdsMatch } = require('../utils/selfProfile');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -26,28 +28,17 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getUserById = async (req, res) => {
     try {
-        // Lấy userId từ params hoặc từ req.user (khi là owner/admin lấy profile của chính mình)
         const userId = req.params.id || req.user?.id;
-        
-        if (!userId) {
-            return res.status(400).json({ message: 'ID người dùng không được cung cấp!' });
-        }
-        
-        if (!isValidObjectId(userId)) {
-            return res.status(400).json({ message: 'ID người dùng không hợp lệ!' });
-        }
-
-        const user = await User.findById(userId).select('-password');
-        if (!user) {
-            return res.status(404).json({ message: 'Người dùng không tồn tại!' });
-        }
-
-        const enriched = await enrichUserWithStaffHotel(user);
-        res.status(200).json(enriched);
+        const profile = await selfProfileService.getProfileById(userId);
+        res.status(200).json(profile);
     } catch (err) {
-        res.status(500).json({ message: 'Lỗi khi lấy thông tin người dùng!', error: err.message });
+        const status = err.status || 500;
+        res.status(status).json({
+            message: err.message || 'Lỗi khi lấy thông tin người dùng!',
+            ...(status === 500 && { error: err.message }),
+        });
     }
-}
+};
 
 exports.createUser = async (req, res) => {
     try {
@@ -289,77 +280,136 @@ exports.deleteUser = async (req, res) => {
     }
 }
 
-exports.changePassword = async (req, res) => {
+function assertSelfProfileRole(req, role) {
+  return req.user?.role === role;
+}
+
+function assertGuestProfileTarget(req) {
+  return profileIdsMatch(req.params?.id, req.user?.id || req.user?._id);
+}
+
+async function respondSelfProfileUpdate(req, res) {
   try {
-    // Lấy userId từ params (guest) hoặc từ req.user (admin/owner)
-    const userId = req.params.id || req.user?.id;
-    const { currentPassword, newPassword } = req.body;
-
-    // Validate input
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới'
-      });
-    }
-
-    // Kiểm tra độ dài mật khẩu mới
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Mật khẩu mới phải có ít nhất 6 ký tự'
-      });
-    }
-
-    // Tìm user trong database
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy người dùng'
-      });
-    }
-
-    // Kiểm tra mật khẩu hiện tại
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: 'Mật khẩu hiện tại không chính xác'
-      });
-    }
-
-    // Kiểm tra mật khẩu mới không được trùng với mật khẩu cũ
-    const isSamePassword = await bcrypt.compare(newPassword, user.password);
-    if (isSamePassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Mật khẩu mới không được trùng với mật khẩu cũ'
-      });
-    }
-
-    // Mã hóa mật khẩu mới
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    // Cập nhật mật khẩu mới
-    user.password = hashedPassword;
-    await user.save();
-
-    console.log(`Đã đổi mật khẩu thành công cho user ${userId}`);
-    // Trả về thông báo thành công
-    return res.status(200).json({
-      success: true,
-      message: 'Đổi mật khẩu thành công'
-    });
-
-  } catch (error) {
-    console.error('Error in changePassword:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Có lỗi xảy ra khi thay đổi mật khẩu'
+    const profile = await selfProfileService.updateSelfProfile(req.user.id, req.body);
+    return res.status(200).json(profile);
+  } catch (err) {
+    const status = err.status || 500;
+    return res.status(status).json({
+      message: err.message || 'Lỗi khi cập nhật thông tin người dùng!',
+      ...(status === 500 && { error: err.message }),
     });
   }
+}
+
+async function respondSelfPasswordChange(req, res, userId) {
+  try {
+    const result = await selfProfileService.changeUserPassword(userId, {
+      currentPassword: req.body?.currentPassword,
+      newPassword: req.body?.newPassword,
+    });
+    console.log(`Đã đổi mật khẩu thành công cho user ${userId}`);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error('Error in self profile changePassword:', err);
+    const status = err.status || 500;
+    return res.status(status).json({
+      success: false,
+      message: err.message || 'Có lỗi xảy ra khi thay đổi mật khẩu',
+    });
+  }
+}
+
+exports.getOwnerProfile = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'owner')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return exports.getUserById(req, res);
+};
+
+exports.updateOwnerProfile = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'owner')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfProfileUpdate(req, res);
+};
+
+exports.changeOwnerPassword = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'owner')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfPasswordChange(req, res, req.user.id);
+};
+
+exports.getAdminProfile = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'admin')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return exports.getUserById(req, res);
+};
+
+exports.updateAdminProfile = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'admin')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfProfileUpdate(req, res);
+};
+
+exports.changeAdminPassword = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'admin')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfPasswordChange(req, res, req.user.id);
+};
+
+exports.getGuestProfile = async (req, res) => {
+  if (!assertGuestProfileTarget(req)) {
+    return res.status(403).json({ message: 'Không có quyền truy cập hồ sơ này' });
+  }
+  if (!assertSelfProfileRole(req, 'guest')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return exports.getUserById(req, res);
+};
+
+exports.updateGuestProfile = async (req, res) => {
+  if (!assertGuestProfileTarget(req)) {
+    return res.status(403).json({ message: 'Không có quyền cập nhật hồ sơ này' });
+  }
+  if (!assertSelfProfileRole(req, 'guest')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfProfileUpdate(req, res);
+};
+
+exports.changeGuestPassword = async (req, res) => {
+  if (!assertGuestProfileTarget(req)) {
+    return res.status(403).json({ message: 'Không có quyền đổi mật khẩu hồ sơ này' });
+  }
+  if (!assertSelfProfileRole(req, 'guest')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfPasswordChange(req, res, req.params.id);
+};
+
+exports.getStaffProfile = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'staff')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return exports.getUserById(req, res);
+};
+
+exports.updateStaffProfile = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'staff')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfProfileUpdate(req, res);
+};
+
+exports.changeStaffPassword = async (req, res) => {
+  if (!assertSelfProfileRole(req, 'staff')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
+  }
+  return respondSelfPasswordChange(req, res, req.user.id);
 };
 
 exports.getWishlist = async (req, res) => {

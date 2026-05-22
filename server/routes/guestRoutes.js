@@ -25,9 +25,9 @@ router.get('/rooms/:id', roomController.getRoomById);
 // ===== PROTECTED ROUTES (cần authentication) =====
 
 // Quản lý thông tin cá nhân - PROTECTED
-router.get('/profile/:id', authenticate, userController.getUserById);
-router.put('/profile/:id', authenticate, userController.updateUser);
-router.put('/profile/:id/changepassword', authenticate, userController.changePassword);
+router.get('/profile/:id', authenticate, userController.getGuestProfile);
+router.put('/profile/:id', authenticate, userController.updateGuestProfile);
+router.put('/profile/:id/changepassword', authenticate, userController.changeGuestPassword);
 
 // Quản lý đặt phòng - PROTECTED
 router.get('/bookings', authenticate, bookingController.getMyBookings);

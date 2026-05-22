@@ -36,6 +36,9 @@ const StaffLayout = ({ children }) => {
     if (loc.pathname.includes('/staff/equipment')) return 'Thiết bị';
     if (loc.pathname.includes('/staff/reviews')) return 'Đánh giá';
     if (loc.pathname.includes('/staff/notifications')) return 'Thông báo';
+    if (loc.pathname.includes('/staff/profile/changepassword')) return 'Đổi mật khẩu';
+    if (loc.pathname.includes('/staff/profile/edit')) return 'Chỉnh sửa thông tin';
+    if (loc.pathname.includes('/staff/profile')) return 'Thông tin tài khoản';
     return 'Nhân viên khách sạn';
   };
 

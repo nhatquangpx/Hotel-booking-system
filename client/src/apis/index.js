@@ -26,6 +26,7 @@ import staffEquipmentAPI from './staff/equipment';
 import staffHotelAPI from './staff/hotel';
 import staffReviewAPI from './staff/review';
 import staffDashboardAPI from './staff/dashboard';
+import staffProfileAPI from './staff/profile';
 
 // Admin APIs
 import adminUserAPI from './admin/user';
@@ -58,6 +59,7 @@ export default {
   staffHotel: staffHotelAPI,
   staffReview: staffReviewAPI,
   staffDashboard: staffDashboardAPI,
+  staffProfile: staffProfileAPI,
   notification: notificationAPI,
   
   adminUser: adminUserAPI,

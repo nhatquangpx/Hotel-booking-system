@@ -17,9 +17,9 @@ const { uploadHotelPhotosAndQr, uploadRoomImages } = require('../config/multerCo
 router.use(authenticate, isAdmin);
 
 // Quản lý thông tin cá nhân
-router.get("/profile", userController.getUserById);
-router.put("/profile", userController.updateUser);
-router.put("/profile/changepassword", userController.changePassword);
+router.get("/profile", userController.getAdminProfile);
+router.put("/profile", userController.updateAdminProfile);
+router.put("/profile/changepassword", userController.changeAdminPassword);
 
 // Quản lý người dùng
 router.get("/users", userController.getAllUsers);

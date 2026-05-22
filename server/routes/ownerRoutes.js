@@ -17,9 +17,9 @@ const reportController = require('../controllers/reportController');
 router.use(authenticate, isOwner);
 
 // Quản lý thông tin cá nhân    
-router.get('/profile', userController.getUserById);
-router.put('/profile', userController.updateUser);
-router.put('/profile/changepassword', userController.changePassword);
+router.get('/profile', userController.getOwnerProfile);
+router.put('/profile', userController.updateOwnerProfile);
+router.put('/profile/changepassword', userController.changeOwnerPassword);
 
 // Quản lý khách sạn
 router.get('/hotels', hotelController.getHotelsByOwner);
