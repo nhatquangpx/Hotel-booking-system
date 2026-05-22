@@ -35,6 +35,7 @@ const StaffLayout = ({ children }) => {
     if (loc.pathname.includes('/staff/bookings')) return 'Đặt phòng';
     if (loc.pathname.includes('/staff/equipment')) return 'Thiết bị';
     if (loc.pathname.includes('/staff/reviews')) return 'Đánh giá';
+    if (loc.pathname.includes('/staff/notifications')) return 'Thông báo';
     return 'Nhân viên khách sạn';
   };
 

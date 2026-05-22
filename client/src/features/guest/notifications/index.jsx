@@ -3,12 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaDollarSign, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaEnvelope, FaGift, FaShieldAlt } from 'react-icons/fa';
 import { GuestLayout } from '../components/layout';
 import api from '@/apis';
-import { useSocket } from '@/shared/hooks';
+import { useAuth, useSocket } from '@/shared/hooks';
 import { getNotificationPath } from '@/features/notifications/config/notificationConfig';
+import {
+  isNotificationReadByUser,
+  markReadInList,
+  markAllReadInList,
+} from '@/features/notifications/utils/notificationRead';
 import { formatDateTime } from '@/shared/utils/format';
 import './Notifications.scss';
 
 const GuestNotificationsPage = () => {
+  const { user } = useAuth();
+  const userId = user?._id || user?.id;
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,13 +103,7 @@ const GuestNotificationsPage = () => {
   const handleMarkAsRead = async (notificationId) => {
     try {
       await api.notification.guest.markAsRead(notificationId);
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif._id === notificationId
-            ? { ...notif, isRead: true, readAt: new Date() }
-            : notif
-        )
-      );
+      setNotifications((prev) => markReadInList(prev, notificationId, userId));
       // Unread count sẽ được update từ socket
     } catch (error) {
       console.error('Lỗi khi đánh dấu thông báo:', error);
@@ -113,9 +114,7 @@ const GuestNotificationsPage = () => {
   const handleMarkAllAsRead = async () => {
     try {
       await api.notification.guest.markAllAsRead();
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, isRead: true, readAt: new Date() }))
-      );
+      setNotifications((prev) => markAllReadInList(prev, userId));
       // Unread count sẽ được update từ socket
     } catch (error) {
       console.error('Lỗi khi đánh dấu tất cả thông báo:', error);
@@ -143,7 +142,7 @@ const GuestNotificationsPage = () => {
 
   // Handle notification click
   const handleNotificationClick = (notification) => {
-    if (!notification.isRead) {
+    if (!isNotificationReadByUser(notification, userId)) {
       handleMarkAsRead(notification._id);
     }
     
@@ -179,10 +178,12 @@ const GuestNotificationsPage = () => {
             ) : notifications.length === 0 ? (
               <div className="notifications-empty">Không có thông báo nào</div>
             ) : (
-              notifications.map((notification) => (
+              notifications.map((notification) => {
+                const read = isNotificationReadByUser(notification, userId);
+                return (
                 <div
                   key={notification._id}
-                  className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                  className={`notification-item ${!read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="notification-icon">
@@ -191,7 +192,7 @@ const GuestNotificationsPage = () => {
                   <div className="notification-content">
                     <div className="notification-title-row">
                       <div className="notification-title">{notification.title}</div>
-                      {!notification.isRead && (
+                      {!read && (
                         <button
                           className="mark-read-btn"
                           onClick={(e) => {
@@ -210,7 +211,8 @@ const GuestNotificationsPage = () => {
                     </div>
                   </div>
                 </div>
-              ))
+              );
+              })
             )}
           </div>
 

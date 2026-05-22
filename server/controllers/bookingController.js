@@ -248,7 +248,7 @@ exports.updateBookingStatus = async (req, res) => {
       notifyPaymentSuccessful(id).catch(err => {
         console.error('Lỗi khi tạo thông báo đặt phòng mới cho owner:', err);
       });
-      
+
       // Notify guest about booking confirmation
       notifyGuestBookingConfirmed(id).catch(err => {
         console.error('Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:', err);
@@ -344,7 +344,6 @@ exports.checkIn = async (req, res) => {
     notifyCheckIn(id).catch(err => {
       console.error('Lỗi khi tạo thông báo check-in:', err);
     });
-
     res.status(200).json({ 
       message: "Check-in thành công", 
       booking 
@@ -371,7 +370,6 @@ exports.checkOut = async (req, res) => {
     notifyCheckOut(id).catch(err => {
       console.error('Lỗi khi tạo thông báo check-out:', err);
     });
-
     res.status(200).json({ 
       message: "Check-out thành công", 
       booking 

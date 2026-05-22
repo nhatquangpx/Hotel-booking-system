@@ -62,11 +62,13 @@ export const createNotificationAPI = (apiPrefix) => ({
 
 // Export pre-configured APIs for each role
 export const ownerNotificationAPI = createNotificationAPI('/owner');
+export const staffNotificationAPI = createNotificationAPI('/staff');
 export const adminNotificationAPI = createNotificationAPI('/admin');
 export const guestNotificationAPI = createNotificationAPI('/guest');
 
 export default {
   owner: ownerNotificationAPI,
+  staff: staffNotificationAPI,
   admin: adminNotificationAPI,
   guest: guestNotificationAPI,
   create: createNotificationAPI

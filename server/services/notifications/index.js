@@ -1,29 +1,21 @@
 /**
- * Notification Service - Main Export
- * Centralized export for all notification services
- * 
- * Structure:
- * - core.js: Core notification creation function
- * - owner.js: Owner-specific notifications
- * - guest.js: Guest-specific notifications
- * - admin.js: Admin-specific notifications (future)
+ * Notification services
+ *
+ * - core.js      → tạo thông báo (cá nhân + theo khách sạn)
+ * - readState.js → readBy (đã đọc / chưa đọc)
+ * - inbox.js     → danh sách, đếm, đánh dấu đã đọc
+ * - owner.js     → sự kiện KS → createHotelNotification (recipientRole: hotel)
+ * - guest.js, admin.js → thông báo theo role
  */
 
-const { createNotification } = require("./core");
+const core = require("./core");
 const ownerNotifications = require("./owner");
 const guestNotifications = require("./guest");
 const adminNotifications = require("./admin");
 
 module.exports = {
-  // Core function
-  createNotification,
-  
-  // Owner notifications
+  ...core,
   ...ownerNotifications,
-  
-  // Guest notifications
   ...guestNotifications,
-  
-  // Admin notifications
-  ...adminNotifications
+  ...adminNotifications,
 };
