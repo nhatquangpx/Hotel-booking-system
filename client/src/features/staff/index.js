@@ -7,3 +7,8 @@ export { default as StaffBookingsPage } from './bookings';
 export { default as StaffEquipmentPage } from './equipment';
 export { default as StaffReviewsPage } from './reviews';
 export { default as StaffNotificationsPage } from './notifications';
+export {
+  StaffProfileAccountPage,
+  StaffProfileEditPage,
+  StaffProfileChangePasswordPage,
+} from './profile';

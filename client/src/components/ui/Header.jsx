@@ -42,6 +42,8 @@ const Header = ({
               profile = await api.ownerProfile.getProfile();
             } else if (user?.role === 'admin') {
               profile = await api.adminProfile.getProfile();
+            } else if (user?.role === 'staff') {
+              profile = await api.staffProfile.getProfile();
             }
             
             if (profile) {
@@ -133,10 +135,12 @@ const Header = ({
                   <>
                     <Link 
                       to={
-                        displayUser.role === 'admin' 
+                        displayUser.role === 'admin'
                           ? '/admin/profile'
                           : displayUser.role === 'owner'
                           ? '/owner/profile'
+                          : displayUser.role === 'staff'
+                          ? '/staff/profile'
                           : `/profile/${displayUser._id || displayUser.id}`
                       }
                       onClick={() => setIsDropdownOpen(false)}
@@ -146,10 +150,12 @@ const Header = ({
                     </Link>
                     <Link 
                       to={
-                        displayUser.role === 'admin' 
+                        displayUser.role === 'admin'
                           ? '/admin/profile/changepassword'
                           : displayUser.role === 'owner'
                           ? '/owner/profile/changepassword'
+                          : displayUser.role === 'staff'
+                          ? '/staff/profile/changepassword'
                           : `/profile/${displayUser._id || displayUser.id}/changepassword`
                       }
                       onClick={() => setIsDropdownOpen(false)}

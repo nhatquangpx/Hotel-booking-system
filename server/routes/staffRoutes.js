@@ -9,8 +9,15 @@ const hotelController = require("../controllers/hotelController");
 const reviewController = require("../controllers/reviewController");
 const dashboardController = require("../controllers/dashboardController");
 const notificationController = require("../controllers/notificationController");
+const userController = require("../controllers/userController");
 
-router.use(authenticate, isStaff, attachStaffHotel);
+router.use(authenticate, isStaff);
+
+router.get("/profile", userController.getStaffProfile);
+router.put("/profile", userController.updateStaffProfile);
+router.put("/profile/changepassword", userController.changeStaffPassword);
+
+router.use(attachStaffHotel);
 
 router.get("/dashboard", dashboardController.getStaffDashboard);
 

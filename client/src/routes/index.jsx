@@ -57,6 +57,9 @@ import {
   StaffEquipmentPage,
   StaffReviewsPage,
   StaffNotificationsPage,
+  StaffProfileAccountPage,
+  StaffProfileEditPage,
+  StaffProfileChangePasswordPage,
 } from "@/features/staff";
 import { StaffHotelOutlet } from "@/features/staff/context/StaffHotelContext";
 
@@ -159,6 +162,9 @@ export default function AppRoutes() {
             <Route path="/staff/equipment" element={<StaffEquipmentPage />} />
             <Route path="/staff/reviews" element={<StaffReviewsPage />} />
             <Route path="/staff/notifications" element={<StaffNotificationsPage />} />
+            <Route path="/staff/profile" element={<StaffProfileAccountPage />} />
+            <Route path="/staff/profile/edit" element={<StaffProfileEditPage />} />
+            <Route path="/staff/profile/changepassword" element={<StaffProfileChangePasswordPage />} />
           </Route>
         </Route>
       </Routes>
