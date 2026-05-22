@@ -13,7 +13,7 @@ exports.getNotifications = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit, 10))
       .skip(skip)
-      .lean();
+      .lean({ defaults: true });
 
     const total = await Notification.countDocuments(query);
     const unreadCount = await inbox.countUnreadForUser(userId, req.user.role, hotelIds);
@@ -67,7 +67,7 @@ exports.markAsRead = async (req, res) => {
       emitUnreadCount
     );
 
-    const updated = await Notification.findById(id).lean();
+    const updated = await Notification.findById(id).lean({ defaults: true });
     res.status(200).json({
       message: "Đã đánh dấu thông báo là đã đọc",
       notification: updated,
@@ -110,7 +110,7 @@ exports.loadMoreNotifications = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit, 10))
       .skip(skip)
-      .lean();
+      .lean({ defaults: true });
 
     const total = await Notification.countDocuments(query);
     const hasMore = skip + notifications.length < total;

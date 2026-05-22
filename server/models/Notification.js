@@ -22,12 +22,15 @@ const NotificationSchema = new mongoose.Schema(
         return this.recipientRole === "hotel";
       },
     },
-    readBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    readBy: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
+    },
     type: {
       type: String,
       enum: [
