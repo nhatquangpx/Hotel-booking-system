@@ -8,10 +8,17 @@ const bookingController = require("../controllers/bookingController");
 const hotelController = require("../controllers/hotelController");
 const reviewController = require("../controllers/reviewController");
 const dashboardController = require("../controllers/dashboardController");
+const notificationController = require("../controllers/notificationController");
 
 router.use(authenticate, isStaff, attachStaffHotel);
 
 router.get("/dashboard", dashboardController.getStaffDashboard);
+
+router.get("/notifications", notificationController.getNotifications);
+router.get("/notifications/unread-count", notificationController.getUnreadCount);
+router.put("/notifications/:id/read", notificationController.markAsRead);
+router.put("/notifications/read-all", notificationController.markAllAsRead);
+router.get("/notifications/load-more", notificationController.loadMoreNotifications);
 
 router.get("/bookings", bookingController.getStaffBookings);
 router.get("/bookings/:id", bookingController.getStaffBookingById);

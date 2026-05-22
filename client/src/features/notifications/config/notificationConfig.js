@@ -8,7 +8,7 @@ export const notificationConfig = {
     apiPrefix: '/owner',
     routes: {
       list: '/owner/notifications',
-      booking: (id) => `/owner/bookings/${id}`,
+      booking: (id) => `/owner/bookings?bookingId=${id}`,
       review: '/owner/reviews'
     },
     supportedTypes: [
@@ -37,6 +37,26 @@ export const notificationConfig = {
       'new_hotel',
       'payment_successful',
       'booking_cancelled',
+      'new_review',
+      'negative_review'
+    ]
+  },
+  staff: {
+    apiPrefix: '/staff',
+    routes: {
+      list: '/staff/notifications',
+      booking: (id) => `/staff/bookings?bookingId=${id}`,
+      review: '/staff/reviews',
+      rooms: '/staff/rooms',
+      equipment: '/staff/equipment'
+    },
+    supportedTypes: [
+      'new_booking',
+      'payment_successful',
+      'booking_cancelled',
+      'no_show',
+      'checkin_today',
+      'checkout_today',
       'new_review',
       'negative_review'
     ]

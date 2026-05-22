@@ -1,181 +1,116 @@
 const Notification = require("../models/Notification");
 const { checkNoShowBookings } = require("../services/notifications");
-const Hotel = require("../models/Hotel");
 const { emitUnreadCount } = require("../socket/socketServer");
+const inbox = require("../services/notifications/inbox");
 
-/**
- * Base notification controller - Generic functions that work for all roles
- * Role-specific logic can be added in role-specific controllers if needed
- */
-
-/**
- * Get recipient ID and role from request
- * This helper ensures we get the right user ID and role from the authenticated user
- */
-const getRecipientInfo = (req) => {
-  return {
-    recipientId: req.user.id,
-    recipientRole: req.user.role
-  };
-};
-
-/**
- * Build query for notifications based on recipient
- */
-const buildNotificationQuery = (recipientId, recipientRole, additionalFilters = {}) => {
-  return {
-    recipient: recipientId,
-    recipientRole: recipientRole,
-    ...additionalFilters
-  };
-};
-
-// Get notifications for authenticated user with pagination
 exports.getNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const { recipientId, recipientRole } = getRecipientInfo(req);
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const { userId, hotelIds, query } = await inbox.getInboxContext(req);
 
-    const query = buildNotificationQuery(recipientId, recipientRole);
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
+      .limit(parseInt(limit, 10))
       .skip(skip)
-      .lean();
+      .lean({ defaults: true });
 
     const total = await Notification.countDocuments(query);
-    const unreadCount = await Notification.countDocuments({ 
-      ...query,
-      isRead: false 
-    });
+    const unreadCount = await inbox.countUnreadForUser(userId, req.user.role, hotelIds);
 
     res.status(200).json({
       notifications,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
         total,
-        totalPages: Math.ceil(total / parseInt(limit))
+        totalPages: Math.ceil(total / parseInt(limit, 10)),
       },
-      unreadCount
+      unreadCount,
     });
   } catch (error) {
     console.error("Lỗi khi lấy thông báo:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi lấy thông báo", 
-      error: error.message 
-    });
+    res.status(500).json({ message: "Lỗi khi lấy thông báo", error: error.message });
   }
 };
 
-// Get unread notifications count
 exports.getUnreadCount = async (req, res) => {
   try {
-    const { recipientId, recipientRole } = getRecipientInfo(req);
-    const query = buildNotificationQuery(recipientId, recipientRole, { isRead: false });
-
-    const unreadCount = await Notification.countDocuments(query);
-
+    const { userId, hotelIds } = await inbox.getInboxContext(req);
+    const unreadCount = await inbox.countUnreadForUser(userId, req.user.role, hotelIds);
     res.status(200).json({ unreadCount });
   } catch (error) {
     console.error("Lỗi khi lấy số lượng thông báo chưa đọc:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi lấy số lượng thông báo chưa đọc", 
-      error: error.message 
+    res.status(500).json({
+      message: "Lỗi khi lấy số lượng thông báo chưa đọc",
+      error: error.message,
     });
   }
 };
 
-// Mark notification as read
 exports.markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
-    const { recipientId, recipientRole } = getRecipientInfo(req);
+    const { userId, userRole, hotelIds } = await inbox.getInboxContext(req);
 
-    const notification = await Notification.findOne({
-      _id: id,
-      recipient: recipientId,
-      recipientRole: recipientRole
-    });
-
+    const notification = await inbox.findInboxNotification(id, req);
     if (!notification) {
       return res.status(404).json({ message: "Không tìm thấy thông báo" });
     }
 
-    notification.isRead = true;
-    notification.readAt = new Date();
-    await notification.save();
+    await inbox.markNotificationReadByUser(notification, userId);
+    await inbox.syncUnreadCountAfterRead(
+      userId,
+      userRole,
+      hotelIds,
+      notification,
+      emitUnreadCount
+    );
 
-    // Emit unread count update via Socket.io
-    try {
-      const unreadCount = await Notification.countDocuments({
-        recipient: recipientId,
-        recipientRole: recipientRole,
-        isRead: false
-      });
-      emitUnreadCount(recipientId.toString(), recipientRole, unreadCount);
-    } catch (socketError) {
-      console.error('Lỗi khi emit unread count update:', socketError);
-    }
-
-    res.status(200).json({ 
+    const updated = await Notification.findById(id).lean({ defaults: true });
+    res.status(200).json({
       message: "Đã đánh dấu thông báo là đã đọc",
-      notification 
+      notification: updated,
     });
   } catch (error) {
     console.error("Lỗi khi đánh dấu thông báo:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi đánh dấu thông báo", 
-      error: error.message 
-    });
+    res.status(500).json({ message: "Lỗi khi đánh dấu thông báo", error: error.message });
   }
 };
 
-// Mark all notifications as read
 exports.markAllAsRead = async (req, res) => {
   try {
-    const { recipientId, recipientRole } = getRecipientInfo(req);
-    const query = buildNotificationQuery(recipientId, recipientRole, { isRead: false });
+    const { userId, userRole, hotelIds } = await inbox.getInboxContext(req);
 
-    await Notification.updateMany(
-      query,
-      { 
-        isRead: true, 
-        readAt: new Date() 
-      }
-    );
+    await inbox.markAllInboxRead(userId, userRole, hotelIds);
 
-    // Emit unread count update via Socket.io (should be 0 after marking all as read)
-    try {
-      emitUnreadCount(recipientId.toString(), recipientRole, 0);
-    } catch (socketError) {
-      console.error('Lỗi khi emit unread count update:', socketError);
+    if (hotelIds.length > 0) {
+      await inbox.emitUnreadCountsForHotels(hotelIds, emitUnreadCount);
     }
+    const unreadCount = await inbox.countUnreadForUser(userId, userRole, hotelIds);
+    emitUnreadCount(userId, userRole, unreadCount);
 
     res.status(200).json({ message: "Đã đánh dấu tất cả thông báo là đã đọc" });
   } catch (error) {
     console.error("Lỗi khi đánh dấu tất cả thông báo:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi đánh dấu tất cả thông báo", 
-      error: error.message 
+    res.status(500).json({
+      message: "Lỗi khi đánh dấu tất cả thông báo",
+      error: error.message,
     });
   }
 };
 
-// Load more notifications (for pagination)
 exports.loadMoreNotifications = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const { recipientId, recipientRole } = getRecipientInfo(req);
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const { query } = await inbox.getInboxContext(req);
 
-    const query = buildNotificationQuery(recipientId, recipientRole);
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
+      .limit(parseInt(limit, 10))
       .skip(skip)
-      .lean();
+      .lean({ defaults: true });
 
     const total = await Notification.countDocuments(query);
     const hasMore = skip + notifications.length < total;
@@ -184,40 +119,34 @@ exports.loadMoreNotifications = async (req, res) => {
       notifications,
       hasMore,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
         total,
-        totalPages: Math.ceil(total / parseInt(limit))
-      }
+        totalPages: Math.ceil(total / parseInt(limit, 10)),
+      },
     });
   } catch (error) {
     console.error("Lỗi khi tải thêm thông báo:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi tải thêm thông báo", 
-      error: error.message 
-    });
+    res.status(500).json({ message: "Lỗi khi tải thêm thông báo", error: error.message });
   }
 };
 
-// Check and create no-show notifications (Owner-specific, but kept here for now)
-// Can be moved to owner-specific controller if needed
 exports.checkNoShowBookings = async (req, res) => {
   try {
-    // Verify user is owner
-    if (req.user.role !== 'owner') {
+    if (req.user.role !== "owner") {
       return res.status(403).json({ message: "Chỉ chủ khách sạn mới có quyền thực hiện thao tác này" });
     }
 
     const result = await checkNoShowBookings();
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Đã kiểm tra no-show bookings",
-      ...result
+      ...result,
     });
   } catch (error) {
     console.error("Lỗi khi kiểm tra no-show bookings:", error);
-    res.status(500).json({ 
-      message: "Lỗi khi kiểm tra no-show bookings", 
-      error: error.message 
+    res.status(500).json({
+      message: "Lỗi khi kiểm tra no-show bookings",
+      error: error.message,
     });
   }
 };

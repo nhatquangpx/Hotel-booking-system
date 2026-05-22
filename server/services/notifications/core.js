@@ -1,130 +1,77 @@
 const Notification = require("../../models/Notification");
-const { emitNotification, emitUnreadCount } = require("../../socket/socketServer");
+const { emitNotification, emitUnreadCount, emitHotelNotification } = require("../../socket/socketServer");
+const { unreadFilterForUser } = require("./readState");
+const {
+  emitUnreadCountsForHotel,
+  RECIPIENT_ROLE_HOTEL,
+} = require("./inbox");
 
-/**
- * Sanitize string input to prevent injection and limit length
- * Removes special characters that could be used for injection
- * Limits length to prevent DoS via very long messages
- * @param {String|Number|null|undefined} input - Input to sanitize
- * @param {Number} maxLength - Maximum allowed length (default: 500)
- * @returns {String} Sanitized string
- */
 const sanitizeInput = (input, maxLength = 500) => {
   if (input === null || input === undefined) {
-    return 'N/A';
+    return "N/A";
   }
-  
-  // Convert to string
   let sanitized = String(input);
-  
-  // Remove or escape potentially dangerous characters
-  // Keep alphanumeric, Vietnamese characters, spaces, common punctuation
-  sanitized = sanitized.replace(/[<>\"'`{}[\]]/g, ''); // Remove brackets, quotes, backticks
-  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters
-  
-  // Limit length to prevent DoS
+  sanitized = sanitized.replace(/[<>\"'`{}[\]]/g, "");
+  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, "");
   if (sanitized.length > maxLength) {
-    sanitized = sanitized.substring(0, maxLength) + '...';
+    sanitized = `${sanitized.substring(0, maxLength)}...`;
   }
-  
-  // Trim whitespace
-  sanitized = sanitized.trim();
-  
-  return sanitized || 'N/A';
+  return sanitized.trim() || "N/A";
 };
 
-/**
- * Sanitize IP address (only allow valid IP format)
- * @param {String} ip - IP address to sanitize
- * @returns {String} Sanitized IP or 'N/A'
- */
 const sanitizeIP = (ip) => {
-  if (!ip || typeof ip !== 'string') {
-    return 'N/A';
+  if (!ip || typeof ip !== "string") {
+    return "N/A";
   }
-  
-  // Basic IP validation regex (IPv4 and IPv6)
   const ipRegex = /^([0-9]{1,3}\.){3}[0-9]{1,3}$|^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
   const sanitized = ip.trim();
-  
   if (ipRegex.test(sanitized) && sanitized.length <= 45) {
     return sanitized;
   }
-  
-  // If invalid, return sanitized version with limited length
   return sanitizeInput(ip, 45);
 };
 
-/**
- * Sanitize error message (more aggressive sanitization)
- * @param {String|Error} error - Error object or message
- * @returns {String} Sanitized error message
- */
 const sanitizeError = (error) => {
-  if (!error) return 'N/A';
-  
-  // If it's an Error object, get the message
+  if (!error) return "N/A";
   const errorMessage = error instanceof Error ? error.message : String(error);
-  
-  // More aggressive sanitization for error messages
   return sanitizeInput(errorMessage, 200);
 };
 
-/**
- * Core Notification Service
- * Generic helper function to create notifications for all roles
- * 
- * @param {String} recipientId - Recipient user ID
- * @param {String} recipientRole - Recipient role (owner, admin, guest)
- * @param {String} type - Notification type
- * @param {String} title - Notification title
- * @param {String} message - Notification message
- * @param {String} relatedId - Related entity ID (booking, review, etc.)
- * @param {String} relatedModel - Related model name (Booking, Review, Hotel, Room)
- * @returns {Promise<Notification|null>} Created notification or null on error
- */
-const createNotification = async (recipientId, recipientRole, type, title, message, relatedId = null, relatedModel = null) => {
+/** Thông báo cá nhân (guest, admin). */
+const createNotification = async (
+  recipientId,
+  recipientRole,
+  type,
+  title,
+  message,
+  relatedId = null,
+  relatedModel = null
+) => {
   try {
     const notification = new Notification({
       recipient: recipientId,
-      recipientRole: recipientRole,
+      recipientRole,
       type,
       title,
       message,
       relatedId,
       relatedModel,
-      isRead: false
+      readBy: [],
     });
 
     await notification.save();
 
-    // Emit realtime notification via Socket.io
     try {
-      const notificationData = {
-        _id: notification._id,
-        recipient: notification.recipient,
-        recipientRole: notification.recipientRole,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        relatedId: notification.relatedId,
-        relatedModel: notification.relatedModel,
-        isRead: notification.isRead,
-        createdAt: notification.createdAt,
-        updatedAt: notification.updatedAt
-      };
-      emitNotification(recipientId.toString(), recipientRole, notificationData);
+      emitNotification(recipientId.toString(), recipientRole, notification.toObject());
 
-      // Emit unread count update
       const unreadCount = await Notification.countDocuments({
         recipient: recipientId,
-        recipientRole: recipientRole,
-        isRead: false
+        recipientRole,
+        ...unreadFilterForUser(recipientId),
       });
       emitUnreadCount(recipientId.toString(), recipientRole, unreadCount);
     } catch (socketError) {
-      // Log error but don't fail the notification creation
-      console.error('Lỗi khi emit notification realtime:', socketError);
+      console.error("Lỗi khi emit notification realtime:", socketError);
     }
 
     return notification;
@@ -134,9 +81,47 @@ const createNotification = async (recipientId, recipientRole, type, title, messa
   }
 };
 
+/** Thông báo vận hành — một bản ghi / khách sạn (owner + staff). */
+const createHotelNotification = async (
+  hotelId,
+  type,
+  title,
+  message,
+  relatedId = null,
+  relatedModel = null
+) => {
+  try {
+    const notification = new Notification({
+      recipientRole: RECIPIENT_ROLE_HOTEL,
+      hotel: hotelId,
+      type,
+      title,
+      message,
+      relatedId,
+      relatedModel,
+      readBy: [],
+    });
+
+    await notification.save();
+
+    try {
+      emitHotelNotification(hotelId.toString(), notification.toObject());
+      await emitUnreadCountsForHotel(hotelId, emitUnreadCount);
+    } catch (socketError) {
+      console.error("Lỗi khi emit thông báo khách sạn realtime:", socketError);
+    }
+
+    return notification;
+  } catch (error) {
+    console.error(`Lỗi khi tạo thông báo ${type} cho hotel ${hotelId}:`, error);
+    return null;
+  }
+};
+
 module.exports = {
   createNotification,
+  createHotelNotification,
   sanitizeInput,
   sanitizeIP,
-  sanitizeError
+  sanitizeError,
 };

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useStaffHotel } from '@/features/staff/context/StaffHotelContext';
 import api from '@/apis';
 import { isTodayCheckInOrCheckOut } from '@/shared/utils/bookingFilters';
@@ -6,6 +7,8 @@ import { filterBookingList } from '@/shared/utils/filterBookingList';
 
 export function useStaffBookings() {
   const { hotelId, loading: hotelLoading, error: hotelError } = useStaffHotel();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openedBookingFromUrl = useRef(false);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -142,6 +145,18 @@ export function useStaffBookings() {
     setShowDetailModal(false);
     setDetailBooking(null);
   };
+
+  useEffect(() => {
+    const bookingId = searchParams.get('bookingId');
+    if (!bookingId || openedBookingFromUrl.current || loading || hotelLoading) return;
+
+    openedBookingFromUrl.current = true;
+    openDetailModal(bookingId);
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('bookingId');
+    setSearchParams(next, { replace: true });
+  }, [loading, hotelLoading, searchParams, setSearchParams]);
 
   const emptyMessage = showTodayOnly
     ? 'Không có đơn check-in hoặc check-out hôm nay'

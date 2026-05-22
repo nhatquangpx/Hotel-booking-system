@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FaSearch, FaHistory, FaCalendarDay } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
@@ -16,6 +17,8 @@ import './BookingList.scss';
  */
 const OwnerBookingListPage = () => {
   const { selectedHotelId, loading: hotelsLoading } = useOwnerHotel();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openedBookingFromUrl = useRef(false);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -256,6 +259,18 @@ const OwnerBookingListPage = () => {
     setShowDetailModal(false);
     setDetailBooking(null);
   };
+
+  useEffect(() => {
+    const bookingId = searchParams.get('bookingId');
+    if (!bookingId || openedBookingFromUrl.current || loading || hotelsLoading) return;
+
+    openedBookingFromUrl.current = true;
+    openDetailModal(bookingId);
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('bookingId');
+    setSearchParams(next, { replace: true });
+  }, [loading, hotelsLoading, searchParams, setSearchParams]);
 
   const isQrProofMissingForSelectedBooking = Boolean(
     selectedBooking &&

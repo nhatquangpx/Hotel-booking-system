@@ -4,7 +4,7 @@ const Hotel = require("../models/Hotel");
 const Room = require("../models/Room");
 const PaymentTransaction = require("../models/PaymentTransaction");
 const { 
-  notifyPaymentSuccessful, 
+  notifyPaymentSuccessful,
   notifyGuestBookingConfirmed,
   notifyAdminHighValueBooking
 } = require("../services/notifications");

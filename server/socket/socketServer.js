@@ -1,6 +1,8 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Hotel = require('../models/Hotel');
+const { findHotelByStaffId } = require('../utils/staffHotel');
 
 /**
  * Socket.io Server Setup
@@ -84,11 +86,28 @@ const initializeSocket = (server) => {
   });
 
   // Handle client connections
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     // Join room based on user role and ID
     // Format: role:userId (e.g., "owner:507f1f77bcf86cd799439011")
     const room = `${socket.userRole}:${socket.userId}`;
     socket.join(room);
+
+    // Phòng khách sạn — owner + staff cùng nhận realtime
+    try {
+      if (socket.userRole === 'owner') {
+        const hotels = await Hotel.find({ ownerId: socket.userId }).select('_id').lean();
+        for (const h of hotels) {
+          socket.join(`hotel:${h._id}`);
+        }
+      } else if (socket.userRole === 'staff') {
+        const hotel = await findHotelByStaffId(socket.userId);
+        if (hotel?._id) {
+          socket.join(`hotel:${hotel._id}`);
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi khi join socket room khách sạn:', err.message);
+    }
 
     // Handle ping/pong for connection health check
     socket.on('ping', () => {
@@ -132,6 +151,17 @@ const emitUnreadCount = (recipientId, recipientRole, count) => {
 };
 
 /**
+ * Emit notification to all owner/staff subscribed to hotel room
+ */
+const emitHotelNotification = (hotelId, notification) => {
+  if (!io) {
+    console.warn('Socket.io not initialized. Cannot emit hotel notification.');
+    return;
+  }
+  io.to(`hotel:${hotelId}`).emit('new_notification', notification);
+};
+
+/**
  * Get Socket.io instance
  */
 const getIO = () => {
@@ -144,6 +174,7 @@ const getIO = () => {
 module.exports = {
   initializeSocket,
   emitNotification,
+  emitHotelNotification,
   emitUnreadCount,
   getIO,
 };

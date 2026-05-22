@@ -5,12 +5,31 @@ const NotificationSchema = new mongoose.Schema(
     recipient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: function requiredRecipient() {
+        return this.recipientRole !== "hotel";
+      },
     },
     recipientRole: {
       type: String,
-      enum: ["owner", "admin", "guest"],
+      enum: ["guest", "admin", "hotel"],
       required: true
+    },
+    /** Thông báo dùng chung owner + staff của khách sạn */
+    hotel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hotel",
+      required: function requiredHotel() {
+        return this.recipientRole === "hotel";
+      },
+    },
+    readBy: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      default: [],
     },
     type: {
       type: String,
@@ -73,20 +92,15 @@ const NotificationSchema = new mongoose.Schema(
       type: String,
       enum: ["Booking", "Review", "Hotel", "Room", "User"]
     },
-    isRead: {
-      type: Boolean,
-      default: false
-    },
-    readAt: {
-      type: Date
-    }
   },
   { timestamps: true }
 );
 
 NotificationSchema.index({ recipient: 1, createdAt: -1 });
-NotificationSchema.index({ recipient: 1, recipientRole: 1, isRead: 1 });
-NotificationSchema.index({ recipient: 1, isRead: 1 });
+NotificationSchema.index({ recipient: 1, recipientRole: 1 });
+NotificationSchema.index({ hotel: 1, recipientRole: 1, createdAt: -1 });
+NotificationSchema.index({ hotel: 1, type: 1, relatedId: 1 });
+NotificationSchema.index({ readBy: 1 });
 
 const Notification = mongoose.model("Notification", NotificationSchema);
 module.exports = Notification;

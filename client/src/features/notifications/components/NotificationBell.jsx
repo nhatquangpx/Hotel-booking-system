@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, useSocket } from '@/shared/hooks';
 import { notificationConfig, getNotificationPath } from '../config/notificationConfig';
 import notificationAPI from '@/apis/shared/notification';
+import {
+  isNotificationReadByUser,
+  markReadInList,
+  markAllReadInList,
+} from '../utils/notificationRead';
 import './NotificationBell.scss';
 
 const NotificationBell = () => {
@@ -16,34 +21,24 @@ const NotificationBell = () => {
   const [hasMore, setHasMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
-  const limit = 5; // Giới hạn số lượng thông báo hiển thị ban đầu
+  const limit = 5;
 
-  // Get role-specific config and API
+  const userId = user?._id || user?.id;
   const role = user?.role;
   const config = role ? notificationConfig[role] : null;
   const api = role ? notificationAPI[role] : null;
 
-  // Format thời gian
   const formatTimeAgo = (date) => {
     const now = new Date();
     const notificationDate = new Date(date);
     const diffInSeconds = Math.floor((now - notificationDate) / 1000);
 
-    if (diffInSeconds < 60) {
-      return 'Vừa xong';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} phút trước`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} giờ trước`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} ngày trước`;
-    }
+    if (diffInSeconds < 60) return 'Vừa xong';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+    return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
   };
 
-  // Lấy icon theo loại thông báo
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'new_booking':
@@ -68,23 +63,19 @@ const NotificationBell = () => {
         return <FaUser />;
       case 'negative_review':
         return <FaExclamationTriangle style={{ color: '#dc3545' }} />;
-      case 'new_user':
-      case 'new_hotel':
-        return <FaBell />;
       default:
         return <FaBell />;
     }
   };
 
-  // Fetch notifications
   const fetchNotifications = async (page = 1, append = false) => {
     if (loading || !api) return;
-    
+
     setLoading(true);
     try {
       const response = await api.getNotifications(page, limit);
       if (append) {
-        setNotifications(prev => [...prev, ...response.notifications]);
+        setNotifications((prev) => [...prev, ...response.notifications]);
       } else {
         setNotifications(response.notifications);
       }
@@ -98,7 +89,6 @@ const NotificationBell = () => {
     }
   };
 
-  // Fetch unread count
   const fetchUnreadCount = async () => {
     if (!api) return;
     try {
@@ -109,61 +99,43 @@ const NotificationBell = () => {
     }
   };
 
-  // Load more notifications
   const handleLoadMore = async () => {
     if (!hasMore || loading) return;
     await fetchNotifications(currentPage + 1, true);
   };
 
-  // Mark as read
   const handleMarkAsRead = async (notificationId, e) => {
     if (e) e.stopPropagation();
-    if (!api) return;
+    if (!api || !userId) return;
     try {
       await api.markAsRead(notificationId);
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif._id === notificationId
-            ? { ...notif, isRead: true, readAt: new Date() }
-            : notif
-        )
-      );
-      // Unread count sẽ được update từ socket 'unread_count_update' event
+      setNotifications((prev) => markReadInList(prev, notificationId, userId));
     } catch (error) {
       console.error('Lỗi khi đánh dấu thông báo:', error);
     }
   };
 
-  // Mark all as read
   const handleMarkAllAsRead = async (e) => {
     if (e) e.stopPropagation();
-    if (!api) return;
+    if (!api || !userId) return;
     try {
       await api.markAllAsRead();
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, isRead: true, readAt: new Date() }))
-      );
-      // Unread count sẽ được update từ socket 'unread_count_update' event
+      setNotifications((prev) => markAllReadInList(prev, userId));
     } catch (error) {
       console.error('Lỗi khi đánh dấu tất cả thông báo:', error);
     }
   };
 
-  // Handle notification click
   const handleNotificationClick = (notification) => {
-    if (!notification.isRead) {
+    if (!isNotificationReadByUser(notification, userId)) {
       handleMarkAsRead(notification._id, { stopPropagation: () => {} });
     }
-    
-    // Navigate based on notification type and role
+
     const path = getNotificationPath(notification, role);
-    if (path) {
-      navigate(path);
-    }
+    if (path) navigate(path);
     setIsOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -173,47 +145,33 @@ const NotificationBell = () => {
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
+      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isOpen]);
 
-  // Fetch notifications when dropdown opens
   useEffect(() => {
     if (isOpen && role && config) {
       fetchNotifications(1, false);
     }
   }, [isOpen, role]);
 
-  // Handle realtime notification
   const handleRealtimeNotification = (notification) => {
-    // Thêm notification mới vào đầu danh sách
-    setNotifications(prev => {
-      // Kiểm tra xem notification đã tồn tại chưa (tránh duplicate)
-      const exists = prev.some(n => n._id === notification._id);
-      if (exists) return prev;
+    setNotifications((prev) => {
+      if (prev.some((n) => n._id === notification._id)) return prev;
       return [notification, ...prev];
     });
-    // Unread count sẽ được update từ socket 'unread_count_update' event
   };
 
-  // Handle realtime unread count update
   const handleUnreadCountUpdate = (count) => {
     setUnreadCount(count);
   };
 
-  // Setup Socket.io connection for realtime notifications
   useSocket(handleRealtimeNotification, handleUnreadCountUpdate);
 
-  // Fetch unread count on mount
   useEffect(() => {
-    if (role && config) {
-      fetchUnreadCount();
-    }
+    if (role && config) fetchUnreadCount();
   }, [role]);
 
-  // Don't render if user doesn't have a supported role
   if (!role || !config || !api) {
     return null;
   }
@@ -252,33 +210,36 @@ const NotificationBell = () => {
             ) : notifications.length === 0 ? (
               <div className="notification-empty">Không có thông báo nào</div>
             ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification._id}
-                  className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
-                  onClick={() => handleNotificationClick(notification)}
-                >
-                  <div className="notification-icon">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  <div className="notification-content">
-                    <div className="notification-title">{notification.title}</div>
-                    <div className="notification-message">{notification.message}</div>
-                    <div className="notification-time">
-                      {formatTimeAgo(notification.createdAt)}
+              notifications.map((notification) => {
+                const read = isNotificationReadByUser(notification, userId);
+                return (
+                  <div
+                    key={notification._id}
+                    className={`notification-item ${!read ? 'unread' : ''}`}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="notification-icon">
+                      {getNotificationIcon(notification.type)}
                     </div>
+                    <div className="notification-content">
+                      <div className="notification-title">{notification.title}</div>
+                      <div className="notification-message">{notification.message}</div>
+                      <div className="notification-time">
+                        {formatTimeAgo(notification.createdAt)}
+                      </div>
+                    </div>
+                    {!read && (
+                      <button
+                        className="mark-read-btn"
+                        onClick={(e) => handleMarkAsRead(notification._id, e)}
+                        title="Đánh dấu là đã đọc"
+                      >
+                        <FaTimes />
+                      </button>
+                    )}
                   </div>
-                  {!notification.isRead && (
-                    <button
-                      className="mark-read-btn"
-                      onClick={(e) => handleMarkAsRead(notification._id, e)}
-                      title="Đánh dấu là đã đọc"
-                    >
-                      <FaTimes />
-                    </button>
-                  )}
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -311,4 +272,3 @@ const NotificationBell = () => {
 };
 
 export default NotificationBell;
-
