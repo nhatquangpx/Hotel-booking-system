@@ -6,6 +6,11 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AdminLayout } from '@/features/admin/components';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
+import {
+  normalizeRoomStatus,
+  getBookingStatusLabel,
+} from '@/shared/utils/roomStatus';
+import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import '@/features/admin/components/AdminComponents.scss';
 import '@/features/admin/components/AdminDetailPage.scss';
 import './RoomDetail.scss';
@@ -62,15 +67,6 @@ const AdminRoomDetailPage = () => {
       executive: 'Phòng hạng sang'
     };
     return types[type] || type;
-  };
-
-  const formatRoomStatus = (status) => {
-    const statuses = {
-      active: 'Hoạt động',
-      maintenance: 'Bảo trì',
-      inactive: 'Tạm ngưng'
-    };
-    return statuses[status] || status;
   };
 
   const formatPrice = (price) => {
@@ -159,8 +155,16 @@ const AdminRoomDetailPage = () => {
               <div className="detail-value">{room.maxPeople} người</div>
             </div>
             <div className="detail-row">
-              <div className="detail-label">Trạng thái:</div>
-              <div className="detail-value">{formatRoomStatus(room.status)}</div>
+              <div className="detail-label">Trạng thái phòng:</div>
+              <div className="detail-value">
+                <RoomStatusBadges room={room} showBookingWhenEmpty />
+              </div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Trạng thái đặt phòng:</div>
+              <div className="detail-value">
+                {getBookingStatusLabel(normalizeRoomStatus(room).bookingStatus)}
+              </div>
             </div>
             <div className="detail-row">
               <div className="detail-label">Tiện nghi:</div>

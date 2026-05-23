@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { IconButton, Tooltip, Button, Paper, TextField } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button, Paper, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { AdminLayout } from '@/features/admin/components';
 import UserFormDialog from '../components/UserFormDialog';
+import UserTable from './components/UserTable';
+import UserListByRole from './components/UserListByRole';
+import UserListByHotel from './components/UserListByHotel';
+import ViewModeSelector from './components/ViewModeSelector';
 import api from '../../../../apis';
+import {
+  VIEW_MODES,
+  filterUsers,
+  groupUsersByRole,
+  buildHotelViewData,
+} from './utils/userListHelpers';
 import './UserList.scss';
 
 /**
@@ -16,12 +22,14 @@ import './UserList.scss';
  */
 const AdminUserListPage = () => {
   const [users, setUsers] = useState([]);
+  const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [viewMode, setViewMode] = useState(VIEW_MODES.LIST);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
@@ -29,6 +37,7 @@ const AdminUserListPage = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchHotels();
   }, []);
 
   const fetchUsers = async () => {
@@ -44,6 +53,15 @@ const AdminUserListPage = () => {
     }
   };
 
+  const fetchHotels = async () => {
+    try {
+      const data = await api.adminHotel.getAllHotels();
+      setHotels(data);
+    } catch {
+      // Không chặn trang nếu tải KS thất bại; chế độ theo KS sẽ trống
+    }
+  };
+
   const handleDeleteClick = (user) => {
     setUserToDelete(user);
     setShowDeleteModal(true);
@@ -51,10 +69,10 @@ const AdminUserListPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
-    
+
     try {
       await api.adminUser.deleteUser(userToDelete._id);
-      setUsers(users.filter(user => user._id !== userToDelete._id));
+      setUsers((prev) => prev.filter((user) => user._id !== userToDelete._id));
       setShowDeleteModal(false);
       setUserToDelete(null);
     } catch (err) {
@@ -84,31 +102,84 @@ const AdminUserListPage = () => {
 
   const handleUserSuccess = () => {
     fetchUsers();
+    if (viewMode === VIEW_MODES.HOTEL) {
+      fetchHotels();
+    }
   };
 
-  const handleRoleFilter = (e) => {
-    setSelectedRole(e.target.value);
+  const handleViewModeChange = (newMode) => {
+    setViewMode(newMode);
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesName = user.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesEmail = user.email?.toLowerCase().includes(searchEmail.toLowerCase());
-    const matchesPhone = user.phone?.includes(searchPhone);
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    return matchesName && matchesEmail && matchesPhone && matchesRole;
-  });
+  const filteredUsers = useMemo(
+    () =>
+      filterUsers(users, {
+        searchTerm,
+        searchEmail,
+        searchPhone,
+        selectedRole,
+      }),
+    [users, searchTerm, searchEmail, searchPhone, selectedRole]
+  );
+
+  const roleGroups = useMemo(
+    () => groupUsersByRole(filteredUsers),
+    [filteredUsers]
+  );
+
+  const hotelViewData = useMemo(
+    () => buildHotelViewData(hotels, filteredUsers, users),
+    [hotels, filteredUsers, users]
+  );
+
+  const renderUserList = () => {
+    if (viewMode === VIEW_MODES.ROLE) {
+      return (
+        <UserListByRole
+          roleGroups={roleGroups}
+          loading={loading}
+          onEdit={handleOpenEditDialog}
+          onDelete={handleDeleteClick}
+        />
+      );
+    }
+
+    if (viewMode === VIEW_MODES.HOTEL) {
+      return (
+        <UserListByHotel
+          hotelGroups={hotelViewData.hotelGroups}
+          orphanStaff={hotelViewData.orphanStaff}
+          orphanOwners={hotelViewData.orphanOwners}
+          separateRoleGroups={hotelViewData.separateRoleGroups}
+          loading={loading}
+          onEdit={handleOpenEditDialog}
+          onDelete={handleDeleteClick}
+        />
+      );
+    }
+
+    return (
+      <UserTable
+        users={filteredUsers}
+        loading={loading}
+        onEdit={handleOpenEditDialog}
+        onDelete={handleDeleteClick}
+      />
+    );
+  };
 
   return (
     <AdminLayout>
       <div className="user-list-container">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
-          <div className="search-bar-row">
+          <div className="search-filters-row">
             <div className="search-bar-inputs">
               <TextField
                 label="Tìm theo tên"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
@@ -117,6 +188,7 @@ const AdminUserListPage = () => {
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
@@ -125,115 +197,73 @@ const AdminUserListPage = () => {
                 value={searchPhone}
                 onChange={(e) => setSearchPhone(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
+              <TextField
+                select
+                label="Vai trò"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                size="small"
+                fullWidth
+                SelectProps={{ native: true }}
+                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
+                InputProps={{ style: { color: 'var(--admin-text)' } }}
+              >
+                <option value="all">Tất cả</option>
+                <option value="admin">Quản trị viên</option>
+                <option value="owner">Chủ khách sạn</option>
+                <option value="staff">Nhân viên</option>
+                <option value="guest">Khách</option>
+              </TextField>
             </div>
             <div className="add-user-btn-link" onClick={handleOpenCreateDialog}>
               <Button
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
-                sx={{ 
+                sx={{
                   backgroundColor: 'var(--admin-primary)',
-                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 },
-                  cursor: 'pointer'
+                  '&:hover': {
+                    backgroundColor: 'var(--admin-primary)',
+                    opacity: 0.8,
+                  },
+                  cursor: 'pointer',
                 }}
               >
                 Thêm người dùng
               </Button>
             </div>
           </div>
+
+          <div className="view-mode-row">
+            <span className="view-mode-label">Hiển thị</span>
+            <ViewModeSelector value={viewMode} onChange={handleViewModeChange} />
+          </div>
         </Paper>
 
         {error && <div className="error-message">{error}</div>}
-        
-        <div className="user-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Tên người dùng</th>
-                <th>Email</th>
-                <th>Số điện thoại</th>
-                <th>Vai trò</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="loading">Đang tải...</td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center">Không tìm thấy người dùng nào</td>
-                </tr>
-              ) : (
-                filteredUsers.map(user => (
-                  <tr key={user._id}>
-                    <td className="user-name">
-                      {user.name}
-                    </td>
-                    <td>{user.email}</td>
-                    <td>{user.phone || 'Chưa cập nhật'}</td>
-                    <td>
-                      <span className={`role-badge ${user.role}`}>
-                        {user.role === 'admin' ? 'Quản trị viên' :
-                         user.role === 'owner' ? 'Chủ khách sạn' :
-                         user.role === 'staff' ? 'Nhân viên khách sạn' : 'Khách'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${user.status || 'active'}`}>
-                        {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <Tooltip title="Xem chi tiết">
-                          <Link to={`/admin/users/${user._id}`}>
-                            <IconButton size="small" color="primary">
-                              <VisibilityIcon />
-                            </IconButton>
-                          </Link>
-                        </Tooltip>
-                        <Tooltip title="Chỉnh sửa">
-                          <IconButton 
-                            size="small" 
-                            color="black"
-                            onClick={() => handleOpenEditDialog(user)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Xóa">
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => handleDeleteClick(user)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+
+        {renderUserList()}
 
         {showDeleteModal && (
           <div className="delete-modal">
             <div className="modal-content">
               <div className="modal-title">Xác nhận xóa</div>
-              <p>Bạn có chắc chắn muốn xóa người dùng <strong>{userToDelete?.name}</strong>?</p>
+              <p>
+                Bạn có chắc chắn muốn xóa người dùng{' '}
+                <strong>{userToDelete?.name}</strong>?
+              </p>
               <p>Hành động này không thể hoàn tác.</p>
               <div className="modal-actions">
-                <button className="cancel-btn" onClick={handleCancelDelete}>Hủy</button>
-                <button className="delete-btn" onClick={handleConfirmDelete}>Xác nhận xóa</button>
+                <button className="cancel-btn" onClick={handleCancelDelete}>
+                  Hủy
+                </button>
+                <button className="delete-btn" onClick={handleConfirmDelete}>
+                  Xác nhận xóa
+                </button>
               </div>
             </div>
           </div>
@@ -251,4 +281,3 @@ const AdminUserListPage = () => {
 };
 
 export default AdminUserListPage;
-

@@ -387,6 +387,13 @@
   }
 }
 
+.room-status-badges {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 // Status badges
 .status-badge {
   display: inline-block;
@@ -409,6 +416,21 @@
   &.maintenance {
     background-color: $star-orange;
     color: $text-white;
+  }
+
+  &.booking-empty {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.booking-occupied {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+
+  &.booking-pending {
+    background-color: #fff8e1;
+    color: #f57f17;
   }
   
   &.available {

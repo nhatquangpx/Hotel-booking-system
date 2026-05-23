@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AdminLayout } from '@/features/admin/components';
 import api from '../../../../apis';
+import { normalizeRoomStatus } from '@/shared/utils/roomStatus';
 import { getImageUrl } from '../../../../constants/images';
 import './RoomEdit.scss';
 
@@ -22,7 +23,7 @@ const AdminRoomEditPage = () => {
     description: '',
     facilities: [],
     images: [],
-    status: 'active'
+    roomStatus: 'active'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -62,7 +63,7 @@ const AdminRoomEditPage = () => {
           maxPeople: roomData.maxPeople,
           description: roomData.description,
           facilities: roomData.facilities,
-          status: roomData.status
+          roomStatus: normalizeRoomStatus(roomData).roomStatus
         });
         setExistingImages(roomData.images);
       } catch (err) {
@@ -133,7 +134,7 @@ const AdminRoomEditPage = () => {
       submitData.append('description', formData.description);
       submitData.append('maxPeople', formData.maxPeople);
       submitData.append('facilities', JSON.stringify(formData.facilities));
-      submitData.append('status', formData.status);
+      submitData.append('roomStatus', formData.roomStatus);
 
       // Đảm bảo price là object {regular, discount}
       submitData.append('price', JSON.stringify({
@@ -249,11 +250,11 @@ const AdminRoomEditPage = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="status">Trạng thái phòng</label>
+              <label htmlFor="roomStatus">Trạng thái phòng</label>
               <select
-                id="status"
-                name="status"
-                value={formData.status}
+                id="roomStatus"
+                name="roomStatus"
+                value={formData.roomStatus}
                 onChange={handleChange}
                 required
               >

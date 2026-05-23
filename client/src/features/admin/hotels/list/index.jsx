@@ -9,6 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { AdminLayout } from '@/features/admin/components';
+import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import HotelFormDialog from '../components/HotelFormDialog';
 import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import api from '../../../../apis';
@@ -274,33 +275,72 @@ const AdminHotelListPage = () => {
         </Paper>
         {error && <div className="error-message">{error}</div>}
         <div className="hotel-table">
-          <table>
+          <table className="hotel-table-fixed">
+            <colgroup>
+              <col className="col-stt" />
+              <col className="col-name" />
+              <col className="col-address" />
+              <col className="col-contact" />
+              <col className="col-rating" />
+              <col className="col-owner" />
+              <col className="col-status" />
+              <col className="col-actions" />
+            </colgroup>
             <thead>
               <tr>
-                <th>Tên khách sạn</th>
-                <th>Địa chỉ</th>
-                <th>Liên hệ</th>
-                <th>Xếp hạng</th>
-                <th>Chủ khách sạn</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <th className="col-stt">STT</th>
+                <th className="col-name">Tên khách sạn</th>
+                <th className="col-address">Địa chỉ</th>
+                <th className="col-contact">Liên hệ</th>
+                <th className="col-rating">Xếp hạng</th>
+                <th className="col-owner">Chủ khách sạn</th>
+                <th className="col-status">Trạng thái</th>
+                <th className="col-actions">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {filteredHotels.map((hotel) => (
+              {filteredHotels.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center">
+                    Không tìm thấy khách sạn nào
+                  </td>
+                </tr>
+              ) : (
+              filteredHotels.map((hotel, index) => (
                 <React.Fragment key={hotel._id}>
                   <tr>
-                    <td>{hotel.name}</td>
-                    <td>{formatAddress(hotel.address)}</td>
-                    <td>{formatContact(hotel.contactInfo)}</td>
-                    <td>{renderStarRating(hotel.starRating)}</td>
-                    <td>{hotel.ownerId?.name || 'Chưa có'}</td>
-                    <td>
+                    <td className="col-stt">{index + 1}</td>
+                    <td className="col-name">
+                      <span className="cell-ellipsis" title={hotel.name}>
+                        {hotel.name}
+                      </span>
+                    </td>
+                    <td className="col-address">
+                      <span className="cell-ellipsis" title={formatAddress(hotel.address)}>
+                        {formatAddress(hotel.address)}
+                      </span>
+                    </td>
+                    <td className="col-contact">
+                      <span className="cell-ellipsis" title={formatContact(hotel.contactInfo)}>
+                        {formatContact(hotel.contactInfo)}
+                      </span>
+                    </td>
+                    <td className="col-rating">
+                      <span className="star-rating-cell">
+                        {renderStarRating(hotel.starRating)}
+                      </span>
+                    </td>
+                    <td className="col-owner">
+                      <span className="cell-ellipsis" title={hotel.ownerId?.name}>
+                        {hotel.ownerId?.name || 'Chưa có'}
+                      </span>
+                    </td>
+                    <td className="col-status">
                       <span className={`status-badge ${hotel.status}`}>
                         {getStatusLabel(hotel.status)}
                       </span>
                     </td>
-                    <td>
+                    <td className="col-actions">
                       <div className="action-buttons">
                         <Tooltip title="Xem chi tiết">
                           <IconButton
@@ -316,7 +356,8 @@ const AdminHotelListPage = () => {
                           <IconButton
                             onClick={() => handleOpenEditDialog(hotel)}
                             size="small"
-                            color="black"
+                            color="default"
+                            sx={{ color: 'text.primary' }}
                           >
                             <EditIcon />
                           </IconButton>
@@ -351,7 +392,7 @@ const AdminHotelListPage = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td colSpan="7" className="rooms-expand">
+                    <td colSpan={8} className="rooms-expand">
                       <Collapse in={expandedHotelId === hotel._id}>
                         <div className="rooms-list">
                           <h3>Danh sách phòng</h3>
@@ -375,11 +416,7 @@ const AdminHotelListPage = () => {
                                     <td>{formatPrice(room.price)}</td>
                                     <td>{room.maxPeople} người</td>
                                     <td>
-                                      <span className={`status-badge ${room.status}`}>
-                                        {room.status === 'active' ? 'Hoạt động' : 
-                                         room.status === 'maintenance' ? 'Bảo trì' : 
-                                         room.status === 'inactive' ? 'Tạm ngưng' : room.status}
-                                      </span>
+                                      <RoomStatusBadges room={room} />
                                     </td>
                                     <td>
                                       <div className="action-buttons">
@@ -398,7 +435,8 @@ const AdminHotelListPage = () => {
                                             component={Link}
                                             to={`/admin/rooms/${room._id}/edit`}
                                             size="small"
-                                            color="black"
+                                            color="default"
+                                            sx={{ color: 'text.primary' }}
                                           >
                                             <EditIcon />
                                           </IconButton>
@@ -426,7 +464,7 @@ const AdminHotelListPage = () => {
                     </td>
                   </tr>
                 </React.Fragment>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
