@@ -334,55 +334,31 @@ exports.confirmGuestRefund = async (req, res) => {
   }
 };
 
-// Check-in booking (Owner only)
+// Check-in booking (Owner)
 exports.checkIn = async (req, res) => {
   try {
     const { id } = req.params;
     const booking = await bookingService.checkIn(id, req.user);
-
-    // Send notification
-    notifyCheckIn(id).catch(err => {
-      console.error('Lỗi khi tạo thông báo check-in:', err);
+    notifyCheckIn(id).catch((err) => {
+      console.error("Lỗi khi tạo thông báo check-in:", err);
     });
-    res.status(200).json({ 
-      message: "Check-in thành công", 
-      booking 
-    });
+    res.status(200).json({ message: "Check-in thành công", booking });
   } catch (error) {
-    console.error("Lỗi khi check-in:", error);
-    const statusCode = error.message.includes("Không tìm thấy") || 
-                      error.message.includes("không tồn tại") ? 404 :
-                      error.message.includes("không có quyền") || 
-                      error.message.includes("không tìm thấy thông tin") ? 403 :
-                      error.message.includes("đã được check-in") || 
-                      error.message.includes("chưa thanh toán") ? 400 : 500;
-    res.status(statusCode).json({ message: error.message || "Lỗi khi check-in" });
+    return handleBookingServiceError(res, error, "Lỗi khi check-in:", "Lỗi khi check-in");
   }
 };
 
-// Check-out booking (Owner only)
+// Check-out booking (Owner)
 exports.checkOut = async (req, res) => {
   try {
     const { id } = req.params;
     const booking = await bookingService.checkOut(id, req.user);
-
-    // Send notification
-    notifyCheckOut(id).catch(err => {
-      console.error('Lỗi khi tạo thông báo check-out:', err);
+    notifyCheckOut(id).catch((err) => {
+      console.error("Lỗi khi tạo thông báo check-out:", err);
     });
-    res.status(200).json({ 
-      message: "Check-out thành công", 
-      booking 
-    });
+    res.status(200).json({ message: "Check-out thành công", booking });
   } catch (error) {
-    console.error("Lỗi khi check-out:", error);
-    const statusCode = error.message.includes("Không tìm thấy") || 
-                      error.message.includes("không tồn tại") ? 404 :
-                      error.message.includes("không có quyền") || 
-                      error.message.includes("không tìm thấy thông tin") ? 403 :
-                      error.message.includes("đã được check-out") || 
-                      error.message.includes("chưa check-in") ? 400 : 500;
-    res.status(statusCode).json({ message: error.message || "Lỗi khi check-out" });
+    return handleBookingServiceError(res, error, "Lỗi khi check-out:", "Lỗi khi check-out");
   }
 };
 

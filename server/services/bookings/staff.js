@@ -1,6 +1,7 @@
 const Booking = require("../../models/Booking");
 const { findHotelByStaffId, staffCanAccessHotel } = require("../../utils/staffHotel");
-const { getBookingWithPopulate, refreshRoomBookingStatus } = require("./core");
+const { getBookingWithPopulate } = require("./core");
+const { checkInBooking, checkOutBooking } = require("./hotelTeam");
 
 const STAFF_BOOKING_POPULATE = {
   hotel: "name address images starRating contactInfo policies",
@@ -28,16 +29,6 @@ async function assertStaffCanAccessBooking(booking, staffUserId) {
   }
 }
 
-/** Một lần đọc DB + kiểm tra quyền staff (dùng cho check-in/out). */
-async function loadBookingForStaff(bookingId, staffUserId) {
-  const booking = await Booking.findById(bookingId);
-  if (!booking) {
-    throwHttp(404, "Đơn đặt phòng không tồn tại");
-  }
-  await assertStaffCanAccessBooking(booking, staffUserId);
-  return booking;
-}
-
 const getBookingsByStaff = async (staffUserId) => {
   const hotel = await findHotelByStaffId(staffUserId);
   if (!hotel) {
@@ -60,37 +51,8 @@ const getBookingById = async (bookingId, user) => {
   return booking;
 };
 
-const checkIn = async (bookingId, user) => {
-  const booking = await loadBookingForStaff(bookingId, user.id);
-  if (booking.paymentStatus !== "paid") {
-    throwHttp(400, "Chỉ có thể check-in khi đơn đặt phòng đã được thanh toán");
-  }
-  if (booking.checkedInAt) {
-    throwHttp(400, "Đơn đặt phòng đã được check-in trước đó");
-  }
-  booking.checkedInAt = new Date();
-  await booking.save();
-  if (booking.room) {
-    await refreshRoomBookingStatus(booking.room);
-  }
-  return booking;
-};
-
-const checkOut = async (bookingId, user) => {
-  const booking = await loadBookingForStaff(bookingId, user.id);
-  if (!booking.checkedInAt) {
-    throwHttp(400, "Bạn phải check-in trước khi check-out");
-  }
-  if (booking.checkedOutAt) {
-    throwHttp(400, "Đơn đặt phòng đã được check-out trước đó");
-  }
-  booking.checkedOutAt = new Date();
-  await booking.save();
-  if (booking.room) {
-    await refreshRoomBookingStatus(booking.room);
-  }
-  return booking;
-};
+const checkIn = checkInBooking;
+const checkOut = checkOutBooking;
 
 module.exports = {
   getBookingsByStaff,

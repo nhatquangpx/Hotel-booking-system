@@ -4,8 +4,9 @@ const { getScopedHotelIdsForOwner } = require("../dashboards/core");
 const {
   checkBookingPermission,
   getBookingById: getBookingByIdCore,
-  refreshRoomBookingStatus
+  refreshRoomBookingStatus,
 } = require("./core");
+const { checkInBooking, checkOutBooking } = require("./hotelTeam");
 const { notifyGuestRefundProcessed } = require("../notifications/guest");
 const { sendRefundProcessedEmail } = require("../emails");
 
@@ -170,93 +171,9 @@ const updateBookingStatus = async (bookingId, status, user) => {
   return booking;
 };
 
-/**
- * Check-in a booking (owner only)
- * @param {String} bookingId - Booking ID
- * @param {Object} user - User object
- * @returns {Promise<Object>} Updated booking
- */
-const checkIn = async (bookingId, user) => {
-  // Find booking and populate hotel to check permission
-  const booking = await Booking.findById(bookingId).populate({
-    path: "hotel",
-    select: "ownerId"
-  });
-
-  if (!booking) {
-    throw new Error("Đơn đặt phòng không tồn tại");
-  }
-
-  // Check permission (owner can only check-in bookings for their hotels)
-  if (!checkBookingPermission(booking, user)) {
-    throw new Error("Bạn không có quyền thực hiện check-in cho đơn đặt phòng này");
-  }
-
-  // Check if booking is paid
-  if (booking.paymentStatus !== "paid") {
-    throw new Error("Chỉ có thể check-in khi đơn đặt phòng đã được thanh toán");
-  }
-
-  // Check if already checked in
-  if (booking.checkedInAt) {
-    throw new Error("Đơn đặt phòng đã được check-in trước đó");
-  }
-
-  // Perform check-in
-  booking.checkedInAt = new Date();
-  await booking.save();
-
-  // Room is now occupied
-  if (booking.room) {
-    await refreshRoomBookingStatus(booking.room);
-  }
-
-  return booking;
-};
-
-/**
- * Check-out a booking (owner only)
- * @param {String} bookingId - Booking ID
- * @param {Object} user - User object
- * @returns {Promise<Object>} Updated booking
- */
-const checkOut = async (bookingId, user) => {
-  // Find booking and populate hotel to check permission
-  const booking = await Booking.findById(bookingId).populate({
-    path: "hotel",
-    select: "ownerId"
-  });
-
-  if (!booking) {
-    throw new Error("Đơn đặt phòng không tồn tại");
-  }
-
-  // Check permission (owner can only check-out bookings for their hotels)
-  if (!checkBookingPermission(booking, user)) {
-    throw new Error("Bạn không có quyền thực hiện check-out cho đơn đặt phòng này");
-  }
-
-  // Check if already checked in
-  if (!booking.checkedInAt) {
-    throw new Error("Bạn phải check-in trước khi check-out");
-  }
-
-  // Check if already checked out
-  if (booking.checkedOutAt) {
-    throw new Error("Đơn đặt phòng đã được check-out trước đó");
-  }
-
-  // Perform check-out
-  booking.checkedOutAt = new Date();
-  await booking.save();
-
-  // After check-out, room may become empty or pending (if there is another booking today)
-  if (booking.room) {
-    await refreshRoomBookingStatus(booking.room);
-  }
-
-  return booking;
-};
+/** Check-in / check-out — logic chung với staff (hotelTeam). */
+const checkIn = checkInBooking;
+const checkOut = checkOutBooking;
 
 /**
  * Chủ KS xác nhận đã hoàn tiền cho đơn khách đã hủy (đã thanh toán + đủ điều kiện hoàn theo chính sách).
