@@ -18,10 +18,21 @@
 }
 
 .hotel-list-container {
+  --hotel-col-stt: 5%;
+  --hotel-col-name: 16%;
+  --hotel-col-address: 20%;
+  --hotel-col-contact: 12%;
+  --hotel-col-rating: 8%;
+  --hotel-col-owner: 12%;
+  --hotel-col-status: 10%;
+  --hotel-col-actions: 17%;
+
   background-color: var(--admin-bg);
   min-height: 100vh;
   padding: 1.5rem;
+  width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
 
   h1 {
     color: $text-primary;
@@ -74,45 +85,102 @@
   }
 
   .hotel-table {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     background-color: var(--admin-sidebar);
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 12px;
     padding: 0 0 8px 0;
+
+    col {
+      &.col-stt { width: var(--hotel-col-stt); }
+      &.col-name { width: var(--hotel-col-name); }
+      &.col-address { width: var(--hotel-col-address); }
+      &.col-contact { width: var(--hotel-col-contact); }
+      &.col-rating { width: var(--hotel-col-rating); }
+      &.col-owner { width: var(--hotel-col-owner); }
+      &.col-status { width: var(--hotel-col-status); }
+      &.col-actions { width: var(--hotel-col-actions); }
+    }
+
+    table.hotel-table-fixed {
+      width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
     table {
       width: 100%;
+      max-width: 100%;
       border-collapse: collapse;
+
       th {
         background-color: var(--admin-header);
         color: $text-primary;
-        padding: 1rem;
-        text-align: $align-left;
+        padding: 0.75rem 0.5rem;
+        text-align: center;
         @include button-text;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
       }
+
       td {
-        padding: 1rem;
-        text-align: $align-left;
+        padding: 0.75rem 0.5rem;
+        text-align: center;
         color: $text-primary;
         border-bottom: 1px solid var(--admin-border);
-        &.hotel-name {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          justify-content: left;
-        }
+        overflow: hidden;
+        vertical-align: middle;
       }
+
+      .col-stt {
+        white-space: nowrap;
+      }
+
+      .cell-ellipsis {
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      .star-rating-cell {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        flex-wrap: nowrap;
+      }
+
       tr {
         transition: background-color 0.3s;
         &:hover {
           background-color: var(--admin-accent);
         }
       }
+
+      .text-center {
+        text-align: center;
+        padding: 2rem;
+        color: $grey-medium;
+      }
     }
+
     .action-buttons {
       display: flex;
-      gap: 0.5rem;
-      justify-content: left;
+      gap: 0.25rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
       button {
         padding: 0.25rem;
         border-radius: 4px;
@@ -220,8 +288,9 @@
     background-color: var(--admin-bg);
 
     th, td {
-      padding: 0.75rem;
-      text-align: $align-left;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      vertical-align: middle;
       border-bottom: 1px solid var(--admin-border);
     }
 
@@ -235,15 +304,27 @@
       color: $text-primary;
     }
 
+    .room-status-badges {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
     .status-badge {
-      &.available {
+      &.booking-empty {
         background-color: #e8f5e9;
         color: #2e7d32;
       }
 
-      &.booked {
+      &.booking-occupied {
         background-color: #ffebee;
         color: #c62828;
+      }
+
+      &.booking-pending {
+        background-color: #fff8e1;
+        color: #f57f17;
       }
     }
   }
@@ -255,8 +336,19 @@
   }
 }
 
-.action-buttons {
+.rooms-list .action-buttons {
   display: flex;
-  gap: 0.5rem;
-  justify-content: flex-start;
-} 
+  gap: 0.25rem;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .hotel-list-container {
+    padding: 1rem;
+
+    .hotel-table table.hotel-table-fixed {
+      min-width: 900px;
+    }
+  }
+}

@@ -5,6 +5,7 @@ import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AdminLayout } from '@/features/admin/components';
+import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import HotelFormDialog from '../components/HotelFormDialog';
 import { getImageUrl } from '../../../../constants/images';
@@ -277,11 +278,7 @@ const AdminHotelDetailPage = () => {
                   <td>{room.type}</td>
                   <td>{room.price?.regular ? room.price.regular.toLocaleString('vi-VN') : 0} VND</td>
                   <td>
-                    <span className={`status-badge ${room.status}`}>
-                      {room.status === 'active' ? 'Hoạt động' : 
-                       room.status === 'maintenance' ? 'Bảo trì' : 
-                       room.status === 'inactive' ? 'Tạm ngưng' : room.status}
-                    </span>
+                    <RoomStatusBadges room={room} />
                   </td>
                 </tr>
               )) : (

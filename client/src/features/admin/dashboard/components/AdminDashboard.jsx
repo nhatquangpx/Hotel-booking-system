@@ -7,6 +7,49 @@ import { adminHotelAPI } from '@/apis/admin/hotel';
 import { formatCurrency } from '@/shared/utils';
 import './AdminDashboard.scss';
 
+const STAT_CARDS = [
+  {
+    key: 'users',
+    className: 'users',
+    title: 'Tổng người dùng',
+    description: 'Tổng số tài khoản đã đăng ký',
+    to: '/admin/users',
+    getValue: (stats) => stats.totalUsers,
+  },
+  {
+    key: 'hotels',
+    className: 'hotels',
+    title: 'Tổng số khách sạn',
+    description: 'Khách sạn có trong hệ thống',
+    to: '/admin/hotels',
+    getValue: (stats) => stats.totalHotels,
+  },
+  {
+    key: 'rooms',
+    className: 'rooms',
+    title: 'Tổng số phòng',
+    description: 'Phòng có sẵn trong hệ thống',
+    to: '/admin/hotels',
+    getValue: (stats) => stats.totalRooms,
+  },
+  {
+    key: 'bookings',
+    className: 'bookings',
+    title: 'Đặt phòng',
+    description: 'Tổng số lượt đặt phòng',
+    to: '/admin/bookings',
+    getValue: (stats) => stats.totalBookings,
+  },
+  {
+    key: 'revenue',
+    className: 'revenue',
+    title: 'Doanh thu',
+    description: 'Tổng doanh thu',
+    to: '/admin/bookings',
+    getValue: (stats) => formatCurrency(stats.revenue),
+  },
+];
+
 const formatYmd = (d) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -24,7 +67,7 @@ const defaultReportRange = () => {
 
 /**
  * Admin Dashboard component
- * Displays statistics and quick access for admin
+ * Metric, xuất báo cáo và hoạt động gần đây
  */
 export const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -32,7 +75,7 @@ export const AdminDashboard = () => {
     totalRooms: 0,
     totalHotels: 0,
     totalBookings: 0,
-    revenue: 0
+    revenue: 0,
   });
   const [activities, setActivities] = useState([]);
   const [hotels, setHotels] = useState([]);
@@ -156,59 +199,21 @@ export const AdminDashboard = () => {
       </div>
 
       <div className="stats-container">
-        <div className="stat-card users">
-          <div className="stat-title">Tổng người dùng</div>
-          <div className="stat-value">{stats.totalUsers}</div>
-          <div className="stat-description">Tổng số tài khoản đã đăng ký</div>
-        </div>
-        
-        <div className="stat-card hotels">
-          <div className="stat-title">Tổng số khách sạn</div>
-          <div className="stat-value">{stats.totalHotels}</div>
-          <div className="stat-description">Khách sạn có trong hệ thống</div>
-        </div>
-        
-        <div className="stat-card rooms">
-          <div className="stat-title">Tổng số phòng</div>
-          <div className="stat-value">{stats.totalRooms}</div>
-          <div className="stat-description">Phòng có sẵn trong hệ thống</div>
-        </div>
-        
-        <div className="stat-card bookings">
-          <div className="stat-title">Đặt phòng</div>
-          <div className="stat-value">{stats.totalBookings}</div>
-          <div className="stat-description">Tổng số lượt đặt phòng</div>
-        </div>
-        
-        <div className="stat-card revenue">
-          <div className="stat-title">Doanh thu</div>
-          <div className="stat-value">{formatCurrency(stats.revenue)}</div>
-          <div className="stat-description">Tổng doanh thu</div>
-        </div>
+        {STAT_CARDS.map(({ key, className, title, description, to, getValue }) => (
+          <Link
+            key={key}
+            to={to}
+            className={`stat-card stat-card--link ${className}`}
+            aria-label={`${title} — ${description}`}
+          >
+            <div className="stat-title">{title}</div>
+            <div className="stat-value">{getValue(stats)}</div>
+            <div className="stat-description">{description}</div>
+            <span className="stat-card__cta">Xem chi tiết →</span>
+          </Link>
+        ))}
       </div>
-      
-      <h2>Truy cập nhanh</h2>
-      
-      <div className="quick-access-cards">
-        <Link to="/admin/users" className="quick-access-card">
-          <div className="card-icon">👥</div>
-          <div className="card-title">Quản lý người dùng</div>
-          <div className="card-description">Xem, thêm, sửa, xóa người dùng</div>
-        </Link>
-        
-        <Link to="/admin/hotels" className="quick-access-card">
-          <div className="card-icon">🏨</div>
-          <div className="card-title">Quản lý khách sạn</div>
-          <div className="card-description">Quản lý khách sạn và danh sách phòng</div>
-        </Link>
-        
-        <Link to="/admin/bookings" className="quick-access-card">
-          <div className="card-icon">📅</div>
-          <div className="card-title">Quản lý đặt phòng</div>
-          <div className="card-description">Xem và quản lý các đơn đặt phòng</div>
-        </Link>
-      </div>
-      
+
       <h2>Hoạt động gần đây</h2>
       <div className="recent-activities">
         <table className="admin-table">
