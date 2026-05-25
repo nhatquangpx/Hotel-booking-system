@@ -119,10 +119,13 @@ export const Navbar = () => {
                   <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
                   Thông tin cá nhân
                 </Link>
-                <Link to="/login" onClick={() => {
-                  dispatch(setLogout());
-                  setDropdownMenu(false);
-                }}>
+                <Link
+                  to="/login"
+                  onClick={() => {
+                    dispatch(setLogout());
+                    setDropdownMenu(false);
+                  }}
+                >
                   <Logout sx={{ fontSize: 20, marginRight: 1 }} />
                   Đăng xuất
                 </Link>

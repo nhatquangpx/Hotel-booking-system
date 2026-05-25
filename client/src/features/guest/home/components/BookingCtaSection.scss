@@ -1,0 +1,153 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+@use "@/styles/breakpoints" as *;
+
+.booking-cta-section {
+  padding: 56px 20px 64px;
+  background: $luxury-grey-light;
+
+  &__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  h2 {
+    @include heading-xl;
+    color: $text-primary;
+    margin: 0 0 12px;
+  }
+
+  &__desc {
+    @include body-base-alt;
+    color: $text-light;
+    margin: 0 auto 28px;
+    max-width: 520px;
+    line-height: $line-relaxed;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  &__btn {
+    min-width: 180px;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-family: $main-font, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+      transform 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &--primary {
+      border: none;
+      background-color: $button-primary;
+      color: $text-white;
+
+      &:hover {
+        background-color: $button-primary-hover;
+      }
+    }
+
+    &--secondary {
+      background: transparent;
+      color: $lotte-primary-dark;
+      border: 2px solid $lotte-primary;
+
+      &:hover {
+        background-color: $lotte-primary;
+        color: $text-white;
+        border-color: $lotte-primary;
+      }
+    }
+  }
+
+  @include md {
+    padding: 44px 16px 52px;
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    &__desc {
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    &__actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    &__btn {
+      width: 100%;
+      min-width: unset;
+    }
+  }
+}
+
+.booking-cta-login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.booking-cta-login-modal {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px;
+  border-radius: 12px;
+  background: $luxury-white;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  text-align: center;
+
+  h3 {
+    @include heading-lg;
+    color: $text-primary;
+    margin: 0 0 12px;
+  }
+
+  p {
+    @include body-base-alt;
+    color: $text-light;
+    margin: 0 0 24px;
+    line-height: $line-relaxed;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  @include md {
+    padding: 24px 20px;
+
+    &__actions {
+      flex-direction: column;
+      align-items: stretch;
+
+      .booking-cta-section__btn {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+  }
+}

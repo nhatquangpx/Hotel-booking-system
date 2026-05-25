@@ -57,7 +57,7 @@ const Slide = ({
             {showTitle && (
               <div className="slide-content">
                 <h1>
-                  Chào mừng đến với Hotel Booking
+                  Chào mừng đến với StayJourney
                 </h1>
                 <p>
                   Khám phá và đặt phòng tại những khách sạn tốt nhất Việt Nam. 

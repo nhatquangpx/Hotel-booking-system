@@ -19,7 +19,7 @@ export const DEFAULT_SLIDE_CONFIG = {
 };
 
 export const SLIDE_CONTENT = {
-  title: 'Chào mừng đến với Hotel Booking',
+  title: 'Chào mừng đến với StayJourney',
   description: 'Khám phá và đặt phòng tại những khách sạn tốt nhất Việt Nam. Với hơn 1000+ khách sạn chất lượng, chúng tôi cam kết mang đến cho bạn trải nghiệm nghỉ dưỡng tuyệt vời nhất.',
 };
 

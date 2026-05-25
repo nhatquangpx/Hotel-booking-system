@@ -7,7 +7,6 @@ const {
   notifyPaymentSuccessful,
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
-  notifyGuestBookingExpired,
 } = require("../services/notifications");
 const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../services/emails");
 
