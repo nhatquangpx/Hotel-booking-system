@@ -1,5 +1,6 @@
-import {createSlice} from "@reduxjs/toolkit"
-import storage from "redux-persist/lib/storage"; 
+import { createSlice } from "@reduxjs/toolkit";
+import storage from "redux-persist/lib/storage";
+import { clearAuthSessionStorage } from "@/shared/utils/authSession";
 
 const initialState = {
     user: null,
@@ -15,10 +16,11 @@ export const userSlice = createSlice({
             state.token = action.payload.token
         },
         setLogout: (state) => {
-            state.user = null
-            state.token = null
-            storage.removeItem("persist:root")
-        }
+            state.user = null;
+            state.token = null;
+            clearAuthSessionStorage();
+            storage.removeItem("persist:root");
+        },
     }
 })
 

@@ -9,153 +9,8 @@ const { createNotification, sanitizeInput, sanitizeIP, sanitizeError } = require
  */
 
 /**
- * ===== SECURITY & ACTIVITY NOTIFICATIONS =====
- */
-
-/**
- * Notify admin about suspicious user activity
- */
-const notifyAdminSuspiciousActivity = async (userId, activityType, details) => {
-  try {
-    const user = await User.findById(userId);
-    if (!user) return;
-
-    // Get all admin users
-    const admins = await User.find({ role: 'admin', status: 'active' }).select('_id');
-
-    let message = '';
-    switch (activityType) {
-      case 'multiple_failed_logins':
-        message = `Người dùng ${sanitizeInput(user.name)} (${sanitizeInput(user.email)}) có ${sanitizeInput(details.count)} lần đăng nhập thất bại trong ${sanitizeInput(details.timeframe)}.`;
-        break;
-      case 'unusual_access_pattern':
-        message = `Người dùng ${sanitizeInput(user.name)} (${sanitizeInput(user.email)}) có hoạt động truy cập bất thường từ ${sanitizeInput(details.location)}.`;
-        break;
-      case 'rapid_bookings':
-        message = `Người dùng ${sanitizeInput(user.name)} (${sanitizeInput(user.email)}) đã tạo ${sanitizeInput(details.count)} đặt phòng trong thời gian ngắn.`;
-        break;
-      default:
-        message = `Người dùng ${sanitizeInput(user.name)} (${sanitizeInput(user.email)}) có hoạt động đáng ngờ: ${sanitizeInput(details.description)}.`;
-    }
-
-    const notifications = admins.map(admin =>
-      createNotification(
-        admin._id.toString(),
-        'admin',
-        'suspicious_activity',
-        'Hoạt động đáng ngờ',
-        message,
-        userId,
-        'User'
-      )
-    );
-
-    await Promise.all(notifications);
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo hoạt động đáng ngờ cho admin:', error);
-  }
-};
-
-/**
  * ===== HOTEL MANAGEMENT NOTIFICATIONS =====
  */
-
-/**
- * Notify admin when new hotel registration request is submitted
- */
-const notifyAdminHotelRegistrationRequest = async (hotelId) => {
-  try {
-    const hotel = await Hotel.findById(hotelId).populate('ownerId', 'name email');
-    if (!hotel) return;
-
-    // Get all admin users
-    const admins = await User.find({ role: 'admin', status: 'active' }).select('_id');
-
-    const notifications = admins.map(admin =>
-      createNotification(
-        admin._id.toString(),
-        'admin',
-        'hotel_registration_request',
-        'Yêu cầu đăng ký khách sạn mới',
-        `Khách sạn "${hotel.name}" do ${hotel.ownerId?.name || 'Chủ khách sạn'} sở hữu đang chờ phê duyệt.`,
-        hotelId,
-        'Hotel'
-      )
-    );
-
-    await Promise.all(notifications);
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo yêu cầu đăng ký khách sạn cho admin:', error);
-  }
-};
-
-/**
- * Notify admin when hotel is approved (only to other admins)
- */
-const notifyAdminHotelApproved = async (hotelId, approvedByAdminId) => {
-  try {
-    const hotel = await Hotel.findById(hotelId);
-    if (!hotel) return;
-
-    // Get all admin users except the one who approved
-    const admins = await User.find({ 
-      role: 'admin', 
-      status: 'active',
-      _id: { $ne: approvedByAdminId }
-    }).select('_id');
-
-    const notifications = admins.map(admin =>
-      createNotification(
-        admin._id.toString(),
-        'admin',
-        'hotel_approved',
-        'Khách sạn đã được phê duyệt',
-        `Khách sạn "${hotel.name}" đã được phê duyệt và kích hoạt.`,
-        hotelId,
-        'Hotel'
-      )
-    );
-
-    await Promise.all(notifications);
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo phê duyệt khách sạn cho admin:', error);
-  }
-};
-
-/**
- * Notify admin when hotel is rejected
- */
-const notifyAdminHotelRejected = async (hotelId, rejectedByAdminId, reason) => {
-  try {
-    const hotel = await Hotel.findById(hotelId);
-    if (!hotel) return;
-
-    // Get all admin users except the one who rejected
-    const admins = await User.find({ 
-      role: 'admin', 
-      status: 'active',
-      _id: { $ne: rejectedByAdminId }
-    }).select('_id');
-
-    const reasonText = reason ? ` Lý do: ${reason}.` : '';
-
-    const notifications = admins.map(admin =>
-      createNotification(
-        admin._id.toString(),
-        'admin',
-        'hotel_rejected',
-        'Khách sạn bị từ chối',
-        `Khách sạn "${hotel.name}" đã bị từ chối phê duyệt.${reasonText}`,
-        hotelId,
-        'Hotel'
-      )
-    );
-
-    await Promise.all(notifications);
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo từ chối khách sạn cho admin:', error);
-  }
-};
 
 /**
  * Notify admin when hotel is suspended
@@ -496,12 +351,7 @@ const notifyAdminWeeklyReport = async (reportData) => {
 };
 
 module.exports = {
-  // Security & Activity
-  notifyAdminSuspiciousActivity,
   // Hotel Management
-  notifyAdminHotelRegistrationRequest,
-  notifyAdminHotelApproved,
-  notifyAdminHotelRejected,
   notifyAdminHotelSuspended,
   // Critical Activities
   notifyAdminHighValueBooking,

@@ -71,66 +71,6 @@ const notifyGuestBookingCancelled = async (bookingId) => {
 };
 
 /**
- * Notify guest when booking is modified
- */
-const notifyGuestBookingModified = async (bookingId, changes) => {
-  try {
-    const booking = await Booking.findById(bookingId)
-      .populate('guest');
-
-    if (!booking || !booking.guest) {
-      return;
-    }
-
-    const guestId = booking.guest._id || booking.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'booking_modified',
-      'Thông tin đặt phòng đã thay đổi',
-      `Yêu cầu đổi ngày check-in của đơn #BK${bookingIdShort} đã được chấp nhận.`,
-      bookingId,
-      'Booking'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo thay đổi đặt phòng cho guest:', error);
-  }
-};
-
-/**
- * Notify guest when booking expires (payment timeout)
- */
-const notifyGuestBookingExpired = async (bookingId) => {
-  try {
-    const booking = await Booking.findById(bookingId)
-      .populate('guest');
-
-    if (!booking || !booking.guest) {
-      return;
-    }
-
-    const guestId = booking.guest._id || booking.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'booking_expired',
-      'Đơn đặt phòng đã hết hạn',
-      `Bạn đã quá thời gian thanh toán cho đơn #BK${bookingIdShort}. Đơn đặt phòng đã tự động hủy.`,
-      bookingId,
-      'Booking'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo hết hạn đặt phòng cho guest:', error);
-  }
-};
-
-/**
  * Notify guest about payment reminder
  */
 const notifyGuestPaymentReminder = async (bookingId, dueDate) => {
@@ -257,27 +197,6 @@ const notifyGuestCheckInInstructions = async (bookingId, instructions) => {
 };
 
 /**
- * Notify guest about new message from owner
- */
-const notifyGuestNewMessage = async (guestId, message, senderName) => {
-  try {
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'new_message',
-      'Tin nhắn mới',
-      `${senderName || 'Chủ khách sạn'} vừa nhắn tin cho bạn: '${message}'`,
-      null,
-      null
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo tin nhắn mới cho guest:', error);
-  }
-};
-
-/**
  * Notify guest to review after checkout
  */
 const notifyGuestReviewRequest = async (bookingId) => {
@@ -392,13 +311,10 @@ const notifyGuestSecurityAlert = async (guestId, alertType) => {
 module.exports = {
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
-  notifyGuestBookingModified,
-  notifyGuestBookingExpired,
   notifyGuestPaymentReminder,
   notifyGuestRefundProcessed,
   notifyGuestUpcomingTrip,
   notifyGuestCheckInInstructions,
-  notifyGuestNewMessage,
   notifyGuestReviewRequest,
   notifyGuestReviewReply,
   notifyGuestPromotion,

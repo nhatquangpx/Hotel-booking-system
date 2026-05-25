@@ -6,7 +6,7 @@ import {
   BenefitsSection,
   TestimonialsSection,
   StatsSection,
-  NewsletterSection,
+  BookingCtaSection,
 } from './components';
 import './HomePage.scss';
 
@@ -24,7 +24,7 @@ export const GuestHomePage = () => {
         <BenefitsSection />
         <TestimonialsSection />
         <StatsSection />
-        <NewsletterSection />
+        <BookingCtaSection />
       </div>
     </GuestLayout>
   );

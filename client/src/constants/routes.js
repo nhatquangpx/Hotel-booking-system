@@ -15,7 +15,6 @@ export const ROUTES = {
   HOTEL_DETAIL: (id) => `/hotels/${id}`,
   BOOKING_NEW: '/booking/new',
   MY_BOOKINGS: '/my-bookings',
-  BOOKING_DETAIL: (id) => `/booking/${id}`,
   PROFILE: (id) => `/profile/${id}`,
   PROFILE_EDIT: (id) => `/profile/${id}/edit`,
   CHANGE_PASSWORD: (id) => `/profile/${id}/changepassword`,

@@ -67,8 +67,6 @@ const Header = ({
 
   const handleLogout = () => {
     dispatch(setLogout());
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     navigate('/login');
   };
 

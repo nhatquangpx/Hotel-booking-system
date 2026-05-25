@@ -163,13 +163,6 @@ function shouldExposePaymentConfig(req) {
   return false;
 }
 
-const { 
-  notifyAdminHotelRegistrationRequest,
-  notifyAdminHotelApproved,
-  notifyAdminHotelRejected,
-  notifyAdminHotelSuspended
-} = require("../services/notifications");
-
 // Get all hotels
 exports.getAllHotels = async (req, res) => {
   try {
@@ -350,14 +343,6 @@ exports.createHotel = async (req, res) => {
 
     const savedHotel = await newHotel.save();
     console.log(`Đã tạo khách sạn thành công: ${savedHotel._id} (${savedHotel.name}) bởi owner ${savedHotel.ownerId}`);
-    
-    // Notify admins about new hotel registration request
-    // Note: If hotel status is 'pending', it needs approval
-    if (savedHotel.status === 'pending' || !savedHotel.status) {
-      notifyAdminHotelRegistrationRequest(savedHotel._id).catch(err => {
-        console.error('Lỗi khi tạo thông báo yêu cầu đăng ký khách sạn cho admin:', err);
-      });
-    }
     
     res.status(201).json(sanitizeHotelPaymentConfigResponse(savedHotel));
   } catch (error) {

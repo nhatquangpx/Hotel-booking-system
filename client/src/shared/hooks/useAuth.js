@@ -14,15 +14,31 @@ export const useAuth = () => {
   const { user, token } = auth;
 
   const localToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const localUser = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {};
+  let localUser = null;
+  if (typeof window !== "undefined") {
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && (parsed._id || parsed.id || parsed.email)) {
+          localUser = parsed;
+        }
+      } catch {
+        localUser = null;
+      }
+    }
+  }
 
-  const effectiveToken = token || localToken;
-  const effectiveUser = user || localUser;
+  // Redux đã xóa phiên (đăng xuất) — không dùng token/user còn sót trong localStorage
+  const isReduxSessionEmpty = !token && !user;
+
+  const effectiveToken = isReduxSessionEmpty ? null : (token || localToken);
+  const effectiveUser = isReduxSessionEmpty ? null : (user || localUser);
 
   return {
     user: effectiveUser,
     token: effectiveToken,
-    isAuthenticated: !!effectiveToken,
+    isAuthenticated: !!(effectiveToken && effectiveUser),
     role: effectiveUser?.role,
   };
 };
