@@ -2,8 +2,8 @@ import { IconButton } from "@mui/material"
 import { useState, useEffect, useRef } from 'react'
 import { Search, Hotel, Favorite, AccountCircle, Logout, KeyboardArrowDown } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
-import { Link, useNavigate } from 'react-router-dom'
-import { setLogout } from '@/store/slices/userSlice'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { performLogout } from '@/shared/utils/authSession'
 import { IMAGE_PATHS } from '@/constants/images'
 import { NotificationBell } from '@/features/notifications'
 import "./Navbar.scss"
@@ -12,6 +12,7 @@ export const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const dropdownRef = useRef(null);
 
   const userState = useSelector((state) => state.user || {}); 
@@ -75,7 +76,11 @@ export const Navbar = () => {
             <Link to="/register" className="navbar_auth_button navbar_auth_button_register">
               Đăng ký
             </Link>
-            <Link to="/login" className="navbar_auth_button navbar_auth_button_login">
+            <Link
+              to="/login"
+              state={{ from: routerLocation }}
+              className="navbar_auth_button navbar_auth_button_login"
+            >
               Đăng nhập
             </Link>
           </div>
@@ -119,16 +124,18 @@ export const Navbar = () => {
                   <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
                   Thông tin cá nhân
                 </Link>
-                <Link
-                  to="/login"
-                  onClick={() => {
-                    dispatch(setLogout());
+                <button
+                  type="button"
+                  className="navbar_right_accountmenu__logout"
+                  onClick={async () => {
+                    await performLogout(dispatch);
                     setDropdownMenu(false);
+                    navigate('/login');
                   }}
                 >
                   <Logout sx={{ fontSize: 20, marginRight: 1 }} />
                   Đăng xuất
-                </Link>
+                </button>
               </div>
             )}
           </div>

@@ -1,14 +1,8 @@
 const jwt = require("jsonwebtoken");
+const { getTokenFromRequest } = require("../utils/authCookie");
 
-// Hàm lấy token từ header
-const getTokenFromHeader = (req) => {
-    const token = req.header("Authorization");
-    return token ? token.replace("Bearer ", "") : null;
-};
-
-// Middleware xác thực token
 const authenticate = (req, res, next) => {
-    const token = getTokenFromHeader(req);
+    const token = getTokenFromRequest(req);
     if (!token) {
         return res.status(403).json({ message: "Truy cập bị từ chối! Không có token." });
     }
@@ -22,9 +16,9 @@ const authenticate = (req, res, next) => {
     }
 };
 
-/** Gắn req.user nếu có Bearer hợp lệ; không có token hoặc token lỗi thì bỏ qua (không 401). */
+/** Gắn req.user nếu có token hợp lệ (cookie hoặc Bearer); không có hoặc lỗi thì bỏ qua. */
 const optionalAuthenticate = (req, res, next) => {
-    const token = getTokenFromHeader(req);
+    const token = getTokenFromRequest(req);
     if (!token) {
         return next();
     }
@@ -36,4 +30,4 @@ const optionalAuthenticate = (req, res, next) => {
     next();
 };
 
-module.exports = { authenticate, optionalAuthenticate }; 
+module.exports = { authenticate, optionalAuthenticate };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/hooks';
+import { LoginRequiredModal } from '@/features/guest/components';
 import './BookingCtaSection.scss';
 
 /**
@@ -27,7 +28,7 @@ export const BookingCtaSection = () => {
 
   const handleGoLogin = () => {
     setShowLoginModal(false);
-    navigate('/login', { state: { from: '/hotels' } });
+    navigate('/login', { state: { from: { pathname: '/hotels' } } });
   };
 
   return (
@@ -67,42 +68,12 @@ export const BookingCtaSection = () => {
         </div>
       </section>
 
-      {showLoginModal && (
-        <div
-          className="booking-cta-login-modal-overlay"
-          role="presentation"
-          onClick={() => setShowLoginModal(false)}
-        >
-          <div
-            className="booking-cta-login-modal"
-            role="dialog"
-            aria-labelledby="booking-cta-login-title"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 id="booking-cta-login-title">Cần đăng nhập</h3>
-            <p>
-              Bạn cần đăng nhập tài khoản trước khi đặt phòng. Vui lòng đăng nhập để tiếp tục.
-            </p>
-            <div className="booking-cta-login-modal__actions">
-              <button
-                type="button"
-                className="booking-cta-section__btn booking-cta-section__btn--primary"
-                onClick={handleGoLogin}
-              >
-                Đăng nhập
-              </button>
-              <button
-                type="button"
-                className="booking-cta-section__btn booking-cta-section__btn--secondary"
-                onClick={() => setShowLoginModal(false)}
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleGoLogin}
+        message="Bạn cần đăng nhập tài khoản trước khi đặt phòng. Vui lòng đăng nhập để tiếp tục."
+      />
     </>
   );
 };

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Hotel = require('../models/Hotel');
 const { findHotelByStaffId } = require('../utils/staffHotel');
+const { getTokenFromSocketHandshake } = require('../utils/authCookie');
 
 /**
  * Socket.io Server Setup
@@ -58,7 +59,7 @@ const initializeSocket = (server) => {
   // Socket authentication middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
+      const token = getTokenFromSocketHandshake(socket);
       
       if (!token) {
         return next(new Error('Authentication error: No token provided'));

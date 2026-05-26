@@ -3,6 +3,7 @@ const http = require("http");
 const path = require('path');
 const cron = require('node-cron');
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -55,6 +56,7 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

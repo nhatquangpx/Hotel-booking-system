@@ -1,26 +1,26 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../shared/hooks";
 
 /**
  * ProtectedRoute Component
  * Protects routes based on authentication and role
- * 
- * @param {string[]} allowedRoles - Array of allowed roles (e.g., ["admin", "owner"])
- * @param {boolean} require2FA - Whether 2FA is required (future feature)
- * 
- * Future enhancements:
- * - 2FA verification check
- * - Permission-based access
  */
 const ProtectedRoute = ({ allowedRoles, require2FA = false }) => {
-  const { user, token, isAuthenticated, role } = useAuth();
+  const location = useLocation();
+  const { user, isAuthenticated, isLoading, role } = useAuth();
 
-  // Not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (isLoading) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        Đang xác thực...
+      </div>
+    );
   }
 
-  // Role check
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
   if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
     if (!role || !allowedRoles.includes(role)) {
       return <Navigate to="/" replace />;
