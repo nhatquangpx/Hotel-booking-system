@@ -4,7 +4,7 @@ const { getTokenFromRequest } = require("../utils/authCookie");
 const authenticate = (req, res, next) => {
     const token = getTokenFromRequest(req);
     if (!token) {
-        return res.status(403).json({ message: "Truy cập bị từ chối! Không có token." });
+        return res.status(401).json({ message: "Không có token truy cập." });
     }
 
     try {

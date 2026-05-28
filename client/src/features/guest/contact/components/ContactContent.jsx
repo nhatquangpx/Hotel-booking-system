@@ -1,19 +1,25 @@
 import { useState } from 'react';
 import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaClock, FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn } from "react-icons/fa";
-import { IMAGE_PATHS } from '../../../../constants/images';
+import { toast } from "react-toastify";
+import guestContactAPI from '@/apis/guest/contact';
 
 /**
  * Contact Content component
  * Main content for contact page
  */
 export const ContactContent = () => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
     email: '',
     phone: '',
     subject: '',
     message: ''
+  };
+
+  const [formData, setFormData] = useState({
+    ...initialFormData
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -22,17 +28,21 @@ export const ContactContent = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement contact form submission
-    alert('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.');
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: ''
-    });
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await guestContactAPI.submitContact(formData);
+      toast.success(response?.message || 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.');
+      setFormData({ ...initialFormData });
+    } catch (error) {
+      toast.error(error.message || 'Không thể gửi liên hệ. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -123,6 +133,7 @@ export const ContactContent = () => {
                   onChange={handleChange}
                   placeholder="Nhập họ và tên của bạn" 
                   required 
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -136,6 +147,7 @@ export const ContactContent = () => {
                   onChange={handleChange}
                   placeholder="Nhập email của bạn" 
                   required 
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -149,6 +161,7 @@ export const ContactContent = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="Nhập số điện thoại của bạn" 
+                disabled={isSubmitting}
               />
             </div>
             
@@ -162,6 +175,7 @@ export const ContactContent = () => {
                 onChange={handleChange}
                 placeholder="Nhập tiêu đề tin nhắn" 
                 required 
+                disabled={isSubmitting}
               />
             </div>
             
@@ -175,10 +189,13 @@ export const ContactContent = () => {
                 rows="5" 
                 placeholder="Nhập nội dung tin nhắn của bạn" 
                 required
+                disabled={isSubmitting}
               ></textarea>
             </div>
             
-            <button type="submit" className="submit-btn">Gửi tin nhắn</button>
+            <button type="submit" className="submit-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
+            </button>
           </form>
         </div>
       </div>

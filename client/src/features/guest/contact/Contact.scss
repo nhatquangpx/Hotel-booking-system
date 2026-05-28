@@ -199,6 +199,12 @@
         &:hover {
           background-color: $button-primary-hover;
         }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.7;
+          background-color: $button-primary;
+        }
       }
     }
   }
@@ -231,7 +237,7 @@
     
     .faq-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
       
       @include md {
@@ -262,11 +268,26 @@
 // Responsive Styles
 @media (max-width: 600px) {
   .contact-container {
+    padding: 16px;
+
     .contact-hero {
       padding: 60px 20px;
       
       h1 {
         @include heading-lg;
+      }
+    }
+
+    .contact-main {
+      gap: 20px;
+
+      .contact-info,
+      .contact-form {
+        padding: 20px;
+      }
+
+      .contact-form .submit-btn {
+        width: 100%;
       }
     }
     

@@ -9,6 +9,7 @@ const { sendReceiptEmail, sendCheckInReminderEmail, sendRefundProcessedEmail } =
 const { sendMaintenanceRepairRequestEmail } = require("./maintenanceRepairEmail");
 const { sendCheckInReminders, sendCheckInReminderIfNeeded } = require("./reminderEmailService");
 const { send2FAOTPEmail, send2FABackupCodesEmail } = require("./twoFactorEmail");
+const { sendContactReplyEmail } = require("./contactReplyEmail");
 
 module.exports = {
   // Core email service
@@ -30,4 +31,7 @@ module.exports = {
   // 2FA emails
   send2FAOTPEmail,
   send2FABackupCodesEmail,
+
+  // Contact emails
+  sendContactReplyEmail,
 };

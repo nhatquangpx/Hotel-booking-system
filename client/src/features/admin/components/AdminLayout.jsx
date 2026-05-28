@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header, Sidebar } from '@/components';
-import { FaHome, FaUsers, FaHotel, FaCalendarCheck } from 'react-icons/fa';
+import { FaHome, FaUsers, FaHotel, FaCalendarCheck, FaEnvelope } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
 import { readLocalStorageBoolean } from '@/shared/utils';
 import './AdminLayout.scss';
@@ -52,6 +52,7 @@ const AdminLayout = ({ children }) => {
       if (location.pathname.match(/\/admin\/bookings\/[^/]+$/)) return 'Chi tiết đặt phòng';
       return 'Quản lý đặt phòng';
     }
+    if (location.pathname.includes('/admin/contact-messages')) return 'Hộp thư liên hệ';
     return 'Admin';
   };
 
@@ -60,6 +61,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/users', label: 'Người dùng', icon: FaUsers, title: 'Người dùng' },
     { path: '/admin/hotels', label: 'Khách sạn', icon: FaHotel, title: 'Khách sạn' },
     { path: '/admin/bookings', label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
+    { path: '/admin/contact-messages', label: 'Liên hệ', icon: FaEnvelope, title: 'Liên hệ' },
   ];
 
   return (
