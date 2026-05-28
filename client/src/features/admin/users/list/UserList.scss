@@ -5,6 +5,8 @@
 :root {
   --admin-bg: #f5f6fa;
   --admin-sidebar: #fff;
+  --admin-primary: #{$admin-primary};
+  --admin-primary-hover: #{$admin-primary-hover};
 }
 
 .user-list-container {
@@ -16,13 +18,6 @@
   --user-col-position: 13%;
   --user-col-status: 11%;
   --user-col-actions: 16%;
-
-  background-color: var(--admin-bg);
-  min-height: 100vh;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
 
   .header {
     display: flex;
@@ -58,10 +53,6 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-    background-color: var(--admin-sidebar);
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 8px;
 
     .search-filters-row {
       display: flex;
@@ -90,11 +81,12 @@
         white-space: nowrap;
         @include button-text;
         padding: 8px 18px;
-        background-color: $button-primary !important;
+        background-color: $admin-primary !important;
         color: $text-white !important;
         font-weight: $font-bold;
+
         &:hover {
-          background-color: $button-primary-hover !important;
+          background-color: $admin-primary-hover !important;
         }
       }
     }
@@ -326,10 +318,6 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    background-color: var(--admin-sidebar);
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 
     table.user-table-fixed {
@@ -353,27 +341,12 @@
     table {
       width: 100%;
       max-width: 100%;
-      border-collapse: collapse;
 
-      th {
-        background-color: var(--admin-header);
-        color: $text-primary;
-        padding: 0.75rem 0.5rem;
+      th,
+      td {
         text-align: center;
-        @include button-text;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        vertical-align: middle;
-      }
-
-      td {
-        padding: 0.75rem 0.5rem;
-        text-align: center;
-        color: $text-primary;
-        border-bottom: 1px solid var(--admin-border);
-        overflow: hidden;
-        vertical-align: middle;
       }
 
       .col-stt {
@@ -395,13 +368,6 @@
         }
       }
 
-      tr {
-        transition: background-color 0.3s;
-
-        &:hover {
-          background-color: var(--admin-accent);
-        }
-      }
     }
 
     .action-buttons {
@@ -431,23 +397,6 @@
           background-color: rgba(0, 0, 0, 0.1);
         }
       }
-    }
-  }
-
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    @include body-xs;
-    font-weight: $font-medium;
-
-    &.active {
-      background-color: $status-success-bg;
-      color: $status-success-text;
-    }
-
-    &.inactive {
-      background-color: $status-error-bg;
-      color: $status-error-text;
     }
   }
 
@@ -503,8 +452,6 @@
 
 @media (max-width: 768px) {
   .user-list-container {
-    padding: 1rem;
-
     .user-table table.user-table-fixed {
       min-width: 720px;
     }

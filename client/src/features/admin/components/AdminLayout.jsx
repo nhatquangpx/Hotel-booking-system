@@ -4,6 +4,7 @@ import { FaHome, FaUsers, FaHotel, FaCalendarCheck, FaEnvelope } from 'react-ico
 import { useLocation } from 'react-router-dom';
 import { readLocalStorageBoolean } from '@/shared/utils';
 import './AdminLayout.scss';
+import '@/features/admin/styles/AdminShared.scss';
 
 const SIDEBAR_STORAGE_KEY = 'admin_sidebar_collapsed';
 
