@@ -30,6 +30,7 @@ export const ROUTES = {
   ADMIN_ROOM_EDIT: (id) => `/admin/rooms/${id}/edit`,
   ADMIN_BOOKINGS: '/admin/bookings',
   ADMIN_BOOKING_DETAIL: (id) => `/admin/bookings/${id}`,
+  ADMIN_CONTACT_MESSAGES: '/admin/contact-messages',
   
   // Owner routes (future)
   OWNER_DASHBOARD: '/owner',

@@ -1,12 +1,5 @@
 const { sendEmail } = require("./emailService");
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+const { escapeHtml } = require("./template");
 
 /** Ghép địa chỉ khách sạn (cùng quy ước bookingEmail). */
 function formatHotelAddressLine(addr) {

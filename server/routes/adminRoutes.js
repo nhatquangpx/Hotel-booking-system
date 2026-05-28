@@ -9,6 +9,7 @@ const bookingController = require("../controllers/bookingController");
 const dashboardController = require('../controllers/dashboardController');
 const notificationController = require('../controllers/notificationController');
 const reportController = require('../controllers/reportController');
+const contactController = require("../controllers/contactController");
 const { uploadHotelPhotosAndQr, uploadRoomImages } = require('../config/multerConfig');
 // const { roomValidation, validate } = require('../validations/roomValidation');
 
@@ -61,5 +62,10 @@ router.get('/notifications/unread-count', notificationController.getUnreadCount)
 router.put('/notifications/:id/read', notificationController.markAsRead);
 router.put('/notifications/read-all', notificationController.markAllAsRead);
 router.get('/notifications/load-more', notificationController.loadMoreNotifications);
+
+// Quản lý liên hệ từ trang public
+router.get("/contact-messages", contactController.getContactMessages);
+router.put("/contact-messages/:id/read", contactController.markContactMessageAsRead);
+router.post("/contact-messages/:id/reply", contactController.replyContactMessage);
 
 module.exports = router;

@@ -34,6 +34,7 @@ import adminHotelAPI from './admin/hotel';
 import adminRoomAPI from './admin/room';
 import adminBookingAPI from './admin/booking';
 import adminProfileAPI from './admin/profile';
+import adminContactAPI from './admin/contact';
 
 // Export API
 export default {
@@ -66,5 +67,6 @@ export default {
   adminHotel: adminHotelAPI,
   adminRoom: adminRoomAPI,
   adminBooking: adminBookingAPI,
-  adminProfile: adminProfileAPI
+  adminProfile: adminProfileAPI,
+  adminContact: adminContactAPI
 }; 

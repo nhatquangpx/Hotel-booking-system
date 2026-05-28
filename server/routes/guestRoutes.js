@@ -7,6 +7,7 @@ const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
 const reviewController = require('../controllers/reviewController');
+const contactController = require("../controllers/contactController");
 // TODO: Thêm notification routes cho guest khi cần
 // const notificationController = require('../controllers/notificationController');
 
@@ -21,6 +22,7 @@ router.get('/hotels/:id', optionalAuthenticate, hotelController.getHotelById);
 // Xem danh sách phòng - PUBLIC
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
 router.get('/rooms/:id', roomController.getRoomById);
+router.post('/contact', contactController.submitContact);
 
 // ===== PROTECTED ROUTES (cần authentication) =====
 

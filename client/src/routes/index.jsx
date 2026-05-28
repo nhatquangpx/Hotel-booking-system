@@ -30,6 +30,7 @@ import {
   AdminRoomEditPage,
   AdminBookingListPage,
   AdminBookingDetailPage,
+  AdminContactMessageListPage,
   AdminProfileAccountPage,
   AdminProfileEditPage,
   AdminProfileChangePasswordPage,
@@ -125,6 +126,7 @@ export default function AppRoutes() {
           {/* Bookings */}
           <Route path="/admin/bookings" element={<AdminBookingListPage />} />
           <Route path="/admin/bookings/:id" element={<AdminBookingDetailPage />} />
+          <Route path="/admin/contact-messages" element={<AdminContactMessageListPage />} />
 
           {/* Profile */}
           <Route path="/admin/profile" element={<AdminProfileAccountPage />} />
