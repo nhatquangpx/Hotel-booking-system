@@ -6,6 +6,31 @@ const { sendNewPasswordEmail, send2FAOTPEmail } = require("../services/emails");
 const { generateOTP, verifyOTP, requires2FA, isDeviceTrusted, getDeviceInfo, addTrustedDevice } = require("../services/auth");
 
 const { findHotelByStaffId } = require("../utils/staffHotel");
+const {
+  setAuthCookies,
+  clearAuthCookies,
+  getRefreshTokenFromRequest,
+  getTokenFromRequest,
+} = require("../utils/authCookie");
+const {
+  createAccessToken,
+  createRefreshToken,
+  persistRefreshToken,
+  clearRefreshToken,
+  findUserByRefreshToken,
+} = require("../utils/authTokens");
+
+const issueAuthSession = async (res, user, staffHotel, extra = {}) => {
+  const accessToken = createAccessToken(user);
+  const refreshToken = createRefreshToken();
+  await persistRefreshToken(user, refreshToken);
+  setAuthCookies(res, accessToken, refreshToken);
+  return res.status(200).json({
+    user: formatAuthUser(user, staffHotel),
+    requires2FA: false,
+    ...extra,
+  });
+};
 
 /**
  * Cùng shape với enrichUserWithStaffHotel / admin API: assignedHotelId = { _id, name } | null
@@ -74,20 +99,8 @@ exports.login = async (req, res) => {
             
             // Kiểm tra xem device có được trust không
             if (isDeviceTrusted(user, deviceInfo.deviceId)) {
-                // Device đã được trust, bỏ qua 2FA và tạo token trực tiếp
-                const token = jwt.sign(
-                    { id: user._id, role: user.role, session: Date.now },
-                    process.env.JWT_SECRET,
-                    { expiresIn: "7d" }
-                );
-
                 console.log(`Đăng nhập thành công với trusted device: User ${user._id} (${user.email})`);
-                return res.status(200).json({
-                    token,
-                    user: formatAuthUser(user, staffHotel),
-                    requires2FA: false,
-                    trustedDevice: true
-                });
+                return await issueAuthSession(res, user, staffHotel, { trustedDevice: true });
             }
 
             // Device chưa được trust, yêu cầu 2FA
@@ -112,15 +125,9 @@ exports.login = async (req, res) => {
             });
         }
 
-        // Nếu không cần 2FA, tạo token như bình thường
-        const token = jwt.sign({ id: user._id, role: user.role, session: Date.now }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
+        // Nếu không cần 2FA, tạo phiên đăng nhập
         console.log(`Đăng nhập thành công: User ${user._id} (${user.email}) với role ${user.role}`);
-        res.status(200).json({
-            token,
-            user: formatAuthUser(user, staffHotel),
-            requires2FA: false
-        });
+        await issueAuthSession(res, user, staffHotel);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -175,21 +182,8 @@ exports.verify2FA = async (req, res) => {
                     addTrustedDevice(user, deviceInfo.deviceId, deviceInfo.deviceName, deviceInfo.userAgent, deviceInfo.ipAddress, 30);
                 }
                 
-                await user.save();
-
-                // Tạo token
-                const token = jwt.sign(
-                    { id: user._id, role: user.role, session: Date.now },
-                    process.env.JWT_SECRET,
-                    { expiresIn: "7d" }
-                );
-
                 console.log(`Đăng nhập thành công với backup code: User ${user._id} (${user.email})`);
-                return res.status(200).json({
-                    token,
-                    user: formatAuthUser(user, staffHotel),
-                    usedBackupCode: true
-                });
+                return await issueAuthSession(res, user, staffHotel, { usedBackupCode: true });
             }
 
             return res.status(400).json({ message: "Mã OTP không hợp lệ hoặc đã hết hạn" });
@@ -205,20 +199,8 @@ exports.verify2FA = async (req, res) => {
             addTrustedDevice(user, deviceInfo.deviceId, deviceInfo.deviceName, deviceInfo.userAgent, deviceInfo.ipAddress, 30);
         }
         
-        await user.save();
-
-        // Tạo token
-        const token = jwt.sign(
-            { id: user._id, role: user.role, session: Date.now },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
-
         console.log(`Xác thực 2FA thành công: User ${user._id} (${user.email})`);
-        res.status(200).json({
-            token,
-            user: formatAuthUser(user, staffHotel)
-        });
+        await issueAuthSession(res, user, staffHotel);
     } catch (err) {
         console.error("2FA verification error:", err);
         res.status(500).json({ message: "Lỗi khi xác thực 2FA", error: err.message });
@@ -262,6 +244,103 @@ exports.resend2FAOTP = async (req, res) => {
     }
 };
 
+exports.refreshToken = async (req, res) => {
+    try {
+        const refreshToken = getRefreshTokenFromRequest(req);
+        if (!refreshToken) {
+            clearAuthCookies(res);
+            return res.status(401).json({ message: "Không có refresh token" });
+        }
+
+        const user = await findUserByRefreshToken(refreshToken);
+        if (!user) {
+            clearAuthCookies(res);
+            return res.status(401).json({ message: "Refresh token không hợp lệ hoặc đã hết hạn" });
+        }
+
+        if (user.status === "inactive") {
+            await clearRefreshToken(user);
+            clearAuthCookies(res);
+            return res.status(403).json({ message: "Tài khoản đã bị vô hiệu hóa" });
+        }
+
+        let staffHotel = null;
+        if (user.role === "staff") {
+            staffHotel = await findHotelByStaffId(user._id);
+            if (!staffHotel) {
+                await clearRefreshToken(user);
+                clearAuthCookies(res);
+                return res.status(403).json({
+                    message:
+                        "Tài khoản nhân viên chưa được gán khách sạn. Vui lòng liên hệ quản trị viên.",
+                });
+            }
+        }
+
+        const accessToken = createAccessToken(user);
+        const newRefreshToken = createRefreshToken();
+        await persistRefreshToken(user, newRefreshToken);
+        setAuthCookies(res, accessToken, newRefreshToken);
+
+        res.status(200).json({
+            message: "Làm mới phiên đăng nhập thành công",
+            user: formatAuthUser(user, staffHotel),
+        });
+    } catch (err) {
+        console.error("Refresh token error:", err);
+        clearAuthCookies(res);
+        res.status(500).json({ message: "Lỗi khi làm mới phiên đăng nhập", error: err.message });
+    }
+};
+
+exports.getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "Người dùng không tồn tại!" });
+        }
+
+        let staffHotel = null;
+        if (user.role === "staff") {
+            staffHotel = await findHotelByStaffId(user._id);
+        }
+
+        res.status(200).json({ user: formatAuthUser(user, staffHotel) });
+    } catch (err) {
+        res.status(500).json({ message: "Không thể tải thông tin phiên đăng nhập", error: err.message });
+    }
+};
+
+exports.logout = async (req, res) => {
+    try {
+        const refreshToken = getRefreshTokenFromRequest(req);
+        if (refreshToken) {
+            const user = await findUserByRefreshToken(refreshToken);
+            if (user) {
+                await clearRefreshToken(user);
+            }
+        } else {
+            const accessToken = getTokenFromRequest(req);
+            if (accessToken) {
+                try {
+                    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+                    const user = await User.findById(decoded.id).select(
+                        "+refreshTokenHash +refreshTokenExpires"
+                    );
+                    if (user) await clearRefreshToken(user);
+                } catch {
+                    // access token hết hạn — bỏ qua
+                }
+            }
+        }
+        clearAuthCookies(res);
+        res.status(200).json({ message: "Đăng xuất thành công" });
+    } catch (err) {
+        clearAuthCookies(res);
+        res.status(500).json({ message: "Lỗi khi đăng xuất", error: err.message });
+    }
+};
+
 //Quên mật khẩu
 exports.forgotPassword = async (req, res) => {
   try {
@@ -278,8 +357,9 @@ exports.forgotPassword = async (req, res) => {
     const salt = await bcrypt.genSalt();
     const hashNewPassword = await bcrypt.hash(newPassword, salt);
     user.password = hashNewPassword;
+    user.refreshTokenHash = null;
+    user.refreshTokenExpires = null;
     await user.save();
-    console.log("Password updated for:", email);
 
     await sendNewPasswordEmail(email, newPassword);
     console.log("Email sent to:", email);
@@ -303,9 +383,9 @@ exports.resetPassword = async (req, res) => {
       const salt = await bcrypt.genSalt();
       const hashNewPassword = await bcrypt.hash(newPassword, salt);
       user.password = hashNewPassword;
+      user.refreshTokenHash = null;
+      user.refreshTokenExpires = null;
       await user.save();
-  
-      console.log(`Đã đổi mật khẩu thành công cho user ${id}`);
       res.status(200).json({ message: "Mật khẩu của bạn đã được đặt lại thành công!" });
     } catch (err) {
       res.status(500).json({ message: "Đã xảy ra lỗi khi đặt lại mật khẩu.", error: err.message });

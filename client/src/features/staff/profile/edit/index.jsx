@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { AccountCircle, Edit, Lock } from '@mui/icons-material';
 import StaffLayout from '@/features/staff/components/StaffLayout';
-import { setLogin } from '@/store/slices/userSlice';
+import { setUser } from '@/store/slices/userSlice';
 import api from '@/apis';
 import '../account/Account.scss';
 
@@ -15,7 +15,6 @@ const StaffProfileEditPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const token = useSelector((state) => state.user.token);
 
   const [formData, setFormData] = useState({ name: '', phone: '' });
   const [loading, setLoading] = useState(false);
@@ -54,9 +53,8 @@ const StaffProfileEditPage = () => {
     try {
       const updated = await api.staffProfile.updateProfile(formData);
       toast.success('Cập nhật thông tin thành công!');
-      if (updated && token) {
-        dispatch(setLogin({ user: updated, token }));
-        localStorage.setItem('user', JSON.stringify(updated));
+      if (updated) {
+        dispatch(setUser(updated));
       }
       navigate(BASE_PATH);
     } catch (error) {

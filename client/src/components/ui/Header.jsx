@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FaBars, FaTimes, FaUser, FaKey, FaSignOutAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { setLogout, setLogin } from '@/store/slices/userSlice';
+import { setUser } from '@/store/slices/userSlice';
+import { performLogout } from '@/shared/utils/authSession';
 import { useAuth } from '@/shared/hooks';
 import api from '@/apis';
 import { IMAGE_PATHS } from '@/constants/images';
@@ -23,14 +24,14 @@ const Header = ({
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
 
   // Fetch user profile nếu là owner/admin và chưa có name đầy đủ hoặc thiếu _id
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (token && (user?.role === 'owner' || user?.role === 'admin' || user?.role === 'staff')) {
+      if (isAuthenticated && (user?.role === 'owner' || user?.role === 'admin' || user?.role === 'staff')) {
         // Kiểm tra nếu thiếu name hoặc _id (hoặc chỉ có id)
         const hasId = user?.id || user?._id;
         const needsFetch = !user?.name || user?.name === 'User' || !user?._id;
@@ -48,9 +49,7 @@ const Header = ({
             
             if (profile) {
               setUserProfile(profile);
-              // Cập nhật vào Redux store và localStorage
-              dispatch(setLogin({ user: profile, token }));
-              localStorage.setItem('user', JSON.stringify(profile));
+              dispatch(setUser(profile));
             }
           } catch (error) {
             console.error('Lỗi khi tải thông tin người dùng:', error);
@@ -60,13 +59,13 @@ const Header = ({
     };
 
     fetchUserProfile();
-  }, [user?.role, user?.name, user?._id, user?.id, token, dispatch]);
+  }, [user?.role, user?.name, user?._id, user?.id, isAuthenticated, dispatch]);
 
   // Sử dụng userProfile nếu có, nếu không thì dùng user từ auth
   const displayUser = userProfile || user;
 
-  const handleLogout = () => {
-    dispatch(setLogout());
+  const handleLogout = async () => {
+    await performLogout(dispatch);
     navigate('/login');
   };
 

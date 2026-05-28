@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, forgotPassword, resetPassword, verify2FA, resend2FAOTP } = require("../controllers/authController");
+const { register, login, forgotPassword, resetPassword, verify2FA, resend2FAOTP, getMe, logout, refreshToken } = require("../controllers/authController");
 const { enable2FA, disable2FA, get2FAStatus, regenerateBackupCodes, getTrustedDevices, removeTrustedDevice, removeAllTrustedDevices } = require("../controllers/twoFactorController");
 const { registerValidation, validate } = require("../validations/registerValidation");
 const { authenticate } = require("../middlewares/authentication");
@@ -8,6 +8,9 @@ const { authenticate } = require("../middlewares/authentication");
 // Routes
 router.post("/register", registerValidation, validate, register);
 router.post("/login", login);
+router.post("/refresh", refreshToken);
+router.post("/logout", logout);
+router.get("/me", authenticate, getMe);
 router.post("/forgotpassword", forgotPassword);
 router.post("/resetpassword", authenticate, resetPassword);
 

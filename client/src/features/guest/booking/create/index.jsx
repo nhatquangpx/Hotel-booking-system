@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import { GuestLayout } from '@/features/guest/components/layout';
+import { useAuth } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
 import { formatDate } from '@/shared/utils';
@@ -42,7 +42,32 @@ const GuestBookingPage = () => {
   const [qrActionError, setQrActionError] = useState('');
   const [hotelImageIndex, setHotelImageIndex] = useState(0);
   const [roomImageIndex, setRoomImageIndex] = useState(0);
-  const user = useSelector((state) => state.user.user);
+  const { user, isAuthenticated, sessionChecked } = useAuth();
+
+  useEffect(() => {
+    if (!sessionChecked) return;
+
+    const needsAuth =
+      resumeBookingId ||
+      (bookingData.hotelId &&
+        bookingData.roomId &&
+        bookingData.checkInDate &&
+        bookingData.checkOutDate);
+
+    if (needsAuth && !isAuthenticated) {
+      navigate('/login', { replace: true, state: { from: location } });
+    }
+  }, [
+    sessionChecked,
+    isAuthenticated,
+    resumeBookingId,
+    bookingData.hotelId,
+    bookingData.roomId,
+    bookingData.checkInDate,
+    bookingData.checkOutDate,
+    location,
+    navigate,
+  ]);
 
   const hideBookingForm =
     Boolean(resumeBookingId && booking) &&
@@ -68,6 +93,8 @@ const GuestBookingPage = () => {
   );
 
   useEffect(() => {
+    if (!sessionChecked || !isAuthenticated) return;
+
     if (resumeBookingId) {
       const fetchBooking = async () => {
         try {
@@ -155,7 +182,7 @@ const GuestBookingPage = () => {
       }
     };
     fetchBookingDetails();
-  }, [bookingData, user, resumeBookingId]);
+  }, [bookingData, user, resumeBookingId, sessionChecked, isAuthenticated]);
 
   const handleResumeVNPay = async () => {
     if (!booking?._id) return;

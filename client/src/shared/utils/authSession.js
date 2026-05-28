@@ -1,9 +1,14 @@
-/**
- * Đồng bộ phiên đăng nhập giữa Redux, redux-persist và localStorage (token/user).
- */
+import api from '@/apis/config/axios';
+import { setLogout } from '@/store/slices/userSlice';
 
-export const clearAuthSessionStorage = () => {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+/**
+ * Đăng xuất: xóa cookie phía server và dọn Redux.
+ */
+export const performLogout = async (dispatch) => {
+  try {
+    await api.post('/auth/logout');
+  } catch {
+    // Cookie có thể đã hết hạn — vẫn dọn state phía client
+  }
+  dispatch(setLogout());
 };

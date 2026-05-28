@@ -192,7 +192,8 @@
       z-index: 1001;
       overflow: hidden;
 
-      a {
+      a,
+      .navbar_right_accountmenu__logout {
         display: flex;
         align-items: center;
         padding: 0.75rem 1.5rem;
@@ -201,6 +202,11 @@
         @include body-base;
         transition: background-color 0.3s;
         white-space: nowrap;
+        width: 100%;
+        background: transparent;
+        border: none;
+        text-align: left;
+        cursor: pointer;
 
         &:hover {
           background-color: $grey-light;

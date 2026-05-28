@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { GuestLayout } from '@/features/guest/components/layout';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { GuestLayout, LoginRequiredModal } from '@/features/guest/components';
+import { useAuth } from '@/shared/hooks';
 import { useGuestWishlist } from '@/features/guest/hooks';
 import api from '@/apis';
 import HotelHeader from './HotelHeader';
@@ -22,7 +24,17 @@ import './HotelDetail.scss';
 const GuestHotelDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const user = useSelector((state) => state.user?.user);
+  const { isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setShowLoginModal(false);
+    }
+  }, [isAuthenticated]);
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +118,12 @@ const GuestHotelDetailPage = () => {
   };
 
   const searchAvailableRooms = async () => {
+    if (!isAuthenticated) {
+      setRoomSearchError(null);
+      setShowLoginModal(true);
+      return;
+    }
+
     try {
       setLoading(true);
       setRoomSearchError(null);
@@ -115,12 +133,23 @@ const GuestHotelDetailPage = () => {
       setSearchPerformed(true);
       setLoading(false);
     } catch (err) {
-      const msg =
-        err?.response?.data?.message || err?.message || 'Không thể tải danh sách phòng';
-      setRoomSearchError(msg);
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        setRoomSearchError(null);
+        setShowLoginModal(true);
+      } else {
+        const msg =
+          err?.response?.data?.message || err?.message || 'Không thể tải danh sách phòng';
+        setRoomSearchError(msg);
+      }
       setLoading(false);
       console.error(err);
     }
+  };
+
+  const handleGoLogin = () => {
+    setShowLoginModal(false);
+    navigate('/login', { state: { from: location } });
   };
 
   const handleRoomSelect = (room) => {
@@ -129,16 +158,32 @@ const GuestHotelDetailPage = () => {
   };
 
   const handleConfirmBooking = () => {
-    if (selectedRoom) {
-      navigate(`/booking/new`, {
+    if (!selectedRoom) return;
+
+    const bookingState = {
+      hotelId: id,
+      roomId: selectedRoom._id,
+      checkInDate: bookingDates.checkInDate,
+      checkOutDate: bookingDates.checkOutDate,
+    };
+
+    if (!user) {
+      navigate('/login', {
         state: {
-          hotelId: id,
-          roomId: selectedRoom._id,
-          checkInDate: bookingDates.checkInDate,
-          checkOutDate: bookingDates.checkOutDate
-        }
+          from: {
+            pathname: '/booking/new',
+            search: '',
+            hash: '',
+            state: bookingState,
+          },
+        },
       });
+      setSelectedRoom(null);
+      setShowBookingModal(false);
+      return;
     }
+
+    navigate('/booking/new', { state: bookingState });
     setSelectedRoom(null);
     setShowBookingModal(false);
   };
@@ -210,6 +255,12 @@ const GuestHotelDetailPage = () => {
               bookingDates={bookingDates}
               onConfirm={handleConfirmBooking}
               onClose={handleCloseModal}
+            />
+            <LoginRequiredModal
+              open={showLoginModal}
+              onClose={() => setShowLoginModal(false)}
+              onLogin={handleGoLogin}
+              message="Bạn cần đăng nhập tài khoản trước khi tìm phòng. Vui lòng đăng nhập để tiếp tục."
             />
             <HotelContact hotel={hotel} />
             <HotelReviews

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import api from '@/apis';
 import { setLogin } from '@/store/slices/userSlice';
+import { resolvePostLoginNavigation } from '@/shared/utils/postLoginRedirect';
 import { Slide } from '@/components';
 import { IMAGE_PATHS } from '@/constants';
 import { OTPInput } from './OTPInput';
@@ -28,7 +29,20 @@ export const LoginForm = () => {
   const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  const redirectAfterLogin = (loggedInUser) => {
+    const target = resolvePostLoginNavigation(loggedInUser, location.state);
+    navigate(
+      {
+        pathname: target.pathname,
+        search: target.search || '',
+        hash: target.hash || '',
+      },
+      { replace: true, state: target.state }
+    );
+  };
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
@@ -69,8 +83,8 @@ export const LoginForm = () => {
         return;
       }
 
-      if (result.token) {
-        dispatch(setLogin({ user: result.user, token: result.token }));
+      if (result.user) {
+        dispatch(setLogin({ user: result.user }));
 
         if (rememberMe) { 
           localStorage.setItem('rememberedEmail', email);
@@ -82,25 +96,9 @@ export const LoginForm = () => {
           localStorage.removeItem('rememberMe');
         }
 
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-
-        switch (result.user.role) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'owner':
-            navigate('/owner');
-            break;
-          case 'staff':
-            navigate('/staff');
-            break;
-          default:
-            navigate('/');
-            break;
-        }
+        redirectAfterLogin(result.user);
       } else {
-        console.error('Thiếu token trong kết quả đăng nhập:', result);
+        console.error('Thiếu thông tin user trong kết quả đăng nhập:', result);
         setErrorMessage('Đăng nhập thất bại. Dữ liệu không hợp lệ từ máy chủ.');
       }
     } catch (err) {
@@ -127,8 +125,8 @@ export const LoginForm = () => {
     try {
       const result = await api.auth.verify2FA(userId, otpCode, rememberDevice);
 
-      if (result.token) {
-        dispatch(setLogin({ user: result.user, token: result.token }));
+      if (result.user) {
+        dispatch(setLogin({ user: result.user }));
 
         if (rememberMe) { 
           localStorage.setItem('rememberedEmail', email);
@@ -140,23 +138,7 @@ export const LoginForm = () => {
           localStorage.removeItem('rememberMe');
         }
 
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-
-        switch (result.user.role) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'owner':
-            navigate('/owner');
-            break;
-          case 'staff':
-            navigate('/staff');
-            break;
-          default:
-            navigate('/');
-            break;
-        }
+        redirectAfterLogin(result.user);
       } else {
         setOtpErrorMessage('Xác thực thất bại. Vui lòng thử lại.');
       }

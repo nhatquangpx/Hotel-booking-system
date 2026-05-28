@@ -9,3 +9,4 @@ export * from './bookingFilters';
 export * from './filterBookingList';
 export * from './reviewReply';
 export * from './roomStatus';
+export * from './postLoginRedirect';

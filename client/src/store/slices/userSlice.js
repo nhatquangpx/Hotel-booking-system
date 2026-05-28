@@ -1,10 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import storage from "redux-persist/lib/storage";
-import { clearAuthSessionStorage } from "@/shared/utils/authSession";
 
 const initialState = {
     user: null,
-    token: null
+    sessionChecked: false,
 }
 
 export const userSlice = createSlice({
@@ -13,17 +11,20 @@ export const userSlice = createSlice({
     reducers: {
         setLogin: (state, action) => {
             state.user = action.payload.user
-            state.token = action.payload.token
+            state.sessionChecked = true
         },
         setLogout: (state) => {
             state.user = null;
-            state.token = null;
-            clearAuthSessionStorage();
-            storage.removeItem("persist:root");
+            state.sessionChecked = true;
+        },
+        setSessionChecked: (state) => {
+            state.sessionChecked = true;
+        },
+        setUser: (state, action) => {
+            state.user = action.payload;
         },
     }
 })
 
-export const {setLogin, setLogout} = userSlice.actions
+export const { setLogin, setLogout, setSessionChecked, setUser } = userSlice.actions
 export default userSlice.reducer
-
