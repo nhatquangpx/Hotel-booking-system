@@ -3,7 +3,17 @@
 @use "@/styles/text" as *;
 
 .admin-dashboard {
-  padding: 20px;
+  width: calc(100% + 4rem);
+  margin-left: -2rem;
+  margin-right: -2rem;
+  padding: 0 2rem 2rem;
+
+  @media (max-width: 768px) {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem 1rem;
+  }
 
   .admin-report-export {
     background: $bg-white;

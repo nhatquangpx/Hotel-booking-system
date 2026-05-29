@@ -4,7 +4,6 @@ import api from "@/apis";
 import { toast } from "react-toastify";
 import ContactMessagesTable from "./components/ContactMessagesTable";
 import ReplyContactModal from "./components/ReplyContactModal";
-import "@/features/admin/components/AdminComponents.scss";
 import "./ContactMessageList.scss";
 
 const AdminContactMessageListPage = () => {
@@ -149,7 +148,7 @@ const AdminContactMessageListPage = () => {
           onOpenReplyModal={openReplyModal}
         />
 
-        <div className="contact-pagination">
+        <div className="contact-pagination admin-pagination">
           <button disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
             Trước
           </button>

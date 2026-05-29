@@ -13,7 +13,6 @@ import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import HotelFormDialog from '../components/HotelFormDialog';
 import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import api from '../../../../apis';
-import '@/features/admin/components/AdminComponents.scss';
 import './HotelList.scss';
 
 /**
@@ -228,15 +227,16 @@ const AdminHotelListPage = () => {
 
   return (
     <AdminLayout>
-      <div className="hotel-list-container">
+      <div className="admin-hotel-list-page">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
-          <div className="search-bar-row">
+          <div className="search-filters-row">
             <div className="search-bar-inputs">
               <TextField
                 label="Tìm theo tên"
                 value={searchName}
                 onChange={e => setSearchName(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
@@ -245,6 +245,7 @@ const AdminHotelListPage = () => {
                 value={searchAddress}
                 onChange={e => setSearchAddress(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
@@ -253,6 +254,7 @@ const AdminHotelListPage = () => {
                 value={searchPhone}
                 onChange={e => setSearchPhone(e.target.value)}
                 size="small"
+                fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
@@ -262,10 +264,10 @@ const AdminHotelListPage = () => {
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
-                sx={{ 
+                sx={{
                   backgroundColor: 'var(--admin-primary)',
-                  '&:hover': { backgroundColor: 'var(--admin-primary)', opacity: 0.8 },
-                  cursor: 'pointer'
+                  '&:hover': { backgroundColor: 'var(--admin-primary-hover)' },
+                  cursor: 'pointer',
                 }}
               >
                 Thêm khách sạn

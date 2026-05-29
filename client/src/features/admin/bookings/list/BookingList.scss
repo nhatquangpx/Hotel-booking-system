@@ -16,23 +16,9 @@
 }
 
 .booking-list-container {
-  background-color: var(--admin-bg);
-  min-height: 100vh;
-  padding: 20px;
-
-  h1 {
-    color: $text-primary;
-    @include heading-lg;
-    margin-bottom: 32px;
-    text-align: $align-left;
-  }
+  // Shell/table/toolbar: AdminShared.scss
 
   .search-bar {
-    background-color: var(--admin-sidebar);
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     .search-bar-row {
       display: flex;
       flex-direction: row;
@@ -56,91 +42,13 @@
     }
   }
 
-  .booking-table {
-    background-color: var(--admin-sidebar);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 12px;
-    overflow-x: auto;
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: var(--admin-bg);
-      border-radius: 8px;
-      overflow: hidden;
-      th, td {
-        padding: 12px 15px;
-        text-align: $align-left;
-        border-bottom: 1px solid var(--admin-border);
-      }
-      th {
-        background: var(--admin-sidebar);
-        color: $text-primary;
-        @include button-text;
-      }
-      tr:hover {
-        background: var(--admin-hover);
-      }
-      .status-badge {
-        padding: 4px 8px;
-        border-radius: 4px;
-        @include body-xs;
-        
-        &.pending {
-          background: $warning;
-          color: $warning-text;
-        }
-        
-        &.paid {
-          background: $success-light;
-          color: $success-dark;
-        }
-        
-        &.cancelled {
-          background: $error-light;
-          color: $error-dark;
-        }
-      }
-      .action-buttons {
-        display: flex;
-        gap: 8px;
-      }
-    }
-  }
+  .booking-table table {
+    text-align: left;
 
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    @include body-xs;
-    font-weight: $font-medium;
-    &.pending {
-      background-color: $warning-bg;
-      color: $warning-text-dark;
+    th,
+    td {
+      text-align: left;
     }
-    &.paid {
-      background-color: $status-success-bg;
-      color: $status-success-text;
-    }
-    &.cancelled {
-      background-color: $status-error-bg;
-      color: $status-error-text;
-    }
-  }
-
-  .error-message {
-    color: var(--admin-danger);
-    text-align: $align-center;
-    margin: 1rem 0;
-    @include body-base-alt;
-  }
-  .loading {
-    color: var(--admin-primary);
-    text-align: $align-center;
-    margin: 1.5rem 0;
-    @include body-base-alt;
   }
 
   .modal-overlay {
@@ -253,26 +161,8 @@
     }
   }
 
-  .admin-booking-readonly-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 16px 0;
-    padding: 14px 16px;
-    background: var(--admin-sidebar);
-    border-radius: 8px;
-    border: 1px solid var(--admin-border);
-    color: var(--admin-text);
-    font-size: 0.95rem;
-
-    strong {
-      font-size: 1rem;
-    }
-
-    &__hint {
-      font-size: 0.85rem;
-      color: #666;
-      line-height: 1.4;
-    }
+  .admin-booking-readonly-summary__hint {
+    color: $text-secondary;
+    line-height: 1.4;
   }
 } 

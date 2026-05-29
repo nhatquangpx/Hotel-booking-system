@@ -20,9 +20,13 @@
   }
   
   th {
-    background-color: $blue-light;
+    background: linear-gradient(180deg, $lotte-primary-light 0%, $lotte-primary 100%);
     color: $text-white;
-    @include button-text;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: none;
   }
   
   tr:nth-child(even) {

@@ -2,147 +2,16 @@
 @use "@/styles/global" as *;
 @use "@/styles/text" as *;
 
+// Layout/table/button: AdminShared.scss (import qua AdminLayout)
+
 .admin-contact-page {
-  background: $admin-bg;
-  min-height: 100vh;
-  padding: 20px;
-  border-radius: 8px;
-
-  .contact-page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-
-    h2 {
-      margin: 0;
-      @include heading-sm;
-      color: $blue-dark-text;
-    }
-
-    p {
-      margin: 4px 0 0;
-      color: $text-light;
-    }
+  .message-cell {
+    max-width: 320px;
   }
 
-  .contact-page-header__stats {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-
-    .unread-pill {
-      background: $status-warning-bg;
-      color: $status-warning-text;
-      padding: 6px 10px;
-      border-radius: 20px;
-      @include body-sm;
-    }
-
-    select {
-      min-width: 140px;
-      padding: 8px 10px;
-      border: 1px solid $border-admin;
-      border-radius: 6px;
-    }
-  }
-
-  .contact-table-wrapper {
-    overflow-x: auto;
-    background: $bg-white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-
-  .contact-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 980px;
-
-    th,
-    td {
-      border-bottom: 1px solid $border-light;
-      padding: 10px 12px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      background: $bg-light;
-      @include label-sm;
-      color: $blue-dark-text;
-    }
-
-    .message-cell {
-      max-width: 320px;
-    }
-
-    .phone {
-      color: $text-light;
-      margin-top: 2px;
-      @include body-sm;
-    }
-
-    .table-state {
-      text-align: center;
-      padding: 18px;
-      color: $text-light;
-    }
-
-    .row-unread {
-      background: rgba(255, 244, 214, 0.45);
-    }
-  }
-
-  .mark-read-btn {
-    border: none;
-    background: $button-primary;
-    color: $text-white;
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-
-    &:hover {
-      background: $button-primary-hover;
-    }
-  }
-
-  .reply-btn {
-    border: none;
-    background: $blue-light;
-    color: $text-white;
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-
-    &:hover {
-      background: $blue-light-hover;
-    }
-  }
-
-  .action-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .read-time {
-    color: $text-light;
-    @include body-sm;
-  }
-
-  .read-meta {
-    margin-top: 6px;
-    color: $text-light;
-    @include body-sm;
-  }
-
-  .reply-meta {
+  .phone {
+    color: $text-secondary;
     margin-top: 2px;
-    color: $text-light;
     @include body-sm;
   }
 
@@ -156,7 +25,7 @@
     .expandable-text__toggle {
       border: none;
       background: transparent;
-      color: $blue-light;
+      color: $lotte-primary;
       padding: 0;
       margin-top: 6px;
       cursor: pointer;
@@ -164,31 +33,7 @@
       text-decoration: underline;
 
       &:hover {
-        color: $blue-light-hover;
-      }
-    }
-  }
-
-  .contact-pagination {
-    margin-top: 14px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 10px;
-    background: $bg-white;
-    border-radius: 8px;
-    padding: 10px 12px;
-
-    button {
-      border: 1px solid $border-admin;
-      background: $bg-white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-
-      &:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
+        color: $lotte-primary-dark;
       }
     }
   }
@@ -210,19 +55,20 @@
   max-height: 92vh;
   overflow-y: auto;
   background: $bg-white;
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid $admin-border;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   h3 {
     margin: 0 0 12px;
     @include heading-sm;
-    color: $blue-dark-text;
+    color: $lotte-primary-dark;
   }
 
-  .reply-modal__info {
-    p {
-      margin: 0 0 6px;
-    }
+  .reply-modal__info p {
+    margin: 0 0 6px;
+    color: $text-primary;
   }
 
   .reply-modal__original {
@@ -232,19 +78,14 @@
       display: block;
       @include label-sm;
       margin-bottom: 6px;
-      color: $blue-dark-text;
+      color: $text-primary;
     }
 
     .expandable-text {
-      white-space: pre-wrap;
-      background: $bg-light;
+      background: $bg-light-alt;
       border: 1px solid $border-light;
       border-radius: 8px;
       padding: 10px;
-
-      .expandable-text__toggle {
-        margin-top: 8px;
-      }
     }
   }
 
@@ -255,17 +96,22 @@
       display: block;
       @include label-sm;
       margin-bottom: 6px;
-      color: $blue-dark-text;
+      color: $text-primary;
     }
 
     textarea {
       width: 100%;
-      border: 1px solid $border-admin;
+      border: 1px solid $border-medium;
       border-radius: 8px;
       padding: 10px;
       resize: vertical;
       min-height: 140px;
       font-family: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: $lotte-primary;
+      }
     }
   }
 
@@ -274,47 +120,20 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-
-    button {
-      border: 1px solid $border-admin;
-      background: $bg-white;
-      border-radius: 6px;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-
-    .send-btn {
-      background: $button-primary;
-      border-color: $button-primary;
-      color: $text-white;
-
-      &:hover {
-        background: $button-primary-hover;
-      }
-    }
   }
 }
 
 @media (max-width: 768px) {
-  .admin-contact-page {
-    padding: 12px;
-
-    .contact-page-header {
-      gap: 8px;
-    }
-
-    .contact-pagination {
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-  }
-
   .reply-modal {
     padding: 12px;
 
     .reply-modal__actions {
-      justify-content: space-between;
       flex-wrap: wrap;
+      justify-content: stretch;
+
+      button {
+        flex: 1;
+      }
     }
   }
 }

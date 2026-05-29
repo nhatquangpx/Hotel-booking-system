@@ -17,7 +17,7 @@
   --admin-bg-light: #f0f0f0;
 }
 
-.hotel-list-container {
+.admin-hotel-list-page {
   --hotel-col-stt: 5%;
   --hotel-col-name: 16%;
   --hotel-col-address: 20%;
@@ -27,58 +27,43 @@
   --hotel-col-status: 10%;
   --hotel-col-actions: 17%;
 
-  background-color: var(--admin-bg);
-  min-height: 100vh;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-
-  h1 {
-    color: $text-primary;
-    @include heading-lg;
-    margin-bottom: 32px;
-    text-align: $align-left;
-  }
-
   .search-bar {
-    background-color: var(--admin-sidebar);
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    .search-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    .search-filters-row {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       width: 100%;
-      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
     }
+
     .search-bar-inputs {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       flex: 1;
-      width: 100%;
-      align-items: center;
-      flex-wrap: nowrap;
-      .MuiTextField-root {
-        flex: 1;
-        min-width: 0;
-        max-width: none;
-      }
+      min-width: 0;
     }
+
     .add-hotel-btn-link {
-      margin-left: 16px;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
+      flex-shrink: 0;
+      padding-bottom: 2px;
+
       .MuiButton-root {
         white-space: nowrap;
         @include button-text;
         padding: 8px 18px;
-        background-color: $button-primary !important;
+        background-color: $admin-primary !important;
         color: $text-white !important;
         font-weight: $font-bold;
+
         &:hover {
-          background-color: $button-primary-hover !important;
+          background-color: $admin-primary-hover !important;
         }
       }
     }
@@ -88,12 +73,7 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    background-color: var(--admin-sidebar);
-    border-radius: 8px;
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 12px;
     padding: 0 0 8px 0;
 
     col {
@@ -117,27 +97,12 @@
     table {
       width: 100%;
       max-width: 100%;
-      border-collapse: collapse;
 
-      th {
-        background-color: var(--admin-header);
-        color: $text-primary;
-        padding: 0.75rem 0.5rem;
+      th,
+      td {
         text-align: center;
-        @include button-text;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        vertical-align: middle;
-      }
-
-      td {
-        padding: 0.75rem 0.5rem;
-        text-align: center;
-        color: $text-primary;
-        border-bottom: 1px solid var(--admin-border);
-        overflow: hidden;
-        vertical-align: middle;
       }
 
       .col-stt {
@@ -198,28 +163,6 @@
           background-color: rgba(0, 0, 0, 0.1);
         }
       }
-    }
-  }
-
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    @include body-xs;
-    font-weight: $font-medium;
-
-    &.active {
-      background-color: $status-success-bg;
-      color: $status-success-text;
-    }
-
-    &.inactive {
-      background-color: $status-error-bg;
-      color: $status-error-text;
-    }
-
-    &.maintenance {
-      background-color: $status-warning-bg;
-      color: $status-warning-text;
     }
   }
 
@@ -343,12 +286,36 @@
   align-items: center;
 }
 
-@media (max-width: 768px) {
-  .hotel-list-container {
-    padding: 1rem;
+@media (max-width: 992px) {
+  .admin-hotel-list-page .search-bar .search-bar-inputs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
+@media (max-width: 768px) {
+  .admin-hotel-list-page {
     .hotel-table table.hotel-table-fixed {
       min-width: 900px;
+    }
+
+    .search-bar {
+      .search-filters-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-bar-inputs {
+        grid-template-columns: 1fr;
+      }
+
+      .add-hotel-btn-link {
+        width: 100%;
+        padding-bottom: 0;
+
+        .MuiButton-root {
+          width: 100%;
+        }
+      }
     }
   }
 }

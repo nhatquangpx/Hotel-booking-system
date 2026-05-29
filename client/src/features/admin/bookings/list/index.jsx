@@ -181,7 +181,7 @@ const AdminBookingListPage = () => {
         </Paper>
 
         {!loading && bookings.length > 0 && (
-          <div className="admin-booking-readonly-summary">
+          <div className="admin-booking-readonly-summary admin-summary-card">
             <strong>Tổng quan thanh toán (toàn hệ thống)</strong>
             <span>
               Đơn đã thanh toán: <strong>{paidBookingStats.count}</strong> — Tổng tiền:{' '}

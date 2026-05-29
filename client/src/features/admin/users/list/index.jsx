@@ -227,8 +227,7 @@ const AdminUserListPage = () => {
                 sx={{
                   backgroundColor: 'var(--admin-primary)',
                   '&:hover': {
-                    backgroundColor: 'var(--admin-primary)',
-                    opacity: 0.8,
+                    backgroundColor: 'var(--admin-primary-hover)',
                   },
                   cursor: 'pointer',
                 }}

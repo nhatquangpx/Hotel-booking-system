@@ -1,0 +1,338 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+// Đồng bộ admin list pages với pattern owner (sale/pricing)
+.booking-list-container,
+.user-list-container,
+.admin-hotel-list-page,
+.admin-contact-page,
+.admin-page {
+  width: calc(100% + 4rem);
+  margin-left: -2rem;
+  margin-right: -2rem;
+  padding: 0 2rem 2rem;
+  color: $text-primary;
+  background: transparent;
+  min-height: auto;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem 1rem;
+  }
+}
+
+// Toolbar / filter (owner .sale-toolbar)
+.admin-toolbar,
+.booking-list-container .search-bar,
+.user-list-container .search-bar,
+.admin-hotel-list-page .search-bar,
+.admin-contact-page .contact-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid $admin-border;
+  border-radius: 12px;
+  background: $bg-light-alt;
+  box-shadow: 0 2px 8px rgba(160, 130, 109, 0.04);
+}
+
+.admin-contact-page .contact-page-header {
+  align-items: center;
+
+  p {
+    margin: 0;
+    color: $text-secondary;
+    @include body-base;
+  }
+
+  select {
+    min-width: 140px;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid $border-medium;
+    background: $bg-white;
+    color: $text-primary;
+  }
+}
+
+.admin-contact-page .contact-page-header__stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-contact-page .unread-pill {
+  background: $status-warning-bg;
+  color: $status-warning-text;
+  padding: 6px 12px;
+  border-radius: 999px;
+  @include body-sm;
+  font-weight: $font-medium;
+}
+
+// Table wrapper (owner .sale-table-wrap)
+.admin-table-wrap,
+.contact-table-wrapper,
+.booking-list-container .booking-table,
+.user-list-container .user-table,
+.admin-hotel-list-page .hotel-table {
+  overflow-x: auto;
+  background: $bg-white;
+  border-radius: 12px;
+  border: 1px solid $admin-border;
+  box-shadow: 0 2px 12px rgba(160, 130, 109, 0.08);
+  margin-top: 0;
+}
+
+// Table core (owner .sale-table)
+.admin-table,
+.contact-table,
+.booking-list-container .booking-table table,
+.user-list-container .user-table table,
+.admin-hotel-list-page .hotel-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  background: $bg-white;
+
+  th,
+  td {
+    padding: 0.8rem 0.95rem;
+    border-bottom: 1px solid $border-light;
+    vertical-align: middle;
+    color: $text-primary;
+  }
+
+  th {
+    background: linear-gradient(180deg, $lotte-primary-light 0%, $lotte-primary 100%);
+    color: $text-white;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    border-bottom: none;
+
+    &:first-child {
+      border-top-left-radius: 11px;
+    }
+
+    &:last-child {
+      border-top-right-radius: 11px;
+    }
+  }
+
+  tbody tr {
+    &:nth-child(even) {
+      background: $bg-light-alt;
+    }
+
+    &:hover {
+      background: rgba($lotte-primary, 0.06);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  .table-state,
+  .loading,
+  .text-center {
+    text-align: center;
+    color: $text-secondary;
+    padding: 1.25rem;
+  }
+}
+
+.admin-contact-page .contact-table {
+  min-width: 980px;
+
+  th,
+  td {
+    text-align: left;
+    vertical-align: top;
+  }
+}
+
+.admin-contact-page .row-unread {
+  background: rgba($lotte-primary, 0.08) !important;
+}
+
+// Status pills (thống nhất)
+.booking-list-container,
+.user-list-container,
+.admin-hotel-list-page,
+.admin-contact-page,
+.admin-page {
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    @include body-xs;
+    font-weight: $font-medium;
+    white-space: nowrap;
+
+    &.active,
+    &.paid {
+      background-color: $status-success-bg;
+      color: $status-success-text;
+    }
+
+    &.inactive,
+    &.cancelled {
+      background-color: $status-error-bg;
+      color: $status-error-text;
+    }
+
+    &.pending {
+      background-color: $status-warning-bg;
+      color: $status-warning-text;
+    }
+
+    &.maintenance {
+      background-color: $status-warning-bg;
+      color: $status-warning-text;
+    }
+  }
+}
+
+// Buttons (owner .btn-primary / secondary)
+.admin-btn,
+.admin-btn-primary,
+.mark-read-btn,
+.reply-btn,
+.admin-contact-page .reply-modal__actions .send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  @include body-sm;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  border: none;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.admin-btn-primary,
+.mark-read-btn,
+.reply-btn,
+.admin-contact-page .reply-modal__actions .send-btn {
+  background: $button-primary;
+  color: $text-white;
+
+  &:hover:not(:disabled) {
+    background: $button-primary-hover;
+  }
+}
+
+.admin-btn-secondary,
+.admin-btn-cancel,
+.admin-contact-page .reply-modal__actions button:not(.send-btn) {
+  background: $bg-white;
+  color: $text-primary;
+  border: 1px solid $border-medium;
+
+  &:hover:not(:disabled) {
+    background: rgba($lotte-primary, 0.08);
+    border-color: $lotte-primary;
+  }
+}
+
+.admin-contact-page .action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.admin-contact-page .read-meta,
+.admin-contact-page .reply-meta {
+  color: $text-secondary;
+  @include body-sm;
+}
+
+// Pagination
+.admin-pagination,
+.contact-pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1rem;
+  background: $bg-white;
+  border: 1px solid $admin-border;
+  border-radius: 12px;
+
+  button {
+    padding: 0.5rem 1rem;
+    border: 1px solid $border-medium;
+    background: $bg-white;
+    border-radius: 8px;
+    color: $text-primary;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover:not(:disabled) {
+      background: rgba($lotte-primary, 0.08);
+      border-color: $lotte-primary;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  span {
+    color: $text-secondary;
+    @include body-sm;
+  }
+}
+
+// Summary / alert blocks
+.admin-booking-readonly-summary,
+.admin-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 1rem;
+  padding: 14px 16px;
+  background: $bg-white;
+  border-radius: 12px;
+  border: 1px solid $admin-border;
+  color: $text-primary;
+  @include body-sm;
+  box-shadow: 0 2px 8px rgba(160, 130, 109, 0.04);
+}
+
+.admin-page .error-message,
+.booking-list-container .error-message,
+.user-list-container .error-message,
+.admin-hotel-list-page .error-message,
+.admin-contact-page .error-message {
+  color: $danger-dark;
+  background: $danger-light;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  @include body-sm;
+}
