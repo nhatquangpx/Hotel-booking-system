@@ -4,4 +4,18 @@ function isValidObjectId(id) {
   return Boolean(id != null && String(id).length > 0 && mongoose.Types.ObjectId.isValid(id));
 }
 
-module.exports = { isValidObjectId };
+/** ObjectId ref hoặc document đã populate → chuỗi id để so sánh */
+function toIdString(ref) {
+  if (ref == null) return "";
+  if (typeof ref === "object") {
+    if (ref._id != null) return String(ref._id);
+    if (ref.id != null) return String(ref.id);
+  }
+  return String(ref);
+}
+
+function refIdsMatch(ref, otherId) {
+  return toIdString(ref) === toIdString(otherId);
+}
+
+module.exports = { isValidObjectId, toIdString, refIdsMatch };

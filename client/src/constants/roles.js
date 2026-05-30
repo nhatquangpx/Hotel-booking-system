@@ -6,15 +6,17 @@ export const ROLES = {
   GUEST: 'guest',
   OWNER: 'owner',
   ADMIN: 'admin',
+  STAFF: 'staff',
 };
 
 /**
  * Role display names
  */
 export const ROLE_LABELS = {
-  [ROLES.GUEST]: 'Khách',
+  [ROLES.GUEST]: 'Khách hàng',
   [ROLES.OWNER]: 'Chủ khách sạn',
   [ROLES.ADMIN]: 'Quản trị viên',
+  [ROLES.STAFF]: 'Nhân viên khách sạn',
 };
 
 /**

@@ -1,10 +1,9 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../shared/hooks";
+import { LOGIN_REQUIRED_MESSAGE } from "@/shared/utils/roleAccessMessages";
+import RoleAccessDenied from "./RoleAccessDenied";
 
-/**
- * ProtectedRoute Component
- * Protects routes based on authentication and role
- */
+/** Protects routes based on authentication and role */
 const ProtectedRoute = ({ allowedRoles, require2FA = false }) => {
   const location = useLocation();
   const { user, isAuthenticated, isLoading, role } = useAuth();
@@ -18,12 +17,26 @@ const ProtectedRoute = ({ allowedRoles, require2FA = false }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: location,
+          authMessage: LOGIN_REQUIRED_MESSAGE,
+        }}
+      />
+    );
   }
 
   if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
     if (!role || !allowedRoles.includes(role)) {
-      return <Navigate to="/" replace />;
+      return (
+        <RoleAccessDenied
+          currentRole={role}
+          allowedRoles={allowedRoles}
+        />
+      );
     }
   }
 

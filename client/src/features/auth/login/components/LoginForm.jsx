@@ -56,6 +56,12 @@ export const LoginForm = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (location.state?.authMessage) {
+      setErrorMessage(location.state.authMessage);
+    }
+  }, [location.state?.authMessage]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
