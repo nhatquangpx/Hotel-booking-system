@@ -365,9 +365,6 @@ exports.getGuestProfile = async (req, res) => {
   if (!assertGuestProfileTarget(req)) {
     return res.status(403).json({ message: 'Không có quyền truy cập hồ sơ này' });
   }
-  if (!assertSelfProfileRole(req, 'guest')) {
-    return res.status(403).json({ message: 'Không có quyền truy cập' });
-  }
   return exports.getUserById(req, res);
 };
 
@@ -375,18 +372,12 @@ exports.updateGuestProfile = async (req, res) => {
   if (!assertGuestProfileTarget(req)) {
     return res.status(403).json({ message: 'Không có quyền cập nhật hồ sơ này' });
   }
-  if (!assertSelfProfileRole(req, 'guest')) {
-    return res.status(403).json({ message: 'Không có quyền truy cập' });
-  }
   return respondSelfProfileUpdate(req, res);
 };
 
 exports.changeGuestPassword = async (req, res) => {
   if (!assertGuestProfileTarget(req)) {
     return res.status(403).json({ message: 'Không có quyền đổi mật khẩu hồ sơ này' });
-  }
-  if (!assertSelfProfileRole(req, 'guest')) {
-    return res.status(403).json({ message: 'Không có quyền truy cập' });
   }
   return respondSelfPasswordChange(req, res, req.params.id);
 };

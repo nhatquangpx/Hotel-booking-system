@@ -46,10 +46,21 @@ const formatAuthUser = (user, staffHotel = null) => ({
         : null,
 });
 
-// Đăng ký
+/** Response đăng ký công khai — không trả password, 2FA, token, wishlist, … */
+const formatRegisterUser = (user) => ({
+    id: user._id,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    status: user.status,
+});
+
+// Đăng ký công khai — luôn tạo tài khoản guest; không nhận role/status từ client
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, phone, role, status } = req.body;
+        const { name, email, password, phone } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "Người dùng đã tồn tại!" });
@@ -58,12 +69,20 @@ exports.register = async (req, res) => {
         const hashPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name, email, password: hashPassword, phone, role: role || "guest", status: status || "active"
+            name,
+            email,
+            password: hashPassword,
+            phone,
+            role: "guest",
+            status: "active",
         });
 
         await newUser.save();
         console.log(`Đăng ký thành công: User ${newUser._id} (${newUser.email}) với role ${newUser.role}`);
-        res.status(201).json({ message: "Đăng ký thành công!", user: newUser });
+        res.status(201).json({
+            message: "Đăng ký thành công!",
+            user: formatRegisterUser(newUser),
+        });
     } catch (err) {
       console.error("Registration Error:", err); 
       res.status(500).json({ message: "Đăng ký thất bại!", error: err.message });

@@ -1,11 +1,12 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./protected";
+import { ROUTES } from "@/constants/routes";
+import { ROLES } from "@/constants/roles";
 
-// Features - organized by role (guest, admin, auth)
-import { 
-  GuestHomePage, 
-  GuestHotelListPage, 
+import {
+  GuestHomePage,
+  GuestHotelListPage,
   GuestHotelDetailPage,
   GuestAboutPage,
   GuestContactPage,
@@ -16,10 +17,10 @@ import {
   GuestProfileChangePasswordPage,
   GuestNotificationsPage,
   GuestWishlistPage,
-  VNPayCallbackPage
+  VNPayCallbackPage,
 } from "@/features/guest";
 import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/features/auth";
-import { 
+import {
   AdminDashboardPage,
   AdminUserListPage,
   AdminUserDetailPage,
@@ -34,9 +35,9 @@ import {
   AdminProfileAccountPage,
   AdminProfileEditPage,
   AdminProfileChangePasswordPage,
-  AdminTwoFactorPage
+  AdminTwoFactorPage,
 } from "@/features/admin";
-import { 
+import {
   OwnerDashboardPage,
   OwnerDynamicPricingPage,
   OwnerSalePage,
@@ -48,7 +49,7 @@ import {
   OwnerProfileAccountPage,
   OwnerProfileEditPage,
   OwnerProfileChangePasswordPage,
-  OwnerTwoFactorPage
+  OwnerTwoFactorPage,
 } from "@/features/owner";
 import { OwnerHotelOutlet } from "@/features/owner/context/OwnerHotelContext";
 import {
@@ -64,11 +65,6 @@ import {
 } from "@/features/staff";
 import { StaffHotelOutlet } from "@/features/staff/context/StaffHotelContext";
 
-/**
- * App Routes
- * Main routing configuration for the application
- * Uses role-based feature imports
- */
 export default function AppRoutes() {
   return (
     <BrowserRouter
@@ -78,95 +74,73 @@ export default function AppRoutes() {
       }}
     >
       <Routes>
-        {/* Public & Auth Routes */}
-        <Route path="/" element={<GuestHomePage />} />
-        <Route path="/about" element={<GuestAboutPage />} />
-        <Route path="/contact" element={<GuestContactPage />} />
-        <Route path="/register" element={<AuthRegisterPage />} />
-        <Route path="/login" element={<AuthLoginPage />} />
-        <Route path="/forgotpassword" element={<AuthForgotPasswordPage />} />
+        <Route path={ROUTES.HOME} element={<GuestHomePage />} />
+        <Route path={ROUTES.ABOUT} element={<GuestAboutPage />} />
+        <Route path={ROUTES.CONTACT} element={<GuestContactPage />} />
+        <Route path={ROUTES.REGISTER} element={<AuthRegisterPage />} />
+        <Route path={ROUTES.LOGIN} element={<AuthLoginPage />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<AuthForgotPasswordPage />} />
 
-        {/* Guest - Profile */}
-        <Route path="/profile/:id" element={<GuestProfileAccountPage />} />
-        <Route path="/profile/:id/edit" element={<GuestProfileEditPage />} />
-        <Route path="/profile/:id/changepassword" element={<GuestProfileChangePasswordPage />} />
+        <Route path={ROUTES.profile.pattern} element={<GuestProfileAccountPage />} />
+        <Route path={ROUTES.profileEdit.pattern} element={<GuestProfileEditPage />} />
+        <Route path={ROUTES.profileChangePassword.pattern} element={<GuestProfileChangePasswordPage />} />
 
-        {/* Guest - Hotels */}
-        <Route path="/hotels" element={<GuestHotelListPage />} />
-        <Route path="/hotels/:id" element={<GuestHotelDetailPage />} />
+        <Route path={ROUTES.HOTELS} element={<GuestHotelListPage />} />
+        <Route path={ROUTES.hotelDetail.pattern} element={<GuestHotelDetailPage />} />
 
-        {/* Guest - Booking */}
-        <Route path="/booking/new" element={<GuestBookingPage />} />
-        <Route path="/my-bookings" element={<GuestMyBookingsPage />} />
-        <Route path="/wishlist" element={<GuestWishlistPage />} />
+        <Route path={ROUTES.BOOKING_NEW} element={<GuestBookingPage />} />
+        <Route path={ROUTES.MY_BOOKINGS} element={<GuestMyBookingsPage />} />
+        <Route path={ROUTES.WISHLIST} element={<GuestWishlistPage />} />
 
-        {/* Guest - Payment */}
-        <Route path="/payment/vnpay-return" element={<VNPayCallbackPage />} />
+        <Route path={ROUTES.PAYMENT_VNPAY_RETURN} element={<VNPayCallbackPage />} />
+        <Route path={ROUTES.NOTIFICATIONS} element={<GuestNotificationsPage />} />
 
-        {/* Guest - Notifications */}
-        <Route path="/notifications" element={<GuestNotificationsPage />} />
-
-        {/* Admin (protected) */}
-        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-
-          {/* Users */}
-          <Route path="/admin/users" element={<AdminUserListPage />} />
-          <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
-
-          {/* Hotels */}
-          <Route path="/admin/hotels" element={<AdminHotelListPage />} />
-          <Route path="/admin/hotels/:id" element={<AdminHotelDetailPage />} />
-          <Route path="/admin/hotels/:id/rooms/create" element={<AdminRoomCreatePage />} />
-
-          {/* Rooms */}
-          <Route path="/admin/rooms/:id" element={<AdminRoomDetailPage />} />
-          <Route path="/admin/rooms/:id/edit" element={<AdminRoomEditPage />} />
-
-          {/* Bookings */}
-          <Route path="/admin/bookings" element={<AdminBookingListPage />} />
-          <Route path="/admin/bookings/:id" element={<AdminBookingDetailPage />} />
-          <Route path="/admin/contact-messages" element={<AdminContactMessageListPage />} />
-
-          {/* Profile */}
-          <Route path="/admin/profile" element={<AdminProfileAccountPage />} />
-          <Route path="/admin/profile/edit" element={<AdminProfileEditPage />} />
-          <Route path="/admin/profile/changepassword" element={<AdminProfileChangePasswordPage />} />
-          <Route path="/admin/profile/two-factor" element={<AdminTwoFactorPage />} />
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
+          <Route path={ROUTES.ADMIN_HOME} element={<AdminDashboardPage />} />
+          <Route path={ROUTES.ADMIN_USERS} element={<AdminUserListPage />} />
+          <Route path={ROUTES.adminUserDetail.pattern} element={<AdminUserDetailPage />} />
+          <Route path={ROUTES.ADMIN_HOTELS} element={<AdminHotelListPage />} />
+          <Route path={ROUTES.adminHotelDetail.pattern} element={<AdminHotelDetailPage />} />
+          <Route path={ROUTES.adminRoomCreate.pattern} element={<AdminRoomCreatePage />} />
+          <Route path={ROUTES.adminRoomDetail.pattern} element={<AdminRoomDetailPage />} />
+          <Route path={ROUTES.adminRoomEdit.pattern} element={<AdminRoomEditPage />} />
+          <Route path={ROUTES.ADMIN_BOOKINGS} element={<AdminBookingListPage />} />
+          <Route path={ROUTES.adminBookingDetail.pattern} element={<AdminBookingDetailPage />} />
+          <Route path={ROUTES.ADMIN_CONTACT_MESSAGES} element={<AdminContactMessageListPage />} />
+          <Route path={ROUTES.ADMIN_PROFILE} element={<AdminProfileAccountPage />} />
+          <Route path={ROUTES.ADMIN_PROFILE_EDIT} element={<AdminProfileEditPage />} />
+          <Route path={ROUTES.ADMIN_PROFILE_CHANGE_PASSWORD} element={<AdminProfileChangePasswordPage />} />
+          <Route path={ROUTES.ADMIN_PROFILE_TWO_FACTOR} element={<AdminTwoFactorPage />} />
         </Route>
 
-        {/* Owner (protected) — chọn khách sạn dùng chung qua OwnerHotelOutlet */}
-        <Route element={<ProtectedRoute allowedRoles={["owner"]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER]} />}>
           <Route element={<OwnerHotelOutlet />}>
-            <Route path="/owner" element={<OwnerDashboardPage />} />
-            <Route path="/owner/rooms" element={<OwnerRoomMapPage />} />
-            <Route path="/owner/pricing" element={<OwnerDynamicPricingPage />} />
-            <Route path="/owner/sale" element={<OwnerSalePage />} />
-            <Route path="/owner/bookings" element={<OwnerBookingListPage />} />
-            <Route path="/owner/equipment" element={<OwnerEquipmentPage />} />
-            <Route path="/owner/reviews" element={<OwnerReviewsPage />} />
-            <Route path="/owner/notifications" element={<OwnerNotificationsPage />} />
-
-            {/* Profile */}
-            <Route path="/owner/profile" element={<OwnerProfileAccountPage />} />
-            <Route path="/owner/profile/edit" element={<OwnerProfileEditPage />} />
-            <Route path="/owner/profile/changepassword" element={<OwnerProfileChangePasswordPage />} />
-            <Route path="/owner/profile/two-factor" element={<OwnerTwoFactorPage />} />
+            <Route path={ROUTES.OWNER_HOME} element={<OwnerDashboardPage />} />
+            <Route path={ROUTES.OWNER_ROOMS} element={<OwnerRoomMapPage />} />
+            <Route path={ROUTES.OWNER_PRICING} element={<OwnerDynamicPricingPage />} />
+            <Route path={ROUTES.OWNER_SALE} element={<OwnerSalePage />} />
+            <Route path={ROUTES.OWNER_BOOKINGS} element={<OwnerBookingListPage />} />
+            <Route path={ROUTES.OWNER_EQUIPMENT} element={<OwnerEquipmentPage />} />
+            <Route path={ROUTES.OWNER_REVIEWS} element={<OwnerReviewsPage />} />
+            <Route path={ROUTES.OWNER_NOTIFICATIONS} element={<OwnerNotificationsPage />} />
+            <Route path={ROUTES.OWNER_PROFILE} element={<OwnerProfileAccountPage />} />
+            <Route path={ROUTES.OWNER_PROFILE_EDIT} element={<OwnerProfileEditPage />} />
+            <Route path={ROUTES.OWNER_PROFILE_CHANGE_PASSWORD} element={<OwnerProfileChangePasswordPage />} />
+            <Route path={ROUTES.OWNER_PROFILE_TWO_FACTOR} element={<OwnerTwoFactorPage />} />
           </Route>
         </Route>
 
-        {/* Staff (protected) */}
-        <Route element={<ProtectedRoute allowedRoles={["staff"]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.STAFF]} />}>
           <Route element={<StaffHotelOutlet />}>
-            <Route path="/staff" element={<StaffDashboardPage />} />
-            <Route path="/staff/rooms" element={<StaffRoomMapPage />} />
-            <Route path="/staff/bookings" element={<StaffBookingsPage />} />
-            <Route path="/staff/equipment" element={<StaffEquipmentPage />} />
-            <Route path="/staff/reviews" element={<StaffReviewsPage />} />
-            <Route path="/staff/notifications" element={<StaffNotificationsPage />} />
-            <Route path="/staff/profile" element={<StaffProfileAccountPage />} />
-            <Route path="/staff/profile/edit" element={<StaffProfileEditPage />} />
-            <Route path="/staff/profile/changepassword" element={<StaffProfileChangePasswordPage />} />
+            <Route path={ROUTES.STAFF_HOME} element={<StaffDashboardPage />} />
+            <Route path={ROUTES.STAFF_ROOMS} element={<StaffRoomMapPage />} />
+            <Route path={ROUTES.STAFF_BOOKINGS} element={<StaffBookingsPage />} />
+            <Route path={ROUTES.STAFF_EQUIPMENT} element={<StaffEquipmentPage />} />
+            <Route path={ROUTES.STAFF_REVIEWS} element={<StaffReviewsPage />} />
+            <Route path={ROUTES.STAFF_NOTIFICATIONS} element={<StaffNotificationsPage />} />
+            <Route path={ROUTES.STAFF_PROFILE} element={<StaffProfileAccountPage />} />
+            <Route path={ROUTES.STAFF_PROFILE_EDIT} element={<StaffProfileEditPage />} />
+            <Route path={ROUTES.STAFF_PROFILE_CHANGE_PASSWORD} element={<StaffProfileChangePasswordPage />} />
           </Route>
         </Route>
       </Routes>

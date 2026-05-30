@@ -1,49 +1,119 @@
-// Route constants for the application
+/**
+ * Route path constants — đồng bộ với client/src/routes/index.jsx
+ *
+ * Route tĩnh: chuỗi (ROUTES.HOME).
+ * Route động: hàm build URL + `.pattern` cho <Route path={...} />.
+ *   Ví dụ: navigate(ROUTES.profile(userId)) — Route path={ROUTES.profile.pattern}
+ */
+
+function defineRoute(pattern) {
+  const fn = (...values) => {
+    let i = 0;
+    return pattern.replace(/:([A-Za-z]+)/g, () => {
+      const v = values[i++];
+      return v != null && v !== '' ? encodeURIComponent(String(v)) : '';
+    });
+  };
+  fn.pattern = pattern;
+  return fn;
+}
+
 export const ROUTES = {
-  // Public routes
+  // Public
   HOME: '/',
   ABOUT: '/about',
   CONTACT: '/contact',
-  
-  // Auth routes
+
+  // Auth
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgotpassword',
-  
-  // Guest routes
+
+  // Guest
   HOTELS: '/hotels',
-  HOTEL_DETAIL: (id) => `/hotels/${id}`,
+  hotelDetail: defineRoute('/hotels/:id'),
   BOOKING_NEW: '/booking/new',
   MY_BOOKINGS: '/my-bookings',
-  PROFILE: (id) => `/profile/${id}`,
-  PROFILE_EDIT: (id) => `/profile/${id}/edit`,
-  CHANGE_PASSWORD: (id) => `/profile/${id}/changepassword`,
-  
-  // Admin routes
+  WISHLIST: '/wishlist',
+  NOTIFICATIONS: '/notifications',
+  PAYMENT_VNPAY_RETURN: '/payment/vnpay-return',
+  profile: defineRoute('/profile/:id'),
+  profileEdit: defineRoute('/profile/:id/edit'),
+  profileChangePassword: defineRoute('/profile/:id/changepassword'),
+
+  // Admin
   ADMIN_HOME: '/admin',
   ADMIN_USERS: '/admin/users',
-  ADMIN_USER_DETAIL: (id) => `/admin/users/${id}`,
+  adminUserDetail: defineRoute('/admin/users/:id'),
   ADMIN_HOTELS: '/admin/hotels',
-  ADMIN_HOTEL_DETAIL: (id) => `/admin/hotels/${id}`,
-  ADMIN_ROOM_CREATE: (hotelId) => `/admin/hotels/${hotelId}/rooms/create`,
-  ADMIN_ROOM_DETAIL: (id) => `/admin/rooms/${id}`,
-  ADMIN_ROOM_EDIT: (id) => `/admin/rooms/${id}/edit`,
+  adminHotelDetail: defineRoute('/admin/hotels/:id'),
+  adminRoomCreate: defineRoute('/admin/hotels/:hotelId/rooms/create'),
+  adminRoomDetail: defineRoute('/admin/rooms/:id'),
+  adminRoomEdit: defineRoute('/admin/rooms/:id/edit'),
   ADMIN_BOOKINGS: '/admin/bookings',
-  ADMIN_BOOKING_DETAIL: (id) => `/admin/bookings/${id}`,
+  adminBookingDetail: defineRoute('/admin/bookings/:id'),
   ADMIN_CONTACT_MESSAGES: '/admin/contact-messages',
-  
-  // Owner routes (future)
-  OWNER_DASHBOARD: '/owner',
-  OWNER_HOTELS: '/owner/hotels',
+  ADMIN_PROFILE: '/admin/profile',
+  ADMIN_PROFILE_EDIT: '/admin/profile/edit',
+  ADMIN_PROFILE_CHANGE_PASSWORD: '/admin/profile/changepassword',
+  ADMIN_PROFILE_TWO_FACTOR: '/admin/profile/two-factor',
+
+  // Owner
+  OWNER_HOME: '/owner',
+  OWNER_ROOMS: '/owner/rooms',
+  OWNER_PRICING: '/owner/pricing',
+  OWNER_SALE: '/owner/sale',
   OWNER_BOOKINGS: '/owner/bookings',
-  OWNER_REVENUE: '/owner/revenue',
-  
-  // Payment routes (future)
-  PAYMENT_VNPAY: '/payment/vnpay',
-  PAYMENT_CALLBACK: '/payment/callback',
-  INVOICES: '/invoices',
-  
-  // Review routes (future)
-  REVIEWS: '/reviews',
-  CREATE_REVIEW: (hotelId) => `/hotels/${hotelId}/review`,
+  OWNER_EQUIPMENT: '/owner/equipment',
+  OWNER_REVIEWS: '/owner/reviews',
+  OWNER_NOTIFICATIONS: '/owner/notifications',
+  OWNER_PROFILE: '/owner/profile',
+  OWNER_PROFILE_EDIT: '/owner/profile/edit',
+  OWNER_PROFILE_CHANGE_PASSWORD: '/owner/profile/changepassword',
+  OWNER_PROFILE_TWO_FACTOR: '/owner/profile/two-factor',
+
+  // Staff
+  STAFF_HOME: '/staff',
+  STAFF_ROOMS: '/staff/rooms',
+  STAFF_BOOKINGS: '/staff/bookings',
+  STAFF_EQUIPMENT: '/staff/equipment',
+  STAFF_REVIEWS: '/staff/reviews',
+  STAFF_NOTIFICATIONS: '/staff/notifications',
+  STAFF_PROFILE: '/staff/profile',
+  STAFF_PROFILE_EDIT: '/staff/profile/edit',
+  STAFF_PROFILE_CHANGE_PASSWORD: '/staff/profile/changepassword',
+};
+
+/** Trang mặc định sau đăng nhập / nút "về khu vực của bạn" theo role */
+export const ROLE_HOME_ROUTES = {
+  guest: ROUTES.HOME,
+  admin: ROUTES.ADMIN_HOME,
+  owner: ROUTES.OWNER_HOME,
+  staff: ROUTES.STAFF_HOME,
+};
+
+export const profilePathForRole = (role, userId) => {
+  switch (role) {
+    case 'admin':
+      return ROUTES.ADMIN_PROFILE;
+    case 'owner':
+      return ROUTES.OWNER_PROFILE;
+    case 'staff':
+      return ROUTES.STAFF_PROFILE;
+    default:
+      return ROUTES.profile(userId);
+  }
+};
+
+export const profileChangePasswordPathForRole = (role, userId) => {
+  switch (role) {
+    case 'admin':
+      return ROUTES.ADMIN_PROFILE_CHANGE_PASSWORD;
+    case 'owner':
+      return ROUTES.OWNER_PROFILE_CHANGE_PASSWORD;
+    case 'staff':
+      return ROUTES.STAFF_PROFILE_CHANGE_PASSWORD;
+    default:
+      return ROUTES.profileChangePassword(userId);
+  }
 };

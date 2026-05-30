@@ -12,6 +12,7 @@ const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../services/e
 const { resolveEffectiveQrConfig } = require("../utils/paymentQrConfig");
 const { isVnpayConfigComplete } = require("../utils/hotelPaymentConfig");
 const { getClientIp } = require("../utils/requestIp");
+const { refIdsMatch } = require("../utils/mongooseIds");
 
 const DEFAULT_SANDBOX_HOST = "https://sandbox.vnpayment.vn";
 
@@ -118,7 +119,7 @@ exports.createVNPayPaymentUrl = async (req, res) => {
         }
 
         // Kiểm tra quyền: chỉ guest của booking mới được thanh toán
-        if (booking.guest.toString() !== userId) {
+        if (!refIdsMatch(booking.guest, userId)) {
             return res.status(403).json({ message: "Bạn không có quyền thanh toán đơn đặt phòng này" });
         }
 
@@ -204,7 +205,7 @@ exports.confirmQrPayment = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng" });
         }
 
-        if (booking.guest.toString() !== userId) {
+        if (!refIdsMatch(booking.guest, userId)) {
             return res.status(403).json({ message: "Bạn không có quyền xác nhận đơn đặt phòng này" });
         }
 
@@ -441,21 +442,15 @@ exports.vnpayCallback = async (req, res) => {
     }
 };
 
-// Lấy danh sách payment transactions (cho admin hoặc guest xem transactions của mình)
+// Lấy danh sách payment transactions của guest (route: authenticate + isGuest)
 exports.getPaymentTransactions = async (req, res) => {
     try {
         const { bookingId, status } = req.query;
         const userId = req.user.id;
-        const userRole = req.user.role;
 
-        let query = {};
-
-        // Nếu là guest, chỉ xem transactions của bookings của mình
-        if (userRole !== "admin") {
-            const userBookings = await Booking.find({ guest: userId }).select('_id');
-            const bookingIds = userBookings.map(b => b._id);
-            query.booking = { $in: bookingIds };
-        }
+        const userBookings = await Booking.find({ guest: userId }).select('_id');
+        const bookingIds = userBookings.map(b => b._id);
+        const query = { booking: { $in: bookingIds } };
 
         // Filter theo bookingId nếu có
         if (bookingId) {
@@ -491,7 +486,6 @@ exports.getPaymentTransactionById = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
-        const userRole = req.user.role;
 
         const transaction = await PaymentTransaction.findById(id)
             .populate({
@@ -507,12 +501,9 @@ exports.getPaymentTransactionById = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy giao dịch thanh toán" });
         }
 
-        // Kiểm tra quyền: admin hoặc guest của booking
-        if (userRole !== "admin") {
-            const booking = transaction.booking;
-            if (!booking || booking.guest.toString() !== userId) {
-                return res.status(403).json({ message: "Bạn không có quyền xem giao dịch này" });
-            }
+        const booking = transaction.booking;
+        if (!booking || !refIdsMatch(booking.guest, userId)) {
+            return res.status(403).json({ message: "Bạn không có quyền xem giao dịch này" });
         }
 
         return res.status(200).json(transaction);

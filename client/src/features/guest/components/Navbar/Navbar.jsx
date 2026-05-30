@@ -4,6 +4,7 @@ import { Search, Hotel, Favorite, AccountCircle, Logout, KeyboardArrowDown } fro
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { performLogout } from '@/shared/utils/authSession'
+import { ROLES } from '@/constants/roles'
 import { IMAGE_PATHS } from '@/constants/images'
 import { NotificationBell } from '@/features/notifications'
 import "./Navbar.scss"
@@ -114,7 +115,7 @@ export const Navbar = () => {
                   <Hotel sx={{ fontSize: 20, marginRight: 1 }} />
                   Đặt phòng của tôi
                 </Link>
-                {user.role === 'guest' && (
+                {user.role === ROLES.GUEST && (
                   <Link to="/wishlist" onClick={() => setDropdownMenu(false)}>
                     <Favorite sx={{ fontSize: 20, marginRight: 1 }} />
                     Danh sách yêu thích

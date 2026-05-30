@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import store from '@/store';
 import { setLogin, setLogout } from '@/store/slices/userSlice';
 
@@ -54,10 +55,32 @@ const refreshSession = async () => {
   }
 };
 
+const showForbiddenMessage = (error) => {
+  const status = error?.response?.status;
+  if (status !== 403 || typeof window === 'undefined') return;
+
+  const data = error.response.data;
+  const message =
+    data?.message ||
+    (typeof data === 'string' ? data : null);
+
+  if (message) {
+    const toastId = data?.code === 'WRONG_ROLE'
+      ? `wrong-role-${data.currentRole}-${data.requiredRole}`
+      : `forbidden-${message}`;
+    toast.error(message, { toastId });
+  }
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    if (error.response?.status === 403) {
+      showForbiddenMessage(error);
+      return Promise.reject(error);
+    }
 
     if (!error.response || error.response.status !== 401) {
       return Promise.reject(error);

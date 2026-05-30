@@ -1,16 +1,11 @@
+import { ROLES, ROLE_ORDER, getRoleLabel } from '@/constants/roles';
+
+export { ROLE_ORDER, getRoleLabel };
+
 export const VIEW_MODES = {
   LIST: 'list',
   ROLE: 'role',
   HOTEL: 'hotel',
-};
-
-export const ROLE_ORDER = ['admin', 'owner', 'staff', 'guest'];
-
-export const ROLE_LABELS = {
-  admin: 'Quản trị viên',
-  owner: 'Chủ khách sạn',
-  staff: 'Nhân viên khách sạn',
-  guest: 'Khách',
 };
 
 export const VIEW_MODE_OPTIONS = [
@@ -20,11 +15,7 @@ export const VIEW_MODE_OPTIONS = [
 ];
 
 /** Vai trò hiển thị riêng (theo nhóm role) khi ở chế độ theo khách sạn */
-export const HOTEL_VIEW_SEPARATE_ROLES = ['guest', 'admin'];
-
-export function getRoleLabel(role) {
-  return ROLE_LABELS[role] || role;
-}
+export const HOTEL_VIEW_SEPARATE_ROLES = [ROLES.GUEST, ROLES.ADMIN];
 
 export function filterUsers(users, { searchTerm, searchEmail, searchPhone, selectedRole }) {
   return users.filter((user) => {

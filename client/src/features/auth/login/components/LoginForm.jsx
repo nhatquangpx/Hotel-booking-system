@@ -5,15 +5,10 @@ import api from '@/apis';
 import { setLogin } from '@/store/slices/userSlice';
 import { resolvePostLoginNavigation } from '@/shared/utils/postLoginRedirect';
 import { Slide } from '@/components';
-import { IMAGE_PATHS } from '@/constants';
+import { IMAGE_PATHS } from '@/constants/images';
+import { DEFAULT_SLIDE_IMAGES } from '@/constants/slides';
 import { OTPInput } from './OTPInput';
 import './LoginForm.scss';
-
-const sliderImages = [
-  IMAGE_PATHS.SLIDE_1,
-  IMAGE_PATHS.SLIDE_2,
-  IMAGE_PATHS.SLIDE_3,
-];
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -55,6 +50,12 @@ export const LoginForm = () => {
       setRememberMe(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (location.state?.authMessage) {
+      setErrorMessage(location.state.authMessage);
+    }
+  }, [location.state?.authMessage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -261,7 +262,7 @@ export const LoginForm = () => {
       
       <div className="login-right">
         <Slide
-          images={sliderImages}
+          images={DEFAULT_SLIDE_IMAGES}
           showTitle={false}
           className="login-slide"
           slideHeight="100%"
