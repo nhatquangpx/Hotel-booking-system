@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import "./Slide.scss"; 
+import { DEFAULT_SLIDE_IMAGES } from "@/constants/slides";
+import "./Slide.scss";
 
 const Slide = ({
-  images = [
-    "/assets/slide1.jpg",
-    "/assets/slide2.jpg",
-    "/assets/slide3.jpg"
-  ],
+  images = DEFAULT_SLIDE_IMAGES,
   showTitle = true,
   className = "",
   style = {},

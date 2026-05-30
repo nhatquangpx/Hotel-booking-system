@@ -6,7 +6,10 @@ import { setUser } from '@/store/slices/userSlice';
 import { performLogout } from '@/shared/utils/authSession';
 import { useAuth } from '@/shared/hooks';
 import api from '@/apis';
-import { IMAGE_PATHS } from '@/constants/images';
+import {
+  profileChangePasswordPathForRole,
+  profilePathForRole,
+} from '@/constants/routes';
 import { NotificationBell } from '@/features/notifications';
 import './Header.scss';
 
@@ -130,31 +133,21 @@ const Header = ({
               <div className="user-dropdown">
                 {displayUser && (
                   <>
-                    <Link 
-                      to={
-                        displayUser.role === 'admin'
-                          ? '/admin/profile'
-                          : displayUser.role === 'owner'
-                          ? '/owner/profile'
-                          : displayUser.role === 'staff'
-                          ? '/staff/profile'
-                          : `/profile/${displayUser._id || displayUser.id}`
-                      }
+                    <Link
+                      to={profilePathForRole(
+                        displayUser.role,
+                        displayUser._id || displayUser.id
+                      )}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaUser />
                       Thông tin tài khoản
                     </Link>
-                    <Link 
-                      to={
-                        displayUser.role === 'admin'
-                          ? '/admin/profile/changepassword'
-                          : displayUser.role === 'owner'
-                          ? '/owner/profile/changepassword'
-                          : displayUser.role === 'staff'
-                          ? '/staff/profile/changepassword'
-                          : `/profile/${displayUser._id || displayUser.id}/changepassword`
-                      }
+                    <Link
+                      to={profileChangePasswordPathForRole(
+                        displayUser.role,
+                        displayUser._id || displayUser.id
+                      )}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaKey />

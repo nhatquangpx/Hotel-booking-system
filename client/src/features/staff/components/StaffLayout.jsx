@@ -7,6 +7,7 @@ import {
   FaWrench,
   FaCommentDots,
 } from 'react-icons/fa';
+import { ROUTES } from '@/constants/routes';
 import { readLocalStorageBoolean } from '@/shared/utils';
 import StaffHotelBadge from './StaffHotelBadge';
 import './StaffLayout.scss';
@@ -43,16 +44,16 @@ const StaffLayout = ({ children }) => {
   };
 
   const menuItems = [
-    { path: '/staff', label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
-    { path: '/staff/rooms', label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
+    { path: ROUTES.STAFF_HOME, label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
+    { path: ROUTES.STAFF_ROOMS, label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
     {
-      path: '/staff/bookings',
+      path: ROUTES.STAFF_BOOKINGS,
       label: 'Đặt phòng',
       icon: FaCalendarCheck,
       title: 'Đặt phòng',
     },
-    { path: '/staff/equipment', label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
-    { path: '/staff/reviews', label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },
+    { path: ROUTES.STAFF_EQUIPMENT, label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
+    { path: ROUTES.STAFF_REVIEWS, label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },
   ];
 
   return (
@@ -60,7 +61,7 @@ const StaffLayout = ({ children }) => {
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         menuItems={menuItems}
-        logoLink="/staff"
+        logoLink={ROUTES.STAFF_HOME}
       />
       <main className="content">
         <Header

@@ -46,6 +46,17 @@ const formatAuthUser = (user, staffHotel = null) => ({
         : null,
 });
 
+/** Response đăng ký công khai — không trả password, 2FA, token, wishlist, … */
+const formatRegisterUser = (user) => ({
+    id: user._id,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    status: user.status,
+});
+
 // Đăng ký công khai — luôn tạo tài khoản guest; không nhận role/status từ client
 exports.register = async (req, res) => {
     try {
@@ -68,7 +79,10 @@ exports.register = async (req, res) => {
 
         await newUser.save();
         console.log(`Đăng ký thành công: User ${newUser._id} (${newUser.email}) với role ${newUser.role}`);
-        res.status(201).json({ message: "Đăng ký thành công!", user: newUser });
+        res.status(201).json({
+            message: "Đăng ký thành công!",
+            user: formatRegisterUser(newUser),
+        });
     } catch (err) {
       console.error("Registration Error:", err); 
       res.status(500).json({ message: "Đăng ký thất bại!", error: err.message });

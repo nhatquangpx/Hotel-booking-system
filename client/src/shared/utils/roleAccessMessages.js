@@ -1,11 +1,5 @@
 import { ROLE_LABELS } from '@/constants/roles';
-
-const PORTAL_PATH_BY_ROLE = {
-  guest: '/',
-  admin: '/admin',
-  owner: '/owner',
-  staff: '/staff',
-};
+import { ROLE_HOME_ROUTES, ROUTES } from '@/constants/routes';
 
 export const getRoleLabel = (role) =>
   ROLE_LABELS[role] || role || 'Không xác định';
@@ -18,11 +12,8 @@ export const formatRequiredRoles = (allowedRoles = []) => {
 };
 
 export const getPortalPathForRole = (role) =>
-  PORTAL_PATH_BY_ROLE[role] || '/';
+  ROLE_HOME_ROUTES[role] || ROUTES.HOME;
 
-/**
- * Nội dung màn hình khi vào route không đúng role (ProtectedRoute).
- */
 export const getRoleAccessDeniedContent = (currentRole, allowedRoles = []) => {
   const requiredText = formatRequiredRoles(allowedRoles);
   const currentText = currentRole ? getRoleLabel(currentRole) : null;
@@ -34,7 +25,7 @@ export const getRoleAccessDeniedContent = (currentRole, allowedRoles = []) => {
     description = `Bạn đang đăng nhập với vai trò ${currentText}. Trang này chỉ dành cho ${requiredText}.`;
   }
 
-  const portalPath = currentRole ? getPortalPathForRole(currentRole) : '/login';
+  const portalPath = currentRole ? getPortalPathForRole(currentRole) : ROUTES.LOGIN;
   const portalLabel = currentRole
     ? `Đi tới khu vực ${getRoleLabel(currentRole)}`
     : 'Đăng nhập';

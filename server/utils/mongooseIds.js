@@ -15,7 +15,12 @@ function toIdString(ref) {
 }
 
 function refIdsMatch(ref, otherId) {
-  return toIdString(ref) === toIdString(otherId);
+  const a = toIdString(ref);
+  const b = toIdString(otherId);
+  if (!isValidObjectId(a) || !isValidObjectId(b)) {
+    return false;
+  }
+  return a === b;
 }
 
 module.exports = { isValidObjectId, toIdString, refIdsMatch };

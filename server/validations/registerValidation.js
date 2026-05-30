@@ -1,7 +1,7 @@
 const {check, validationResult} = require('express-validator');
 
 exports.registerValidation = [
-    check('name','Tên không được đẻ trống').notEmpty(),
+    check('name','Tên không được để trống').notEmpty(),
     check('email','Email không hợp lệ').isEmail(),
     check('password','Mật khẩu phải có ít nhất 6 ký tự').isLength({min: 6}),
     check('phone','Số điện thoại không hợp lệ').isMobilePhone(),

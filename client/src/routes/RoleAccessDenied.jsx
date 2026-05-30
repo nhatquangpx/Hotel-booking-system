@@ -13,9 +13,15 @@ const RoleAccessDenied = ({ currentRole, allowedRoles }) => {
     allowedRoles
   );
 
+  const allowedKey = Array.isArray(allowedRoles)
+    ? [...allowedRoles].sort().join(',')
+    : '';
+
   useEffect(() => {
-    toast.error(description, { toastId: `role-denied-${allowedRoles?.join('-')}` });
-  }, [description, allowedRoles]);
+    toast.error(description, {
+      toastId: `role-denied-${currentRole ?? 'none'}-${allowedKey}`,
+    });
+  }, [description, currentRole, allowedKey]);
 
   return (
     <div className="role-access-denied">

@@ -10,6 +10,7 @@ import {
   FaTags,
   FaWrench
 } from 'react-icons/fa';
+import { ROUTES } from '@/constants/routes';
 import { readLocalStorageBoolean } from '@/shared/utils';
 import OwnerHotelSelect from './OwnerHotelSelect';
 import './OwnerLayout.scss';
@@ -59,13 +60,13 @@ const OwnerLayout = ({ children }) => {
   };
 
   const menuItems = [
-    { path: '/owner', label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
-    { path: '/owner/rooms', label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
-    { path: '/owner/bookings', label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
-    { path: '/owner/equipment', label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
-    { path: '/owner/pricing', label: 'Giá động', icon: FaChartLine, title: 'Giá động' },
-    { path: '/owner/sale', label: 'Khuyến mãi', icon: FaTags, title: 'Khuyến mãi' },
-    { path: '/owner/reviews', label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },
+    { path: ROUTES.OWNER_HOME, label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
+    { path: ROUTES.OWNER_ROOMS, label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
+    { path: ROUTES.OWNER_BOOKINGS, label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
+    { path: ROUTES.OWNER_EQUIPMENT, label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
+    { path: ROUTES.OWNER_PRICING, label: 'Giá động', icon: FaChartLine, title: 'Giá động' },
+    { path: ROUTES.OWNER_SALE, label: 'Khuyến mãi', icon: FaTags, title: 'Khuyến mãi' },
+    { path: ROUTES.OWNER_REVIEWS, label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },
   ];
 
   return (
@@ -73,7 +74,7 @@ const OwnerLayout = ({ children }) => {
       <Sidebar 
         isCollapsed={isSidebarCollapsed}
         menuItems={menuItems}
-        logoLink="/owner"
+        logoLink={ROUTES.OWNER_HOME}
       />
       <main className="content">
         <Header 

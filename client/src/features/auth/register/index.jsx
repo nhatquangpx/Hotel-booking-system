@@ -2,14 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
 import api from '../../../apis';
 import { Slide } from '@/components';
-import { IMAGE_PATHS } from '../../../constants/images';
+import { IMAGE_PATHS } from '@/constants/images';
+import { DEFAULT_SLIDE_IMAGES } from '@/constants/slides';
 import './Register.scss';
-
-const sliderImages = [
-  IMAGE_PATHS.SLIDE_1,
-  IMAGE_PATHS.SLIDE_2,
-  IMAGE_PATHS.SLIDE_3,
-];
 
 const AuthRegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -66,7 +61,7 @@ const AuthRegisterPage = () => {
     <div className="register-container">
       <div className="register-left">
         <Slide
-          images={sliderImages}
+          images={DEFAULT_SLIDE_IMAGES}
           showTitle={false}
           className="register-slide"
           slideHeight="100%"

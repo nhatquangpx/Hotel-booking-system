@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../shared/hooks";
+import { ROUTES } from "@/constants/routes";
 import { LOGIN_REQUIRED_MESSAGE } from "@/shared/utils/roleAccessMessages";
 import RoleAccessDenied from "./RoleAccessDenied";
 
@@ -19,7 +20,7 @@ const ProtectedRoute = ({ allowedRoles, require2FA = false }) => {
   if (!isAuthenticated) {
     return (
       <Navigate
-        to="/login"
+        to={ROUTES.LOGIN}
         replace
         state={{
           from: location,
