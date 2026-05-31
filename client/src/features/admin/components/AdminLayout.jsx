@@ -34,24 +34,12 @@ const AdminLayout = ({ children }) => {
   const getPageTitle = (location) => {
     if (location.pathname === '/admin') return 'Tổng quan';
     if (location.pathname.includes('/admin/users')) {
-      if (location.pathname.includes('/create')) return 'Tạo người dùng mới';
-      if (location.pathname.includes('/edit')) return 'Chỉnh sửa người dùng';
-      if (location.pathname.match(/\/admin\/users\/[^/]+$/)) return 'Chi tiết người dùng';
       return 'Quản lý người dùng';
     }
     if (location.pathname.includes('/admin/hotels')) {
-      if (location.pathname.includes('/create')) return 'Tạo khách sạn mới';
-      if (location.pathname.includes('/edit')) return 'Chỉnh sửa khách sạn';
-      if (location.pathname.includes('/rooms/create')) return 'Tạo phòng mới';
-      if (location.pathname.match(/\/admin\/hotels\/[^/]+$/)) return 'Chi tiết khách sạn';
       return 'Quản lý khách sạn';
     }
-    if (location.pathname.includes('/admin/rooms')) {
-      if (location.pathname.includes('/edit')) return 'Chỉnh sửa phòng';
-      return 'Chi tiết phòng';
-    }
     if (location.pathname.includes('/admin/bookings')) {
-      if (location.pathname.match(/\/admin\/bookings\/[^/]+$/)) return 'Chi tiết đặt phòng';
       return 'Quản lý đặt phòng';
     }
     if (location.pathname.includes('/admin/contact-messages')) return 'Hộp thư liên hệ';

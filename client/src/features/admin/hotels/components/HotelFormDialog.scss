@@ -86,6 +86,15 @@
       }
     }
 
+    .form-group--images {
+      .form-hint {
+        margin: 0;
+        @include body-sm;
+        color: $text-medium;
+        line-height: 1.4;
+      }
+    }
+
     .image-previews {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

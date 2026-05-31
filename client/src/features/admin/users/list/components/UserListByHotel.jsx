@@ -17,6 +17,7 @@ const UserListByHotel = ({
   loading,
   onEdit,
   onDelete,
+  onView,
 }) => {
   if (loading) {
     return (
@@ -25,6 +26,7 @@ const UserListByHotel = ({
         loading
         onEdit={onEdit}
         onDelete={onDelete}
+        onView={onView}
       />
     );
   }
@@ -75,6 +77,7 @@ const UserListByHotel = ({
               emptyMessage="Không có thành viên khớp bộ lọc"
               onEdit={onEdit}
               onDelete={onDelete}
+              onView={onView}
             />
           </section>
         );
@@ -91,6 +94,7 @@ const UserListByHotel = ({
             loading={loading}
             onEdit={onEdit}
             onDelete={onDelete}
+            onView={onView}
           />
         </section>
       )}
@@ -106,6 +110,7 @@ const UserListByHotel = ({
             loading={loading}
             onEdit={onEdit}
             onDelete={onDelete}
+            onView={onView}
           />
         </section>
       )}
@@ -119,6 +124,7 @@ const UserListByHotel = ({
             roles={HOTEL_VIEW_SEPARATE_ROLES}
             onEdit={onEdit}
             onDelete={onDelete}
+            onView={onView}
           />
         </div>
       )}
