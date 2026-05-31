@@ -1,4 +1,6 @@
 const Booking = require("../../models/Booking");
+const Hotel = require("../../models/Hotel");
+const Room = require("../../models/Room");
 const PaymentTransaction = require("../../models/PaymentTransaction");
 const { getScopedHotelIdsForOwner } = require("../dashboards/core");
 const {
@@ -75,6 +77,32 @@ const getBookingsByOwner = async (ownerId, hotelId) => {
     .sort({ createdAt: -1 });
 
   return bookings;
+};
+
+/**
+ * Lịch sử đặt phòng theo room (owner — phòng thuộc KS của chủ).
+ */
+const getBookingsByRoomForOwner = async (ownerId, roomId) => {
+  const room = await Room.findById(roomId).select("hotelId roomNumber");
+  if (!room) {
+    const err = new Error("Không tìm thấy phòng");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const hotel = await Hotel.findOne({ _id: room.hotelId, ownerId }).select("_id name");
+  if (!hotel) {
+    const err = new Error("Bạn không có quyền xem lịch sử phòng này");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  return Booking.find({ room: roomId })
+    .populate({ path: "guest", select: "name email phone" })
+    .populate({ path: "hotel", select: "name" })
+    .populate({ path: "room", select: "roomNumber type" })
+    .sort({ checkInDate: -1, createdAt: -1 })
+    .lean();
 };
 
 /**
@@ -234,6 +262,7 @@ const confirmGuestRefund = async (bookingId, user, refundProofFile) => {
 
 module.exports = {
   getBookingsByOwner,
+  getBookingsByRoomForOwner,
   getBookingById,
   updateBookingStatus,
   confirmGuestRefund,

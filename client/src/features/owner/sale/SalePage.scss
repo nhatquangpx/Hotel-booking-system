@@ -359,6 +359,17 @@
 }
 
 .sale-form {
+  .sale-form-error {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: $error-bg-light;
+    border: 1px solid $error-border-light;
+    color: $error-dark;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
   .form-group {
     margin-bottom: 1rem;
     label {

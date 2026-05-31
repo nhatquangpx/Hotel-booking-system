@@ -547,25 +547,24 @@
 
   .room-detail-modal__header-actions {
     width: 100%;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
   }
 
-  .room-detail-modal__action-btn-header {
-    padding: 0.5rem 0.75rem;
-    @include body-xs;
-    flex: 1;
-    min-width: calc(50% - 0.25rem);
-  }
-
+  .room-detail-modal__action-btn-header,
   .room-detail-modal__edit-btn {
-    flex: 1;
-    min-width: calc(50% - 0.25rem);
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.65rem;
     @include body-xs;
-    
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+
     span {
-      display: none;
+      display: inline;
     }
   }
 

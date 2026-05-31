@@ -178,19 +178,28 @@
 
       .policies-inputs {
         display: flex;
-        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 16px 20px;
         margin-top: 10px;
 
         .policy-item {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 6px;
+          flex: 0 0 auto;
 
-          input[type="time"] {
-            padding: 8px;
+          input[type="time"],
+          input[type="number"] {
+            padding: 8px 10px;
             border: 1px solid $border-medium;
             border-radius: 4px;
             @include body-sm;
+            height: 38px;
+            box-sizing: border-box;
+          }
+
+          input[type="time"] {
             width: 100%;
           }
 
@@ -198,6 +207,27 @@
             @include body-sm;
             color: $text-primary;
             margin-bottom: 0;
+            line-height: 1.35;
+          }
+        }
+
+        .policy-item--time {
+          width: 148px;
+          min-width: 132px;
+        }
+
+        .policy-item--refund-days {
+          flex: 1 1 220px;
+          min-width: 200px;
+          max-width: 100%;
+
+          input[type="number"] {
+            width: 72px;
+            max-width: 88px;
+          }
+
+          label {
+            max-width: 360px;
           }
         }
       }
@@ -246,6 +276,33 @@
 
         &:hover {
           background: $button-cancel-hover;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-group-policies .policies-inputs {
+      flex-direction: column;
+      gap: 14px;
+
+      .policy-item--time,
+      .policy-item--refund-days {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+
+        input[type="time"],
+        input[type="number"] {
+          max-width: 100%;
+        }
+
+        input[type="number"] {
+          width: 88px;
+        }
+
+        label {
+          max-width: none;
         }
       }
     }

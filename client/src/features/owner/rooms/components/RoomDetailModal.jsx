@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaTimes, FaEdit, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { EditRoomDialog } from '../edit';
+import RoomBookingHistoryModal from './RoomBookingHistoryModal';
 import api from '@/apis';
 import './RoomDetailModal.scss';
 
@@ -11,11 +12,15 @@ import './RoomDetailModal.scss';
 const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDeleteSuccess }) => {
   const [roomDetails, setRoomDetails] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const editRoomManagerRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && room?._id) {
       fetchRoomDetails();
+    }
+    if (!isOpen) {
+      setHistoryOpen(false);
     }
   }, [isOpen, room]);
 
@@ -77,9 +82,11 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
   };
 
   const handleEdit = () => {
-    if (onEdit) {
-      onEdit(roomData);
+    if (editRoomManagerRef.current) {
+      editRoomManagerRef.current.handleEditRoom(roomData);
+      return;
     }
+    onEdit?.(roomData);
   };
 
   const handleBackdropClick = (e) => {
@@ -89,8 +96,7 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
   };
 
   const handleViewHistory = () => {
-    // Navigate to booking history
-    console.log('View booking history for room:', roomData);
+    setHistoryOpen(true);
   };
 
   const handleUpdateStatus = () => {
@@ -268,6 +274,12 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
           )}
         </div>
       </div>
+
+      <RoomBookingHistoryModal
+        room={roomData}
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+      />
 
       <EditRoomDialog
         ref={editRoomManagerRef}

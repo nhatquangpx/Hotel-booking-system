@@ -13,73 +13,175 @@ const dashboardController = require('../controllers/dashboardController');
 const pricingController = require('../controllers/pricingController');
 const saleController = require('../controllers/saleController');
 const reportController = require('../controllers/reportController');
+const {
+  updateSelfProfileValidation,
+  changePasswordValidation,
+  validate: validateProfile,
+} = require("../validations/profileValidation");
+const {
+  updateHotelValidation,
+  maintenanceContactValidation,
+  validate: validateHotel,
+} = require("../validations/hotelValidation");
+const {
+  ownerCreateRoomValidation,
+  updateRoomValidation,
+  validate: validateRoom,
+} = require("../validations/roomValidation");
+const {
+  ownerUpdateBookingStatusValidation,
+  validate: validateBooking,
+} = require("../validations/bookingValidation");
+const { replyReviewValidation, validate: validateReview } = require("../validations/reviewValidation");
+const {
+  saleHotelIdQueryValidation,
+  createSaleValidation,
+  updateSaleValidation,
+  setSaleStatusValidation,
+  saleIdParamValidation,
+  validate: validateSale,
+} = require("../validations/saleValidation");
+const {
+  dynamicPricingQueryValidation,
+  applySuggestedPricesValidation,
+  validate: validatePricing,
+} = require("../validations/pricingValidation");
+const {
+  postEquipmentValidation,
+  patchEquipmentValidation,
+  equipmentRepairRequestValidation,
+  validate: validateEquipment,
+} = require("../validations/equipmentValidation");
+const {
+  idParamValidation,
+  hotelIdParamValidation,
+  roomIdParamAltValidation,
+  equipmentIdParamValidation,
+  bookingIdParamValidation,
+} = require("../validations/paramsValidation");
 
 router.use(authenticate, isOwner);
 
-// Quản lý thông tin cá nhân    
 router.get('/profile', userController.getOwnerProfile);
-router.put('/profile', userController.updateOwnerProfile);
-router.put('/profile/changepassword', userController.changeOwnerPassword);
+router.put('/profile', updateSelfProfileValidation, validateProfile, userController.updateOwnerProfile);
+router.put('/profile/changepassword', changePasswordValidation, validateProfile, userController.changeOwnerPassword);
 
-// Quản lý khách sạn
 router.get('/hotels', hotelController.getHotelsByOwner);
-router.get('/hotels/:hotelId/maintenance-contact', hotelController.getOwnerHotelMaintenanceContact);
-router.put('/hotels/:hotelId/maintenance-contact', hotelController.updateOwnerHotelMaintenanceContact);
-router.get('/hotels/:id', hotelController.getHotelById);
-router.put('/hotels/:id', uploadHotelPhotosAndQr, hotelController.updateHotel);
+router.get('/hotels/:hotelId/maintenance-contact', hotelIdParamValidation, hotelController.getOwnerHotelMaintenanceContact);
+router.put(
+  '/hotels/:hotelId/maintenance-contact',
+  hotelIdParamValidation,
+  maintenanceContactValidation,
+  validateHotel,
+  hotelController.updateOwnerHotelMaintenanceContact
+);
+router.get('/hotels/:id', idParamValidation, hotelController.getHotelById);
+router.put(
+  '/hotels/:id',
+  idParamValidation,
+  uploadHotelPhotosAndQr,
+  updateHotelValidation,
+  validateHotel,
+  hotelController.updateHotel
+);
 
-// Quản lý phòng
-router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
-router.get('/rooms/:id', roomController.getRoomById);
-router.post('/hotels/:hotelId/rooms', uploadRoomImages, roomController.createRoom);
-router.put('/rooms/:id', uploadRoomImages, roomController.updateRoom);
-router.delete('/rooms/:id', roomController.deleteRoom);
-router.get('/hotels/:hotelId/room-equipment', roomController.getOwnerRoomEquipment);
-router.post('/rooms/:roomId/equipment', roomController.postOwnerRoomEquipment);
-router.patch('/rooms/:roomId/equipment/:equipmentId', roomController.patchOwnerRoomEquipment);
-router.delete('/rooms/:roomId/equipment/:equipmentId', roomController.deleteOwnerRoomEquipment);
-router.post('/hotels/:hotelId/equipment-repair-request', roomController.postOwnerEquipmentRepairRequest);
+router.get('/hotels/:hotelId/rooms', hotelIdParamValidation, roomController.getRoomsByHotel);
+router.get('/rooms/:id', idParamValidation, roomController.getRoomById);
+router.get('/rooms/:id/bookings', idParamValidation, roomController.getOwnerRoomBookings);
+router.post(
+  '/hotels/:hotelId/rooms',
+  hotelIdParamValidation,
+  uploadRoomImages,
+  ownerCreateRoomValidation,
+  validateRoom,
+  roomController.createRoom
+);
+router.put(
+  '/rooms/:id',
+  idParamValidation,
+  uploadRoomImages,
+  updateRoomValidation,
+  validateRoom,
+  roomController.updateRoom
+);
+router.delete('/rooms/:id', idParamValidation, roomController.deleteRoom);
+router.get('/hotels/:hotelId/room-equipment', hotelIdParamValidation, roomController.getOwnerRoomEquipment);
+router.post(
+  '/rooms/:roomId/equipment',
+  roomIdParamAltValidation,
+  postEquipmentValidation,
+  validateEquipment,
+  roomController.postOwnerRoomEquipment
+);
+router.patch(
+  '/rooms/:roomId/equipment/:equipmentId',
+  equipmentIdParamValidation,
+  patchEquipmentValidation,
+  validateEquipment,
+  roomController.patchOwnerRoomEquipment
+);
+router.delete(
+  '/rooms/:roomId/equipment/:equipmentId',
+  equipmentIdParamValidation,
+  roomController.deleteOwnerRoomEquipment
+);
+router.post(
+  '/hotels/:hotelId/equipment-repair-request',
+  hotelIdParamValidation,
+  equipmentRepairRequestValidation,
+  validateEquipment,
+  roomController.postOwnerEquipmentRepairRequest
+);
 
-// Quản lý đặt phòng
 router.get('/bookings', bookingController.getBookingsByOwner);
-router.get('/bookings/:id', bookingController.getBookingById);
-router.put('/bookings/:id/status', bookingController.updateBookingStatus);
-router.post('/bookings/:id/confirm-guest-refund', uploadPaymentProof, bookingController.confirmGuestRefund);
-router.post('/bookings/:id/check-in', bookingController.checkIn);
-router.post('/bookings/:id/check-out', bookingController.checkOut);
+router.get('/bookings/:id', bookingIdParamValidation, bookingController.getBookingById);
+router.put(
+  '/bookings/:id/status',
+  bookingIdParamValidation,
+  ownerUpdateBookingStatusValidation,
+  validateBooking,
+  bookingController.updateBookingStatus
+);
+router.post(
+  '/bookings/:id/confirm-guest-refund',
+  bookingIdParamValidation,
+  uploadPaymentProof,
+  bookingController.confirmGuestRefund
+);
+router.post('/bookings/:id/check-in', bookingIdParamValidation, bookingController.checkIn);
+router.post('/bookings/:id/check-out', bookingIdParamValidation, bookingController.checkOut);
 
-// Quản lý đánh giá
 router.get('/reviews', reviewController.getReviewsByOwner);
-router.put('/reviews/:id/reply', reviewController.replyToReview);
-router.delete('/reviews/:id/reply', reviewController.deleteReply);
+router.put('/reviews/:id/reply', idParamValidation, replyReviewValidation, validateReview, reviewController.replyToReview);
+router.delete('/reviews/:id/reply', idParamValidation, reviewController.deleteReply);
 
-// Quản lý thông báo
 router.get('/notifications', notificationController.getNotifications);
 router.get('/notifications/unread-count', notificationController.getUnreadCount);
-router.put('/notifications/:id/read', notificationController.markAsRead);
+router.put('/notifications/:id/read', idParamValidation, notificationController.markAsRead);
 router.put('/notifications/read-all', notificationController.markAllAsRead);
 router.get('/notifications/load-more', notificationController.loadMoreNotifications);
 router.post('/notifications/check-no-show', notificationController.checkNoShowBookings);
 
-// Thống kê Dashboard
 router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
 router.get('/dashboard/revenue', dashboardController.getOwnerRevenueStats);
 router.get('/dashboard/rooms', dashboardController.getOwnerRoomStats);
 router.get('/dashboard/tasks', dashboardController.getOwnerTodayTasks);
 
-// Báo cáo 
 router.get('/reports/export', reportController.exportOwnerReport);
 
-// Giá động (gợi ý)
-router.get('/pricing/dynamic', pricingController.getDynamicPricing);
-router.post('/pricing/apply-suggested', pricingController.applySuggestedPrices);
+router.get('/pricing/dynamic', dynamicPricingQueryValidation, validatePricing, pricingController.getDynamicPricing);
+router.post(
+  '/pricing/apply-suggested',
+  applySuggestedPricesValidation,
+  validatePricing,
+  pricingController.applySuggestedPrices
+);
 
-// Chương trình sale
-router.get('/sales', saleController.listSales);
-router.post('/sales/sync-expired', saleController.syncExpiredSales);
-router.post('/sales', saleController.createSale);
-router.put('/sales/:id', saleController.updateSale);
-router.patch('/sales/:id/status', saleController.setSaleStatus);
-router.delete('/sales/:id', saleController.deactivateSale);
+router.get('/sales', saleHotelIdQueryValidation, validateSale, saleController.listSales);
+router.post('/sales/sync-expired', saleHotelIdQueryValidation, validateSale, saleController.syncExpiredSales);
+router.post('/sales', createSaleValidation, validateSale, saleController.createSale);
+router.put('/sales/:id', saleIdParamValidation, updateSaleValidation, validateSale, saleController.updateSale);
+router.patch('/sales/:id/status', saleIdParamValidation, setSaleStatusValidation, validateSale, saleController.setSaleStatus);
+router.delete('/sales/:id', saleIdParamValidation, saleController.deactivateSale);
 
 module.exports = router;

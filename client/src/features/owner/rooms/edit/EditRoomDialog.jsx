@@ -36,6 +36,10 @@ const EditRoomDialog = forwardRef(({ onSuccess, onDeleteSuccess }, ref) => {
 
   const handleEditRoom = (room) => {
     const roomId = room._id || room.id;
+    const roomHotelId = room.hotelId?._id || room.hotelId;
+    if (roomHotelId) {
+      setHotelId(roomHotelId);
+    }
     setEditingRoomId(roomId);
     setCurrentRoom(room);
     setIsDialogOpen(true);

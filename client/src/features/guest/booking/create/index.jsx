@@ -5,6 +5,7 @@ import { useAuth } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
 import { formatDate } from '@/shared/utils';
+import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './Booking.scss';
 
 /**
@@ -611,22 +612,9 @@ const GuestBookingPage = () => {
                     </span>
                   </div>
                   {pricePreview && pricePreview.discountAmount > 0 && (
-                    <>
-                      <div className="summary-item">
-                        <span className="label">Tạm tính (trước KM):</span>
-                        <span className="value">{pricePreview.basePrice?.toLocaleString('vi-VN')} VNĐ</span>
-                      </div>
-                      <div className="summary-item">
-                        <span className="label">Giảm khuyến mãi:</span>
-                        <span className="value">{pricePreview.discountAmount?.toLocaleString('vi-VN')} VNĐ</span>
-                      </div>
-                      {pricePreview.promotionApplied?.title && (
-                        <div className="summary-item">
-                          <span className="label">Chương trình:</span>
-                          <span className="value">{pricePreview.promotionApplied.title}</span>
-                        </div>
-                      )}
-                    </>
+                    <div className="summary-item summary-item--sale-block">
+                      <GuestSalePricingBreakdown pricing={pricePreview} variant="full" />
+                    </div>
                   )}
                   <div className="summary-item total">
                     <span className="label">Tổng thanh toán:</span>

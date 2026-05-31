@@ -1,0 +1,84 @@
+@use '@/styles/variables' as *;
+@use '@/styles/global' as *;
+
+.guest-sale-pricing {
+  margin-top: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  background: $status-success-bg;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: $text-primary;
+
+  &--compact {
+    font-size: 0.82rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  &__badge {
+    display: inline-block;
+    margin: 0 0 0.4rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: $warning-bg;
+    color: $warning-text;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  &__main {
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+
+  &__periods {
+    margin: 0 0 0.5rem;
+    padding-left: 1.15rem;
+
+    li {
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  &__totals {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+  }
+
+  &__nights {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed rgba(0, 0, 0, 0.12);
+  }
+
+  &__nights-title {
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+
+  &__nights ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    list-style: disc;
+
+    li {
+      margin-bottom: 0.2rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  &__hint {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    color: $text-secondary;
+    font-style: italic;
+  }
+}
+
+@media (max-width: 768px) {
+  .guest-sale-pricing {
+    padding: 0.65rem 0.75rem;
+  }
+}

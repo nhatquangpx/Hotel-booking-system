@@ -33,3 +33,10 @@ export function formatReplyResponderLabel(reply) {
   }
   return rolePart;
 }
+
+/** Tiêu đề phản hồi trên đánh giá: «Phản hồi từ Tên (Vai trò)». */
+export function formatReviewReplyTitle(reply) {
+  const who = formatReplyResponderLabel(reply);
+  if (!who) return 'Phản hồi';
+  return `Phản hồi từ ${who}`;
+}
