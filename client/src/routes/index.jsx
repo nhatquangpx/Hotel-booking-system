@@ -23,14 +23,8 @@ import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/featu
 import {
   AdminDashboardPage,
   AdminUserListPage,
-  AdminUserDetailPage,
   AdminHotelListPage,
-  AdminHotelDetailPage,
-  AdminRoomCreatePage,
-  AdminRoomDetailPage,
-  AdminRoomEditPage,
   AdminBookingListPage,
-  AdminBookingDetailPage,
   AdminContactMessageListPage,
   AdminProfileAccountPage,
   AdminProfileEditPage,
@@ -98,14 +92,8 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN_HOME} element={<AdminDashboardPage />} />
           <Route path={ROUTES.ADMIN_USERS} element={<AdminUserListPage />} />
-          <Route path={ROUTES.adminUserDetail.pattern} element={<AdminUserDetailPage />} />
           <Route path={ROUTES.ADMIN_HOTELS} element={<AdminHotelListPage />} />
-          <Route path={ROUTES.adminHotelDetail.pattern} element={<AdminHotelDetailPage />} />
-          <Route path={ROUTES.adminRoomCreate.pattern} element={<AdminRoomCreatePage />} />
-          <Route path={ROUTES.adminRoomDetail.pattern} element={<AdminRoomDetailPage />} />
-          <Route path={ROUTES.adminRoomEdit.pattern} element={<AdminRoomEditPage />} />
           <Route path={ROUTES.ADMIN_BOOKINGS} element={<AdminBookingListPage />} />
-          <Route path={ROUTES.adminBookingDetail.pattern} element={<AdminBookingDetailPage />} />
           <Route path={ROUTES.ADMIN_CONTACT_MESSAGES} element={<AdminContactMessageListPage />} />
           <Route path={ROUTES.ADMIN_PROFILE} element={<AdminProfileAccountPage />} />
           <Route path={ROUTES.ADMIN_PROFILE_EDIT} element={<AdminProfileEditPage />} />

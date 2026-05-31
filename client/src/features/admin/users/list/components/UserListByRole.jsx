@@ -8,6 +8,7 @@ const UserListByRole = ({
   roles = ROLE_ORDER,
   onEdit,
   onDelete,
+  onView,
 }) => {
   if (loading) {
     return (
@@ -16,6 +17,7 @@ const UserListByRole = ({
         loading
         onEdit={onEdit}
         onDelete={onDelete}
+        onView={onView}
       />
     );
   }
@@ -48,6 +50,7 @@ const UserListByRole = ({
               emptyMessage="Không có người dùng trong nhóm này"
               onEdit={onEdit}
               onDelete={onDelete}
+              onView={onView}
             />
           </section>
         );

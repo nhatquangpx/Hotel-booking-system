@@ -502,35 +502,39 @@ const HotelFormDialog = ({
             </div>
           </div>
 
-          {!isEdit && (
-            <div className="form-group">
-              <label htmlFor="images">Ảnh khách sạn</label>
-              <input
-                type="file"
-                id="images"
-                name="images"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-              {imagePreviews.length > 0 && (
-                <div className="image-previews">
-                  {imagePreviews.map((src, index) => (
-                    <div key={index} className="image-preview-item">
-                      <img src={src} alt={`Preview ${index}`} />
-                      <IconButton 
-                        className="remove-image-btn"
-                        onClick={() => handleRemoveImage(index)}
-                        size="small"
-                      >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="form-group form-group--images">
+            <label htmlFor="images">Ảnh khách sạn</label>
+            <input
+              type="file"
+              id="images"
+              name="images"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+            {isEdit && (
+              <p className="form-hint">
+                Có thể thêm ảnh mới hoặc xóa ảnh hiện có. Ảnh đã lưu sẽ được giữ khi bạn không xóa.
+              </p>
+            )}
+            {imagePreviews.length > 0 && (
+              <div className="image-previews">
+                {imagePreviews.map((src, index) => (
+                  <div key={index} className="image-preview-item">
+                    <img src={src} alt={`Preview ${index + 1}`} />
+                    <IconButton
+                      className="remove-image-btn"
+                      onClick={() => handleRemoveImage(index)}
+                      size="small"
+                      type="button"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="form-section-qr">
             <h4 className="form-section-qr__title">Thanh toán QR (chuyển khoản)</h4>

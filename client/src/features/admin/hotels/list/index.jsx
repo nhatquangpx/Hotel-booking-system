@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { IconButton, Tooltip, Button, Paper, TextField, Collapse } from '@mui/material';
 import { FaStar } from 'react-icons/fa';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,7 +11,9 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { AdminLayout } from '@/features/admin/components';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import HotelFormDialog from '../components/HotelFormDialog';
+import HotelDetailDialog from '../components/HotelDetailDialog';
 import RoomFormDialog from '../../rooms/components/RoomFormDialog';
+import RoomDetailDialog from '../../rooms/components/RoomDetailDialog';
 import api from '../../../../apis';
 import './HotelList.scss';
 
@@ -20,6 +22,7 @@ import './HotelList.scss';
  * List and manage hotels for admin
  */
 const AdminHotelListPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,6 +37,17 @@ const AdminHotelListPage = () => {
   const [editingHotel, setEditingHotel] = useState(null);
   const [showRoomDialog, setShowRoomDialog] = useState(false);
   const [selectedHotelForRoom, setSelectedHotelForRoom] = useState(null);
+  const [editingRoomId, setEditingRoomId] = useState(null);
+  const [viewingRoomId, setViewingRoomId] = useState(null);
+  const [viewingHotelId, setViewingHotelId] = useState(null);
+
+  useEffect(() => {
+    const hotelId = searchParams.get('hotelId');
+    if (hotelId) {
+      setViewingHotelId(hotelId);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     fetchHotels();
@@ -130,6 +144,23 @@ const AdminHotelListPage = () => {
     setShowHotelDialog(true);
   };
 
+  const handleOpenViewHotelDialog = (hotel) => {
+    setViewingHotelId(hotel._id);
+  };
+
+  const handleCloseViewHotelDialog = () => {
+    setViewingHotelId(null);
+  };
+
+  const handleEditFromHotelDetail = (hotel) => {
+    handleOpenEditDialog(hotel);
+  };
+
+  const handleViewHotelFromRoom = (hotel) => {
+    setViewingRoomId(null);
+    setViewingHotelId(hotel._id);
+  };
+
   const handleCloseHotelDialog = () => {
     setShowHotelDialog(false);
     setEditingHotel(null);
@@ -140,24 +171,50 @@ const AdminHotelListPage = () => {
   };
 
   const handleOpenCreateRoomDialog = (hotel) => {
+    setEditingRoomId(null);
     setSelectedHotelForRoom(hotel);
     setShowRoomDialog(true);
+  };
+
+  const handleOpenEditRoomDialog = (room) => {
+    setSelectedHotelForRoom(null);
+    setEditingRoomId(room._id);
+    setShowRoomDialog(true);
+  };
+
+  const handleOpenViewRoomDialog = (room) => {
+    setViewingRoomId(room._id);
+  };
+
+  const handleEditRoomFromDetail = (room) => {
+    handleOpenEditRoomDialog(room);
   };
 
   const handleCloseRoomDialog = () => {
     setShowRoomDialog(false);
     setSelectedHotelForRoom(null);
+    setEditingRoomId(null);
   };
 
   const handleRoomSuccess = () => {
-    // Refresh rooms for the selected hotel
-    if (selectedHotelForRoom) {
-      api.adminRoom.getRoomsByHotel(selectedHotelForRoom._id)
-        .then(data => {
-          setRooms(prev => ({ ...prev, [selectedHotelForRoom._id]: data }));
-        })
-        .catch(err => console.error('Error fetching rooms:', err));
+    const hotelIds = new Set();
+    if (selectedHotelForRoom?._id) hotelIds.add(selectedHotelForRoom._id);
+    if (expandedHotelId) hotelIds.add(expandedHotelId);
+    if (editingRoomId) {
+      Object.entries(rooms).forEach(([hotelId, roomList]) => {
+        if (roomList?.some((room) => room._id === editingRoomId)) {
+          hotelIds.add(hotelId);
+        }
+      });
     }
+
+    hotelIds.forEach((hotelId) => {
+      api.adminRoom.getRoomsByHotel(hotelId)
+        .then((data) => {
+          setRooms((prev) => ({ ...prev, [hotelId]: data }));
+        })
+        .catch((err) => console.error('Error fetching rooms:', err));
+    });
   };
 
   const handleExpandClick = async (hotelId) => {
@@ -346,8 +403,7 @@ const AdminHotelListPage = () => {
                       <div className="action-buttons">
                         <Tooltip title="Xem chi tiết">
                           <IconButton
-                            component={Link}
-                            to={`/admin/hotels/${hotel._id}`}
+                            onClick={() => handleOpenViewHotelDialog(hotel)}
                             size="small"
                             color="primary"
                           >
@@ -424,8 +480,7 @@ const AdminHotelListPage = () => {
                                       <div className="action-buttons">
                                         <Tooltip title="Xem chi tiết">
                                           <IconButton
-                                            component={Link}
-                                            to={`/admin/rooms/${room._id}`}
+                                            onClick={() => handleOpenViewRoomDialog(room)}
                                             size="small"
                                             color="primary"
                                           >
@@ -434,8 +489,7 @@ const AdminHotelListPage = () => {
                                         </Tooltip>
                                         <Tooltip title="Chỉnh sửa">
                                           <IconButton
-                                            component={Link}
-                                            to={`/admin/rooms/${room._id}/edit`}
+                                            onClick={() => handleOpenEditRoomDialog(room)}
                                             size="small"
                                             color="default"
                                             sx={{ color: 'text.primary' }}
@@ -491,11 +545,27 @@ const AdminHotelListPage = () => {
           onSuccess={handleHotelSuccess}
         />
 
+        <HotelDetailDialog
+          isOpen={!!viewingHotelId}
+          onClose={handleCloseViewHotelDialog}
+          hotelId={viewingHotelId}
+          onEdit={handleEditFromHotelDetail}
+        />
+
         <RoomFormDialog
           isOpen={showRoomDialog}
           onClose={handleCloseRoomDialog}
           hotelId={selectedHotelForRoom?._id || null}
+          roomId={editingRoomId}
           onSuccess={handleRoomSuccess}
+        />
+
+        <RoomDetailDialog
+          isOpen={!!viewingRoomId}
+          onClose={() => setViewingRoomId(null)}
+          roomId={viewingRoomId}
+          onEdit={handleEditRoomFromDetail}
+          onViewHotel={handleViewHotelFromRoom}
         />
       </div>
     </AdminLayout>

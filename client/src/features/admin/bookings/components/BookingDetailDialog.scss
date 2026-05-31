@@ -1,0 +1,130 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.booking-detail-dialog {
+  .loading,
+  .error-message {
+    text-align: center;
+    padding: 2rem;
+    @include body-base;
+  }
+
+  .error-message {
+    color: $status-error-text;
+    background: $status-error-bg;
+    border-radius: 8px;
+  }
+
+  .booking-detail-content {
+    .booking-detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      background: $bg-light;
+      border-radius: 8px;
+      overflow: hidden;
+
+      td.label {
+        @include label-base;
+        color: $text-medium;
+        padding: 10px 14px;
+        background: $bg-light-alt;
+        width: 160px;
+        border-bottom: 1px solid $border-light;
+      }
+
+      td.value {
+        color: $text-dark;
+        padding: 10px 14px;
+        border-bottom: 1px solid $border-light;
+        @include body-base;
+        word-break: break-word;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+    }
+
+    .booking-info {
+      .payment-status,
+      .payment-method {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+
+        .label {
+          @include label-base;
+          color: $text-medium;
+        }
+      }
+
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 16px;
+        @include body-sm;
+
+        &.pending { background: $warning-bg; color: $warning-text-dark; }
+        &.paid { background: $status-success-bg; color: $status-success-text; }
+        &.cancelled { background: $status-error-bg; color: $status-error-text; }
+      }
+
+      .admin-booking-detail-note {
+        margin-top: 12px;
+        padding: 12px 14px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+        @include body-sm;
+        color: $text-medium;
+        line-height: 1.5;
+      }
+    }
+
+    .cancellation-info {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid $border-light;
+
+      h4 {
+        margin: 0 0 0.75rem;
+        @include heading-xs;
+        color: $text-primary;
+      }
+
+      .info-item {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 0.5rem;
+
+        .label {
+          @include label-base;
+          color: $text-medium;
+        }
+
+        .value {
+          @include body-base;
+          color: $text-dark;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    .booking-detail-content .booking-detail-table {
+      td.label,
+      td.value {
+        display: block;
+        width: 100%;
+      }
+
+      td.label {
+        border-bottom: none;
+        padding-bottom: 4px;
+      }
+    }
+  }
+}

@@ -27,9 +27,9 @@ export const notificationConfig = {
     apiPrefix: '/admin',
     routes: {
       list: '/admin/notifications',
-      booking: (id) => `/admin/bookings/${id}`,
-      user: (id) => `/admin/users/${id}`,
-      hotel: (id) => `/admin/hotels/${id}`
+      booking: (id) => `/admin/bookings?bookingId=${id}`,
+      user: (id) => `/admin/users?userId=${id}`,
+      hotel: (id) => `/admin/hotels?hotelId=${id}`
     },
     supportedTypes: [
       'new_booking',

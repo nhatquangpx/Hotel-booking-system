@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { IconButton, Tooltip, Paper, TextField, MenuItem } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import api from '@/apis';
 import { AdminLayout } from '@/features/admin/components';
+import BookingDetailDialog from '../components/BookingDetailDialog';
 import { formatDate } from '@/shared/utils';
 import './BookingList.scss';
 
@@ -11,6 +12,7 @@ import './BookingList.scss';
  * Admin Booking List — chỉ xem danh sách & tổng thu (đơn đã thanh toán), không chỉnh trạng thái đơn.
  */
 const AdminBookingListPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,6 +23,15 @@ const AdminBookingListPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [hotels, setHotels] = useState([]);
+  const [viewingBookingId, setViewingBookingId] = useState(null);
+
+  useEffect(() => {
+    const bookingId = searchParams.get('bookingId');
+    if (bookingId) {
+      setViewingBookingId(bookingId);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const paidBookingStats = useMemo(() => {
     const paid = bookings.filter((b) => b.paymentStatus === 'paid');
@@ -75,30 +86,6 @@ const AdminBookingListPage = () => {
     
     return matchesSearch && matchesHotel && matchesDateRange;
   });
-
-
-  const handleEditPaymentStatus = (booking) => {
-    setBookingToUpdate(booking);
-    setNewPaymentStatus(booking.paymentStatus);
-    setShowUpdateModal(true);
-  };
-
-  const handleConfirmUpdate = async () => {
-    if (!bookingToUpdate) return;
-    try {
-      await api.adminBooking.updateBookingStatus(bookingToUpdate._id, newPaymentStatus);
-      setBookings(bookings.map(b => b._id === bookingToUpdate._id ? { ...b, paymentStatus: newPaymentStatus } : b));
-      setShowUpdateModal(false);
-      setBookingToUpdate(null);
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi cập nhật trạng thái thanh toán');
-    }
-  };
-
-  const handleCancelUpdate = () => {
-    setShowUpdateModal(false);
-    setBookingToUpdate(null);
-  };
 
   return (
     <AdminLayout>
@@ -240,11 +227,14 @@ const AdminBookingListPage = () => {
                     </td>
                     <td>
                       <Tooltip title="Xem chi tiết (chỉ đọc)">
-                        <Link to={`/admin/bookings/${booking._id}`}>
-                          <IconButton size="small" color="primary" aria-label="Xem chi tiết">
-                            <VisibilityIcon />
-                          </IconButton>
-                        </Link>
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          aria-label="Xem chi tiết"
+                          onClick={() => setViewingBookingId(booking._id)}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
                       </Tooltip>
                     </td>
                   </tr>
@@ -253,6 +243,12 @@ const AdminBookingListPage = () => {
             </tbody>
           </table>
         </div>
+
+        <BookingDetailDialog
+          isOpen={!!viewingBookingId}
+          onClose={() => setViewingBookingId(null)}
+          bookingId={viewingBookingId}
+        />
       </div>
     </AdminLayout>
   );

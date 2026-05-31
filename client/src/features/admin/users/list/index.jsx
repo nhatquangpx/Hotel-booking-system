@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button, Paper, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { AdminLayout } from '@/features/admin/components';
 import UserFormDialog from '../components/UserFormDialog';
+import UserDetailDialog from '../components/UserDetailDialog';
 import UserTable from './components/UserTable';
 import UserListByRole from './components/UserListByRole';
 import UserListByHotel from './components/UserListByHotel';
@@ -21,6 +23,7 @@ import './UserList.scss';
  * List and manage users for admin
  */
 const AdminUserListPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [users, setUsers] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +37,15 @@ const AdminUserListPage = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [viewingUserId, setViewingUserId] = useState(null);
+
+  useEffect(() => {
+    const userId = searchParams.get('userId');
+    if (userId) {
+      setViewingUserId(userId);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     fetchUsers();
@@ -95,6 +107,18 @@ const AdminUserListPage = () => {
     setShowUserDialog(true);
   };
 
+  const handleOpenViewDialog = (user) => {
+    setViewingUserId(user._id);
+  };
+
+  const handleCloseViewDialog = () => {
+    setViewingUserId(null);
+  };
+
+  const handleEditFromDetail = (user) => {
+    handleOpenEditDialog(user);
+  };
+
   const handleCloseUserDialog = () => {
     setShowUserDialog(false);
     setEditingUser(null);
@@ -140,6 +164,7 @@ const AdminUserListPage = () => {
           loading={loading}
           onEdit={handleOpenEditDialog}
           onDelete={handleDeleteClick}
+          onView={handleOpenViewDialog}
         />
       );
     }
@@ -154,6 +179,7 @@ const AdminUserListPage = () => {
           loading={loading}
           onEdit={handleOpenEditDialog}
           onDelete={handleDeleteClick}
+          onView={handleOpenViewDialog}
         />
       );
     }
@@ -164,6 +190,7 @@ const AdminUserListPage = () => {
         loading={loading}
         onEdit={handleOpenEditDialog}
         onDelete={handleDeleteClick}
+        onView={handleOpenViewDialog}
       />
     );
   };
@@ -273,6 +300,13 @@ const AdminUserListPage = () => {
           onClose={handleCloseUserDialog}
           userId={editingUser?._id || null}
           onSuccess={handleUserSuccess}
+        />
+
+        <UserDetailDialog
+          isOpen={!!viewingUserId}
+          onClose={handleCloseViewDialog}
+          userId={viewingUserId}
+          onEdit={handleEditFromDetail}
         />
       </div>
     </AdminLayout>

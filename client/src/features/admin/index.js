@@ -5,7 +5,6 @@
 export { AdminDashboardPage } from './dashboard';
 export * from './users';
 export * from './hotels';
-export * from './rooms';
 export * from './bookings';
 export * from './contact';
 export { 

@@ -2,71 +2,74 @@
 @use "@/styles/global" as *;
 @use "@/styles/text" as *;
 
-.room-detail-container {
-  background: var(--admin-bg);
-  min-height: 100vh;
-  padding: 32px 0;
-
-  h1 {
-    color: $text-primary;
-    @include heading-lg;
-    text-align: $align-center;
-    margin-bottom: 32px;
+.room-detail-dialog {
+  .loading,
+  .error-message {
+    text-align: center;
+    padding: 2rem;
+    @include body-base;
   }
 
-  .detail-card {
-    background: var(--admin-sidebar);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 24px;
+  .error-message {
+    color: $status-error-text;
+    background: $status-error-bg;
+    border-radius: 8px;
+  }
 
+  .room-detail-content {
     .detail-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
       border-bottom: 1px solid $border-light;
 
       h3 {
         margin: 0;
-        color: $text-primary;
         @include heading-md;
+        color: $text-primary;
       }
     }
 
     .detail-body {
       .detail-row {
         display: flex;
-        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
         align-items: flex-start;
 
         .detail-label {
           width: 150px;
+          min-width: 120px;
           @include label-base;
           color: $text-primary;
         }
 
         .detail-value {
           flex: 1;
-          color: $text-primary;
+          min-width: 0;
           @include body-base;
+          color: $text-primary;
 
           .hotel-link {
-            color: var(--admin-primary);
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--admin-primary, $blue-link);
             cursor: pointer;
             text-decoration: underline;
-            
+            @include body-base;
+
             &:hover {
-              color: var(--admin-primary-hover);
+              color: var(--admin-primary-hover, $blue-medium-hover);
             }
           }
 
           .discount-price {
-            color: var(--admin-danger);
-            margin-left: 8px;
+            color: var(--admin-danger, $status-error-text);
+            margin-left: 4px;
           }
 
           .facilities-list {
@@ -76,7 +79,7 @@
 
             .facility-tag {
               background: $status-info-bg;
-              color: var(--admin-primary);
+              color: var(--admin-primary, $blue-link);
               padding: 4px 12px;
               border-radius: 16px;
               @include body-sm;
@@ -85,22 +88,29 @@
 
           .image-gallery {
             display: flex;
-            align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 8px;
+            gap: 10px;
 
             .detail-image-thumb {
               width: 80px;
               height: 80px;
               object-fit: cover;
               border-radius: 8px;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-              flex-shrink: 0;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
           }
         }
       }
     }
   }
-} 
+
+  @media (max-width: 600px) {
+    .room-detail-content .detail-body .detail-row {
+      flex-direction: column;
+
+      .detail-label {
+        width: 100%;
+      }
+    }
+  }
+}

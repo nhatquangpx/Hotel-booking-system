@@ -4,6 +4,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
 import RoomFacilitiesPicker from '@/components/rooms/RoomFacilitiesPicker';
 import api from '../../../../apis';
+import { normalizeRoomStatus } from '@/shared/utils/roomStatus';
+import { getImageUrl } from '../../../../constants/images';
 import './RoomFormDialog.scss';
 
 /**
@@ -28,8 +30,10 @@ const RoomFormDialog = ({
     description: '',
     facilities: [],
     available: true,
+    roomStatus: 'active',
   });
   const [selectedImages, setSelectedImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,8 +62,10 @@ const RoomFormDialog = ({
           description: '',
           facilities: [],
           available: true,
+          roomStatus: 'active',
         });
         setSelectedImages([]);
+        setExistingImages([]);
         setError(null);
       }
     }
@@ -93,7 +99,10 @@ const RoomFormDialog = ({
         description: roomData.description || '',
         facilities: roomData.facilities || [],
         available: roomData.available !== undefined ? roomData.available : true,
+        roomStatus: normalizeRoomStatus(roomData).roomStatus,
       });
+      setExistingImages(roomData.images || []);
+      setSelectedImages([]);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải thông tin phòng');
@@ -123,6 +132,10 @@ const RoomFormDialog = ({
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleRemoveExistingImage = (index) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -136,11 +149,23 @@ const RoomFormDialog = ({
       setError(null);
 
       if (isEdit) {
-        const updateData = {
-          ...formData,
-          facilities: JSON.stringify(formData.facilities)
-        };
-        await api.adminRoom.updateRoom(roomId, updateData);
+        const submitData = new FormData();
+        submitData.append('hotelId', formData.hotelId);
+        submitData.append('roomNumber', formData.roomNumber);
+        submitData.append('type', formData.type);
+        submitData.append('description', formData.description);
+        submitData.append('maxPeople', formData.maxPeople);
+        submitData.append('facilities', JSON.stringify(formData.facilities));
+        submitData.append('roomStatus', formData.roomStatus);
+        submitData.append('price', JSON.stringify({
+          regular: formData.price,
+          discount: formData.discount || 0,
+        }));
+        submitData.append('existingImages', JSON.stringify(existingImages));
+        selectedImages.forEach((image) => {
+          submitData.append('images', image);
+        });
+        await api.adminRoom.updateRoom(roomId, submitData);
       } else {
         const submitData = new FormData();
         Object.keys(formData).forEach(key => {
@@ -257,6 +282,22 @@ const RoomFormDialog = ({
                 required
               />
             </div>
+            {isEdit && (
+              <div className="form-group">
+                <label htmlFor="roomStatus">Trạng thái phòng</label>
+                <select
+                  id="roomStatus"
+                  name="roomStatus"
+                  value={formData.roomStatus}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="active">Hoạt động</option>
+                  <option value="maintenance">Bảo trì</option>
+                  <option value="inactive">Tạm ngưng</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -276,33 +317,45 @@ const RoomFormDialog = ({
             onChange={handleFacilitiesChange}
           />
 
-          {!isEdit && (
-            <div className="images-container">
-              <label>Hình ảnh phòng</label>
-              <div className="images-list">
-                {selectedImages.map((image, index) => (
-                  <div key={index} className="image-item">
-                    <img src={URL.createObjectURL(image)} alt={`Phòng ${index + 1}`} />
-                    <IconButton 
+          <div className="images-container">
+            <label>Hình ảnh phòng</label>
+            <div className="images-list">
+              {existingImages.map((image, index) => (
+                <div key={`existing-${index}`} className="image-item">
+                  <img src={getImageUrl(image)} alt={`Phòng ${index + 1}`} />
+                  {isEdit && (
+                    <IconButton
                       className="remove-image-btn"
-                      onClick={() => handleRemoveImage(index)}
+                      onClick={() => handleRemoveExistingImage(index)}
                       size="small"
                     >
                       <CloseIcon fontSize="small" />
                     </IconButton>
-                  </div>
-                ))}
-              </div>
-              <div className="image-input">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                />
-              </div>
+                  )}
+                </div>
+              ))}
+              {selectedImages.map((image, index) => (
+                <div key={`new-${index}`} className="image-item">
+                  <img src={URL.createObjectURL(image)} alt={`Phòng ${index + 1}`} />
+                  <IconButton
+                    className="remove-image-btn"
+                    onClick={() => handleRemoveImage(index)}
+                    size="small"
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              ))}
             </div>
-          )}
+            <div className="image-input">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+              />
+            </div>
+          </div>
 
           <div className="form-actions">
             <button type="submit" className="submit-btn" disabled={saving}>

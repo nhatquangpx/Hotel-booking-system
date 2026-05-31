@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -22,6 +21,7 @@ const UserTable = ({
   getPositionLabel,
   onEdit,
   onDelete,
+  onView,
 }) => {
   const layoutKey = showPositionColumn ? 'withPosition' : 'standard';
   const columns = TABLE_COLUMNS[layoutKey];
@@ -101,11 +101,13 @@ const UserTable = ({
                 <td className="col-actions">
                   <div className="action-buttons">
                     <Tooltip title="Xem chi tiết">
-                      <Link to={`/admin/users/${user._id}`}>
-                        <IconButton size="small" color="primary">
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Link>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => onView?.(user)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
                     </Tooltip>
                     <Tooltip title="Chỉnh sửa">
                       <IconButton
