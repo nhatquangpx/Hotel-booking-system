@@ -32,7 +32,6 @@ const GuestProfileEditPage = () => {
         setFormData({
           name: data.name || '',
           phone: data.phone || '',
-          address: data.address || '',
         });
       } catch (error) {
         toast.error('Không thể tải thông tin người dùng!');
@@ -58,7 +57,10 @@ const GuestProfileEditPage = () => {
     setLoading(true);
 
     try {
-      const response = await api.user.updateUserProfile(user.id, formData);
+      const response = await api.user.updateUserProfile(user.id, {
+        name: formData.name,
+        phone: formData.phone,
+      });
       toast.success('Cập nhật thông tin thành công!');
       navigate(`/profile/${user.id}`);
     } catch (error) {

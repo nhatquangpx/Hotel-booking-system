@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency } from '@/shared/utils/format';
+import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './BookingModal.scss';
 
 /**
@@ -82,6 +83,7 @@ const BookingModal = ({ isOpen, room, bookingDates, onConfirm, onClose }) => {
                   <span className="modal-price-was"> ({formatCurrency(sp.basePrice)})</span>
                 </p>
               )}
+              <GuestSalePricingBreakdown pricing={sp} variant="full" />
             </div>
           ) : (
             <p>

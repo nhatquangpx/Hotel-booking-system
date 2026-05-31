@@ -17,7 +17,7 @@ export const paymentAPI = {
   confirmQrPayment: async ({ bookingId, proofImage } = {}) => {
     try {
       const formData = new FormData();
-      formData.append('bookingId', bookingId);
+      formData.append('bookingId', String(bookingId ?? ''));
       if (proofImage) {
         formData.append('proofImage', proofImage);
       }

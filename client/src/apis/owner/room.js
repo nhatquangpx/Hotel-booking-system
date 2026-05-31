@@ -11,6 +11,15 @@ export const ownerRoomAPI = {
     }
   },
 
+  getRoomBookings: async (roomId) => {
+    try {
+      const response = await api.get(`/owner/rooms/${roomId}/bookings`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Lấy thông tin chi tiết phòng
   getRoomById: async (id) => {
     try {

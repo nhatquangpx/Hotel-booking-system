@@ -7,7 +7,12 @@ const {
   enrichSaleForOwner,
   resolveIsActiveOnSave,
 } = require("../services/sale/saleLifecycle");
-const { parseOptionalBoolean, parseRequiredBoolean } = require("../utils/parseBoolean");
+const { parseRequiredBoolean } = require("../utils/parseBoolean");
+const {
+  parseSalePayload,
+  validateSalePayload,
+  normalizePayloadIsActive,
+} = require("../validations/saleValidation");
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -36,69 +41,6 @@ function statusFromError(error) {
     return 400;
   }
   return 500;
-}
-
-function parseSalePayload(body, { partial = false } = {}) {
-  const { hotelId, title, scope, roomType, startDate, endDate, discountPercent, isActive } =
-    body || {};
-
-  const out = {};
-  if (!partial || hotelId !== undefined) out.hotelId = hotelId;
-  if (!partial || title !== undefined) out.title = title != null ? String(title).trim() : "";
-  if (!partial || scope !== undefined) out.scope = scope;
-  if (!partial || roomType !== undefined) out.roomType = roomType;
-  if (!partial || startDate !== undefined) out.startDate = startDate;
-  if (!partial || endDate !== undefined) out.endDate = endDate;
-  if (!partial || discountPercent !== undefined) out.discountPercent = discountPercent;
-  if (isActive !== undefined) out.isActive = isActive;
-
-  return out;
-}
-
-function validateSalePayload(payload, { partial = false } = {}) {
-  if (!partial) {
-    const discountMissing =
-      payload.discountPercent === undefined ||
-      payload.discountPercent === null ||
-      payload.discountPercent === "";
-    if (!payload.hotelId || !payload.scope || !payload.startDate || !payload.endDate || discountMissing) {
-      return "Thiếu thông tin bắt buộc";
-    }
-    if (!payload.title) {
-      return "Tên chương trình không được để trống";
-    }
-  }
-
-  if (payload.discountPercent !== undefined && payload.discountPercent !== null) {
-    const pct = Number(payload.discountPercent);
-    if (!Number.isFinite(pct)) return "Phần trăm giảm giá phải là số hợp lệ";
-    if (pct < 1 || pct > 100) return "Phần trăm giảm giá phải từ 1 đến 100";
-    payload.discountPercent = pct;
-  }
-
-  if (payload.startDate != null && payload.endDate != null && payload.endDate < payload.startDate) {
-    return "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu";
-  }
-
-  if (payload.scope === "room_type" && !payload.roomType) {
-    return "Cần chọn loại phòng khi phạm vi là loại phòng";
-  }
-
-  return normalizePayloadIsActive(payload);
-}
-
-/**
- * Parse isActive trên payload (nếu có) thành boolean thật.
- * @returns {string|null} message lỗi hoặc null nếu hợp lệ
- */
-function normalizePayloadIsActive(payload) {
-  if (payload.isActive === undefined) return null;
-  const parsed = parseOptionalBoolean(payload.isActive);
-  if (parsed === null) {
-    return "isActive phải là true hoặc false";
-  }
-  payload.isActive = parsed;
-  return null;
 }
 
 function applyScopeToDoc(doc, scope, roomType) {

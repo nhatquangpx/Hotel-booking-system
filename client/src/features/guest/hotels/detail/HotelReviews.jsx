@@ -1,5 +1,5 @@
 import { FaStar } from 'react-icons/fa';
-import { formatDate, getHotelReply, formatReplyResponderLabel } from '@/shared/utils';
+import { formatDate, getHotelReply, formatReviewReplyTitle } from '@/shared/utils';
 import './HotelReviews.scss';
 
 /**
@@ -105,7 +105,7 @@ const HotelReviews = ({
                   <div className="owner-response">
                     <div className="owner-response__header">
                       <div className="owner-response__label">
-                        Phản hồi {formatReplyResponderLabel(hotelReply)}
+                        {formatReviewReplyTitle(hotelReply)}
                       </div>
                       {review.ownerResponseAt && (
                         <div className="owner-response__date">

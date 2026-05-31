@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/features/admin/components';
+import RoomFacilitiesPicker from '@/components/rooms/RoomFacilitiesPicker';
 import api from '../../../../apis';
 import './RoomCreate.scss';
 
@@ -24,7 +25,6 @@ const AdminRoomCreatePage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [facilityInput, setFacilityInput] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [fetchingHotels, setFetchingHotels] = useState(true);
 
@@ -34,11 +34,6 @@ const AdminRoomCreatePage = () => {
     { value: 'suite', label: 'Phòng Suite' },
     { value: 'family', label: 'Phòng gia đình' },
     { value: 'executive', label: 'Phòng hạng sang' },
-  ];
-
-  const facilityOptions = [
-    'TV', 'Wifi', 'Minibar', 'Điều hòa', 'Bồn tắm', 'Ban công', 
-    'Két sắt', 'Bàn làm việc', 'Tủ lạnh', 'Máy pha cà phê'
   ];
 
   useEffect(() => {
@@ -72,21 +67,8 @@ const AdminRoomCreatePage = () => {
     }));
   };
 
-  const handleAddFacility = () => {
-    if (facilityInput && !formData.facilities.includes(facilityInput)) {
-      setFormData(prev => ({
-        ...prev,
-        facilities: [...prev.facilities, facilityInput],
-      }));
-      setFacilityInput('');
-    }
-  };
-
-  const handleRemoveFacility = (facility) => {
-    setFormData(prev => ({
-      ...prev,
-      facilities: prev.facilities.filter(f => f !== facility),
-    }));
+  const handleFacilitiesChange = (facilities) => {
+    setFormData((prev) => ({ ...prev, facilities }));
   };
 
   const handleImageChange = (e) => {
@@ -241,29 +223,10 @@ const AdminRoomCreatePage = () => {
             />
           </div>
           
-          <div className="facilities-container">
-            <label>Tiện nghi phòng</label>
-            <div className="facilities-list">
-              {formData.facilities.map((facility, index) => (
-                <div key={index} className="facility-tag">
-                  {facility}
-                  <button type="button" onClick={() => handleRemoveFacility(facility)}>×</button>
-                </div>
-              ))}
-            </div>
-            <div className="facility-input">
-              <select
-                value={facilityInput}
-                onChange={(e) => setFacilityInput(e.target.value)}
-              >
-                <option value="">-- Chọn tiện nghi --</option>
-                {facilityOptions.map((facility, index) => (
-                  <option key={index} value={facility}>{facility}</option>
-                ))}
-              </select>
-              <button type="button" onClick={handleAddFacility}>Thêm</button>
-            </div>
-          </div>
+          <RoomFacilitiesPicker
+            facilities={formData.facilities}
+            onChange={handleFacilitiesChange}
+          />
           
           <div className="images-container">
             <label>Hình ảnh phòng</label>

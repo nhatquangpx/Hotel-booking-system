@@ -253,6 +253,11 @@ const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
         finalNightly: pricing.finalNightly,
         nights: pricing.nights,
         regularNightly: room.price?.regular ?? 0,
+        nightBreakdown: pricing.nightBreakdown,
+        salePeriods: pricing.salePeriods,
+        nightsOnSale: pricing.nightsOnSale,
+        nightsRegularPrice: pricing.nightsRegularPrice,
+        mixedSalePricing: pricing.mixedSalePricing,
       };
       availableRooms.push(roomObj);
     }

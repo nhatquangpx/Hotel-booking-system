@@ -4,6 +4,7 @@ const Room = require("../models/Room");
 const User = require("../models/User");
 const roomService = require("../services/rooms/roomService");
 const roomEquipmentService = require("../services/rooms/roomEquipmentService");
+const bookingService = require("../services/bookings");
 const { staffCanAccessHotel } = require("../utils/staffHotel");
 
 function throwHttp(statusCode, message) {
@@ -279,6 +280,21 @@ exports.postStaffEquipmentRepairRequest = async (req, res) => {
     res.status(200).json({ message: "Đã gửi email báo sửa chữa", count });
   } catch (error) {
     return handleServiceError(res, error, "Lỗi khi gửi email báo sửa chữa (staff):", "Lỗi khi gửi email");
+  }
+};
+
+/** Owner: lịch sử đặt phòng của một phòng. */
+exports.getOwnerRoomBookings = async (req, res) => {
+  try {
+    const bookings = await bookingService.getBookingsByRoomForOwner(req.user.id, req.params.id);
+    res.status(200).json(bookings);
+  } catch (error) {
+    return handleServiceError(
+      res,
+      error,
+      "Lỗi khi lấy lịch sử đặt phòng:",
+      "Lỗi khi lấy lịch sử đặt phòng"
+    );
   }
 };
 

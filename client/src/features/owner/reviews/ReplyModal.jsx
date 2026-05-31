@@ -13,6 +13,7 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (review && isOpen) {
@@ -25,10 +26,15 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
         setIsEditMode(false);
       }
       setError(null);
+      setShowDeleteConfirm(false);
     }
   }, [review, isOpen]);
 
   const handleClose = () => {
+    if (showDeleteConfirm) {
+      setShowDeleteConfirm(false);
+      return;
+    }
     setResponse('');
     setError(null);
     setIsEditMode(false);
@@ -61,19 +67,20 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa phản hồi này?')) {
-      return;
-    }
-
+  const handleConfirmDelete = async () => {
     try {
       setSaving(true);
       setError(null);
       await reviewApi.deleteReply(review._id);
+      setShowDeleteConfirm(false);
       onSuccess?.();
-      handleClose();
+      setResponse('');
+      setError(null);
+      setIsEditMode(false);
+      onClose();
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi xóa phản hồi');
+      setShowDeleteConfirm(false);
     } finally {
       setSaving(false);
     }
@@ -172,7 +179,7 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
                 <button
                   type="button"
                   className="reply-form__delete-btn"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   disabled={saving}
                 >
                   Xóa phản hồi
@@ -199,6 +206,46 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
           </form>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div
+          className="reply-delete-confirm-overlay"
+          onClick={() => !saving && setShowDeleteConfirm(false)}
+          role="presentation"
+        >
+          <div
+            className="reply-delete-confirm"
+            onClick={(e) => e.stopPropagation()}
+            role="alertdialog"
+            aria-labelledby="reply-delete-confirm-title"
+            aria-describedby="reply-delete-confirm-desc"
+          >
+            <h3 id="reply-delete-confirm-title">Xác nhận xóa phản hồi</h3>
+            <p id="reply-delete-confirm-desc">
+              Bạn có chắc chắn muốn xóa phản hồi này? Nội dung sẽ không còn hiển thị với khách và
+              không thể khôi phục.
+            </p>
+            <div className="reply-delete-confirm__actions">
+              <button
+                type="button"
+                className="reply-delete-confirm__cancel"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={saving}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="reply-delete-confirm__confirm"
+                onClick={handleConfirmDelete}
+                disabled={saving}
+              >
+                {saving ? 'Đang xóa...' : 'Xóa phản hồi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

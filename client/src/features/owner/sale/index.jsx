@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'react-toastify';
 import OwnerLayout from '../components/OwnerLayout';
 import OwnerGuideCollapsible from '../components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
@@ -18,16 +19,41 @@ const ROOM_TYPES = [
 const scopeLabel = (s) => (s.scope === 'hotel' ? 'Toàn khách sạn' : 'Theo loại phòng');
 const roomTypeLabel = (value) => ROOM_TYPES.find((r) => r.value === value)?.label || value || '—';
 
-function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
+function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting, submitError }) {
   const [title, setTitle] = useState(initial?.title || '');
   const [scope, setScope] = useState(initial?.scope || 'hotel');
   const [roomType, setRoomType] = useState(initial?.roomType || 'standard');
   const [startDate, setStartDate] = useState(initial?.startDate || '');
   const [endDate, setEndDate] = useState(initial?.endDate || '');
   const [discountPercent, setDiscountPercent] = useState(initial?.discountPercent ?? 15);
+  const [formError, setFormError] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setFormError(null);
+
+    if (!title.trim()) {
+      setFormError('Tên chương trình không được để trống');
+      return;
+    }
+    if (!startDate || !endDate) {
+      setFormError('Vui lòng chọn đủ ngày bắt đầu và ngày kết thúc');
+      return;
+    }
+    if (endDate < startDate) {
+      setFormError('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu');
+      return;
+    }
+    const pct = Number(discountPercent);
+    if (!Number.isFinite(pct) || pct < 1 || pct > 100) {
+      setFormError('Phần trăm giảm giá phải từ 1 đến 100');
+      return;
+    }
+    if (scope === 'room_type' && !roomType) {
+      setFormError('Vui lòng chọn loại phòng');
+      return;
+    }
+
     const body = {
       hotelId,
       title: title.trim(),
@@ -41,8 +67,15 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting }) {
     onSubmit(body);
   };
 
+  const displayError = formError || submitError;
+
   return (
     <form className="sale-form" onSubmit={handleSubmit}>
+      {displayError && (
+        <div className="sale-form-error" role="alert">
+          {displayError}
+        </div>
+      )}
       <div className="form-group">
         <label>Tên chương trình</label>
         <input
@@ -133,6 +166,7 @@ const OwnerSalePage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [pendingToggle, setPendingToggle] = useState(null);
 
   const openCount = useMemo(() => countOpenSales(sales), [sales]);
@@ -164,17 +198,23 @@ const OwnerSalePage = () => {
   const handleFormSubmit = async (body) => {
     setSubmitting(true);
     setError(null);
+    setSubmitError(null);
     try {
       if (editing) {
         await ownerSaleAPI.update(editing._id, body);
+        toast.success('Đã cập nhật chương trình sale');
       } else {
         await ownerSaleAPI.create(body);
+        toast.success('Đã tạo chương trình sale');
       }
       setModalOpen(false);
       setEditing(null);
+      setSubmitError(null);
       await fetchSales();
     } catch (e) {
-      setError(e?.response?.data?.message || e?.message || 'Không lưu được');
+      const msg = e?.message || 'Không lưu được chương trình sale';
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -190,7 +230,9 @@ const OwnerSalePage = () => {
       setPendingToggle(null);
       await fetchSales();
     } catch (e) {
-      setError(e?.response?.data?.message || e?.message || 'Không đổi trạng thái được');
+      const msg = e?.message || 'Không đổi trạng thái được';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -227,7 +269,16 @@ const OwnerSalePage = () => {
               Đang mở: <strong>{openCount}</strong>
             </span>
           </div>
-          <button type="button" className="btn-primary" onClick={() => { setEditing(null); setModalOpen(true); }} disabled={!hotelId}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              setEditing(null);
+              setSubmitError(null);
+              setModalOpen(true);
+            }}
+            disabled={!hotelId}
+          >
             + Thêm chương trình
           </button>
         </div>
@@ -283,7 +334,15 @@ const OwnerSalePage = () => {
                         <span className={`status-pill ${status.pillClass}`}>{status.label}</span>
                       </td>
                       <td className="sale-row-actions">
-                        <button type="button" className="action-btn action-btn--edit" onClick={() => { setEditing(s); setModalOpen(true); }}>
+                        <button
+                          type="button"
+                          className="action-btn action-btn--edit"
+                          onClick={() => {
+                            setEditing(s);
+                            setSubmitError(null);
+                            setModalOpen(true);
+                          }}
+                        >
                           Sửa
                         </button>
                         {s.isOpen ? (
@@ -316,7 +375,12 @@ const OwnerSalePage = () => {
 
         <Dialog
           isOpen={modalOpen}
-          onClose={() => !submitting && setModalOpen(false)}
+          onClose={() => {
+            if (!submitting) {
+              setModalOpen(false);
+              setSubmitError(null);
+            }
+          }}
           title={editing ? 'Sửa chương trình sale' : 'Chương trình sale mới'}
           maxWidth="520px"
         >
@@ -325,8 +389,14 @@ const OwnerSalePage = () => {
               hotelId={hotelId}
               initial={editing}
               onSubmit={handleFormSubmit}
-              onCancel={() => !submitting && setModalOpen(false)}
+              onCancel={() => {
+                if (!submitting) {
+                  setModalOpen(false);
+                  setSubmitError(null);
+                }
+              }}
               submitting={submitting}
+              submitError={submitError}
             />
           )}
         </Dialog>

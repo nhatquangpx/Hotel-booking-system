@@ -1,5 +1,6 @@
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency } from '@/shared/utils/format';
+import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './RoomList.scss';
 
 /**
@@ -75,6 +76,7 @@ const RoomList = ({ rooms, bookingDates, onRoomSelect, loading, searchPerformed 
                             </span>
                           </p>
                         )}
+                        <GuestSalePricingBreakdown pricing={sp} variant="compact" />
                       </>
                     ) : (
                       <div className="room-price">

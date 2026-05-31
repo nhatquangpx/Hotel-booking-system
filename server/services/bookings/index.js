@@ -31,6 +31,7 @@ const {
 // Owner booking services
 const {
   getBookingsByOwner,
+  getBookingsByRoomForOwner,
   getBookingById: getOwnerBookingById,
   updateBookingStatus: updateOwnerBookingStatus,
   confirmGuestRefund: confirmOwnerGuestRefund,
@@ -77,6 +78,7 @@ module.exports = {
   
   // Owner services
   getBookingsByOwner,
+  getBookingsByRoomForOwner,
   getOwnerBookingById,
   updateOwnerBookingStatus,
   confirmOwnerGuestRefund,

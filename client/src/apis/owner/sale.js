@@ -1,29 +1,49 @@
-import api from '../config/axios';
+import api, { handleApiError } from '../config/axios';
 
 export const ownerSaleAPI = {
   list: async (hotelId) => {
-    const response = await api.get('/owner/sales', { params: { hotelId } });
-    return response.data;
+    try {
+      const response = await api.get('/owner/sales', { params: { hotelId } });
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không tải được danh sách sale');
+    }
   },
 
   create: async (body) => {
-    const response = await api.post('/owner/sales', body);
-    return response.data;
+    try {
+      const response = await api.post('/owner/sales', body);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không tạo được chương trình sale');
+    }
   },
 
   update: async (id, body) => {
-    const response = await api.put(`/owner/sales/${id}`, body);
-    return response.data;
+    try {
+      const response = await api.put(`/owner/sales/${id}`, body);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không cập nhật được chương trình sale');
+    }
   },
 
   setStatus: async (id, isActive) => {
-    const response = await api.patch(`/owner/sales/${id}/status`, { isActive });
-    return response.data;
+    try {
+      const response = await api.patch(`/owner/sales/${id}/status`, { isActive });
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không đổi trạng thái được');
+    }
   },
 
   close: async (id) => {
-    const response = await api.delete(`/owner/sales/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/owner/sales/${id}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Không đóng được chương trình sale');
+    }
   },
 };
 

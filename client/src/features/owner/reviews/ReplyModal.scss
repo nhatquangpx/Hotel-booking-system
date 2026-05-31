@@ -299,6 +299,89 @@
   }
 }
 
+.reply-delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.reply-delete-confirm {
+  width: 100%;
+  max-width: 420px;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: $bg-white;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.25s ease;
+
+  h3 {
+    @include heading-md;
+    margin: 0 0 0.75rem;
+    color: $text-primary;
+  }
+
+  p {
+    @include body-base;
+    margin: 0 0 1.25rem;
+    color: $text-secondary;
+    line-height: 1.5;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  &__cancel {
+    padding: 0.65rem 1.25rem;
+    background: transparent;
+    border: 1px solid $border-medium;
+    border-radius: 6px;
+    color: $text-primary;
+    cursor: pointer;
+    @include body-sm;
+    font-weight: $font-medium;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background: $grey-light;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__confirm {
+    padding: 0.65rem 1.25rem;
+    background: $button-cancel;
+    border: none;
+    border-radius: 6px;
+    color: $text-white;
+    cursor: pointer;
+    @include body-sm;
+    font-weight: $font-medium;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background: $button-cancel-hover;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .reply-modal {
     max-width: 100%;
@@ -329,6 +412,14 @@
       button {
         flex: 1;
       }
+    }
+  }
+
+  .reply-delete-confirm__actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
     }
   }
 }

@@ -136,31 +136,16 @@
         }
       }
 
-      .facility-input, .image-input {
+      .image-input {
         display: flex;
         gap: 10px;
         margin-top: 10px;
 
-        input, select {
+        input {
           flex: 1;
           padding: 8px 12px;
           border-radius: 6px;
           border: 1px solid $border-admin;
-        }
-
-        button {
-          padding: 8px 16px;
-          background: $button-primary;
-          color: white;
-          font-weight: $font-bold;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          @include button-text-sm;
-
-          &:hover {
-            background: $button-primary-hover;
-          }
         }
       }
     }

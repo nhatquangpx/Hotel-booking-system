@@ -642,7 +642,7 @@ const HotelFormDialog = ({
           <div className="form-group-policies">
             <label>Chính sách</label>
             <div className="policies-inputs">
-              <div className="policy-item">
+              <div className="policy-item policy-item--time">
                 <input
                   type="time"
                   id="policies.checkInTime"
@@ -652,7 +652,7 @@ const HotelFormDialog = ({
                 />
                 <label htmlFor="policies.checkInTime">Giờ nhận phòng</label>
               </div>
-              <div className="policy-item">
+              <div className="policy-item policy-item--time">
                 <input
                   type="time"
                   id="policies.checkOutTime"
@@ -662,7 +662,7 @@ const HotelFormDialog = ({
                 />
                 <label htmlFor="policies.checkOutTime">Giờ trả phòng</label>
               </div>
-              <div className="policy-item">
+              <div className="policy-item policy-item--refund-days">
                 <input
                   type="number"
                   id="policies.refundMinDaysBeforeCheckIn"

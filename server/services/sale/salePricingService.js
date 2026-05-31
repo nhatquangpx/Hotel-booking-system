@@ -45,16 +45,52 @@ function computeStaySalePricingFromSales(room, checkIn, checkOut, sales = []) {
   let basePrice = 0;
   let discountAmount = 0;
   const discountBySaleId = new Map();
+  const salePeriodCounts = new Map();
+  const nightBreakdown = [];
 
   for (const nightKey of nights) {
     basePrice += nightlyBase;
     const best = pickBestSaleForNight(sales, room.type, nightKey);
-    if (!best || nightlyBase <= 0) continue;
-    const nightDisc = Math.round((nightlyBase * best.discountPercent) / 100);
-    discountAmount += nightDisc;
-    const sid = String(best._id);
-    discountBySaleId.set(sid, (discountBySaleId.get(sid) || 0) + nightDisc);
+    let nightDisc = 0;
+    if (best && nightlyBase > 0) {
+      nightDisc = Math.round((nightlyBase * best.discountPercent) / 100);
+      discountAmount += nightDisc;
+      const sid = String(best._id);
+      discountBySaleId.set(sid, (discountBySaleId.get(sid) || 0) + nightDisc);
+      if (!salePeriodCounts.has(sid)) {
+        salePeriodCounts.set(sid, {
+          saleId: sid,
+          title: best.title,
+          startDate: best.startDate,
+          endDate: best.endDate,
+          discountPercent: best.discountPercent,
+          scope: best.scope,
+          roomType: best.roomType,
+          nightsApplied: 0,
+        });
+      }
+      salePeriodCounts.get(sid).nightsApplied += 1;
+    }
+
+    nightBreakdown.push({
+      date: nightKey,
+      nightlyBase,
+      discountPercent: best?.discountPercent ?? 0,
+      discountAmount: nightDisc,
+      finalNightly: nightlyBase - nightDisc,
+      onSale: nightDisc > 0,
+      saleTitle: best?.title ?? null,
+      saleStartDate: best?.startDate ?? null,
+      saleEndDate: best?.endDate ?? null,
+    });
   }
+
+  const nightsOnSale = nightBreakdown.filter((n) => n.onSale).length;
+  const nightsRegularPrice = nights.length - nightsOnSale;
+  const mixedSalePricing = nightsOnSale > 0 && nightsRegularPrice > 0;
+  const salePeriods = Array.from(salePeriodCounts.values()).sort(
+    (a, b) => b.nightsApplied - a.nightsApplied
+  );
 
   let dominantSale = null;
   let maxContrib = 0;
@@ -90,6 +126,11 @@ function computeStaySalePricingFromSales(room, checkIn, checkOut, sales = []) {
     displayPercentOff,
     finalNightly:
       nights.length > 0 ? Math.round(finalAmount / nights.length) : finalAmount,
+    nightBreakdown,
+    salePeriods,
+    nightsOnSale,
+    nightsRegularPrice,
+    mixedSalePricing,
   };
 }
 
