@@ -75,12 +75,12 @@ export default function AppRoutes() {
         <Route path={ROUTES.LOGIN} element={<AuthLoginPage />} />
         <Route path={ROUTES.FORGOT_PASSWORD} element={<AuthForgotPasswordPage />} />
 
-        <Route path={ROUTES.profile.pattern} element={<GuestProfileAccountPage />} />
-        <Route path={ROUTES.profileEdit.pattern} element={<GuestProfileEditPage />} />
-        <Route path={ROUTES.profileChangePassword.pattern} element={<GuestProfileChangePasswordPage />} />
+        <Route path={ROUTES.PROFILE} element={<GuestProfileAccountPage />} />
+        <Route path={ROUTES.PROFILE_EDIT} element={<GuestProfileEditPage />} />
+        <Route path={ROUTES.PROFILE_CHANGE_PASSWORD} element={<GuestProfileChangePasswordPage />} />
 
         <Route path={ROUTES.HOTELS} element={<GuestHotelListPage />} />
-        <Route path={ROUTES.hotelDetail.pattern} element={<GuestHotelDetailPage />} />
+        <Route path={ROUTES.HOTEL_DETAIL} element={<GuestHotelDetailPage />} />
 
         <Route path={ROUTES.BOOKING_NEW} element={<GuestBookingPage />} />
         <Route path={ROUTES.MY_BOOKINGS} element={<GuestMyBookingsPage />} />

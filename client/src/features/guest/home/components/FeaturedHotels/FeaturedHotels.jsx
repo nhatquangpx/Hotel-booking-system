@@ -6,6 +6,7 @@ import { Rating } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { LoadingSpinner, ErrorMessage } from '@/components';
 import { getImageUrl } from '@/constants/images';
+import { hotelDetailPath } from '@/constants/routes';
 import { HotelWishlistButton } from '@/features/guest/hotels/components/HotelWishlistButton';
 import { useGuestWishlist } from '@/features/guest/hooks';
 import api from '@/apis';
@@ -107,7 +108,7 @@ const FeaturedHotels = () => {
         
         <div className="featured-hotels-list">
           {visibleHotels.map((hotel) => (
-            <Link to={`/hotels/${hotel._id}`} key={hotel._id}>
+            <Link to={hotelDetailPath(hotel._id)} key={hotel._id}>
               <div className="hotel-card">
                 <div className="hotel-image">
                   <img 

@@ -1,12 +1,11 @@
 import React from "react";
 import "./Footer.scss";
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from "react-redux";
 import { IMAGE_PATHS } from '@/constants/images';
+import { ROUTES } from '@/constants/routes';
 
 function Footer() {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user.user);
 
   const handleCityClick = (cityName) => {
     navigate(`/hotels?city=${encodeURIComponent(cityName)}`);
@@ -53,7 +52,7 @@ function Footer() {
               <Link to="/my-bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <li>Đặt phòng của tôi</li>
               </Link>
-              <Link to={`/profile/${user?.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link to={ROUTES.PROFILE} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <li>Tài khoản</li>
               </Link>
             </ul>

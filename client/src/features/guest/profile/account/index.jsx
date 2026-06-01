@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AccountCircle, Edit, Lock } from '@mui/icons-material';
+import { ROUTES } from '@/constants/routes';
 import ProfileLayout from '../components/ProfileLayout';
 import api from '../../../../apis';
 import './Account.scss';
@@ -26,7 +27,7 @@ const GuestProfileAccountPage = () => {
       if (!user) return;
       
       try {
-        const data = await api.user.getUserProfile(user.id);
+        const data = await api.user.getUserProfile();
         setUserData(prev => ({
           ...prev,
           ...data
@@ -58,22 +59,22 @@ const GuestProfileAccountPage = () => {
         <div className="account-content">
           <div className="sidebar">
             <Link 
-              to={`/profile/${user.id}`} 
-              className={`menu-item ${location.pathname === `/profile/${user.id}` ? 'active' : ''}`}
+              to={ROUTES.PROFILE} 
+              className={`menu-item ${location.pathname === ROUTES.PROFILE ? 'active' : ''}`}
             >
               <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
               Thông tin cá nhân
             </Link>
             <Link 
-              to={`/profile/${user.id}/edit`} 
-              className={`menu-item ${location.pathname === `/profile/${user.id}/edit` ? 'active' : ''}`}
+              to={ROUTES.PROFILE_EDIT} 
+              className={`menu-item ${location.pathname === ROUTES.PROFILE_EDIT ? 'active' : ''}`}
             >
               <Edit sx={{ fontSize: 20, marginRight: 1 }} />
               Chỉnh sửa thông tin
             </Link>
             <Link 
-              to={`/profile/${user.id}/changepassword`} 
-              className={`menu-item ${location.pathname === `/profile/${user.id}/changepassword` ? 'active' : ''}`}
+              to={ROUTES.PROFILE_CHANGE_PASSWORD} 
+              className={`menu-item ${location.pathname === ROUTES.PROFILE_CHANGE_PASSWORD ? 'active' : ''}`}
             >
               <Lock sx={{ fontSize: 20, marginRight: 1 }} />
               Đổi mật khẩu
@@ -116,4 +117,3 @@ const GuestProfileAccountPage = () => {
 };
 
 export default GuestProfileAccountPage;
-

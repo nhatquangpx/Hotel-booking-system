@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AccountCircle, Edit, Lock } from '@mui/icons-material';
+import { ROUTES } from '@/constants/routes';
 import ProfileLayout from '../components/ProfileLayout';
 import api from '../../../../apis';
 import '../account/Account.scss';
@@ -80,13 +81,13 @@ const GuestProfileChangePasswordPage = () => {
 
     setLoading(true);
     try {
-      await api.user.changePassword(user.id, {
+      await api.user.changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });
       
       toast.success('Đổi mật khẩu thành công!');
-      navigate(`/profile/${user.id}`);
+      navigate(ROUTES.PROFILE);
     } catch (error) {
       if (error.message === 'Mật khẩu hiện tại không chính xác!') {
         setErrors(prev => ({
@@ -117,21 +118,21 @@ const GuestProfileChangePasswordPage = () => {
         <div className="account-content">
           <div className="sidebar">
             <Link 
-              to={`/profile/${user.id}`} 
+              to={ROUTES.PROFILE} 
               className="menu-item"
             >
               <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
               Thông tin cá nhân
             </Link>
             <Link 
-              to={`/profile/${user.id}/edit`} 
+              to={ROUTES.PROFILE_EDIT} 
               className="menu-item"
             >
               <Edit sx={{ fontSize: 20, marginRight: 1 }} />
               Chỉnh sửa thông tin
             </Link>
             <Link 
-              to={`/profile/${user.id}/changepassword`} 
+              to={ROUTES.PROFILE_CHANGE_PASSWORD} 
               className="menu-item active"
             >
               <Lock sx={{ fontSize: 20, marginRight: 1 }} />
