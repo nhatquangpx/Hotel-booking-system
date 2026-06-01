@@ -134,20 +134,14 @@ const Header = ({
                 {displayUser && (
                   <>
                     <Link
-                      to={profilePathForRole(
-                        displayUser.role,
-                        displayUser._id || displayUser.id
-                      )}
+                      to={profilePathForRole(displayUser.role)}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaUser />
                       Thông tin tài khoản
                     </Link>
                     <Link
-                      to={profileChangePasswordPathForRole(
-                        displayUser.role,
-                        displayUser._id || displayUser.id
-                      )}
+                      to={profileChangePasswordPathForRole(displayUser.role)}
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaKey />

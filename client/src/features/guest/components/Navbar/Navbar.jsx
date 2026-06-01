@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { performLogout } from '@/shared/utils/authSession'
 import { ROLES } from '@/constants/roles'
+import { ROUTES } from '@/constants/routes'
 import { IMAGE_PATHS } from '@/constants/images'
 import { NotificationBell } from '@/features/notifications'
 import "./Navbar.scss"
@@ -121,7 +122,7 @@ export const Navbar = () => {
                     Danh sách yêu thích
                   </Link>
                 )}
-                <Link to={`/profile/${user.id}`} onClick={() => setDropdownMenu(false)}>
+                <Link to={ROUTES.PROFILE} onClick={() => setDropdownMenu(false)}>
                   <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
                   Thông tin cá nhân
                 </Link>

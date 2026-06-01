@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { AccountCircle, Edit, Lock } from '@mui/icons-material';
+import { ROUTES } from '@/constants/routes';
 import ProfileLayout from '../components/ProfileLayout';
 import api from '../../../../apis';
 import '../account/Account.scss';
@@ -28,7 +29,7 @@ const GuestProfileEditPage = () => {
       if (!user) return;
       
       try {
-        const data = await api.user.getUserProfile(user.id);
+        const data = await api.user.getUserProfile();
         setFormData({
           name: data.name || '',
           phone: data.phone || '',
@@ -57,12 +58,12 @@ const GuestProfileEditPage = () => {
     setLoading(true);
 
     try {
-      const response = await api.user.updateUserProfile(user.id, {
+      await api.user.updateUserProfile({
         name: formData.name,
         phone: formData.phone,
       });
       toast.success('Cập nhật thông tin thành công!');
-      navigate(`/profile/${user.id}`);
+      navigate(ROUTES.PROFILE);
     } catch (error) {
       toast.error('Có lỗi xảy ra khi cập nhật thông tin!');
       console.error('Error updating user info:', error);
@@ -73,6 +74,17 @@ const GuestProfileEditPage = () => {
 
   if (!user) {
     return <div>Vui lòng đăng nhập để chỉnh sửa thông tin</div>;
+  }
+
+  if (initialLoading) {
+    return (
+      <ProfileLayout>
+        <div style={{ height: '100px' }} />
+        <div className="account-container">
+          <p>Đang tải...</p>
+        </div>
+      </ProfileLayout>
+    );
   }
 
   return (
@@ -87,21 +99,21 @@ const GuestProfileEditPage = () => {
         <div className="account-content">
           <div className="sidebar">
             <Link 
-              to={`/profile/${user.id}`} 
+              to={ROUTES.PROFILE} 
               className="menu-item"
             >
               <AccountCircle sx={{ fontSize: 20, marginRight: 1 }} />
               Thông tin cá nhân
             </Link>
             <Link 
-              to={`/profile/${user.id}/edit`} 
+              to={ROUTES.PROFILE_EDIT} 
               className="menu-item active"
             >
               <Edit sx={{ fontSize: 20, marginRight: 1 }} />
               Chỉnh sửa thông tin
             </Link>
             <Link 
-              to={`/profile/${user.id}/changepassword`} 
+              to={ROUTES.PROFILE_CHANGE_PASSWORD} 
               className="menu-item"
             >
               <Lock sx={{ fontSize: 20, marginRight: 1 }} />
@@ -150,7 +162,7 @@ const GuestProfileEditPage = () => {
                 <button 
                   type="button" 
                   className="secondary"
-                  onClick={() => navigate(`/profile/${user.id}`)}
+                  onClick={() => navigate(ROUTES.PROFILE)}
                 >
                   Hủy
                 </button>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '@/constants/images';
+import { hotelDetailPath } from '@/constants/routes';
 import { HotelWishlistButton } from './HotelWishlistButton';
 import './HotelCard.scss';
 
@@ -36,7 +37,7 @@ export const HotelCard = ({ hotel, isWishlisted, onWishlistedChange }) => {
             ? `${hotel.address.number || ''} ${hotel.address.street || ''}, ${hotel.address.city || ''}`
             : 'Địa chỉ không có'}
         </p>
-        <Link to={`/hotels/${hotel._id}`} className="view-details-btn">
+        <Link to={hotelDetailPath(hotel._id)} className="view-details-btn">
           Xem chi tiết
         </Link>
       </div>

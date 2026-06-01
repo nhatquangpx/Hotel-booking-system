@@ -14,7 +14,6 @@ const {
     assignStaffToHotel,
 } = require('../utils/staffHotel');
 const selfProfileService = require('../services/users');
-const { profileIdsMatch } = require('../utils/selfProfile');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -284,10 +283,6 @@ function assertSelfProfileRole(req, role) {
   return req.user?.role === role;
 }
 
-function assertGuestProfileTarget(req) {
-  return profileIdsMatch(req.params?.id, req.user?.id || req.user?._id);
-}
-
 async function respondSelfProfileUpdate(req, res) {
   try {
     const profile = await selfProfileService.updateSelfProfile(req.user.id, req.body);
@@ -362,24 +357,24 @@ exports.changeAdminPassword = async (req, res) => {
 };
 
 exports.getGuestProfile = async (req, res) => {
-  if (!assertGuestProfileTarget(req)) {
-    return res.status(403).json({ message: 'Không có quyền truy cập hồ sơ này' });
+  if (!assertSelfProfileRole(req, 'guest')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
   }
   return exports.getUserById(req, res);
 };
 
 exports.updateGuestProfile = async (req, res) => {
-  if (!assertGuestProfileTarget(req)) {
-    return res.status(403).json({ message: 'Không có quyền cập nhật hồ sơ này' });
+  if (!assertSelfProfileRole(req, 'guest')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
   }
   return respondSelfProfileUpdate(req, res);
 };
 
 exports.changeGuestPassword = async (req, res) => {
-  if (!assertGuestProfileTarget(req)) {
-    return res.status(403).json({ message: 'Không có quyền đổi mật khẩu hồ sơ này' });
+  if (!assertSelfProfileRole(req, 'guest')) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
   }
-  return respondSelfPasswordChange(req, res, req.params.id);
+  return respondSelfPasswordChange(req, res, req.user.id);
 };
 
 exports.getStaffProfile = async (req, res) => {

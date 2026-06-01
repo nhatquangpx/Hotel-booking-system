@@ -141,7 +141,7 @@ const GuestBookingPage = () => {
     const fetchBookingDetails = async () => {
       try {
         setLoading(true);
-        const guestResponse = await api.user.getUserProfile(user.id);
+        const guestResponse = await api.user.getUserProfile();
         setGuest(guestResponse);
         const hotelResponse = await api.userHotel.getHotelById(bookingData.hotelId, {
           forBooking: true

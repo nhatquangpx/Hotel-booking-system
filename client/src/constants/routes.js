@@ -1,22 +1,13 @@
 /**
  * Route path constants — đồng bộ với client/src/routes/index.jsx
  *
- * Route tĩnh: chuỗi (ROUTES.HOME).
- * Route động: hàm build URL + `.pattern` cho <Route path={...} />.
- *   Ví dụ: navigate(ROUTES.profile(userId)) — Route path={ROUTES.profile.pattern}
+ * Route tĩnh: ROUTES.HOME, ROUTES.HOTELS, ...
+ * Route có tham số: pattern trong ROUTES (vd. HOTEL_DETAIL) + hotelDetailPath(id) để navigate/Link.
  */
 
-function defineRoute(pattern) {
-  const fn = (...values) => {
-    let i = 0;
-    return pattern.replace(/:([A-Za-z]+)/g, () => {
-      const v = values[i++];
-      return v != null && v !== '' ? encodeURIComponent(String(v)) : '';
-    });
-  };
-  fn.pattern = pattern;
-  return fn;
-}
+/** Build URL chi tiết khách sạn — dùng với <Route path={ROUTES.HOTEL_DETAIL} /> */
+export const hotelDetailPath = (id) =>
+  `/hotels/${encodeURIComponent(String(id))}`;
 
 export const ROUTES = {
   // Public
@@ -31,15 +22,15 @@ export const ROUTES = {
 
   // Guest
   HOTELS: '/hotels',
-  hotelDetail: defineRoute('/hotels/:id'),
+  HOTEL_DETAIL: '/hotels/:id',
   BOOKING_NEW: '/booking/new',
   MY_BOOKINGS: '/my-bookings',
   WISHLIST: '/wishlist',
   NOTIFICATIONS: '/notifications',
   PAYMENT_VNPAY_RETURN: '/payment/vnpay-return',
-  profile: defineRoute('/profile/:id'),
-  profileEdit: defineRoute('/profile/:id/edit'),
-  profileChangePassword: defineRoute('/profile/:id/changepassword'),
+  PROFILE: '/profile',
+  PROFILE_EDIT: '/profile/edit',
+  PROFILE_CHANGE_PASSWORD: '/profile/changepassword',
 
   // Admin
   ADMIN_HOME: '/admin',
@@ -86,7 +77,7 @@ export const ROLE_HOME_ROUTES = {
   staff: ROUTES.STAFF_HOME,
 };
 
-export const profilePathForRole = (role, userId) => {
+export const profilePathForRole = (role) => {
   switch (role) {
     case 'admin':
       return ROUTES.ADMIN_PROFILE;
@@ -95,11 +86,11 @@ export const profilePathForRole = (role, userId) => {
     case 'staff':
       return ROUTES.STAFF_PROFILE;
     default:
-      return ROUTES.profile(userId);
+      return ROUTES.PROFILE;
   }
 };
 
-export const profileChangePasswordPathForRole = (role, userId) => {
+export const profileChangePasswordPathForRole = (role) => {
   switch (role) {
     case 'admin':
       return ROUTES.ADMIN_PROFILE_CHANGE_PASSWORD;
@@ -108,6 +99,6 @@ export const profileChangePasswordPathForRole = (role, userId) => {
     case 'staff':
       return ROUTES.STAFF_PROFILE_CHANGE_PASSWORD;
     default:
-      return ROUTES.profileChangePassword(userId);
+      return ROUTES.PROFILE_CHANGE_PASSWORD;
   }
 };
