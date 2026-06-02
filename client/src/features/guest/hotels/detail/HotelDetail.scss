@@ -2,6 +2,21 @@
 @use "@/styles/global" as *;
 @use "@/styles/text" as *;
 
+.hotel-unavailable-banner {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  font-size: 0.95rem;
+  line-height: 1.5;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
 .hotel-detail-container {
   max-width: 1200px;
   margin: 0 auto;

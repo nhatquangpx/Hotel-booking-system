@@ -496,7 +496,7 @@ const HotelFormDialog = ({
                 required
               >
                 <option value="active">Hoạt động</option>
-                <option value="inactive">Ngừng hoạt động</option>
+                <option value="inactive">Dừng hoạt động</option>
                 <option value="maintenance">Bảo trì</option>
               </select>
             </div>

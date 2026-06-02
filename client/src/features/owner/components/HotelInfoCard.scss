@@ -9,6 +9,33 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 
+  &__status-alert {
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    line-height: 1.5;
+
+    strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.95;
+    }
+
+    &--inactive {
+      background: #f1f3f5;
+      color: #495057;
+    }
+
+    &--maintenance {
+      background: #fff4e6;
+      color: #9a3412;
+    }
+  }
+
   .hotel-image-section {
     position: relative;
     width: 100%;

@@ -6,6 +6,7 @@ import Dialog from '@/components/ui/Dialog';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
+import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
 import './HotelDetailDialog.scss';
 
 const formatAddress = (address) => {
@@ -30,15 +31,6 @@ const renderStarRating = (rating) => {
       ))}
     </>
   );
-};
-
-const getStatusLabel = (status) => {
-  switch (status) {
-    case 'active': return 'Hoạt động';
-    case 'inactive': return 'Tạm ngưng';
-    case 'maintenance': return 'Bảo trì';
-    default: return status || 'Không xác định';
-  }
 };
 
 const formatRoomType = (type) => {
@@ -141,7 +133,7 @@ const HotelDetailDialog = ({ isOpen, onClose, hotelId, onEdit }) => {
             </div>
             <div className="detail-row">
               <div className="detail-label">Trạng thái:</div>
-              <div className="detail-value">{getStatusLabel(hotel.status)}</div>
+              <div className="detail-value">{getHotelStatusLabel(hotel.status)}</div>
             </div>
             <div className="detail-row">
               <div className="detail-label">Xếp hạng:</div>

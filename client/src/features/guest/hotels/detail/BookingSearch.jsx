@@ -20,6 +20,7 @@ const BookingSearch = ({
   onSearch,
   loading,
   refundMinDaysBeforeCheckIn = 2,
+  disabled = false,
 }) => {
   const today = new Date().toISOString().split('T')[0];
   const checkOutMinFromCheckIn = bookingDates.checkInDate
@@ -28,8 +29,13 @@ const BookingSearch = ({
   const checkOutMin = [today, bookingDates.checkInDate, checkOutMinFromCheckIn].filter(Boolean).sort().pop();
 
   return (
-    <div className="booking-search">
+    <div className={`booking-search${disabled ? ' booking-search--disabled' : ''}`}>
       <h2>Tìm phòng trống</h2>
+      {disabled ? (
+        <p className="booking-search__disabled-note" role="status">
+          Khách sạn hiện không nhận đặt phòng mới. Bạn vẫn có thể xem thông tin và đánh giá bên dưới.
+        </p>
+      ) : null}
         <div className="booking-search__hint">
         <p>
           <strong>Đặt phòng:</strong> ngày trả phòng phải sau ngày nhận phòng (tối thiểu một đêm).
@@ -54,6 +60,7 @@ const BookingSearch = ({
             value={bookingDates.checkInDate}
             onChange={onDateChange}
             min={today}
+            disabled={disabled}
           />
         </div>
         <div className="date-field">
@@ -65,11 +72,12 @@ const BookingSearch = ({
             value={bookingDates.checkOutDate}
             onChange={onDateChange}
             min={checkOutMin || today}
+            disabled={disabled}
           />
         </div>
         <button 
           onClick={onSearch}
-          disabled={!bookingDates.checkInDate || !bookingDates.checkOutDate || loading}
+          disabled={disabled || !bookingDates.checkInDate || !bookingDates.checkOutDate || loading}
           className="search-btn"
         >
           {loading ? 'Đang tìm...' : 'Tìm phòng'}

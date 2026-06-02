@@ -15,6 +15,11 @@ import BookingModal from './BookingModal';
 import HotelContact from './HotelContact';
 import HotelReviews from './HotelReviews';
 import { getEffectiveRefundMinDaysBeforeCheckIn } from '@/shared/utils/hotelPolicies';
+import {
+  isGuestBookableHotel,
+  getHotelStatusLabel,
+  getHotelStatusBannerMessage,
+} from '@/shared/utils/hotelStatus';
 import './HotelDetail.scss';
 
 /**
@@ -117,7 +122,18 @@ const GuestHotelDetailPage = () => {
     });
   };
 
+  const guestBookable =
+    hotel?.guestBookable !== undefined ? hotel.guestBookable : isGuestBookableHotel(hotel);
+
   const searchAvailableRooms = async () => {
+    if (!guestBookable) {
+      setRoomSearchError(
+        getHotelStatusBannerMessage(hotel?.status) ||
+          'Khách sạn hiện không nhận đặt phòng mới.'
+      );
+      return;
+    }
+
     if (!isAuthenticated) {
       setRoomSearchError(null);
       setShowLoginModal(true);
@@ -227,6 +243,15 @@ const GuestHotelDetailPage = () => {
               isWishlisted={isWishlisted(hotel._id)}
               onWishlistedChange={applyWishlistedChange}
             />
+            {!guestBookable && (
+              <div className="hotel-unavailable-banner" role="alert">
+                <strong>{getHotelStatusLabel(hotel.status)}</strong>
+                <span>
+                  {' '}
+                  — {getHotelStatusBannerMessage(hotel.status)}
+                </span>
+              </div>
+            )}
             <HotelGallery hotel={hotel} />
             <HotelDescription hotel={hotel} />
             <HotelPolicies hotel={hotel} />
@@ -241,14 +266,17 @@ const GuestHotelDetailPage = () => {
               onSearch={searchAvailableRooms}
               loading={loading && searchPerformed}
               refundMinDaysBeforeCheckIn={getEffectiveRefundMinDaysBeforeCheckIn(hotel.policies)}
+              disabled={!guestBookable}
             />
-            <RoomList
-              rooms={rooms}
-              bookingDates={bookingDates}
-              onRoomSelect={handleRoomSelect}
-              loading={loading}
-              searchPerformed={searchPerformed}
-            />
+            {guestBookable ? (
+              <RoomList
+                rooms={rooms}
+                bookingDates={bookingDates}
+                onRoomSelect={handleRoomSelect}
+                loading={loading}
+                searchPerformed={searchPerformed}
+              />
+            ) : null}
             <BookingModal
               isOpen={showBookingModal}
               room={selectedRoom}

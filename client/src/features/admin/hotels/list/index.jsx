@@ -15,6 +15,7 @@ import HotelDetailDialog from '../components/HotelDetailDialog';
 import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import RoomDetailDialog from '../../rooms/components/RoomDetailDialog';
 import api from '../../../../apis';
+import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
 import './HotelList.scss';
 
 /**
@@ -84,20 +85,6 @@ const AdminHotelListPage = () => {
       return contactInfo.phone || contactInfo.email || 'Không có thông tin';
     }
     return contactInfo;
-  };
-
-  const getStatusLabel = (status) => {
-    if (!status) return 'Không xác định';
-    switch (status) {
-      case 'active':
-        return 'Hoạt động';
-      case 'inactive':
-        return 'Tạm ngưng';
-      case 'maintenance':
-        return 'Bảo trì';
-      default:
-        return status;
-    }
   };
 
   const renderStarRating = (rating) => {
@@ -396,7 +383,7 @@ const AdminHotelListPage = () => {
                     </td>
                     <td className="col-status">
                       <span className={`status-badge ${hotel.status}`}>
-                        {getStatusLabel(hotel.status)}
+                        {getHotelStatusLabel(hotel.status)}
                       </span>
                     </td>
                     <td className="col-actions">

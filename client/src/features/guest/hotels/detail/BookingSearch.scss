@@ -17,6 +17,23 @@
     padding-bottom: 10px;
   }
 
+  &__disabled-note {
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: #fff3cd;
+    color: #856404;
+    @include body-sm;
+  }
+
+  &--disabled {
+    opacity: 0.92;
+
+    .booking-search__hint {
+      opacity: 0.75;
+    }
+  }
+
   &__hint {
     @include body-base;
     margin: -8px 0 16px;
