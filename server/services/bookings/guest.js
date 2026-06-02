@@ -11,6 +11,7 @@ const {
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus
 } = require("./core");
+const { isGuestBookableHotelStatus } = require("../../utils/hotelStatus");
 const {
   computeStaySalePricing,
   computeStaySalePricingFromSales,
@@ -61,6 +62,12 @@ const createBooking = async (bookingData, guestId) => {
   const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
+  }
+
+  if (!isGuestBookableHotelStatus(hotel.status)) {
+    const err = new Error("Khách sạn hiện không nhận đặt phòng mới.");
+    err.statusCode = 400;
+    throw err;
   }
 
   const dateValidation = validateBookingDates(checkInDate, checkOutDate);

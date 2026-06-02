@@ -14,6 +14,7 @@ const {
     assignStaffToHotel,
 } = require('../utils/staffHotel');
 const selfProfileService = require('../services/users');
+const { isGuestBookableHotelStatus } = require('../utils/hotelStatus');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -405,7 +406,15 @@ exports.getWishlist = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'Người dùng không tồn tại!' });
     }
-    const hotels = (user.wishlist || []).filter((h) => h && h._id);
+    const hotels = (user.wishlist || [])
+      .filter((h) => h && h._id)
+      .map((h) => {
+        const plain = h.toObject ? h.toObject() : { ...h };
+        return {
+          ...plain,
+          guestBookable: isGuestBookableHotelStatus(plain.status),
+        };
+      });
     res.status(200).json({ hotels });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi khi lấy danh sách yêu thích!', error: err.message });
@@ -441,6 +450,11 @@ exports.toggleWishlist = async (req, res) => {
     if (wasIn) {
       user.wishlist = user.wishlist.filter((id) => !id.equals(hid));
     } else {
+      if (!isGuestBookableHotelStatus(hotel.status)) {
+        return res.status(400).json({
+          message: 'Chỉ có thể lưu khách sạn đang hoạt động vào danh sách yêu thích.',
+        });
+      }
       user.wishlist.push(hid);
     }
     await user.save();

@@ -1,7 +1,9 @@
 const Booking = require("../../models/Booking");
 const Review = require("../../models/Review");
+const Hotel = require("../../models/Hotel");
 const Notification = require("../../models/Notification");
 const { createHotelNotification } = require("./core");
+const { getHotelStatusLabel } = require("../../utils/hotelStatus");
 
 /** Sự kiện vận hành KS → createHotelNotification (recipientRole: hotel). */
 
@@ -202,7 +204,49 @@ const checkNoShowBookings = async () => {
   }
 };
 
+/** Admin đổi trạng thái KS — thông báo owner + staff qua kênh hotel. */
+const notifyHotelStatusChanged = async (hotelId, previousStatus, newStatus) => {
+  try {
+    if (!hotelId || previousStatus === newStatus) return;
+
+    const hotel = await Hotel.findById(hotelId).select("name status");
+    if (!hotel) return;
+
+    const prevLabel = getHotelStatusLabel(previousStatus);
+    const newLabel = getHotelStatusLabel(newStatus);
+
+    let title;
+    let message;
+
+    if (newStatus === "active") {
+      title = "Khách sạn được kích hoạt lại";
+      message = `Quản trị viên đã chuyển trạng thái "${hotel.name}" từ ${prevLabel} sang ${newLabel}. Khách sạn hiển thị lại với khách và có thể nhận đặt phòng mới.`;
+    } else if (newStatus === "maintenance") {
+      title = "Khách sạn đang bảo trì";
+      message = `Quản trị viên đã chuyển trạng thái "${hotel.name}" sang ${newLabel}. Khách sạn tạm ẩn với khách trong thời gian bảo trì và chưa nhận đặt phòng mới.`;
+    } else if (newStatus === "inactive") {
+      title = "Khách sạn dừng hoạt động";
+      message = `Quản trị viên đã chuyển trạng thái "${hotel.name}" sang ${newLabel}. Khách sạn không còn hiển thị với khách và không nhận đặt phòng mới.`;
+    } else {
+      title = "Trạng thái khách sạn đã thay đổi";
+      message = `Quản trị viên đã chuyển trạng thái "${hotel.name}" từ ${prevLabel} sang ${newLabel}.`;
+    }
+
+    await createHotelNotification(
+      hotelId,
+      "hotel_status_changed",
+      title,
+      message,
+      hotelId,
+      "Hotel"
+    );
+  } catch (error) {
+    console.error("Lỗi khi tạo thông báo đổi trạng thái khách sạn:", error);
+  }
+};
+
 module.exports = {
+  notifyHotelStatusChanged,
   notifyPaymentSuccessful,
   notifyBookingCancelled,
   notifyCheckIn,

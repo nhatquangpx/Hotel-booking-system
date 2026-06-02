@@ -4,6 +4,7 @@ import Dialog from '@/components/ui/Dialog';
 import { getImageUrl } from '@/constants/images';
 import ImageSlider from './ImageSlider';
 import ImageModal from './ImageModal';
+import { getHotelStatusLabel, getHotelStatusBannerMessage } from '@/shared/utils/hotelStatus';
 import './HotelInfoCard.scss';
 
 /**
@@ -47,6 +48,9 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
     String(qrPayment.qrImageUrl || '').trim()
   );
   const vnpayReady = Boolean(vnpayPayment.isConfigured);
+  const hotelStatus = hotel?.status || 'active';
+  const isOperational = hotelStatus === 'active';
+  const statusBannerMessage = !isOperational ? getHotelStatusBannerMessage(hotelStatus) : '';
 
   const handleImageClick = (index) => {
     setModalIndex(index);
@@ -55,6 +59,12 @@ const HotelInfoCard = ({ hotel, onEdit }) => {
 
   return (
     <div className="hotel-info-card">
+      {!isOperational && (
+        <div className={`hotel-info-card__status-alert hotel-info-card__status-alert--${hotelStatus}`} role="alert">
+          <strong>Trạng thái: {getHotelStatusLabel(hotelStatus)}</strong>
+          <p>{statusBannerMessage} Quản trị viên đã thay đổi trạng thái — vui lòng kiểm tra thông báo để biết chi tiết.</p>
+        </div>
+      )}
       <div className="hotel-image-section">
         {images.length > 1 ? (
           <ImageSlider 

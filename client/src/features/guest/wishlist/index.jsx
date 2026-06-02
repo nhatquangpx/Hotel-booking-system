@@ -57,7 +57,8 @@ const GuestWishlistPage = () => {
       <div className="guest-wishlist">
         <h1 className="guest-wishlist__title">Danh sách yêu thích</h1>
         <p className="guest-wishlist__subtitle">
-          Các khách sạn bạn đã lưu. Nhấn trái tim trên thẻ để bỏ lưu.
+          Các khách sạn bạn đã lưu. Khách sạn dừng hoạt động hoặc đang bảo trì vẫn hiển thị ở đây
+          nhưng không thể đặt phòng cho đến khi khách sạn hoạt động trở lại.
         </p>
 
         {loading && <div className="guest-wishlist__state">Đang tải...</div>}

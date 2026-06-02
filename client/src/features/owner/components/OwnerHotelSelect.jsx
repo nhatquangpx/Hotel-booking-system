@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaHotel, FaChevronDown } from 'react-icons/fa';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
+import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
 import './OwnerHotelSelect.scss';
 
 /**
@@ -34,18 +35,25 @@ const OwnerHotelSelect = () => {
     );
   }
 
+  const formatHotelOptionLabel = (h) => {
+    const status = h.status || 'active';
+    if (status === 'active') return h.name;
+    return `${h.name} — ${getHotelStatusLabel(status)}`;
+  };
+
   if (hotels.length === 1) {
+    const single = hotels[0];
     return (
       <div
         className="owner-hotel-select owner-hotel-select--single"
-        title={hotels[0].name}
+        title={formatHotelOptionLabel(single)}
       >
         <span className="owner-hotel-select__icon-wrap" aria-hidden>
           <FaHotel className="owner-hotel-select__icon" />
         </span>
         <div className="owner-hotel-select__text">
           <span className="owner-hotel-select__hint">Đang quản lý</span>
-          <span className="owner-hotel-select__name">{hotels[0].name}</span>
+          <span className="owner-hotel-select__name">{formatHotelOptionLabel(single)}</span>
         </div>
       </div>
     );
@@ -67,7 +75,7 @@ const OwnerHotelSelect = () => {
           >
             {hotels.map((h) => (
               <option key={h._id} value={h._id}>
-                {h.name}
+                {formatHotelOptionLabel(h)}
               </option>
             ))}
           </select>

@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 const { resolveEffectiveQrConfig } = require("../utils/paymentQrConfig");
 const { isVnpayConfigComplete } = require("../utils/hotelPaymentConfig");
 const { normalizeRefundMinDaysBeforeCheckIn } = require("../services/bookings/core");
+const { isGuestBookableHotelStatus } = require("../utils/hotelStatus");
+const { notifyHotelStatusChanged } = require("../services/notifications/owner");
 
 function isQrConfigComplete(qr) {
   return Boolean(
@@ -213,6 +215,15 @@ exports.getHotelById = async (req, res) => {
     if (!hotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
     }
+
+    const attachGuestBookableFlag = (payload) => {
+      if (req.baseUrl !== "/api/guest") return payload;
+      return {
+        ...payload,
+        guestBookable: isGuestBookableHotelStatus(hotel.status),
+      };
+    };
+
     if (shouldExposePaymentConfig(req)) {
       const guestBookingQr =
         isGuestHotelByIdRequest(req) && req.query.forBooking === "true";
@@ -220,11 +231,11 @@ exports.getHotelById = async (req, res) => {
         req,
         sanitizeHotelPaymentConfigResponse(hotel, { guestBookingQr })
       );
-      return res.status(200).json(body);
+      return res.status(200).json(attachGuestBookableFlag(body));
     }
 
     const plainHotel = hotel.toObject ? hotel.toObject() : { ...hotel };
-    res.status(200).json(applyGuestHotelPayloadSanitize(req, plainHotel));
+    res.status(200).json(attachGuestBookableFlag(applyGuestHotelPayloadSanitize(req, plainHotel)));
   } catch (error) {
     console.error("Lỗi khi lấy thông tin khách sạn:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin khách sạn", error: error.message });
@@ -360,7 +371,7 @@ exports.updateHotel = async (req, res) => {
     console.log("Files:", req.files);
 
     const existingHotel = await Hotel.findById(req.params.id).select(
-      "images " + Hotel.PAYMENT_CONFIG_SELECT
+      "images status policies " + Hotel.PAYMENT_CONFIG_SELECT
     );
     if (!existingHotel) {
       return res.status(404).json({ message: "Không tìm thấy khách sạn" });
@@ -375,7 +386,9 @@ exports.updateHotel = async (req, res) => {
     if (req.body.name) updateData.name = req.body.name;
     if (req.body.description) updateData.description = req.body.description;
     if (req.body.starRating) updateData.starRating = parseInt(req.body.starRating);
-    if (req.body.status) updateData.status = req.body.status;
+    if (req.body.status && req.user?.role === "admin") {
+      updateData.status = req.body.status;
+    }
 
     // Admin được phép đổi chủ khách sạn
     if (req.body.ownerId && req.user?.role === "admin") {
@@ -576,6 +589,8 @@ exports.updateHotel = async (req, res) => {
       updateData.images = [...existingImages, ...newImages];
     }
 
+    const previousStatus = existingHotel.status || "active";
+
     const updatedHotel = await Hotel.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
@@ -583,6 +598,15 @@ exports.updateHotel = async (req, res) => {
     ).select(Hotel.PAYMENT_CONFIG_SELECT);
     
     console.log(`Đã cập nhật khách sạn thành công: ${req.params.id} (${updatedHotel?.name})`);
+
+    if (
+      updateData.status &&
+      updateData.status !== previousStatus &&
+      req.user?.role === "admin"
+    ) {
+      await notifyHotelStatusChanged(updatedHotel._id, previousStatus, updateData.status);
+    }
+
     res.status(200).json(sanitizeHotelPaymentConfigResponse(updatedHotel));
   } catch (error) {
     console.error("Lỗi khi cập nhật khách sạn:", error);

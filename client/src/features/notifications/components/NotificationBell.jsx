@@ -63,6 +63,8 @@ const NotificationBell = () => {
         return <FaUser />;
       case 'negative_review':
         return <FaExclamationTriangle style={{ color: '#dc3545' }} />;
+      case 'hotel_status_changed':
+        return <FaExclamationTriangle style={{ color: '#e67e22' }} />;
       default:
         return <FaBell />;
     }

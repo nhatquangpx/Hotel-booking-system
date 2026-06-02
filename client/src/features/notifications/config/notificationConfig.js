@@ -20,7 +20,8 @@ export const notificationConfig = {
       'checkout_today',
       'new_review',
       'negative_review',
-      'room_availability'
+      'room_availability',
+      'hotel_status_changed'
     ]
   },
   admin: {
@@ -58,7 +59,8 @@ export const notificationConfig = {
       'checkin_today',
       'checkout_today',
       'new_review',
-      'negative_review'
+      'negative_review',
+      'hotel_status_changed'
     ]
   },
   guest: {
@@ -119,6 +121,9 @@ export const getNotificationPath = (notification, role) => {
     
     case 'new_hotel':
       return config.routes.hotel ? config.routes.hotel(notification.relatedId) : config.routes.list;
+
+    case 'hotel_status_changed':
+      return config.routes.list;
     
     case 'promotion':
     case 'security_alert':

@@ -44,6 +44,7 @@ const NotificationSchema = new mongoose.Schema(
         "checkout_today",
         "checkin_today",
         "no_show",
+        "hotel_status_changed",
         // Guest notifications
         "booking_confirmed",
         "payment_reminder",
