@@ -69,6 +69,19 @@ const BookingSchema = new mongoose.Schema(
     qrPaymentProofUrl: {
       type: String
     },
+    /** Chủ KS từ chối minh chứng QR (đơn chưa thanh toán, khách đã gửi minh chứng). */
+    ownerPaymentRejectedAt: {
+      type: Date
+    },
+    ownerPaymentRejectionReason: {
+      type: String,
+      trim: true
+    },
+    /** Loại từ chối QR: invalid_proof | payment_not_successful */
+    ownerQrRejectionType: {
+      type: String,
+      enum: ["invalid_proof", "payment_not_successful"],
+    },
     specialRequests: {
       type: String
     },

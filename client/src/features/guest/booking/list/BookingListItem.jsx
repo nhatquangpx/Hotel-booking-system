@@ -1,5 +1,5 @@
 import { getImageUrl } from '@/constants/images';
-import { formatDate } from '@/shared/utils';
+import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled } from '@/shared/utils';
 
 const BookingListItem = ({
   booking,
@@ -21,6 +21,27 @@ const BookingListItem = ({
         </div>
         <div className="booking-status">{statusNode}</div>
       </div>
+
+      {needsQrProofResubmit(booking) && (
+        <div className="booking-rejection-notice booking-rejection-notice--resubmit">
+          <strong>Cần tải lại minh chứng:</strong> {booking.ownerPaymentRejectionReason || 'Minh chứng không hợp lệ'}
+        </div>
+      )}
+
+      {isQrPaymentRejectedCancelled(booking) && (
+        <div className="booking-rejection-notice">
+          <strong>Đơn đã bị hủy:</strong> {booking.ownerPaymentRejectionReason || 'Thanh toán chưa thành công'}.
+          Vui lòng đặt phòng mới nếu vẫn có nhu cầu.
+        </div>
+      )}
+
+      {booking.ownerPaymentRejectionReason &&
+        !needsQrProofResubmit(booking) &&
+        !isQrPaymentRejectedCancelled(booking) && (
+        <div className="booking-rejection-notice">
+          <strong>Thông báo từ khách sạn:</strong> {booking.ownerPaymentRejectionReason}
+        </div>
+      )}
 
       <div className="booking-details">
         <div className="room-info">

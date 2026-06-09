@@ -9,8 +9,9 @@ const {
   refreshRoomBookingStatus,
 } = require("./core");
 const { checkInBooking, checkOutBooking } = require("./hotelTeam");
-const { notifyGuestRefundProcessed } = require("../notifications/guest");
-const { sendRefundProcessedEmail } = require("../emails");
+const { notifyGuestRefundProcessed, notifyGuestQrPaymentRejected, notifyGuestQrProofResubmitRequired } = require("../notifications/guest");
+const { sendRefundProcessedEmail, sendQrPaymentRejectedEmail, sendQrProofResubmitEmail } = require("../emails");
+const { getQrRejectionMessage } = require("./qrPaymentRejection");
 
 const resolveProofImageUrl = (file) => {
   if (!file) return "";
@@ -260,12 +261,110 @@ const confirmGuestRefund = async (bookingId, user, refundProofFile) => {
   return populated;
 };
 
+/**
+ * Chủ KS xử lý minh chứng QR không đạt:
+ * - invalid_proof: yêu cầu khách tải lại minh chứng (đơn vẫn pending)
+ * - payment_not_successful: hủy đơn, khách cần đặt lại
+ */
+const rejectQrPayment = async (bookingId, user, rejectionType) => {
+  const type = String(rejectionType || "").trim();
+  const reason = getQrRejectionMessage(type);
+  if (!reason) {
+    const err = new Error("Loại từ chối không hợp lệ.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const booking = await Booking.findById(bookingId).populate({
+    path: "hotel",
+    select: "ownerId name"
+  });
+
+  if (!booking) {
+    throw new Error("Đơn đặt phòng không tồn tại");
+  }
+
+  if (!checkBookingPermission(booking, user)) {
+    throw new Error("Bạn không có quyền thực hiện thao tác này");
+  }
+
+  if (booking.paymentMethod !== "qr_code") {
+    throw new Error("Chỉ áp dụng cho đơn thanh toán QR.");
+  }
+
+  if (booking.paymentStatus !== "pending") {
+    throw new Error("Chỉ có thể xử lý đơn đang chờ xác nhận thanh toán.");
+  }
+
+  if (!booking.qrPaymentReportedAt) {
+    throw new Error("Khách chưa gửi minh chứng chuyển khoản.");
+  }
+
+  const latestTransaction = await PaymentTransaction.findOne({
+    booking: booking._id,
+    paymentMethod: "qr_code"
+  }).sort({ createdAt: -1 });
+
+  booking.ownerPaymentRejectedAt = new Date();
+  booking.ownerPaymentRejectionReason = reason;
+  booking.ownerQrRejectionType = type;
+
+  if (type === "invalid_proof") {
+    booking.qrPaymentReportedAt = undefined;
+    booking.qrPaymentProofUrl = undefined;
+    await booking.save();
+
+    if (latestTransaction) {
+      latestTransaction.status = "cancelled";
+      latestTransaction.errorMessage = reason;
+      await latestTransaction.save();
+    }
+
+    notifyGuestQrProofResubmitRequired(booking._id).catch((err) =>
+      console.error("Lỗi khi gửi thông báo yêu cầu tải lại minh chứng QR:", err)
+    );
+
+    const populated = await getBookingById(bookingId, user);
+    sendQrProofResubmitEmail(populated).catch((err) =>
+      console.error("Lỗi khi gửi email yêu cầu tải lại minh chứng QR:", err)
+    );
+
+    return populated;
+  }
+
+  // payment_not_successful → hủy đơn
+  booking.paymentStatus = "cancelled";
+  await booking.save();
+
+  if (latestTransaction) {
+    latestTransaction.status = "cancelled";
+    latestTransaction.errorMessage = reason;
+    await latestTransaction.save();
+  }
+
+  if (booking.room) {
+    await refreshRoomBookingStatus(booking.room);
+  }
+
+  notifyGuestQrPaymentRejected(booking._id).catch((err) =>
+    console.error("Lỗi khi gửi thông báo từ chối minh chứng QR cho khách:", err)
+  );
+
+  const populated = await getBookingById(bookingId, user);
+  sendQrPaymentRejectedEmail(populated).catch((err) =>
+    console.error("Lỗi khi gửi email từ chối minh chứng QR cho khách:", err)
+  );
+
+  return populated;
+};
+
 module.exports = {
   getBookingsByOwner,
   getBookingsByRoomForOwner,
   getBookingById,
   updateBookingStatus,
   confirmGuestRefund,
+  rejectQrPayment,
   checkIn,
   checkOut
 };

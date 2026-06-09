@@ -1,5 +1,6 @@
 import { formatDate, formatDateTime } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
+import { QR_REJECTION_OPTIONS } from './qrPaymentRejection';
 
 const OwnerBookingActionModal = ({
   show,
@@ -19,8 +20,13 @@ const OwnerBookingActionModal = ({
   showRefundProofUpload = false,
   refundProofFile = null,
   onRefundProofChange = null,
+  showRejectionTypeSelect = false,
+  rejectionType = '',
+  onRejectionTypeChange = null,
 }) => {
   if (!show || !booking) return null;
+
+  const selectedOption = QR_REJECTION_OPTIONS.find((opt) => opt.value === rejectionType);
 
   return (
     <div className="confirmation-modal-overlay" onClick={onClose}>
@@ -124,6 +130,37 @@ const OwnerBookingActionModal = ({
           </div>
         )}
 
+        {showRejectionTypeSelect && (
+          <div className="modal-rejection-reason-block">
+            <p className="rejection-reason-label">Chọn lý do (bắt buộc):</p>
+            <div className="rejection-type-options">
+              {QR_REJECTION_OPTIONS.map((option) => (
+                <label
+                  key={option.value}
+                  className={`rejection-type-option ${rejectionType === option.value ? 'selected' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="qr-rejection-type"
+                    value={option.value}
+                    checked={rejectionType === option.value}
+                    onChange={() => onRejectionTypeChange?.(option.value)}
+                  />
+                  <span className="rejection-type-option__content">
+                    <strong>{option.label}</strong>
+                    <span>{option.description}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            {selectedOption && (
+              <p className="rejection-reason-hint">
+                Khách sẽ nhận thông báo và email với lý do: <strong>{selectedOption.label}</strong>.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="modal-actions">
           <span className="modal-btn-tooltip-wrapper" title={disableReason}>
             <button
@@ -145,4 +182,3 @@ const OwnerBookingActionModal = ({
 };
 
 export default OwnerBookingActionModal;
-

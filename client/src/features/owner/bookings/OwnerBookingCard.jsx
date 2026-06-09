@@ -10,6 +10,7 @@ const OwnerBookingCard = ({
   onOpenCheckIn,
   onOpenCheckOut,
   onOpenRefund,
+  onOpenReject,
   onPreviewProof,
 }) => {
   const guest = booking.guest || {};
@@ -65,6 +66,11 @@ const OwnerBookingCard = ({
     }
 
     if (paymentStatus === 'pending') {
+      const canRejectQr =
+        booking.paymentMethod === 'qr_code' &&
+        booking.qrPaymentReportedAt &&
+        booking.qrPaymentProofUrl;
+
       return (
         <>
           <button className="status-btn pending">
@@ -72,6 +78,11 @@ const OwnerBookingCard = ({
               ? 'Khách đã báo chuyển khoản'
               : 'Chờ xác nhận'}
           </button>
+          {canRejectQr && (
+            <button type="button" className="status-btn reject" onClick={() => onOpenReject(booking)}>
+              Xử lý minh chứng
+            </button>
+          )}
           <button className="status-btn confirm" onClick={() => onOpenConfirm(booking)}>
             Xác nhận
           </button>

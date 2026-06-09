@@ -73,6 +73,8 @@ export const notificationConfig = {
     supportedTypes: [
       'booking_confirmed',
       'booking_cancelled',
+      'payment_rejected',
+      'qr_proof_resubmit',
       'payment_successful',
       'payment_reminder',
       'refund_processed',
@@ -101,6 +103,8 @@ export const getNotificationPath = (notification, role) => {
     case 'checkin_today':
     case 'checkout_today':
     case 'booking_confirmed':
+    case 'payment_rejected':
+    case 'qr_proof_resubmit':
     case 'payment_reminder':
     case 'refund_processed':
     case 'upcoming_trip_reminder':

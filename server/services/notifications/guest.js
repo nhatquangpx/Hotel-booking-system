@@ -308,11 +308,75 @@ const notifyGuestSecurityAlert = async (guestId, alertType) => {
   }
 };
 
+/**
+ * Notify guest when owner rejects QR payment (payment not successful — booking cancelled)
+ */
+const notifyGuestQrPaymentRejected = async (bookingId) => {
+  try {
+    const booking = await Booking.findById(bookingId)
+      .populate("hotel", "name")
+      .populate("guest", "name");
+
+    if (!booking || !booking.guest) {
+      return;
+    }
+
+    const guestId = booking.guest._id || booking.guest;
+    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
+    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
+
+    await createNotification(
+      guestIdStr,
+      "guest",
+      "payment_rejected",
+      "Đơn đặt phòng đã bị hủy",
+      `Khách sạn ${booking.hotel?.name || "N/A"} đã hủy đơn #BK${bookingIdShort}. Lý do: Thanh toán chưa thành công. Vui lòng đặt phòng mới nếu vẫn có nhu cầu.`,
+      bookingId,
+      "Booking"
+    );
+  } catch (error) {
+    console.error("Lỗi khi tạo thông báo từ chối minh chứng QR cho guest:", error);
+  }
+};
+
+/**
+ * Notify guest to re-upload QR payment proof (invalid proof, balance exists)
+ */
+const notifyGuestQrProofResubmitRequired = async (bookingId) => {
+  try {
+    const booking = await Booking.findById(bookingId)
+      .populate("hotel", "name")
+      .populate("guest", "name");
+
+    if (!booking || !booking.guest) {
+      return;
+    }
+
+    const guestId = booking.guest._id || booking.guest;
+    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
+    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
+
+    await createNotification(
+      guestIdStr,
+      "guest",
+      "qr_proof_resubmit",
+      "Cần tải lại minh chứng thanh toán",
+      `Khách sạn ${booking.hotel?.name || "N/A"} yêu cầu bạn tải lại minh chứng chuyển khoản cho đơn #BK${bookingIdShort}. Lý do: Minh chứng không hợp lệ.`,
+      bookingId,
+      "Booking"
+    );
+  } catch (error) {
+    console.error("Lỗi khi tạo thông báo yêu cầu tải lại minh chứng QR cho guest:", error);
+  }
+};
+
 module.exports = {
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
   notifyGuestPaymentReminder,
   notifyGuestRefundProcessed,
+  notifyGuestQrPaymentRejected,
+  notifyGuestQrProofResubmitRequired,
   notifyGuestUpcomingTrip,
   notifyGuestCheckInInstructions,
   notifyGuestReviewRequest,

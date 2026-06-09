@@ -5,6 +5,7 @@ import { GuestLayout } from '@/features/guest/components/layout';
 import BookingDetailModal from '../detail/BookingDetailModal';
 import BookingListItem from './BookingListItem';
 import api from '@/apis';
+import { needsQrProofResubmit, isQrPaymentRejectedCancelled } from '@/shared/utils';
 import { computeGuestRefundEligibility } from '@/shared/utils/hotelPolicies';
 import './MyBookings.scss';
 
@@ -115,8 +116,14 @@ const GuestMyBookingsPage = () => {
   };
 
   const renderBookingStatus = (booking) => {
-    // Nếu đã hủy
+    if (needsQrProofResubmit(booking)) {
+      return <span className="status resubmit">Cần tải lại minh chứng</span>;
+    }
+
     if (booking.paymentStatus === 'cancelled') {
+      if (isQrPaymentRejectedCancelled(booking)) {
+        return <span className="status rejected">Đã hủy</span>;
+      }
       return <span className="status cancelled">Đã hủy</span>;
     }
     

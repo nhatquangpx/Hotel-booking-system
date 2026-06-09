@@ -4,7 +4,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import BookingReview from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
-import { formatDate } from '@/shared/utils';
+import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled } from '@/shared/utils';
 
 const BookingDetailModal = ({
   show,
@@ -45,7 +45,15 @@ const BookingDetailModal = ({
   };
 
   const renderBookingStatus = (detailBooking) => {
-    if (detailBooking.paymentStatus === 'cancelled') return <span className="status cancelled">Đã hủy</span>;
+    if (needsQrProofResubmit(detailBooking)) {
+      return <span className="status resubmit">Cần tải lại minh chứng</span>;
+    }
+    if (detailBooking.paymentStatus === 'cancelled') {
+      if (isQrPaymentRejectedCancelled(detailBooking)) {
+        return <span className="status rejected">Đã hủy</span>;
+      }
+      return <span className="status cancelled">Đã hủy</span>;
+    }
     if (detailBooking.checkedOutAt) return <span className="status checked-out">Đã checkout</span>;
     if (detailBooking.checkedInAt) return <span className="status checked-in">Đã checkin</span>;
     if (detailBooking.paymentStatus === 'paid') return <span className="status paid">Đã thanh toán</span>;
@@ -203,6 +211,21 @@ const BookingDetailModal = ({
                   <p><strong>Trả phòng:</strong> {formatDate(booking.checkOutDate)}</p>
                   <p><strong>Tổng tiền:</strong> {(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</p>
                   <p><strong>Trạng thái:</strong> {renderBookingStatus(booking)}</p>
+                  {needsQrProofResubmit(booking) && (
+                    <div className="owner-rejection-notice owner-rejection-notice--resubmit">
+                      <strong>Khách sạn yêu cầu tải lại minh chứng:</strong>
+                      <p>{booking.ownerPaymentRejectionReason || 'Minh chứng không hợp lệ'}</p>
+                    </div>
+                  )}
+                  {isQrPaymentRejectedCancelled(booking) && (
+                    <div className="owner-rejection-notice">
+                      <strong>Đơn đã bị hủy:</strong>
+                      <p>
+                        {booking.ownerPaymentRejectionReason || 'Thanh toán chưa thành công'}. Vui lòng đặt phòng mới
+                        nếu vẫn có nhu cầu.
+                      </p>
+                    </div>
+                  )}
                   {booking.qrPaymentProofUrl && (
                     <button
                       type="button"
@@ -227,9 +250,11 @@ const BookingDetailModal = ({
               <div className="detail-block full payment-actions-block">
                 <h3>Thanh toán</h3>
                 <p className="payment-hint">
-                  {booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt
-                    ? 'Bạn đã báo đã chuyển khoản. Vui lòng chờ khách sạn xác nhận.'
-                    : 'Đơn chưa thanh toán. Bạn có thể tiếp tục thanh toán ngay.'}
+                  {needsQrProofResubmit(booking)
+                    ? 'Khách sạn yêu cầu bạn tải lại ảnh minh chứng chuyển khoản hợp lệ.'
+                    : booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt
+                      ? 'Bạn đã báo đã chuyển khoản. Vui lòng chờ khách sạn xác nhận.'
+                      : 'Đơn chưa thanh toán. Bạn có thể tiếp tục thanh toán ngay.'}
                 </p>
                 <div className="payment-action-buttons">
                   <button
