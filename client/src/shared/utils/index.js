@@ -10,3 +10,4 @@ export * from './reviewReply';
 export * from './roomStatus';
 export * from './postLoginRedirect';
 export * from './salePricingDisplay';
+export * from './qrPaymentRejection';

@@ -263,6 +263,9 @@ exports.confirmQrPayment = async (req, res) => {
 
         booking.qrPaymentReportedAt = new Date();
         booking.qrPaymentProofUrl = proofImageUrl;
+        booking.ownerPaymentRejectedAt = undefined;
+        booking.ownerPaymentRejectionReason = undefined;
+        booking.ownerQrRejectionType = undefined;
         await booking.save();
 
         await createPaymentTransactionWithRetry(booking, {

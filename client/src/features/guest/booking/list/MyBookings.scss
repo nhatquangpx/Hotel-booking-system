@@ -121,7 +121,37 @@
               background-color: $error;
               color: $text-white;
             }
+
+            &.rejected {
+              background-color: #c0392b;
+              color: $text-white;
+            }
+
+            &.resubmit {
+              background-color: #e67e22;
+              color: $text-white;
+            }
           }
+        }
+      }
+
+      .booking-rejection-notice {
+        margin: 0;
+        padding: 12px 20px;
+        background: #fff5f5;
+        border-bottom: 1px solid #f5c6cb;
+        color: #721c24;
+        font-size: 0.9rem;
+        line-height: 1.5;
+
+        strong {
+          display: inline;
+        }
+
+        &--resubmit {
+          background: #fff8e8;
+          border-bottom-color: #f0d9a7;
+          color: #7a5b18;
         }
       }
 
@@ -589,6 +619,26 @@
             cursor: pointer;
             @include body-sm;
             padding: 0;
+          }
+
+          .owner-rejection-notice {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            background: #fff5f5;
+            color: #721c24;
+
+            p {
+              margin: 6px 0 0;
+              white-space: pre-wrap;
+            }
+
+            &--resubmit {
+              border-color: #f0d9a7;
+              background: #fff8e8;
+              color: #7a5b18;
+            }
           }
 
           &.payment-actions-block {

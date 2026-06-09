@@ -729,8 +729,149 @@ const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
   }
 };
 
+/**
+ * Gửi email thông báo chủ KS từ chối minh chứng QR (đơn bị hủy — thanh toán chưa thành công).
+ * @param {Object} booking - Booking đã populate guest/hotel/room
+ * @returns {Promise<Boolean>}
+ */
+const sendQrPaymentRejectedEmail = async (booking) => {
+  try {
+    const guest = booking?.guest;
+    const hotel = booking?.hotel;
+    if (!guest?.email) {
+      return false;
+    }
+
+    const bookingIdShort = String(booking._id || "").slice(-8).toUpperCase();
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const bookingDetailUrl = `${frontendUrl}/my-bookings?bookingId=${booking._id}`;
+    const hotelsUrl = `${frontendUrl}/hotels`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1C1B1F;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f4f6f8;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="620" style="max-width:620px;width:100%;background:#ffffff;border:1px solid #ececec;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="padding:24px 24px 16px;background:#fff5f5;border-bottom:1px solid #f5d0d0;text-align:center;">
+                <h2 style="margin:0;font-size:22px;line-height:1.3;color:#c0392b;">Đơn đặt phòng đã bị hủy</h2>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 24px 8px;font-size:15px;line-height:1.7;color:#333;text-align:center;">
+                Đơn <strong>#BK${bookingIdShort}</strong> tại <strong>${hotel?.name || "khách sạn"}</strong> đã bị hủy.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 24px 0;" align="center">
+                <div style="padding:14px 16px;border:1px solid #f5c6cb;border-radius:8px;background:#f8d7da;text-align:left;">
+                  <p style="margin:0;font-size:14px;line-height:1.7;color:#721c24;"><strong>Lý do:</strong> Thanh toán chưa thành công</p>
+                  <p style="margin:8px 0 0;font-size:13px;line-height:1.7;color:#721c24;">
+                    Khách sạn không ghi nhận biến động số dư tương ứng. Vui lòng kiểm tra lại và <strong>đặt phòng mới</strong> nếu vẫn có nhu cầu.
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 24px 0;font-size:14px;line-height:1.7;color:#333;text-align:center;">
+                <a href="${hotelsUrl}" style="color:#0d6efd;">Tìm khách sạn và đặt phòng mới</a><br /><br />
+                Xem đơn đã hủy tại: <a href="${bookingDetailUrl}" style="color:#0d6efd;word-break:break-all;">${bookingDetailUrl}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 24px 24px;font-size:13px;line-height:1.7;color:#6d7278;text-align:center;">
+                Đây là email tự động, vui lòng không trả lời email này.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+    return await sendEmail(guest.email, `[Đơn đã hủy] #BK${bookingIdShort}`, html);
+  } catch (error) {
+    console.error("Lỗi khi gửi email từ chối minh chứng QR:", error);
+    return false;
+  }
+};
+
+/**
+ * Gửi email yêu cầu khách tải lại minh chứng QR.
+ */
+const sendQrProofResubmitEmail = async (booking) => {
+  try {
+    const guest = booking?.guest;
+    const hotel = booking?.hotel;
+    if (!guest?.email) {
+      return false;
+    }
+
+    const bookingIdShort = String(booking._id || "").slice(-8).toUpperCase();
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const bookingDetailUrl = `${frontendUrl}/my-bookings?bookingId=${booking._id}`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1C1B1F;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f4f6f8;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="620" style="max-width:620px;width:100%;background:#ffffff;border:1px solid #ececec;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="padding:24px 24px 16px;background:#fffbe6;border-bottom:1px solid #f0d9a7;text-align:center;">
+                <h2 style="margin:0;font-size:22px;line-height:1.3;color:#B8941F;">Cần tải lại minh chứng thanh toán</h2>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 24px 8px;font-size:15px;line-height:1.7;color:#333;text-align:center;">
+                Đơn <strong>#BK${bookingIdShort}</strong> tại <strong>${hotel?.name || "khách sạn"}</strong> cần bạn gửi lại minh chứng chuyển khoản.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 24px 0;" align="center">
+                <div style="padding:14px 16px;border:1px solid #f0d9a7;border-radius:8px;background:#fff8e8;text-align:left;">
+                  <p style="margin:0;font-size:14px;line-height:1.7;color:#7a5b18;"><strong>Lý do:</strong> Minh chứng không hợp lệ</p>
+                  <p style="margin:8px 0 0;font-size:13px;line-height:1.7;color:#7a5b18;">
+                    Khách sạn đã ghi nhận biến động số dư. Vui lòng vào trang đơn đặt phòng, tải lên ảnh minh chứng hợp lệ (biên lai/chứng từ chuyển khoản rõ ràng).
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 24px 0;font-size:14px;line-height:1.7;color:#333;text-align:center;">
+                Tải lại minh chứng tại:<br />
+                <a href="${bookingDetailUrl}" style="color:#0d6efd;word-break:break-all;">${bookingDetailUrl}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 24px 24px;font-size:13px;line-height:1.7;color:#6d7278;text-align:center;">
+                Đây là email tự động, vui lòng không trả lời email này.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+    return await sendEmail(guest.email, `[Tải lại minh chứng] #BK${bookingIdShort}`, html);
+  } catch (error) {
+    console.error("Lỗi khi gửi email yêu cầu tải lại minh chứng QR:", error);
+    return false;
+  }
+};
+
 module.exports = {
   sendReceiptEmail,
   sendCheckInReminderEmail,
   sendRefundProcessedEmail,
+  sendQrPaymentRejectedEmail,
+  sendQrProofResubmitEmail,
 };

@@ -333,6 +333,37 @@ exports.confirmGuestRefund = async (req, res) => {
   }
 };
 
+// Chủ KS từ chối minh chứng QR (đơn chờ xác nhận, khách đã gửi minh chứng)
+exports.rejectQrPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rejectionType } = req.body;
+    const booking = await bookingService.rejectOwnerQrPayment(id, req.user, rejectionType);
+    const isResubmit = booking.ownerQrRejectionType === "invalid_proof" && booking.paymentStatus === "pending";
+    res.status(200).json({
+      message: isResubmit
+        ? "Đã yêu cầu khách tải lại minh chứng và thông báo cho khách"
+        : "Đã hủy đơn đặt phòng và thông báo cho khách",
+      booking
+    });
+  } catch (error) {
+    console.error("Lỗi khi xử lý minh chứng QR:", error);
+    const statusCode =
+      error.statusCode ||
+      (error.message.includes("Không tìm thấy") || error.message.includes("không tồn tại")
+        ? 404
+        : error.message.includes("không có quyền")
+          ? 403
+          : error.message.includes("Chỉ áp dụng") ||
+              error.message.includes("Chỉ có thể") ||
+              error.message.includes("Khách chưa") ||
+              error.message.includes("Loại từ chối")
+            ? 400
+            : 500);
+    res.status(statusCode).json({ message: error.message || "Lỗi khi xử lý minh chứng QR" });
+  }
+};
+
 // Check-in booking (Owner)
 exports.checkIn = async (req, res) => {
   try {

@@ -26,9 +26,11 @@ const OwnerBookingListPage = () => {
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [refundProofFile, setRefundProofFile] = useState(null);
+  const [rejectionType, setRejectionType] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [proofFilter, setProofFilter] = useState('all');
@@ -82,13 +84,21 @@ const OwnerBookingListPage = () => {
     setShowRefundModal(true);
   };
 
+  const openRejectModal = (booking) => {
+    setSelectedBooking(booking);
+    setRejectionType('');
+    setShowRejectModal(true);
+  };
+
   const closeModals = () => {
     setShowConfirmModal(false);
     setShowCheckInModal(false);
     setShowCheckOutModal(false);
     setShowRefundModal(false);
+    setShowRejectModal(false);
     setSelectedBooking(null);
     setRefundProofFile(null);
+    setRejectionType('');
   };
 
   const handleConfirmBooking = async () => {
@@ -171,6 +181,32 @@ const OwnerBookingListPage = () => {
         prev.map((b) =>
           b._id === selectedBooking._id
             ? { ...b, ...(updated || {}), ownerRefundCompletedAt: updated?.ownerRefundCompletedAt || new Date() }
+            : b
+        )
+      );
+      closeModals();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleRejectQrPayment = async () => {
+    if (!selectedBooking || !rejectionType) return;
+
+    try {
+      setProcessing(true);
+      setError(null);
+      const data = await api.ownerBooking.rejectQrPayment(selectedBooking._id, rejectionType);
+      const updated = data?.booking;
+      setBookings((prev) =>
+        prev.map((b) =>
+          b._id === selectedBooking._id
+            ? {
+                ...b,
+                ...(updated || {}),
+              }
             : b
         )
       );
@@ -303,8 +339,11 @@ const OwnerBookingListPage = () => {
               <div className="booking-guide-item">
                 <span className="booking-guide-item__step">2</span>
                 <div>
-                  <strong>Xác nhận đơn đúng thời điểm</strong>
-                  <p>Chuyển đơn từ chờ xác nhận sang đã xác nhận để sẵn sàng đón khách. Hoàn tiền chỉ xử lý sau khi khách đã tự hủy đơn đúng chính sách.</p>
+                  <strong>Xác nhận hoặc xử lý minh chứng QR</strong>
+                  <p>
+                    Minh chứng không hợp lệ (đã có biến động số dư): yêu cầu khách tải lại. Thanh toán chưa thành công
+                    (không có biến động số dư): hủy đơn và báo khách đặt lại.
+                  </p>
                 </div>
               </div>
               <div className="booking-guide-item">
@@ -433,6 +472,7 @@ const OwnerBookingListPage = () => {
                   onOpenCheckIn={openCheckInModal}
                   onOpenCheckOut={openCheckOutModal}
                   onOpenRefund={openRefundModal}
+                  onOpenReject={openRejectModal}
                   onPreviewProof={setPreviewProofUrl}
                 />
               );
@@ -500,6 +540,26 @@ const OwnerBookingListPage = () => {
           onRefundProofChange={setRefundProofFile}
           disableConfirm={!refundProofFile}
           disableReason={!refundProofFile ? 'Vui lòng tải ảnh minh chứng hoàn tiền' : ''}
+        />
+
+        <OwnerBookingActionModal
+          show={showRejectModal}
+          title="Xử lý minh chứng thanh toán QR"
+          prompt="Bạn xác nhận xử lý minh chứng của"
+          booking={selectedBooking}
+          processing={processing}
+          confirmText={
+            rejectionType === 'payment_not_successful' ? 'Hủy đơn và thông báo khách' : 'Yêu cầu tải lại minh chứng'
+          }
+          onConfirm={handleRejectQrPayment}
+          onClose={closeModals}
+          onPreviewProof={setPreviewProofUrl}
+          showQrProofDetails
+          showRejectionTypeSelect
+          rejectionType={rejectionType}
+          onRejectionTypeChange={setRejectionType}
+          disableConfirm={!rejectionType}
+          disableReason={!rejectionType ? 'Vui lòng chọn một trong hai lý do' : ''}
         />
         <OwnerBookingDetailModal
           show={showDetailModal}

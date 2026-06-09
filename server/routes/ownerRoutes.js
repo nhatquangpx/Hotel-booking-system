@@ -30,6 +30,7 @@ const {
 } = require("../validations/roomValidation");
 const {
   ownerUpdateBookingStatusValidation,
+  ownerRejectQrPaymentValidation,
   validate: validateBooking,
 } = require("../validations/bookingValidation");
 const { replyReviewValidation, validate: validateReview } = require("../validations/reviewValidation");
@@ -147,6 +148,13 @@ router.post(
   bookingIdParamValidation,
   uploadPaymentProof,
   bookingController.confirmGuestRefund
+);
+router.post(
+  '/bookings/:id/reject-qr-payment',
+  bookingIdParamValidation,
+  ownerRejectQrPaymentValidation,
+  validateBooking,
+  bookingController.rejectQrPayment
 );
 router.post('/bookings/:id/check-in', bookingIdParamValidation, bookingController.checkIn);
 router.post('/bookings/:id/check-out', bookingIdParamValidation, bookingController.checkOut);

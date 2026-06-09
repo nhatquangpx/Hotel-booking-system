@@ -99,6 +99,14 @@ const ownerUpdateBookingStatusValidation = [
     .withMessage("status không hợp lệ"),
 ];
 
+const ownerRejectQrPaymentValidation = [
+  body("rejectionType")
+    .notEmpty()
+    .withMessage("rejectionType là bắt buộc")
+    .isIn(["invalid_proof", "payment_not_successful"])
+    .withMessage("rejectionType phải là invalid_proof hoặc payment_not_successful"),
+];
+
 module.exports = {
   validate,
   availableRoomsQueryValidation,
@@ -106,4 +114,5 @@ module.exports = {
   createBookingValidation,
   cancelBookingValidation,
   ownerUpdateBookingStatusValidation,
+  ownerRejectQrPaymentValidation,
 };

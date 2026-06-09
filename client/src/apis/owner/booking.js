@@ -78,6 +78,16 @@ export const ownerBookingAPI = {
       throw error.response?.data || error.message;
     }
   },
+
+  /** Từ chối / xử lý minh chứng QR — rejectionType: invalid_proof | payment_not_successful */
+  rejectQrPayment: async (id, rejectionType) => {
+    try {
+      const response = await api.post(`/owner/bookings/${id}/reject-qr-payment`, { rejectionType });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default ownerBookingAPI; 
