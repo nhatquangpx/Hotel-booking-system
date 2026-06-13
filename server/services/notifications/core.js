@@ -1,5 +1,5 @@
 const Notification = require("../../models/Notification");
-const { emitNotification, emitUnreadCount, emitHotelNotification } = require("../../socket/socketServer");
+const realtimeNotifier = require("./realtimeNotifier");
 const { unreadFilterForUser } = require("./readState");
 const {
   emitUnreadCountsForHotel,
@@ -62,14 +62,18 @@ const createNotification = async (
     await notification.save();
 
     try {
-      emitNotification(recipientId.toString(), recipientRole, notification.toObject());
+      realtimeNotifier.emitUserNotification(
+        recipientId,
+        recipientRole,
+        notification.toObject()
+      );
 
       const unreadCount = await Notification.countDocuments({
         recipient: recipientId,
         recipientRole,
         ...unreadFilterForUser(recipientId),
       });
-      emitUnreadCount(recipientId.toString(), recipientRole, unreadCount);
+      realtimeNotifier.emitUserUnreadCount(recipientId, recipientRole, unreadCount);
     } catch (socketError) {
       console.error("Lỗi khi emit notification realtime:", socketError);
     }
@@ -105,8 +109,8 @@ const createHotelNotification = async (
     await notification.save();
 
     try {
-      emitHotelNotification(hotelId.toString(), notification.toObject());
-      await emitUnreadCountsForHotel(hotelId, emitUnreadCount);
+      realtimeNotifier.emitHotelNotification(hotelId, notification.toObject());
+      await emitUnreadCountsForHotel(hotelId);
     } catch (socketError) {
       console.error("Lỗi khi emit thông báo khách sạn realtime:", socketError);
     }

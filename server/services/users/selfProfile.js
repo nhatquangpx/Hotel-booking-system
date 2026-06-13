@@ -1,12 +1,12 @@
 const User = require('../../models/User');
 const bcrypt = require('bcryptjs');
-const { isValidObjectId } = require('../../utils/mongooseIds');
-const { enrichUserWithStaffHotel } = require('../../utils/staffHotel');
+const { isValidObjectId } = require('../../lib/ids/mongooseIds');
+const { enrichUserWithStaffHotel } = require('../hotels/staffHotel');
 const {
   buildValidatedSelfProfilePayload,
   PROFILE_DB_SELECT,
   toPublicProfile,
-} = require('../../utils/selfProfile');
+} = require('./profileHelpers');
 
 function httpError(status, message) {
   const err = new Error(message);
