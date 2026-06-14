@@ -1,6 +1,6 @@
 import { IconButton } from "@mui/material"
 import { useState, useEffect, useRef } from 'react'
-import { Search, Hotel, Favorite, AccountCircle, Logout, KeyboardArrowDown } from "@mui/icons-material"
+import { Search, Hotel, Favorite, AccountCircle, Logout, KeyboardArrowDown, Menu, Close } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { performLogout } from '@/shared/utils/authSession'
@@ -12,6 +12,7 @@ import "./Navbar.scss"
 
 export const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const routerLocation = useLocation();
@@ -38,24 +39,59 @@ export const Navbar = () => {
     }
   }, [dropdownMenu]);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setDropdownMenu(false);
+  }, [routerLocation.pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
+
+    setMobileMenuOpen(false);
     navigate(`/hotels?search=${encodeURIComponent(searchQuery)}`);
   };
 
+  const navLinks = [
+    { to: '/', label: 'Trang chủ' },
+    { to: '/hotels', label: 'Khách sạn' },
+    { to: '/about', label: 'Giới thiệu' },
+    { to: '/contact', label: 'Liên hệ' },
+  ];
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen((prev) => !prev);
+    setDropdownMenu(false);
+  };
+
   return (
-    <div className='navbar'>
+    <>
+    <div className={`navbar ${mobileMenuOpen ? 'navbar--mobile-open' : ''}`}>
       <a href="/">
         <img src={IMAGE_PATHS.LOGO_VERTICAL_WHITE} alt="logo" />
       </a>
 
-      <div className='navbar_menu'>
-        <Link to="/" className="menu-item">Trang chủ</Link>
-        <Link to="/hotels" className="menu-item">Khách sạn</Link>
-        <Link to="/about" className="menu-item">Giới thiệu</Link>
-        <Link to="/contact" className="menu-item">Liên hệ</Link>
+      <div className='navbar_menu navbar_menu--desktop'>
+        {navLinks.map((item) => (
+          <Link key={item.to} to={item.to} className="menu-item">
+            {item.label}
+          </Link>
+        ))}
       </div>
 
       <form className='navbar_search' onSubmit={handleSearch}>
@@ -143,7 +179,65 @@ export const Navbar = () => {
           </div>
         )}
       </div>
+
+      <button
+        type="button"
+        className="navbar_toggle"
+        onClick={toggleMobileMenu}
+        aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+        aria-expanded={mobileMenuOpen}
+      >
+        {mobileMenuOpen ? <Close sx={{ color: '#ffffff' }} /> : <Menu sx={{ color: '#ffffff' }} />}
+      </button>
     </div>
+
+    {mobileMenuOpen && (
+      <button
+        type="button"
+        className="navbar_mobile_backdrop"
+        aria-label="Đóng menu"
+        onClick={closeMobileMenu}
+      />
+    )}
+
+    <div className={`navbar_mobile_drawer ${mobileMenuOpen ? 'is-open' : ''}`} aria-hidden={!mobileMenuOpen}>
+      <nav className="navbar_mobile_nav">
+        {navLinks.map((item) => (
+          <Link key={item.to} to={item.to} className="navbar_mobile_link" onClick={closeMobileMenu}>
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
+      <form className="navbar_mobile_search" onSubmit={handleSearch}>
+        <input
+          type="text"
+          placeholder="Tìm khách sạn hoặc địa danh..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <IconButton type="submit" aria-label="Tìm kiếm">
+          <Search sx={{ color: '#ffffff' }} />
+        </IconButton>
+      </form>
+
+      {!user && (
+        <div className="navbar_mobile_auth">
+          <Link to="/register" className="navbar_mobile_auth_link" onClick={closeMobileMenu}>
+            Đăng ký
+          </Link>
+          <Link
+            to="/login"
+            state={{ from: routerLocation }}
+            className="navbar_mobile_auth_link navbar_mobile_auth_link--primary"
+            onClick={closeMobileMenu}
+          >
+            Đăng nhập
+          </Link>
+        </div>
+      )}
+    </div>
+    </>
   )
 }
 

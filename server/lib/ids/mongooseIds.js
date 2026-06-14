@@ -4,7 +4,6 @@ function isValidObjectId(id) {
   return Boolean(id != null && String(id).length > 0 && mongoose.Types.ObjectId.isValid(id));
 }
 
-/** ObjectId ref hoặc document đã populate → chuỗi id để so sánh */
 function toIdString(ref) {
   if (ref == null) return "";
   if (typeof ref === "object") {
@@ -17,9 +16,7 @@ function toIdString(ref) {
 function refIdsMatch(ref, otherId) {
   const a = toIdString(ref);
   const b = toIdString(otherId);
-  if (!isValidObjectId(a) || !isValidObjectId(b)) {
-    return false;
-  }
+  if (!isValidObjectId(a) || !isValidObjectId(b)) return false;
   return a === b;
 }
 

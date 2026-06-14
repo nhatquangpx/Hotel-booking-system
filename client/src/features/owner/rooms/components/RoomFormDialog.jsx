@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
 import { getImageUrl } from '@/constants/images';
+import { apiErrorMessage } from '@/shared/utils';
 import api from '../../../../apis';
 import './RoomFormDialog.scss';
 
@@ -244,7 +246,9 @@ const RoomFormDialog = ({
 
       onSuccess?.();
       onClose();
+      toast.success(isEdit ? 'Cập nhật phòng thành công' : 'Tạo phòng thành công');
     } catch (err) {
+      toast.error(apiErrorMessage(err, `Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'tạo'} phòng`));
       setError(err.message || `Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'tạo'} phòng`);
     } finally {
       setSaving(false);

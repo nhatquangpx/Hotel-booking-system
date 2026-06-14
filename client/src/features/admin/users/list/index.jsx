@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'react-toastify';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Paper, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { AdminLayout } from '@/features/admin/components';
+import { AdminLayout, ConfirmDeleteDialog } from '@/features/admin/components';
 import UserFormDialog from '../components/UserFormDialog';
 import UserDetailDialog from '../components/UserDetailDialog';
 import UserTable from './components/UserTable';
@@ -10,6 +11,7 @@ import UserListByRole from './components/UserListByRole';
 import UserListByHotel from './components/UserListByHotel';
 import ViewModeSelector from './components/ViewModeSelector';
 import api from '../../../../apis';
+import { apiErrorMessage } from '@/shared/utils';
 import {
   VIEW_MODES,
   filterUsers,
@@ -35,6 +37,7 @@ const AdminUserListPage = () => {
   const [viewMode, setViewMode] = useState(VIEW_MODES.LIST);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(false);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [viewingUserId, setViewingUserId] = useState(null);
@@ -80,19 +83,26 @@ const AdminUserListPage = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!userToDelete) return;
+    if (!userToDelete || deletingUser) return;
 
     try {
+      setDeletingUser(true);
       await api.adminUser.deleteUser(userToDelete._id);
       setUsers((prev) => prev.filter((user) => user._id !== userToDelete._id));
       setShowDeleteModal(false);
       setUserToDelete(null);
+      toast.success('Xóa người dùng thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi xóa người dùng');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi xóa người dùng');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setDeletingUser(false);
     }
   };
 
   const handleCancelDelete = () => {
+    if (deletingUser) return;
     setShowDeleteModal(false);
     setUserToDelete(null);
   };
@@ -274,26 +284,17 @@ const AdminUserListPage = () => {
 
         {renderUserList()}
 
-        {showDeleteModal && (
-          <div className="delete-modal">
-            <div className="modal-content">
-              <div className="modal-title">Xác nhận xóa</div>
-              <p>
-                Bạn có chắc chắn muốn xóa người dùng{' '}
-                <strong>{userToDelete?.name}</strong>?
-              </p>
-              <p>Hành động này không thể hoàn tác.</p>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={handleCancelDelete}>
-                  Hủy
-                </button>
-                <button className="delete-btn" onClick={handleConfirmDelete}>
-                  Xác nhận xóa
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDeleteDialog
+          isOpen={showDeleteModal}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          confirming={deletingUser}
+          message={
+            <>
+              Bạn có chắc chắn muốn xóa người dùng <strong>{userToDelete?.name}</strong>?
+            </>
+          }
+        />
 
         <UserFormDialog
           isOpen={showUserDialog}

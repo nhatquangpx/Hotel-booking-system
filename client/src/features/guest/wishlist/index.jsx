@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { GuestLayout } from '@/features/guest/components/layout';
 import { HotelCard } from '@/features/guest/hotels/components';
 import api from '@/apis';
@@ -23,7 +24,9 @@ const GuestWishlistPage = () => {
       const data = await api.guestWishlist.getWishlist();
       setHotels(Array.isArray(data?.hotels) ? data.hotels : []);
     } catch (e) {
-      setError('Không thể tải danh sách yêu thích.');
+      const msg = 'Không thể tải danh sách yêu thích.';
+      setError(msg);
+      toast.error(msg);
       setHotels([]);
     } finally {
       setLoading(false);

@@ -4,6 +4,4 @@ function isVnpayConfigComplete(vnpay) {
   );
 }
 
-module.exports = {
-  isVnpayConfigComplete
-};
+module.exports = { isVnpayConfigComplete };

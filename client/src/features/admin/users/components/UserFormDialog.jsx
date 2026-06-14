@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import Dialog from '@/components/ui/Dialog';
 import api from '../../../../apis';
+import { apiErrorMessage } from '@/shared/utils';
 import './UserFormDialog.scss';
 
 /**
@@ -121,8 +123,11 @@ const UserFormDialog = ({
       
       onSuccess?.();
       onClose();
+      toast.success(isEdit ? 'Cập nhật người dùng thành công' : 'Tạo người dùng thành công');
     } catch (err) {
-      setError(err.message || `Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'tạo'} người dùng`);
+      const msg = apiErrorMessage(err, `Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'tạo'} người dùng`);
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

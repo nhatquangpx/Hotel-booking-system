@@ -5,6 +5,8 @@ const idParamValidation = [mongoIdParam("id"), validate];
 
 const userIdParamValidation = [mongoIdParam("id", "ID người dùng"), validate];
 
+const userIdRouteParamValidation = [mongoIdParam("userId", "ID người dùng"), validate];
+
 const hotelIdParamValidation = [mongoIdParam("hotelId", "hotelId"), validate];
 
 const roomIdParamValidation = [mongoIdParam("id", "ID phòng"), validate];
@@ -23,6 +25,7 @@ module.exports = {
   validate,
   idParamValidation,
   userIdParamValidation,
+  userIdRouteParamValidation,
   hotelIdParamValidation,
   roomIdParamValidation,
   roomIdParamAltValidation,

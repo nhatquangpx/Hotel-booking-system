@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { FaStar } from 'react-icons/fa';
+import Dialog from '@/components/ui/Dialog';
 import api from '@/apis';
-import { formatDate } from '@/shared/utils';
+import { formatDate, apiErrorMessage } from '@/shared/utils';
 import './BookingReview.scss';
 
 /**
@@ -13,11 +15,11 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState(null);
   const [existingReview, setExistingReview] = useState(initialReview || null);
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [deletingReview, setDeletingReview] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Cập nhật state khi initialReview thay đổi (từ parent)
   useEffect(() => {
@@ -31,18 +33,20 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
       setComment('');
     }
     setIsEditingReview(false);
-    setReviewSubmitted(false);
+    setShowDeleteConfirm(false);
   }, [initialReview]);
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     
     if (rating === 0) {
+      toast.warn('Vui lòng chọn số sao đánh giá');
       setReviewError('Vui lòng chọn số sao đánh giá');
       return;
     }
 
     if (!comment.trim()) {
+      toast.warn('Vui lòng nhập nội dung đánh giá');
       setReviewError('Vui lòng nhập nội dung đánh giá');
       return;
     }
@@ -50,18 +54,16 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
     try {
       setSubmittingReview(true);
       setReviewError(null);
-      setReviewSubmitted(false);
-      
+
+      const isUpdate = Boolean(existingReview && isEditingReview);
       let response;
-      if (existingReview && isEditingReview) {
-        // Cập nhật review
+      if (isUpdate) {
         response = await api.review.updateReview(existingReview._id, {
           rating,
           comment: comment.trim()
         });
         setIsEditingReview(false);
       } else {
-        // Tạo review mới
         response = await api.userBooking.addReview(booking._id, {
           rating,
           comment: comment.trim()
@@ -80,15 +82,12 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
         setComment(response.review.comment);
       }
       
-      setReviewSubmitted(true);
       setHoveredRating(0);
-      
-      // Ẩn success message sau 3 giây
-      setTimeout(() => {
-        setReviewSubmitted(false);
-      }, 3000);
+      toast.success(isUpdate ? 'Cập nhật đánh giá thành công' : 'Gửi đánh giá thành công');
     } catch (err) {
-      setReviewError(err.response?.data?.message || 'Không thể gửi đánh giá. Vui lòng thử lại sau.');
+      const msg = apiErrorMessage(err, 'Không thể gửi đánh giá. Vui lòng thử lại sau.');
+      setReviewError(msg);
+      toast.error(msg);
       console.error('Error submitting review:', err);
     } finally {
       setSubmittingReview(false);
@@ -97,7 +96,6 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
 
   const handleEditReview = () => {
     setIsEditingReview(true);
-    setReviewSubmitted(false);
     setReviewError(null);
   };
 
@@ -114,31 +112,39 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
     setReviewError(null);
   };
 
-  const handleDeleteReview = async () => {
+  const handleDeleteReviewClick = () => {
     if (!existingReview) return;
-    
-    if (!window.confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
-      return;
-    }
+    setShowDeleteConfirm(true);
+  };
+
+  const handleCancelDelete = () => {
+    if (deletingReview) return;
+    setShowDeleteConfirm(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!existingReview || deletingReview) return;
 
     try {
       setDeletingReview(true);
       setReviewError(null);
       await api.review.deleteReview(existingReview._id);
-      
-      // Callback để parent reload booking
+
       if (onReviewUpdate) {
         await onReviewUpdate();
       }
-      
+
       setExistingReview(null);
       setRating(0);
       setComment('');
       setHoveredRating(0);
       setIsEditingReview(false);
-      setReviewSubmitted(false);
+      setShowDeleteConfirm(false);
+      toast.success('Xóa đánh giá thành công');
     } catch (err) {
-      setReviewError(err.response?.data?.message || 'Không thể xóa đánh giá. Vui lòng thử lại sau.');
+      const msg = apiErrorMessage(err, 'Không thể xóa đánh giá. Vui lòng thử lại sau.');
+      setReviewError(msg);
+      toast.error(msg);
       console.error('Error deleting review:', err);
     } finally {
       setDeletingReview(false);
@@ -186,10 +192,10 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
               </button>
               <button 
                 className="delete-review-btn"
-                onClick={handleDeleteReview}
+                onClick={handleDeleteReviewClick}
                 disabled={deletingReview}
               >
-                {deletingReview ? 'Đang xóa...' : 'Xóa đánh giá'}
+                Xóa đánh giá
               </button>
             </div>
           </div>
@@ -258,16 +264,35 @@ const BookingReview = ({ booking, existingReview: initialReview, onReviewUpdate 
         </div>
       )}
 
-      {/* Success message khi đã gửi/cập nhật đánh giá */}
-      {reviewSubmitted && (
-        <div className="review-success-message">
-          <p>
-            {isEditingReview 
-              ? 'Đánh giá của bạn đã được cập nhật thành công!' 
-              : 'Cảm ơn bạn đã đánh giá! Đánh giá của bạn đã được gửi thành công.'}
-          </p>
+      <Dialog
+        isOpen={showDeleteConfirm}
+        onClose={deletingReview ? () => {} : handleCancelDelete}
+        title="Xác nhận xóa đánh giá"
+        maxWidth="480px"
+        className="booking-review-delete-dialog"
+      >
+        <p className="booking-review-delete-dialog__message">
+          Bạn có chắc chắn muốn xóa đánh giá này? Hành động này không thể hoàn tác.
+        </p>
+        <div className="booking-review-delete-dialog__actions">
+          <button
+            type="button"
+            className="booking-review-delete-dialog__btn booking-review-delete-dialog__btn--cancel"
+            onClick={handleCancelDelete}
+            disabled={deletingReview}
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            className="booking-review-delete-dialog__btn booking-review-delete-dialog__btn--confirm"
+            onClick={handleConfirmDelete}
+            disabled={deletingReview}
+          >
+            {deletingReview ? 'Đang xóa...' : 'Xác nhận xóa'}
+          </button>
         </div>
-      )}
+      </Dialog>
     </>
   );
 };

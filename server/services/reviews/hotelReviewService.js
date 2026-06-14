@@ -1,12 +1,12 @@
 const Review = require("../../models/Review");
 const { getScopedHotelIdsForOwner } = require("../dashboards/core");
-const { findHotelByStaffId, staffCanAccessHotel } = require("../../utils/staffHotel");
+const { findHotelByStaffId, staffCanAccessHotel } = require("../../services/hotels/staffHotel");
 const {
   getReplyText,
   applyHotelReply,
   clearHotelReply,
   enrichReviewDoc,
-} = require("../../utils/reviewReply");
+} = require("../../services/reviews/replyHelpers");
 
 function throwHttp(statusCode, message) {
   const err = new Error(message);

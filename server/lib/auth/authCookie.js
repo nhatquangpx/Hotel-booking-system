@@ -24,7 +24,6 @@ const getRefreshCookieOptions = () => ({
   path: REFRESH_COOKIE_PATH,
 });
 
-/** Chuyển "15m", "1h", "7d" → milliseconds (mặc định 15 phút). */
 function parseMaxAgeMs(expiresIn) {
   const match = String(expiresIn).trim().match(/^(\d+)([smhd])?$/i);
   if (!match) return 15 * 60 * 1000;
@@ -48,10 +47,7 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearCookie = (res, name, path) => {
-  res.clearCookie(name, {
-    ...baseCookieOptions(),
-    path,
-  });
+  res.clearCookie(name, { ...baseCookieOptions(), path });
 };
 
 const clearAuthCookies = (res) => {
@@ -59,10 +55,7 @@ const clearAuthCookies = (res) => {
   clearCookie(res, REFRESH_COOKIE_NAME, REFRESH_COOKIE_PATH);
 };
 
-/** @deprecated dùng setAuthCookies */
 const setAuthCookie = (res, token) => setAccessCookie(res, token);
-
-/** @deprecated dùng clearAuthCookies */
 const clearAuthCookie = (res) => clearAuthCookies(res);
 
 const getCookieValue = (req, name) => req.cookies?.[name] || null;
@@ -88,15 +81,10 @@ const parseCookieHeader = (cookieHeader, name) => {
 };
 
 const getTokenFromSocketHandshake = (socket) => {
-  if (socket.handshake.auth?.token) {
-    return socket.handshake.auth.token;
-  }
+  if (socket.handshake.auth?.token) return socket.handshake.auth.token;
   const authHeader = socket.handshake.headers.authorization;
-  if (authHeader) {
-    return authHeader.replace("Bearer ", "");
-  }
-  const cookieHeader = socket.handshake.headers.cookie;
-  return parseCookieHeader(cookieHeader, ACCESS_COOKIE_NAME);
+  if (authHeader) return authHeader.replace("Bearer ", "");
+  return parseCookieHeader(socket.handshake.headers.cookie, ACCESS_COOKIE_NAME);
 };
 
 module.exports = {

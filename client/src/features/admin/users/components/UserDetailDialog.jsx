@@ -46,8 +46,13 @@ const UserDetailDialog = ({ isOpen, onClose, userId, onEdit }) => {
         setUser(userData);
 
         if (userData.role === 'guest') {
-          const bookingData = await api.adminBooking.getUserBookings(userId);
-          setBookings(bookingData);
+          try {
+            const bookingData = await api.adminBooking.getUserBookings(userId);
+            setBookings(Array.isArray(bookingData) ? bookingData : []);
+          } catch (bookingErr) {
+            setBookings([]);
+            console.error('Không tải được lịch sử đặt phòng:', bookingErr);
+          }
         } else {
           setBookings([]);
         }

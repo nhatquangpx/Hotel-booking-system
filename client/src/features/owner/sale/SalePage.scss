@@ -359,6 +359,8 @@
 }
 
 .sale-form {
+  width: 100%;
+
   .sale-form-error {
     margin-bottom: 1rem;
     padding: 0.75rem 1rem;
@@ -380,12 +382,24 @@
     input[type='text'],
     input[type='number'],
     input[type='date'],
+    input:not([type]),
     select {
       width: 100%;
+      max-width: 100%;
       padding: 0.5rem 0.75rem;
       border-radius: 8px;
       border: 1px solid $border-medium;
       box-sizing: border-box;
+    }
+
+    &--title {
+      .sale-form-title-input {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-height: 2.75rem;
+        font-size: 0.95rem;
+      }
     }
   }
 
@@ -459,12 +473,54 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.65rem;
-  }
 
-  .btn-danger {
-    background: $danger;
-    &:hover:not(:disabled) {
-      background: $danger-dark;
+    .btn-primary {
+      padding: 0.55rem 1.05rem;
+      background: $button-primary;
+      color: $text-white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: $button-primary-hover;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &.btn-danger {
+        background: $danger;
+
+        &:hover:not(:disabled) {
+          background: $danger-dark;
+        }
+      }
+    }
+
+    .btn-secondary {
+      padding: 0.55rem 1rem;
+      background: $bg-white;
+      border: 1px solid $border-medium;
+      border-radius: 8px;
+      color: $text-secondary;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: $bg-light-alt;
+        border-color: $border-dark;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
   }
 }

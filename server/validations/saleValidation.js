@@ -1,7 +1,7 @@
 const { body, query, param } = require("express-validator");
 const { validate, mongoIdBody } = require("./common");
 const { ROOM_TYPES } = require("./roomValidation");
-const { parseOptionalBoolean } = require("../utils/parseBoolean");
+const { parseOptionalBoolean } = require("../lib/http/parseBoolean");
 
 const SALE_SCOPES = ["hotel", "room_type"];
 const DATE_YMD = /^\d{4}-\d{2}-\d{2}$/;

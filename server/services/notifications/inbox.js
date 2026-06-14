@@ -1,6 +1,9 @@
 const Notification = require("../../models/Notification");
 const Hotel = require("../../models/Hotel");
+const realtimeNotifier = require("./realtimeNotifier");
 const { toObjectId, unreadFilterForUser } = require("./readState");
+
+const defaultEmitUnreadCount = realtimeNotifier.emitUserUnreadCount.bind(realtimeNotifier);
 
 const RECIPIENT_ROLE_HOTEL = "hotel";
 const HOTEL_TEAM_ROLES = ["owner", "staff"];
@@ -89,7 +92,7 @@ async function countUnreadForUser(userId, userRole, hotelIds = []) {
  * Owner: tổng unread trên mọi KS họ sở hữu (không chỉ hotelId vừa đổi).
  * Staff: chỉ KS được gán.
  */
-async function emitUnreadCountsForHotel(hotelId, emitUnreadCount) {
+async function emitUnreadCountsForHotel(hotelId, emitUnreadCount = defaultEmitUnreadCount) {
   const hotel = await Hotel.findById(hotelId).select("ownerId staffIds").lean();
   if (!hotel) return;
 
@@ -115,7 +118,7 @@ async function emitUnreadCountsForHotel(hotelId, emitUnreadCount) {
 }
 
 /** Cập nhật badge cho mọi KS trong danh sách; owner mỗi người chỉ emit một lần. */
-async function emitUnreadCountsForHotels(hotelIds, emitUnreadCount) {
+async function emitUnreadCountsForHotels(hotelIds, emitUnreadCount = defaultEmitUnreadCount) {
   if (!hotelIds?.length) return;
 
   const hotels = await Hotel.find({ _id: { $in: hotelIds } })
@@ -166,7 +169,13 @@ async function markAllInboxRead(userId, userRole, hotelIds) {
   );
 }
 
-async function syncUnreadCountAfterRead(userId, userRole, hotelIds, notification, emitUnreadCount) {
+async function syncUnreadCountAfterRead(
+  userId,
+  userRole,
+  hotelIds,
+  notification,
+  emitUnreadCount = defaultEmitUnreadCount
+) {
   if (notification?.recipientRole === RECIPIENT_ROLE_HOTEL && notification.hotel) {
     await emitUnreadCountsForHotel(notification.hotel, emitUnreadCount);
     return;

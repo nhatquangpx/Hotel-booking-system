@@ -76,9 +76,12 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting, submitErro
           {displayError}
         </div>
       )}
-      <div className="form-group">
-        <label>Tên chương trình</label>
+      <div className="form-group form-group--title">
+        <label htmlFor="sale-title">Tên chương trình</label>
         <input
+          id="sale-title"
+          type="text"
+          className="sale-form-title-input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
@@ -229,6 +232,7 @@ const OwnerSalePage = () => {
       await ownerSaleAPI.setStatus(sale._id, open);
       setPendingToggle(null);
       await fetchSales();
+      toast.success(open ? 'Đã mở chương trình sale' : 'Đã đóng chương trình sale');
     } catch (e) {
       const msg = e?.message || 'Không đổi trạng thái được';
       setError(msg);
@@ -382,7 +386,7 @@ const OwnerSalePage = () => {
             }
           }}
           title={editing ? 'Sửa chương trình sale' : 'Chương trình sale mới'}
-          maxWidth="520px"
+          maxWidth="600px"
         >
           {hotelId && (
             <SaleForm

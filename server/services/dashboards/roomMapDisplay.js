@@ -1,5 +1,3 @@
-/** Đồng bộ hiển thị với client RoomCard / RoomStatusLegend */
-
 const BOOKING_STATUS_LABELS = {
   empty: "Trống",
   occupied: "Đang ở",
@@ -20,13 +18,7 @@ function getRoomMapDisplayStatus(room) {
   const secondaryLabel =
     roomStatus !== "active" ? ROOM_STATUS_LABELS[roomStatus] || roomStatus : null;
 
-  return {
-    bookingStatus,
-    roomStatus,
-    displayColor,
-    label,
-    secondaryLabel,
-  };
+  return { bookingStatus, roomStatus, displayColor, label, secondaryLabel };
 }
 
 function roomNeedsDashboardAttention(room) {

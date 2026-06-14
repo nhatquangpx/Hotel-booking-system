@@ -42,6 +42,11 @@ export const HotelWishlistButton = ({
     try {
       const data = await api.guestWishlist.toggleWishlist(hotelId);
       onWishlistedChange?.(hotelId, data.wishlisted);
+      toast.success(
+        data.wishlisted
+          ? 'Đã thêm vào danh sách yêu thích'
+          : 'Đã bỏ khỏi danh sách yêu thích'
+      );
     } catch (err) {
       toast.error(err?.message || 'Không thể cập nhật danh sách yêu thích.');
       console.error('Wishlist toggle failed:', err);

@@ -1,12 +1,11 @@
-/**
- * Authentication Services
- * Centralized exports for 2FA and device authentication
- */
-
-const twoFactorAuth = require('./twoFactorAuth');
-const deviceAuth = require('./deviceAuth');
+const authService = require("./authService");
+const twoFactorAuth = require("./twoFactorAuth");
+const deviceAuth = require("./deviceAuth");
+const twoFactorManagement = require("./twoFactorManagementService");
 
 module.exports = {
+  ...authService,
   ...twoFactorAuth,
-  ...deviceAuth
+  ...deviceAuth,
+  ...twoFactorManagement,
 };

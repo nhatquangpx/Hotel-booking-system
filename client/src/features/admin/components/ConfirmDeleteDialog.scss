@@ -1,0 +1,81 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.admin-confirm-delete-dialog {
+  .dialog-body {
+    padding-top: 0.5rem;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__message {
+    margin: 0;
+    color: $text-primary;
+    @include body-base;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  &__warning {
+    margin: 0;
+    color: $text-medium;
+    @include body-sm;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid $border-light;
+  }
+
+  &__btn {
+    min-width: 120px;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    @include button-text;
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    &--cancel {
+      background: var(--admin-border, #e0e0e0);
+      color: $text-primary;
+    }
+
+    &--confirm {
+      background: $button-cancel;
+      color: #fff;
+    }
+
+    &:not(:disabled):hover {
+      opacity: 0.9;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-confirm-delete-dialog {
+    &__actions {
+      flex-direction: column-reverse;
+    }
+
+    &__btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}

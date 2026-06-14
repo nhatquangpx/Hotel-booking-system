@@ -35,6 +35,7 @@ const { replyContactValidation, validate: validateContact } = require("../valida
 const {
   idParamValidation,
   hotelIdParamValidation,
+  userIdRouteParamValidation,
 } = require("../validations/paramsValidation");
 
 router.use(authenticate, isAdmin);
@@ -89,7 +90,7 @@ router.put(
 router.delete("/rooms/:id", idParamValidation, roomController.deleteRoom);
 
 router.get("/bookings", bookingController.getAllBookings);
-router.get("/bookings/user/:userId", idParamValidation, bookingController.getUserBookings);
+router.get("/bookings/user/:userId", userIdRouteParamValidation, bookingController.getUserBookings);
 router.get("/bookings/:id", idParamValidation, bookingController.getBookingById);
 
 router.get('/dashboard/stats', dashboardController.getAdminStats);

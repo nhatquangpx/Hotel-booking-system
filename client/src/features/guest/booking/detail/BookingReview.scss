@@ -265,3 +265,71 @@
   }
 }
 
+.booking-review-delete-dialog {
+  .dialog-body {
+    padding-top: 0.5rem;
+  }
+
+  &__message {
+    margin: 0 0 1.25rem;
+    @include body-base;
+    color: $text-medium;
+    line-height: $line-relaxed;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 1rem;
+    border-top: 1px solid $border-light;
+  }
+
+  &__btn {
+    min-width: 120px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    @include button-text-sm;
+    cursor: pointer;
+    transition: background-color 0.3s ease, opacity 0.2s ease;
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    &--cancel {
+      background-color: $grey-medium;
+      color: $text-white;
+
+      &:hover:not(:disabled) {
+        background-color: $grey-dark;
+      }
+    }
+
+    &--confirm {
+      background-color: $button-cancel;
+      color: $text-white;
+
+      &:hover:not(:disabled) {
+        background-color: $button-cancel-hover;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-review-delete-dialog {
+    &__actions {
+      flex-direction: column-reverse;
+    }
+
+    &__btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}
+

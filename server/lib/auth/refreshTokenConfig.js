@@ -1,13 +1,8 @@
 const DEFAULT_REFRESH_DAYS = 7;
 
-/**
- * JWT_REFRESH_DAYS must be a positive integer (e.g. "7", not "7d").
- */
 const parseRefreshDays = () => {
   const raw = process.env.JWT_REFRESH_DAYS;
-  if (raw == null || String(raw).trim() === "") {
-    return DEFAULT_REFRESH_DAYS;
-  }
+  if (raw == null || String(raw).trim() === "") return DEFAULT_REFRESH_DAYS;
 
   const days = parseInt(String(raw).trim(), 10);
   if (!Number.isFinite(days) || days <= 0) {
@@ -16,16 +11,10 @@ const parseRefreshDays = () => {
     );
     return DEFAULT_REFRESH_DAYS;
   }
-
   return days;
 };
 
 const REFRESH_DAYS = parseRefreshDays();
 const REFRESH_MS = REFRESH_DAYS * 24 * 60 * 60 * 1000;
 
-module.exports = {
-  DEFAULT_REFRESH_DAYS,
-  REFRESH_DAYS,
-  REFRESH_MS,
-  parseRefreshDays,
-};
+module.exports = { DEFAULT_REFRESH_DAYS, REFRESH_DAYS, REFRESH_MS, parseRefreshDays };

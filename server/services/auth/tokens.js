@@ -1,7 +1,8 @@
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const { REFRESH_MS } = require("./refreshTokenConfig");
+const User = require("../../models/User");
+const { REFRESH_MS } = require("../../lib/auth/refreshTokenConfig");
+
 const ACCESS_EXPIRES = process.env.JWT_ACCESS_EXPIRES || "15m";
 
 const hashRefreshToken = (token) =>

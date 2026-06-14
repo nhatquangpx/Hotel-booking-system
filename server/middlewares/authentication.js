@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { getTokenFromRequest } = require("../utils/authCookie");
+const { getTokenFromRequest } = require("../lib/auth/authCookie");
 
 const authenticate = (req, res, next) => {
     const token = getTokenFromRequest(req);

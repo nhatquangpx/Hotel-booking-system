@@ -11,14 +11,14 @@ const {
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus
 } = require("./core");
-const { isGuestBookableHotelStatus } = require("../../utils/hotelStatus");
+const { isGuestBookableHotelStatus } = require("../../services/hotels/status");
 const {
   computeStaySalePricing,
   computeStaySalePricingFromSales,
   loadSalesOverlappingStay,
 } = require("../sale/salePricingService");
-const { resolveEffectiveQrConfig } = require("../../utils/paymentQrConfig");
-const { isVnpayConfigComplete } = require("../../utils/hotelPaymentConfig");
+const { resolveEffectiveQrConfig } = require("../../services/payments/qrConfig");
+const { isVnpayConfigComplete } = require("../../services/hotels/paymentConfig");
 
 const sanitizeGuestHotelPaymentConfig = (hotel) => {
   if (!hotel) return hotel;

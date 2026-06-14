@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const Hotel = require("../models/Hotel");
-const { isValidObjectId } = require("./mongooseIds");
+const Hotel = require("../../models/Hotel");
+const { isValidObjectId } = require("../../lib/ids/mongooseIds");
 
 function assertStaffUserId(userId) {
   if (!userId || !isValidObjectId(userId)) {
@@ -25,7 +25,6 @@ async function assertHotelExists(hotelId) {
   return hotel;
 }
 
-/** Khách sạn mà nhân viên đang được gán (tối đa một). */
 async function findHotelByStaffId(userId) {
   if (!userId || !isValidObjectId(userId)) return null;
   return Hotel.findOne({ staffIds: userId }).select(
@@ -36,9 +35,7 @@ async function findHotelByStaffId(userId) {
 async function assertStaffNotInOtherHotel(userId, exceptHotelId = null) {
   assertStaffUserId(userId);
   const filter = { staffIds: userId };
-  if (exceptHotelId) {
-    filter._id = { $ne: exceptHotelId };
-  }
+  if (exceptHotelId) filter._id = { $ne: exceptHotelId };
   const other = await Hotel.findOne(filter).select("name _id");
   if (other) {
     const err = new Error(
@@ -49,7 +46,6 @@ async function assertStaffNotInOtherHotel(userId, exceptHotelId = null) {
   }
 }
 
-/** Gán staff vào đúng một khách sạn (xóa khỏi KS khác nếu có). */
 async function assignStaffToHotel(userId, hotelId) {
   assertStaffUserId(userId);
   await assertHotelExists(hotelId);
@@ -63,7 +59,6 @@ async function assignStaffToHotel(userId, hotelId) {
   });
 }
 
-/** Gỡ staff khỏi mọi khách sạn (khi đổi role hoặc xóa user). */
 async function removeStaffFromAllHotels(userId) {
   if (!userId) return;
   assertStaffUserId(userId);
@@ -73,16 +68,7 @@ async function removeStaffFromAllHotels(userId) {
   );
 }
 
-/**
- * Đồng bộ danh sách staffIds trên Hotel theo role.
- * @param {string} hotelId — bắt buộc khi nextRole === 'staff'
- */
-async function syncStaffHotelAssignment({
-  userId,
-  nextRole,
-  hotelId,
-  currentRole,
-}) {
+async function syncStaffHotelAssignment({ userId, nextRole, hotelId, currentRole }) {
   if (nextRole === "staff") {
     if (!hotelId) {
       const err = new Error("Nhân viên phải được gán một khách sạn");
@@ -92,7 +78,6 @@ async function syncStaffHotelAssignment({
     await assignStaffToHotel(userId, hotelId);
     return;
   }
-
   if (currentRole === "staff") {
     await removeStaffFromAllHotels(userId);
   }
@@ -101,14 +86,10 @@ async function syncStaffHotelAssignment({
 async function staffCanAccessHotel(userId, hotelId) {
   if (!userId || !hotelId) return false;
   if (!isValidObjectId(userId) || !isValidObjectId(hotelId)) return false;
-  const hotel = await Hotel.findOne({
-    _id: hotelId,
-    staffIds: userId,
-  }).select("_id");
+  const hotel = await Hotel.findOne({ _id: hotelId, staffIds: userId }).select("_id");
   return !!hotel;
 }
 
-/** Gắn assignedHotelId (ảo) cho response API — không lưu trên User. */
 async function enrichUserWithStaffHotel(user) {
   const plain = user?.toObject ? user.toObject() : { ...user };
   if (plain.role !== "staff") {
@@ -116,9 +97,7 @@ async function enrichUserWithStaffHotel(user) {
     return plain;
   }
   const hotel = await findHotelByStaffId(plain._id);
-  plain.assignedHotelId = hotel
-    ? { _id: hotel._id, name: hotel.name }
-    : null;
+  plain.assignedHotelId = hotel ? { _id: hotel._id, name: hotel.name } : null;
   return plain;
 }
 
@@ -129,10 +108,7 @@ async function enrichUsersWithStaffHotels(users) {
     return list.map((u) => ({ ...u, assignedHotelId: null }));
   }
 
-  const hotels = await Hotel.find({ staffIds: { $in: staffIds } }).select(
-    "name _id staffIds"
-  );
-
+  const hotels = await Hotel.find({ staffIds: { $in: staffIds } }).select("name _id staffIds");
   const hotelByStaffId = new Map();
   for (const hotel of hotels) {
     for (const sid of hotel.staffIds || []) {
@@ -143,9 +119,7 @@ async function enrichUsersWithStaffHotels(users) {
   return list.map((u) => ({
     ...u,
     assignedHotelId:
-      u.role === "staff"
-        ? hotelByStaffId.get(String(u._id)) || null
-        : null,
+      u.role === "staff" ? hotelByStaffId.get(String(u._id)) || null : null,
   }));
 }
 

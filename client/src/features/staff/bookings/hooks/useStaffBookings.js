@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useStaffHotel } from '@/features/staff/context/StaffHotelContext';
 import api from '@/apis';
 import { isTodayCheckInOrCheckOut } from '@/shared/utils/bookingFilters';
+import { apiErrorMessage } from '@/shared/utils';
 import { filterBookingList } from '@/shared/utils/filterBookingList';
 
 export function useStaffBookings() {
@@ -82,8 +84,9 @@ export function useStaffBookings() {
         )
       );
       closeModals();
+      toast.success('Check-in thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi check-in');
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi check-in'));
     } finally {
       setProcessing(false);
     }
@@ -101,8 +104,9 @@ export function useStaffBookings() {
         )
       );
       closeModals();
+      toast.success('Check-out thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi check-out');
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi check-out'));
     } finally {
       setProcessing(false);
     }
