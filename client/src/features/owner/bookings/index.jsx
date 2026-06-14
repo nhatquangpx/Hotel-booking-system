@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FaSearch, FaHistory, FaCalendarDay } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import api from '@/apis';
-import { isTodayCheckInOrCheckOut } from '@/shared/utils/bookingFilters';
+import { isTodayCheckInOrCheckOut, apiErrorMessage } from '@/shared/utils';
 import OwnerBookingCard from './OwnerBookingCard';
 import OwnerBookingDetailModal from './OwnerBookingDetailModal';
 import OwnerBookingActionModal from './OwnerBookingActionModal';
@@ -107,7 +108,7 @@ const OwnerBookingListPage = () => {
     const isQrProofMissing =
       selectedBooking.paymentMethod === 'qr_code' && !selectedBooking.qrPaymentProofUrl;
     if (isQrProofMissing) {
-      setError('Đơn QR chưa có minh chứng chuyển khoản, không thể xác nhận đã thanh toán');
+      toast.warn('Đơn QR chưa có minh chứng chuyển khoản, không thể xác nhận đã thanh toán');
       return;
     }
     
@@ -118,8 +119,9 @@ const OwnerBookingListPage = () => {
         b._id === selectedBooking._id ? { ...b, paymentStatus: 'paid' } : b
       ));
       closeModals();
+      toast.success('Đã xác nhận thanh toán đơn đặt phòng');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi xác nhận đặt phòng');
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi xác nhận đặt phòng'));
     } finally {
       setProcessing(false);
     }
@@ -137,8 +139,9 @@ const OwnerBookingListPage = () => {
         b._id === selectedBooking._id ? { ...b, checkedInAt: response.booking.checkedInAt } : b
       ));
       closeModals();
+      toast.success('Check-in thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi check-in');
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi check-in'));
     } finally {
       setProcessing(false);
     }
@@ -156,19 +159,19 @@ const OwnerBookingListPage = () => {
         b._id === selectedBooking._id ? { ...b, checkedOutAt: response.booking.checkedOutAt } : b
       ));
       closeModals();
+      toast.success('Check-out thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi check-out');
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi check-out'));
     } finally {
       setProcessing(false);
     }
   };
 
-  const apiErrorMessage = (err) =>
-    (typeof err === 'string' && err) ||
-    (err &&
-      typeof err === 'object' &&
-      (err.response?.data?.message || err.message)) ||
-    'Có lỗi xảy ra';
+  const getBookingSource = (booking) => {
+    // Nếu không có trường source trong dữ liệu, có thể dựa vào paymentMethod hoặc bỏ qua
+    // Tạm thời trả về null nếu không có
+    return booking.source || null;
+  };
 
   const handleConfirmGuestRefund = async () => {
     if (!selectedBooking) return;
@@ -185,8 +188,9 @@ const OwnerBookingListPage = () => {
         )
       );
       closeModals();
+      toast.success('Đã xác nhận hoàn tiền cho khách');
     } catch (err) {
-      setError(apiErrorMessage(err));
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi xác nhận hoàn tiền'));
     } finally {
       setProcessing(false);
     }
@@ -211,17 +215,18 @@ const OwnerBookingListPage = () => {
         )
       );
       closeModals();
+      const isResubmit =
+        updated?.ownerQrRejectionType === 'invalid_proof' && updated?.paymentStatus === 'pending';
+      toast.success(
+        isResubmit
+          ? 'Đã yêu cầu khách tải lại minh chứng'
+          : 'Đã xử lý minh chứng QR và thông báo cho khách'
+      );
     } catch (err) {
-      setError(apiErrorMessage(err));
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi xử lý minh chứng QR'));
     } finally {
       setProcessing(false);
     }
-  };
-
-  const getBookingSource = (booking) => {
-    // Nếu không có trường source trong dữ liệu, có thể dựa vào paymentMethod hoặc bỏ qua
-    // Tạm thời trả về null nếu không có
-    return booking.source || null;
   };
 
   const todayBookingsCount = useMemo(

@@ -2,9 +2,11 @@ const User = require("../../models/User");
 const {
   generateBackupCodes,
   requires2FA,
+} = require("./twoFactorAuth");
+const {
   removeTrustedDevice,
   removeAllTrustedDevices,
-} = require("./twoFactorAuth");
+} = require("./deviceAuth");
 const { send2FABackupCodesEmail } = require("../emails");
 const { ServiceError } = require("../../lib/http/serviceError");
 

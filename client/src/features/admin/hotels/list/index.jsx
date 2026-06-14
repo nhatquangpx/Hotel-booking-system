@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useSearchParams } from 'react-router-dom';
 import { IconButton, Tooltip, Button, Paper, TextField, Collapse } from '@mui/material';
 import { FaStar } from 'react-icons/fa';
@@ -8,13 +9,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { AdminLayout } from '@/features/admin/components';
+import { AdminLayout, ConfirmDeleteDialog } from '@/features/admin/components';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import HotelFormDialog from '../components/HotelFormDialog';
 import HotelDetailDialog from '../components/HotelDetailDialog';
 import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import RoomDetailDialog from '../../rooms/components/RoomDetailDialog';
 import api from '../../../../apis';
+import { apiErrorMessage } from '@/shared/utils';
 import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
 import './HotelList.scss';
 
@@ -32,6 +34,9 @@ const AdminHotelListPage = () => {
   const [searchPhone, setSearchPhone] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState(null);
+  const [deletingHotel, setDeletingHotel] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
+  const [deletingRoom, setDeletingRoom] = useState(false);
   const [expandedHotelId, setExpandedHotelId] = useState(null);
   const [rooms, setRooms] = useState({});
   const [showHotelDialog, setShowHotelDialog] = useState(false);
@@ -105,20 +110,57 @@ const AdminHotelListPage = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!hotelToDelete) return;
+    if (!hotelToDelete || deletingHotel) return;
     try {
+      setDeletingHotel(true);
       await api.adminHotel.deleteHotel(hotelToDelete._id);
       setHotels(hotels.filter(hotel => hotel._id !== hotelToDelete._id));
       setShowDeleteModal(false);
       setHotelToDelete(null);
+      toast.success('Xóa khách sạn thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi xóa khách sạn');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi xóa khách sạn');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setDeletingHotel(false);
     }
   };
 
   const handleCancelDelete = () => {
+    if (deletingHotel) return;
     setShowDeleteModal(false);
     setHotelToDelete(null);
+  };
+
+  const handleDeleteRoomClick = (hotelId, room) => {
+    setRoomToDelete({ hotelId, room });
+  };
+
+  const handleCancelDeleteRoom = () => {
+    if (deletingRoom) return;
+    setRoomToDelete(null);
+  };
+
+  const handleConfirmDeleteRoom = async () => {
+    if (!roomToDelete || deletingRoom) return;
+    const { hotelId, room } = roomToDelete;
+    try {
+      setDeletingRoom(true);
+      await api.adminRoom.deleteRoom(room._id);
+      setRooms(prev => ({
+        ...prev,
+        [hotelId]: prev[hotelId].filter((r) => r._id !== room._id)
+      }));
+      setRoomToDelete(null);
+      toast.success('Xóa phòng thành công');
+    } catch (err) {
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi xóa phòng');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setDeletingRoom(false);
+    }
   };
 
   const handleOpenCreateDialog = () => {
@@ -220,16 +262,9 @@ const AdminHotelListPage = () => {
     }
   };
 
-  const handleDeleteRoom = async (hotelId, roomId) => {
-    try {
-      await api.adminRoom.deleteRoom(roomId);
-      setRooms(prev => ({
-        ...prev,
-        [hotelId]: prev[hotelId].filter(room => room._id !== roomId)
-      }));
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi xóa phòng');
-    }
+  const handleDeleteRoom = (hotelId, roomId) => {
+    const room = rooms[hotelId]?.find((r) => r._id === roomId);
+    if (room) handleDeleteRoomClick(hotelId, room);
   };
 
   const formatPrice = (price) => {
@@ -511,19 +546,33 @@ const AdminHotelListPage = () => {
             </tbody>
           </table>
         </div>
-        {showDeleteModal && (
-          <div className="delete-modal">
-            <div className="modal-content">
-              <div className="modal-title">Xác nhận xóa</div>
-              <p>Bạn có chắc chắn muốn xóa khách sạn <strong>{hotelToDelete?.name}</strong>?</p>
-              <p>Hành động này không thể hoàn tác.</p>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={handleCancelDelete}>Hủy</button>
-                <button className="delete-btn" onClick={handleConfirmDelete}>Xác nhận xóa</button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDeleteDialog
+          isOpen={showDeleteModal}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          confirming={deletingHotel}
+          message={
+            <>
+              Bạn có chắc chắn muốn xóa khách sạn <strong>{hotelToDelete?.name}</strong>?
+            </>
+          }
+        />
+
+        <ConfirmDeleteDialog
+          isOpen={!!roomToDelete}
+          onClose={handleCancelDeleteRoom}
+          onConfirm={handleConfirmDeleteRoom}
+          confirming={deletingRoom}
+          message={
+            <>
+              Bạn có chắc chắn muốn xóa phòng <strong>{roomToDelete?.room?.roomNumber}</strong>
+              {roomToDelete?.room?.type ? (
+                <> ({formatRoomType(roomToDelete.room.type)})</>
+              ) : null}
+              ?
+            </>
+          }
+        />
 
         <HotelFormDialog
           isOpen={showHotelDialog}

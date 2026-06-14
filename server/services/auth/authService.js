@@ -7,10 +7,12 @@ const {
   generateOTP,
   verifyOTP,
   requires2FA,
+} = require("./twoFactorAuth");
+const {
   isDeviceTrusted,
   getDeviceInfo,
   addTrustedDevice,
-} = require("./twoFactorAuth");
+} = require("./deviceAuth");
 const { findHotelByStaffId } = require("../hotels/staffHotel");
 const {
   setAuthCookies,

@@ -46,7 +46,7 @@ const ReplyContactModal = ({
           />
         </div>
         <div className="reply-modal__actions">
-          <button type="button" onClick={onClose} disabled={isSendingReply}>
+          <button type="button" className="cancel-btn" onClick={onClose} disabled={isSendingReply}>
             Hủy
           </button>
           <button type="button" className="send-btn" onClick={onSendReply} disabled={isSendingReply}>

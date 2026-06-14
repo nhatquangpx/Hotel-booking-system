@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { FaStar, FaTimes } from 'react-icons/fa';
-import { formatDate } from '@/shared/utils';
+import { formatDate, apiErrorMessage } from '@/shared/utils';
 import { getHotelReply } from '@/shared/utils/reviewReply';
 import './ReplyModal.scss';
 
@@ -60,8 +61,11 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
       await reviewApi.replyToReview(review._id, response.trim());
       onSuccess?.();
       handleClose();
+      toast.success(isEditMode ? 'Cập nhật phản hồi thành công' : 'Gửi phản hồi thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi gửi phản hồi');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi gửi phản hồi');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -78,8 +82,11 @@ const ReplyModal = ({ review, isOpen, onClose, onSuccess, reviewApi }) => {
       setError(null);
       setIsEditMode(false);
       onClose();
+      toast.success('Xóa phản hồi thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi xóa phản hồi');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi xóa phản hồi');
+      setError(msg);
+      toast.error(msg);
       setShowDeleteConfirm(false);
     } finally {
       setSaving(false);

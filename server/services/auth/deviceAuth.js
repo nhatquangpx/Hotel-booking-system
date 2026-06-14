@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { getClientIp } = require('../../utils/requestIp');
+const { getClientIp } = require('../../lib/http/requestIp');
 
 /**
  * Generate a unique device fingerprint

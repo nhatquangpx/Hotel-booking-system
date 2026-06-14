@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import Dialog from '@/components/ui/Dialog';
+import { apiErrorMessage } from '@/shared/utils';
 import api from '@/apis';
 import './DeleteRoomDialog.scss';
 
@@ -21,8 +23,11 @@ const DeleteRoomDialog = ({ room, isOpen, onClose, onSuccess }) => {
       
       onSuccess?.();
       onClose();
+      toast.success('Xóa phòng thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi xóa phòng');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi xóa phòng');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setDeleting(false);
     }

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'react-toastify';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Dialog from '@/components/ui/Dialog';
 import { ownerHotelAPI } from '@/apis/owner/hotel';
 import { getImageUrl } from '@/constants/images';
+import { apiErrorMessage } from '@/shared/utils';
 import './EditHotelDialog.scss';
 
 /**
@@ -246,8 +248,11 @@ const EditHotelDialog = ({ isOpen, onClose, hotel, onSuccess }) => {
       await ownerHotelAPI.updateHotel(hotel._id, submitData);
       onSuccess?.();
       onClose();
+      toast.success('Cập nhật thông tin khách sạn thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi cập nhật thông tin khách sạn');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi cập nhật thông tin khách sạn');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

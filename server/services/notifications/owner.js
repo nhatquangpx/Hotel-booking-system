@@ -3,7 +3,7 @@ const Review = require("../../models/Review");
 const Hotel = require("../../models/Hotel");
 const Notification = require("../../models/Notification");
 const { createHotelNotification } = require("./core");
-const { getHotelStatusLabel } = require("../../utils/hotelStatus");
+const { getHotelStatusLabel } = require("../../services/hotels/status");
 
 /** Sự kiện vận hành KS → createHotelNotification (recipientRole: hotel). */
 

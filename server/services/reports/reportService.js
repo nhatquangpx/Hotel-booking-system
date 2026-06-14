@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Hotel = require('../../models/Hotel');
-const { isValidObjectId } = require('../../utils/mongooseIds');
+const { isValidObjectId } = require('../../lib/ids/mongooseIds');
 const Booking = require('../../models/Booking');
 const Room = require('../../models/Room');
 const { getScopedHotelIdsForOwner, calculateRevenueInRange } = require('../dashboards/core');

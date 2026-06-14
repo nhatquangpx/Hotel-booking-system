@@ -162,6 +162,78 @@ const validateBookingDates = (checkInDate, checkOutDate) => {
   return { valid: true, error: null };
 };
 
+/** Chuẩn hoá về 00:00:00 local để so sánh ngày lịch (đặt phòng / check-in-out thực tế). */
+const toBookingDateOnly = (dateLike) => {
+  const d = new Date(dateLike);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const formatBookingDateLabel = (dateLike) => {
+  const d = toBookingDateOnly(dateLike);
+  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+};
+
+/**
+ * Check-in thực tế phải nằm trong khoảng đặt phòng:
+ * từ ngày checkInDate đã đặt trở đi, và trước ngày checkOutDate đã đặt.
+ */
+const validateActualCheckInDate = (booking, at = new Date()) => {
+  if (!booking?.checkInDate || !booking?.checkOutDate) {
+    return { valid: false, error: "Đơn đặt phòng thiếu thông tin ngày lưu trú" };
+  }
+
+  const today = toBookingDateOnly(at);
+  const bookedCheckIn = toBookingDateOnly(booking.checkInDate);
+  const bookedCheckOut = toBookingDateOnly(booking.checkOutDate);
+
+  if (today < bookedCheckIn) {
+    return {
+      valid: false,
+      error: `Hôm nay chưa phải ngày check-in. Ngày nhận phòng đã đặt: ${formatBookingDateLabel(bookedCheckIn)}`,
+    };
+  }
+
+  if (today >= bookedCheckOut) {
+    return {
+      valid: false,
+      error: `Không thể check-in vì đã đến hoặc qua ngày trả phòng đã đặt (${formatBookingDateLabel(bookedCheckOut)})`,
+    };
+  }
+
+  return { valid: true, error: null };
+};
+
+/**
+ * Check-out thực tế phải nằm trong khoảng đặt phòng:
+ * không sớm hơn ngày checkInDate đã đặt, không muộn hơn ngày checkOutDate đã đặt.
+ */
+const validateActualCheckOutDate = (booking, at = new Date()) => {
+  if (!booking?.checkInDate || !booking?.checkOutDate) {
+    return { valid: false, error: "Đơn đặt phòng thiếu thông tin ngày lưu trú" };
+  }
+
+  const today = toBookingDateOnly(at);
+  const bookedCheckIn = toBookingDateOnly(booking.checkInDate);
+  const bookedCheckOut = toBookingDateOnly(booking.checkOutDate);
+
+  if (today < bookedCheckIn) {
+    return {
+      valid: false,
+      error: `Hôm nay chưa phải ngày check-out. Chưa đến ngày nhận phòng đã đặt (${formatBookingDateLabel(bookedCheckIn)})`,
+    };
+  }
+
+  if (today > bookedCheckOut) {
+    return {
+      valid: false,
+      error: `Không thể check-out sau ngày trả phòng đã đặt (${formatBookingDateLabel(bookedCheckOut)})`,
+    };
+  }
+
+  return { valid: true, error: null };
+};
+
 /**
  * Check if user has permission to access/modify a booking
  * @param {Object} booking - Booking object (may be populated with hotel/guest)
@@ -394,6 +466,9 @@ module.exports = {
   normalizeRefundMinDaysBeforeCheckIn,
   getEffectiveRefundMinDaysBeforeCheckIn,
   validateBookingDates,
+  toBookingDateOnly,
+  validateActualCheckInDate,
+  validateActualCheckOutDate,
   checkBookingPermission,
   canGuestCancelBooking,
   canCancelBooking,

@@ -1,5 +1,5 @@
 const Booking = require("../../models/Booking");
-const { findHotelByStaffId, staffCanAccessHotel } = require("../../utils/staffHotel");
+const { findHotelByStaffId, staffCanAccessHotel } = require("../../services/hotels/staffHotel");
 const { getBookingWithPopulate } = require("./core");
 const { checkInBooking, checkOutBooking } = require("./hotelTeam");
 

@@ -1,6 +1,11 @@
 const Booking = require("../../models/Booking");
-const { checkBookingPermission, refreshRoomBookingStatus } = require("./core");
-const { staffCanAccessHotel } = require("../../utils/staffHotel");
+const {
+  checkBookingPermission,
+  refreshRoomBookingStatus,
+  validateActualCheckInDate,
+  validateActualCheckOutDate,
+} = require("./core");
+const { staffCanAccessHotel } = require("../../services/hotels/staffHotel");
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -62,6 +67,11 @@ async function performCheckIn(booking) {
     httpError(400, "Đơn đặt phòng đã được check-in trước đó");
   }
 
+  const checkInDateRule = validateActualCheckInDate(booking);
+  if (!checkInDateRule.valid) {
+    httpError(400, checkInDateRule.error);
+  }
+
   booking.checkedInAt = new Date();
   await booking.save();
 
@@ -78,6 +88,11 @@ async function performCheckOut(booking) {
   }
   if (booking.checkedOutAt) {
     httpError(400, "Đơn đặt phòng đã được check-out trước đó");
+  }
+
+  const checkOutDateRule = validateActualCheckOutDate(booking);
+  if (!checkOutDateRule.valid) {
+    httpError(400, checkOutDateRule.error);
   }
 
   booking.checkedOutAt = new Date();

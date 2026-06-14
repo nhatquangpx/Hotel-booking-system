@@ -125,6 +125,7 @@ export const AdminDashboard = () => {
         from: reportRange.from,
         to: reportRange.to
       });
+      toast.success('Đã tải báo cáo Excel thành công');
     } catch (err) {
       console.error(err);
       toast.error(err?.message || 'Không thể xuất báo cáo');

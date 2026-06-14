@@ -212,7 +212,8 @@
 .admin-btn-primary,
 .mark-read-btn,
 .reply-btn,
-.admin-contact-page .reply-modal__actions .send-btn {
+.admin-contact-page .reply-modal__actions .send-btn,
+.admin-contact-page .reply-modal__actions .cancel-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -245,7 +246,7 @@
 
 .admin-btn-secondary,
 .admin-btn-cancel,
-.admin-contact-page .reply-modal__actions button:not(.send-btn) {
+.admin-contact-page .reply-modal__actions .cancel-btn {
   background: $bg-white;
   color: $text-primary;
   border: 1px solid $border-medium;

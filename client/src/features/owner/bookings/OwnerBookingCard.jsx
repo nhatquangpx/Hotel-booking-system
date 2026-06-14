@@ -1,5 +1,5 @@
 import { FaPhone, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
-import { formatDate, formatDateTime } from '@/shared/utils';
+import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
 
 const OwnerBookingCard = ({
@@ -45,7 +45,11 @@ const OwnerBookingCard = ({
       return (
         <>
           <button className="status-btn checked-in">Đã nhận phòng</button>
-          <button className="status-btn check-out" onClick={() => onOpenCheckOut(booking)}>
+          <button
+            type="button"
+            className="status-btn check-out"
+            onClick={() => tryOpenCheckOut(booking, onOpenCheckOut)}
+          >
             Check-out
           </button>
         </>
@@ -58,7 +62,11 @@ const OwnerBookingCard = ({
           <button type="button" className="status-btn confirmed" disabled>
             Đã thanh toán
           </button>
-          <button type="button" className="status-btn check-in" onClick={() => onOpenCheckIn(booking)}>
+          <button
+            type="button"
+            className="status-btn check-in"
+            onClick={() => tryOpenCheckIn(booking, onOpenCheckIn)}
+          >
             Check-in
           </button>
         </>

@@ -6,7 +6,7 @@ const {
   getRoomMapDisplayStatus,
   roomNeedsDashboardAttention,
   roomAttentionPriority,
-} = require("../../utils/roomMapDisplay");
+} = require("../../services/dashboards/roomMapDisplay");
 const { getTodayDateRange } = require("./core");
 
 const PANEL_LIMIT = 6;

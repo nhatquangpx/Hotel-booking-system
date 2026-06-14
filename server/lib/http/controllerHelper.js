@@ -1,5 +1,20 @@
 const { ServiceError } = require("./serviceError");
 
+function resolveServiceResponse(result) {
+  if (
+    result &&
+    typeof result === "object" &&
+    typeof result.status === "number" &&
+    result.status >= 100 &&
+    result.status < 600 &&
+    Object.prototype.hasOwnProperty.call(result, "body")
+  ) {
+    return { status: result.status, body: result.body };
+  }
+
+  return { status: 200, body: result };
+}
+
 async function runService(res, handler, { redirect } = {}) {
   try {
     const result = await handler();
@@ -11,8 +26,7 @@ async function runService(res, handler, { redirect } = {}) {
       res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
       return res.send(body);
     }
-    const status = result?.status ?? 200;
-    const body = result?.body ?? result;
+    const { status, body } = resolveServiceResponse(result);
     return res.status(status).json(body);
   } catch (error) {
     if (error instanceof ServiceError) {

@@ -1,5 +1,5 @@
 import { FaPhone, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
-import { formatDate, formatDateTime } from '@/shared/utils';
+import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
 
 const StaffBookingCard = ({
@@ -36,7 +36,11 @@ const StaffBookingCard = ({
           <button type="button" className="status-btn checked-in" disabled>
             Đã nhận phòng
           </button>
-          <button type="button" className="status-btn check-out" onClick={() => onOpenCheckOut(booking)}>
+          <button
+            type="button"
+            className="status-btn check-out"
+            onClick={() => tryOpenCheckOut(booking, onOpenCheckOut)}
+          >
             Check-out
           </button>
         </>
@@ -49,7 +53,11 @@ const StaffBookingCard = ({
           <button type="button" className="status-btn confirmed" disabled>
             Đã thanh toán
           </button>
-          <button type="button" className="status-btn check-in" onClick={() => onOpenCheckIn(booking)}>
+          <button
+            type="button"
+            className="status-btn check-in"
+            onClick={() => tryOpenCheckIn(booking, onOpenCheckIn)}
+          >
             Check-in
           </button>
         </>

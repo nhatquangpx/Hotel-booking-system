@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import Dialog from '@/components/ui/Dialog';
+import { apiErrorMessage } from '@/shared/utils';
 import api from '@/apis';
 import './UpdateRoomStatusDialog.scss';
 
@@ -68,8 +70,11 @@ const UpdateRoomStatusDialog = ({ room, isOpen, onClose, onSuccess }) => {
       
       onSuccess?.();
       onClose();
+      toast.success('Cập nhật trạng thái phòng thành công');
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
+      const msg = apiErrorMessage(err, 'Có lỗi xảy ra khi cập nhật trạng thái');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

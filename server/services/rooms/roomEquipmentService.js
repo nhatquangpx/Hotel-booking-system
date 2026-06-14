@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Room = require("../../models/Room");
 const Hotel = require("../../models/Hotel");
-const { findHotelByStaffId } = require("../../utils/staffHotel");
+const { findHotelByStaffId } = require("../../services/hotels/staffHotel");
 const { sendMaintenanceRepairRequestEmail } = require("../emails/maintenanceRepairEmail");
 
 const EQUIPMENT_STATUSES = ["operational", "under_repair", "broken"];

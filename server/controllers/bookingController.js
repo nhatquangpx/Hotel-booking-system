@@ -6,8 +6,8 @@ exports.createBooking = (req, res) =>
     bookingApi.bookingService
       .createGuestBooking(
         {
-          hotel: req.body.hotel,
-          room: req.body.room,
+          hotelId: req.body.hotelId ?? req.body.hotel,
+          roomId: req.body.roomId ?? req.body.room,
           checkInDate: req.body.checkInDate,
           checkOutDate: req.body.checkOutDate,
           paymentMethod: req.body.paymentMethod,

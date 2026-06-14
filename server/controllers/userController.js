@@ -11,7 +11,10 @@ function assertRole(req, role) {
 exports.getAllUsers = (req, res) => runService(res, () => userService.getAllUsers());
 
 exports.getUserById = (req, res) =>
-  runService(res, () => userService.getProfileById(req.params.id || req.user?.id));
+  runService(res, async () => ({
+    status: 200,
+    body: await userService.getProfileById(req.params.id || req.user?.id),
+  }));
 
 exports.createUser = (req, res) => runService(res, () => userService.createUser(req.body));
 
