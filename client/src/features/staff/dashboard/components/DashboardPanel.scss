@@ -142,6 +142,43 @@
     align-self: flex-start;
   }
 
+  &__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 0.75rem;
+    width: 100%;
+
+    button {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid $border-medium;
+      background: $bg-white;
+      border-radius: 6px;
+      color: $text-primary;
+      cursor: pointer;
+      @include body-xs;
+      font-weight: $font-medium;
+
+      &:hover:not(:disabled) {
+        background: rgba($lotte-primary, 0.08);
+        border-color: $lotte-primary;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    span {
+      @include body-xs;
+      color: $text-secondary;
+      white-space: nowrap;
+    }
+  }
+
   &__view-all {
     text-decoration: none;
 

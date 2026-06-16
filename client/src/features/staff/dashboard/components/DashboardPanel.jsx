@@ -1,10 +1,11 @@
-import React, { useState, useId } from 'react';
+import React, { useState, useId, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './DashboardPanel.scss';
 
 /**
  * Panel dashboard — header + danh sách item
  * @param {number} [collapsibleLimit] — hiển thị tối đa N mục; nút toggle xem đầy đủ
+ * @param {number} [pageSize] — phân trang client-side (ưu tiên hơn collapsibleLimit)
  * @param {'single' | 'two-column'} [listLayout] — bố cục danh sách (nhiệm vụ: 2 cột)
  */
 const DashboardPanel = ({
@@ -14,16 +15,40 @@ const DashboardPanel = ({
   items = [],
   emptyText = 'Không có dữ liệu',
   viewAllTo,
+  viewAllLabel = 'Xem trang đầy đủ',
   collapsibleLimit,
+  pageSize,
   listLayout = 'single',
   className = '',
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [page, setPage] = useState(1);
   const listId = useId();
 
-  const hasCollapse = collapsibleLimit != null && items.length > collapsibleLimit;
-  const visibleItems =
-    hasCollapse && !expanded ? items.slice(0, collapsibleLimit) : items;
+  const usesPagination = pageSize != null && pageSize > 0;
+  const totalPages = usesPagination ? Math.max(1, Math.ceil(items.length / pageSize)) : 1;
+
+  useEffect(() => {
+    setPage(1);
+  }, [items.length, pageSize]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const hasCollapse =
+    !usesPagination && collapsibleLimit != null && items.length > collapsibleLimit;
+
+  const visibleItems = usesPagination
+    ? items.slice((page - 1) * pageSize, page * pageSize)
+    : hasCollapse && !expanded
+      ? items.slice(0, collapsibleLimit)
+      : items;
+
+  const showPagination = usesPagination && items.length > pageSize;
+  const showViewAllLink = Boolean(viewAllTo) && !hasCollapse;
 
   const panelClass = [
     'staff-dashboard-panel',
@@ -96,9 +121,30 @@ const DashboardPanel = ({
           {expanded ? 'Thu gọn' : `Xem tất cả (${items.length})`}
         </button>
       )}
-      {viewAllTo && !hasCollapse && (
+      {showPagination && (
+        <div className="staff-dashboard-panel__pagination">
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          >
+            Trước
+          </button>
+          <span>
+            Trang {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          >
+            Sau
+          </button>
+        </div>
+      )}
+      {showViewAllLink && (
         <Link to={viewAllTo} className="staff-dashboard-panel__view-all">
-          Xem tất cả
+          {viewAllLabel}
         </Link>
       )}
     </section>

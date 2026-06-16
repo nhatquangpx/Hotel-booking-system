@@ -1,0 +1,173 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.hotel-revenue-chart {
+  width: 100%;
+
+  &--loading,
+  &--empty {
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-secondary;
+    @include body-sm;
+  }
+
+  &__bars {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 28px minmax(72px, 1.1fr) minmax(88px, 2fr) auto auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__rank {
+    @include body-xs;
+    font-weight: $font-bold;
+    color: $lotte-primary;
+    text-align: center;
+  }
+
+  &__label {
+    @include body-sm;
+    color: $text-primary;
+    font-weight: $font-medium;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__track {
+    height: 22px;
+    background: $bg-light-alt;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid $border-light;
+  }
+
+  &__bar {
+    height: 100%;
+    background: linear-gradient(90deg, $lotte-primary 0%, $lotte-primary-dark 100%);
+    border-radius: 5px;
+    min-width: 4px;
+    transition: width 0.35s ease;
+  }
+
+  &__bookings {
+    @include body-xs;
+    color: $text-secondary;
+    white-space: nowrap;
+    min-width: 52px;
+    text-align: right;
+  }
+
+  &__value {
+    @include body-xs;
+    font-weight: $font-semibold;
+    color: $text-primary;
+    white-space: nowrap;
+    min-width: 48px;
+    text-align: right;
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+
+    button {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid $border-medium;
+      background: $bg-white;
+      border-radius: 6px;
+      color: $text-primary;
+      cursor: pointer;
+      @include body-xs;
+      font-weight: $font-medium;
+
+      &:hover:not(:disabled) {
+        background: rgba($lotte-primary, 0.08);
+        border-color: $lotte-primary;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    span {
+      @include body-xs;
+      color: $text-secondary;
+      white-space: nowrap;
+    }
+  }
+
+  &__view-all {
+    @include body-sm;
+    color: $button-primary;
+    font-weight: $font-semibold;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (max-width: 900px) {
+    &__row {
+      grid-template-columns: 24px 1fr auto;
+      grid-template-rows: auto auto auto;
+      gap: 4px 8px;
+    }
+
+    &__track {
+      grid-column: 1 / -1;
+    }
+
+    &__bookings {
+      grid-column: 2;
+      text-align: left;
+    }
+
+    &__value {
+      grid-column: 3;
+      grid-row: 3;
+      text-align: right;
+    }
+  }
+
+  @media (max-width: 640px) {
+    &__footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__pagination {
+      margin-left: 0;
+      justify-content: flex-end;
+      width: 100%;
+    }
+  }
+}

@@ -6,6 +6,16 @@ export const adminDashboardAPI = {
     return res.data;
   },
 
+  getRevenueByHotel: async (period = 'week') => {
+    const res = await api.get('/admin/dashboard/revenue-by-hotel', { params: { period } });
+    return res.data;
+  },
+
+  getPendingContacts: async (limit = 20) => {
+    const res = await api.get('/admin/dashboard/pending-contacts', { params: { limit } });
+    return res.data;
+  },
+
   /** Xuất báo cáo Excel (.xlsx). */
   downloadReportExcel: async ({ hotelId, from, to }) => {
     const params = { from, to };
@@ -13,7 +23,7 @@ export const adminDashboardAPI = {
     try {
       const response = await api.get('/admin/reports/export', {
         params,
-        responseType: 'blob'
+        responseType: 'blob',
       });
       const blob = response.data;
       let filename = 'bao-cao-admin.xlsx';
@@ -36,11 +46,24 @@ export const adminDashboardAPI = {
       }
       throw error;
     }
-  }
+  },
 };
+
 export const adminRecentActivitiesAPI = {
   getRecentActivities: async () => {
     const res = await api.get('/admin/dashboard/recent-activities');
     return res.data;
-  }
+  },
 };
+
+export const REVENUE_PERIODS = {
+  WEEK: 'week',
+  MONTH: 'month',
+  YEAR: 'year',
+};
+
+export const REVENUE_PERIOD_OPTIONS = [
+  { value: REVENUE_PERIODS.WEEK, label: 'Tuần' },
+  { value: REVENUE_PERIODS.MONTH, label: 'Tháng' },
+  { value: REVENUE_PERIODS.YEAR, label: 'Năm' },
+];

@@ -95,6 +95,8 @@ router.get("/bookings/:id", idParamValidation, bookingController.getBookingById)
 
 router.get('/dashboard/stats', dashboardController.getAdminStats);
 router.get('/dashboard/recent-activities', dashboardController.getRecentActivities);
+router.get('/dashboard/revenue-by-hotel', dashboardController.getAdminRevenueByHotel);
+router.get('/dashboard/pending-contacts', dashboardController.getAdminPendingContacts);
 
 router.get('/reports/export', reportController.exportAdminReport);
 
