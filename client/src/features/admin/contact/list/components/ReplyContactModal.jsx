@@ -46,10 +46,20 @@ const ReplyContactModal = ({
           />
         </div>
         <div className="reply-modal__actions">
-          <button type="button" className="cancel-btn" onClick={onClose} disabled={isSendingReply}>
+          <button
+            type="button"
+            className="reply-modal__btn reply-modal__btn--cancel"
+            onClick={onClose}
+            disabled={isSendingReply}
+          >
             Hủy
           </button>
-          <button type="button" className="send-btn" onClick={onSendReply} disabled={isSendingReply}>
+          <button
+            type="button"
+            className="reply-modal__btn reply-modal__btn--send"
+            onClick={onSendReply}
+            disabled={isSendingReply}
+          >
             {isSendingReply ? "Đang gửi..." : "Gửi phản hồi"}
           </button>
         </div>

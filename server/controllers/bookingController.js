@@ -48,13 +48,7 @@ exports.getUserBookings = (req, res) =>
 
 exports.getAllBookings = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService
-      .getAllBookings({
-        paymentStatus: req.query.paymentStatus,
-        fromDate: req.query.fromDate,
-        toDate: req.query.toDate,
-      })
-      .then((body) => ({ status: 200, body }))
+    bookingApi.bookingService.getAllBookings().then((body) => ({ status: 200, body }))
   );
 
 exports.getBookingsByOwner = (req, res) =>

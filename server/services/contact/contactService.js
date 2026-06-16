@@ -56,7 +56,17 @@ async function submitContact(body) {
   };
 }
 
-async function getContactMessages({ page = 1, limit = 20, isRead }) {
+async function getContactMessages({
+  page = 1,
+  limit = 20,
+  isRead,
+  replied,
+  searchName,
+  searchEmail,
+  searchPhone,
+  searchSubject,
+  searchContent,
+}) {
   const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
   const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
   const skip = (parsedPage - 1) * parsedLimit;
@@ -64,6 +74,21 @@ async function getContactMessages({ page = 1, limit = 20, isRead }) {
   const query = {};
   if (isRead === "true") query.isRead = true;
   if (isRead === "false") query.isRead = false;
+  if (replied === "true") query.repliedAt = { $ne: null };
+  if (replied === "false") query.repliedAt = null;
+
+  const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const name = sanitizeText(searchName);
+  const email = sanitizeText(searchEmail);
+  const phone = sanitizeText(searchPhone);
+  const subject = sanitizeText(searchSubject);
+  const content = sanitizeText(searchContent);
+
+  if (name) query.name = { $regex: escapeRegex(name), $options: "i" };
+  if (email) query.email = { $regex: escapeRegex(email), $options: "i" };
+  if (phone) query.phone = { $regex: escapeRegex(phone), $options: "i" };
+  if (subject) query.subject = { $regex: escapeRegex(subject), $options: "i" };
+  if (content) query.message = { $regex: escapeRegex(content), $options: "i" };
 
   const [messages, total, unreadCount] = await Promise.all([
     ContactMessage.find(query)
@@ -149,9 +174,22 @@ async function replyContactMessage({ id, adminUserId, replyMessage: rawReply }) 
   };
 }
 
+async function deleteContactMessage({ id }) {
+  if (!isValidObjectId(id)) throw new ServiceError(400, "ID liên hệ không hợp lệ.");
+
+  const message = await ContactMessage.findByIdAndDelete(id);
+  if (!message) throw new ServiceError(404, "Không tìm thấy liên hệ.");
+
+  return {
+    status: 200,
+    body: { message: "Đã xóa tin nhắn liên hệ." },
+  };
+}
+
 module.exports = {
   submitContact,
   getContactMessages,
   markContactMessageAsRead,
   replyContactMessage,
+  deleteContactMessage,
 };

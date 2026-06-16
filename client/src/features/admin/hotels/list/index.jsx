@@ -303,12 +303,27 @@ const AdminHotelListPage = () => {
     <AdminLayout>
       <div className="admin-hotel-list-page">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
-          <div className="search-filters-row">
-            <div className="search-bar-inputs">
+          <div className="admin-search-toolbar">
+            <div className="admin-search-toolbar__top">
+              <span className="admin-search-toolbar__title">Tìm kiếm khách sạn</span>
+              <div className="admin-search-toolbar__actions">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className="admin-search-toolbar__btn"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenCreateDialog}
+                >
+                  Thêm khách sạn
+                </Button>
+              </div>
+            </div>
+
+            <div className="admin-search-toolbar__grid admin-search-toolbar__grid--user">
               <TextField
-                label="Tìm theo tên"
+                label="Tên khách sạn"
                 value={searchName}
-                onChange={e => setSearchName(e.target.value)}
+                onChange={(e) => setSearchName(e.target.value)}
                 size="small"
                 fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
@@ -317,7 +332,7 @@ const AdminHotelListPage = () => {
               <TextField
                 label="Địa chỉ"
                 value={searchAddress}
-                onChange={e => setSearchAddress(e.target.value)}
+                onChange={(e) => setSearchAddress(e.target.value)}
                 size="small"
                 fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
@@ -326,26 +341,12 @@ const AdminHotelListPage = () => {
               <TextField
                 label="Số điện thoại"
                 value={searchPhone}
-                onChange={e => setSearchPhone(e.target.value)}
+                onChange={(e) => setSearchPhone(e.target.value)}
                 size="small"
                 fullWidth
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
-            </div>
-            <div className="add-hotel-btn-link" onClick={handleOpenCreateDialog}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                sx={{
-                  backgroundColor: 'var(--admin-primary)',
-                  '&:hover': { backgroundColor: 'var(--admin-primary-hover)' },
-                  cursor: 'pointer',
-                }}
-              >
-                Thêm khách sạn
-              </Button>
             </div>
           </div>
         </Paper>

@@ -106,6 +106,7 @@ router.get('/notifications/load-more', notificationController.loadMoreNotificati
 
 router.get("/contact-messages", contactController.getContactMessages);
 router.put("/contact-messages/:id/read", idParamValidation, contactController.markContactMessageAsRead);
+router.delete("/contact-messages/:id", idParamValidation, contactController.deleteContactMessage);
 router.post(
   "/contact-messages/:id/reply",
   idParamValidation,
