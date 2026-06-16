@@ -1,12 +1,36 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { IconButton, Tooltip, Paper, TextField, MenuItem } from '@mui/material';
+import { IconButton, Tooltip, Paper, TextField } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import api from '@/apis';
 import { AdminLayout } from '@/features/admin/components';
 import BookingDetailDialog from '../components/BookingDetailDialog';
+import BookingViewModeSelector from './components/BookingViewModeSelector';
+import BookingListByHotel from './components/BookingListByHotel';
+import BookingRevenueReportExport from './components/BookingRevenueReportExport';
 import { formatDate } from '@/shared/utils';
+import {
+  filterAdminBookings,
+  groupBookingsByHotel,
+  VIEW_MODES,
+} from './utils/bookingListHelpers';
 import './BookingList.scss';
+
+const textFieldSx = {
+  InputLabelProps: { style: { color: 'var(--admin-text)' } },
+  InputProps: { style: { color: 'var(--admin-text)' } },
+};
+
+const dateFieldSx = {
+  InputLabelProps: {
+    style: { color: 'var(--admin-text)' },
+    shrink: true,
+  },
+  InputProps: {
+    style: { color: 'var(--admin-text)' },
+    sx: { '&::-webkit-calendar-picker-indicator': { color: 'var(--admin-text)' } },
+  },
+};
 
 /**
  * Admin Booking List — chỉ xem danh sách & tổng thu (đơn đã thanh toán), không chỉnh trạng thái đơn.
@@ -18,10 +42,12 @@ const AdminBookingListPage = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
   const [searchCode, setSearchCode] = useState('');
-  const [selectedHotel, setSelectedHotel] = useState('');
+  const [searchHotelName, setSearchHotelName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [viewMode, setViewMode] = useState(VIEW_MODES.LIST);
   const [hotels, setHotels] = useState([]);
   const [viewingBookingId, setViewingBookingId] = useState(null);
 
@@ -33,27 +59,16 @@ const AdminBookingListPage = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  const paidBookingStats = useMemo(() => {
-    const paid = bookings.filter((b) => b.paymentStatus === 'paid');
-    const sum = paid.reduce((acc, b) => acc + (Number(b.finalAmount) || 0), 0);
-    return { count: paid.length, sum };
-  }, [bookings]);
-
-  useEffect(() => {
-    fetchBookings();
-    fetchHotels();
-  }, []);
-
-  const fetchHotels = async () => {
+  const fetchHotels = useCallback(async () => {
     try {
       const response = await api.adminHotel.getAllHotels();
       setHotels(response);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách khách sạn');
     }
-  };
+  }, []);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.adminBooking.getAllBookings();
@@ -64,114 +79,138 @@ const AdminBookingListPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Lọc booking theo tên khách, email, mã đặt phòng, khách sạn và khoảng thời gian
-  const filteredBookings = bookings.filter(booking => {
-    const guestName = booking.guest?.name || booking.userName || '';
-    const guestEmail = booking.guest?.email || booking.userEmail || '';
-    const code = booking._id || '';
-    const hotelId = booking.hotel?._id || '';
-    const checkIn = new Date(booking.checkInDate || booking.checkIn);
-    const checkOut = new Date(booking.checkOutDate || booking.checkOut);
-    
-    const matchesSearch = guestName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      guestEmail.toLowerCase().includes(searchEmail.toLowerCase()) &&
-      code.toLowerCase().includes(searchCode.toLowerCase());
-    
-    const matchesHotel = !selectedHotel || hotelId === selectedHotel;
-    
-    const matchesDateRange = (!startDate || checkIn >= new Date(startDate)) &&
-      (!endDate || checkOut <= new Date(endDate));
-    
-    return matchesSearch && matchesHotel && matchesDateRange;
-  });
+  useEffect(() => {
+    fetchHotels();
+  }, [fetchHotels]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const filteredBookings = useMemo(
+    () =>
+      filterAdminBookings(bookings, {
+        searchTerm,
+        searchEmail,
+        searchPhone,
+        searchCode,
+        searchHotelName,
+        startDate,
+        endDate,
+      }),
+    [
+      bookings,
+      searchTerm,
+      searchEmail,
+      searchPhone,
+      searchCode,
+      searchHotelName,
+      startDate,
+      endDate,
+    ]
+  );
+
+  const hotelGroups = useMemo(
+    () => groupBookingsByHotel(filteredBookings, hotels),
+    [filteredBookings, hotels]
+  );
+
+  const paidBookingStats = useMemo(() => {
+    const paid = filteredBookings.filter((b) => b.paymentStatus === 'paid');
+    const sum = paid.reduce((acc, b) => acc + (Number(b.finalAmount) || 0), 0);
+    return { count: paid.length, sum };
+  }, [filteredBookings]);
 
   return (
     <AdminLayout>
       <div className="booking-list-container">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
-          <div className="search-bar-row">
-            <div className="search-bar-inputs">
+          <div className="admin-search-toolbar">
+            <div className="admin-search-toolbar__top">
+              <span className="admin-search-toolbar__title">Tìm kiếm đơn đặt phòng</span>
+              <div className="admin-search-toolbar__actions">
+                <span className="view-mode-label">Hiển thị</span>
+                <BookingViewModeSelector value={viewMode} onChange={setViewMode} />
+              </div>
+            </div>
+
+            <div className="admin-search-toolbar__grid admin-search-toolbar__grid--guest">
               <TextField
-                label="Tìm theo tên khách"
+                label="Tên khách"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 size="small"
-                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
-                InputProps={{ style: { color: 'var(--admin-text)' } }}
+                fullWidth
+                {...textFieldSx}
               />
               <TextField
-                label="Email khách"
+                label="Email"
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
                 size="small"
-                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
-                InputProps={{ style: { color: 'var(--admin-text)' } }}
+                fullWidth
+                {...textFieldSx}
+              />
+              <TextField
+                label="Số điện thoại"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+                size="small"
+                fullWidth
+                {...textFieldSx}
               />
               <TextField
                 label="Mã đặt phòng"
                 value={searchCode}
                 onChange={(e) => setSearchCode(e.target.value)}
                 size="small"
-                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
-                InputProps={{ style: { color: 'var(--admin-text)' } }}
+                fullWidth
+                {...textFieldSx}
+              />
+            </div>
+
+            <div className="admin-search-toolbar__grid admin-search-toolbar__grid--booking-extra">
+              <TextField
+                label="Tên khách sạn"
+                value={searchHotelName}
+                onChange={(e) => setSearchHotelName(e.target.value)}
+                size="small"
+                fullWidth
+                {...textFieldSx}
               />
               <TextField
-                select
-                label="Khách sạn"
-                value={selectedHotel}
-                onChange={(e) => setSelectedHotel(e.target.value)}
-                size="small"
-                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
-                InputProps={{ style: { color: 'var(--admin-text)' } }}
-              >
-                <MenuItem value="">Tất cả khách sạn</MenuItem>
-                {hotels.map((hotel) => (
-                  <MenuItem key={hotel._id} value={hotel._id}>
-                    {hotel.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Từ ngày"
+                label="Nhận phòng từ"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 size="small"
-                InputLabelProps={{ 
-                  style: { color: 'var(--admin-text)' },
-                  shrink: true 
-                }}
-                InputProps={{ 
-                  style: { color: 'var(--admin-text)' },
-                  sx: { '&::-webkit-calendar-picker-indicator': { color: 'var(--admin-text)' } }
-                }}
+                fullWidth
+                {...dateFieldSx}
               />
               <TextField
-                label="Đến ngày"
+                label="Trả phòng đến"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 size="small"
-                InputLabelProps={{ 
-                  style: { color: 'var(--admin-text)' },
-                  shrink: true 
-                }}
-                InputProps={{ 
-                  style: { color: 'var(--admin-text)' },
-                  sx: { '&::-webkit-calendar-picker-indicator': { color: 'var(--admin-text)' } }
-                }}
+                fullWidth
+                {...dateFieldSx}
               />
             </div>
           </div>
         </Paper>
 
+        <BookingRevenueReportExport hotels={hotels} />
+
         {!loading && bookings.length > 0 && (
           <div className="admin-booking-readonly-summary admin-summary-card">
-            <strong>Tổng quan thanh toán (toàn hệ thống)</strong>
+            <strong>Tổng quan thanh toán</strong>
             <span>
-              Đơn đã thanh toán: <strong>{paidBookingStats.count}</strong> — Tổng tiền:{' '}
+              Hiển thị <strong>{filteredBookings.length}</strong> / {bookings.length} đơn
+              {' '}
+              — Đã thanh toán: <strong>{paidBookingStats.count}</strong> — Tổng tiền:{' '}
               <strong>{paidBookingStats.sum.toLocaleString('vi-VN')} VND</strong>
             </span>
             <span className="admin-booking-readonly-summary__hint">
@@ -182,67 +221,83 @@ const AdminBookingListPage = () => {
 
         {error && <div className="error-message">{error}</div>}
 
-        <div className="booking-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Mã đặt phòng</th>
-                <th>Khách hàng</th>
-                <th>Email</th>
-                <th>Khách sạn</th>
-                <th>Phòng</th>
-                <th>Nhận phòng</th>
-                <th>Trả phòng</th>
-                <th>Tổng tiền</th>
-                <th>Thanh toán</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+        {viewMode === VIEW_MODES.HOTEL ? (
+          <BookingListByHotel
+            hotelGroups={hotelGroups}
+            loading={loading}
+            onView={setViewingBookingId}
+          />
+        ) : (
+          <div className="booking-table">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan="10" className="loading">Đang tải...</td>
+                  <th>Mã đặt phòng</th>
+                  <th>Khách hàng</th>
+                  <th>Email</th>
+                  <th>Khách sạn</th>
+                  <th>Phòng</th>
+                  <th>Nhận phòng</th>
+                  <th>Trả phòng</th>
+                  <th>Tổng tiền</th>
+                  <th>Thanh toán</th>
+                  <th>Thao tác</th>
                 </tr>
-              ) : filteredBookings.length === 0 ? (
-                <tr>
-                  <td colSpan="10" className="text-center">Không tìm thấy đơn đặt phòng nào</td>
-                </tr>
-              ) : (
-                filteredBookings.map(booking => (
-                  <tr key={booking._id}>
-                    <td>{booking._id.slice(-6).toUpperCase()}</td>
-                    <td>{booking.guest?.name || booking.userName || 'N/A'}</td>
-                    <td>{booking.guest?.email || booking.userEmail || 'N/A'}</td>
-                    <td>{booking.hotel?.name || booking.hotelName || 'N/A'}</td>
-                    <td>{booking.room?.roomNumber || booking.roomName || 'N/A'}</td>
-                    <td>{formatDate(booking.checkInDate || booking.checkIn)}</td>
-                    <td>{formatDate(booking.checkOutDate || booking.checkOut)}</td>
-                    <td>{typeof booking.finalAmount === 'number' ? booking.finalAmount.toLocaleString('vi-VN') + ' VND' : 'N/A'}</td>
-                    <td>
-                      <span className={`status-badge ${booking.paymentStatus}`}>
-                        {booking.paymentStatus === 'pending' && 'Chưa thanh toán'}
-                        {booking.paymentStatus === 'paid' && 'Đã thanh toán'}
-                        {booking.paymentStatus === 'cancelled' && 'Đã hủy'}
-                      </span>
-                    </td>
-                    <td>
-                      <Tooltip title="Xem chi tiết (chỉ đọc)">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          aria-label="Xem chi tiết"
-                          onClick={() => setViewingBookingId(booking._id)}
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="10" className="loading">
+                      Đang tải...
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : filteredBookings.length === 0 ? (
+                  <tr>
+                    <td colSpan="10" className="text-center">
+                      Không tìm thấy đơn đặt phòng nào
+                    </td>
+                  </tr>
+                ) : (
+                  filteredBookings.map((booking) => (
+                    <tr key={booking._id}>
+                      <td>{booking._id.slice(-6).toUpperCase()}</td>
+                      <td>{booking.guest?.name || booking.userName || 'N/A'}</td>
+                      <td>{booking.guest?.email || booking.userEmail || 'N/A'}</td>
+                      <td>{booking.hotel?.name || booking.hotelName || 'N/A'}</td>
+                      <td>{booking.room?.roomNumber || booking.roomName || 'N/A'}</td>
+                      <td>{formatDate(booking.checkInDate || booking.checkIn)}</td>
+                      <td>{formatDate(booking.checkOutDate || booking.checkOut)}</td>
+                      <td>
+                        {typeof booking.finalAmount === 'number'
+                          ? `${booking.finalAmount.toLocaleString('vi-VN')} VND`
+                          : 'N/A'}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${booking.paymentStatus}`}>
+                          {booking.paymentStatus === 'pending' && 'Chưa thanh toán'}
+                          {booking.paymentStatus === 'paid' && 'Đã thanh toán'}
+                          {booking.paymentStatus === 'cancelled' && 'Đã hủy'}
+                        </span>
+                      </td>
+                      <td>
+                        <Tooltip title="Xem chi tiết (chỉ đọc)">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            aria-label="Xem chi tiết"
+                            onClick={() => setViewingBookingId(booking._id)}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <BookingDetailDialog
           isOpen={!!viewingBookingId}
@@ -254,4 +309,4 @@ const AdminBookingListPage = () => {
   );
 };
 
-export default AdminBookingListPage; 
+export default AdminBookingListPage;

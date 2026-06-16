@@ -33,7 +33,6 @@ const AdminUserListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
   const [viewMode, setViewMode] = useState(VIEW_MODES.LIST);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -151,9 +150,9 @@ const AdminUserListPage = () => {
         searchTerm,
         searchEmail,
         searchPhone,
-        selectedRole,
+        selectedRole: 'all',
       }),
-    [users, searchTerm, searchEmail, searchPhone, selectedRole]
+    [users, searchTerm, searchEmail, searchPhone]
   );
 
   const roleGroups = useMemo(
@@ -209,10 +208,27 @@ const AdminUserListPage = () => {
     <AdminLayout>
       <div className="user-list-container">
         <Paper className="search-bar" sx={{ background: 'var(--admin-sidebar)' }}>
-          <div className="search-filters-row">
-            <div className="search-bar-inputs">
+          <div className="admin-search-toolbar">
+            <div className="admin-search-toolbar__top">
+              <span className="admin-search-toolbar__title">Tìm kiếm người dùng</span>
+              <div className="admin-search-toolbar__actions">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className="admin-search-toolbar__btn"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenCreateDialog}
+                >
+                  Thêm người dùng
+                </Button>
+                <span className="view-mode-label">Hiển thị</span>
+                <ViewModeSelector value={viewMode} onChange={handleViewModeChange} />
+              </div>
+            </div>
+
+            <div className="admin-search-toolbar__grid admin-search-toolbar__grid--user">
               <TextField
-                label="Tìm theo tên"
+                label="Tên"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 size="small"
@@ -238,45 +254,7 @@ const AdminUserListPage = () => {
                 InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
                 InputProps={{ style: { color: 'var(--admin-text)' } }}
               />
-              <TextField
-                select
-                label="Vai trò"
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                size="small"
-                fullWidth
-                SelectProps={{ native: true }}
-                InputLabelProps={{ style: { color: 'var(--admin-text)' } }}
-                InputProps={{ style: { color: 'var(--admin-text)' } }}
-              >
-                <option value="all">Tất cả</option>
-                <option value="admin">Quản trị viên</option>
-                <option value="owner">Chủ khách sạn</option>
-                <option value="staff">Nhân viên</option>
-                <option value="guest">Khách</option>
-              </TextField>
             </div>
-            <div className="add-user-btn-link" onClick={handleOpenCreateDialog}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                sx={{
-                  backgroundColor: 'var(--admin-primary)',
-                  '&:hover': {
-                    backgroundColor: 'var(--admin-primary-hover)',
-                  },
-                  cursor: 'pointer',
-                }}
-              >
-                Thêm người dùng
-              </Button>
-            </div>
-          </div>
-
-          <div className="view-mode-row">
-            <span className="view-mode-label">Hiển thị</span>
-            <ViewModeSelector value={viewMode} onChange={handleViewModeChange} />
           </div>
         </Paper>
 

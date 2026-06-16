@@ -9,23 +9,11 @@ const {
  */
 
 /**
- * Get all bookings with optional filters (admin only)
- * @param {Object} filters - Filter options
- * @param {String} filters.paymentStatus - Payment status
- * @param {Date|String} filters.fromDate - From date (check-in)
- * @param {Date|String} filters.toDate - To date (check-out)
+ * Get all bookings (admin only)
  * @returns {Promise<Array>} Array of bookings
  */
-const getAllBookings = async (filters = {}) => {
-  const { paymentStatus, fromDate, toDate } = filters;
-  let query = {};
-
-  // Apply filters
-  if (paymentStatus) query.paymentStatus = paymentStatus;
-  if (fromDate) query.checkInDate = { $gte: new Date(fromDate) };
-  if (toDate) query.checkOutDate = { $lte: new Date(toDate) };
-
-  const bookings = await Booking.find(query)
+const getAllBookings = async () => {
+  const bookings = await Booking.find({})
     .populate({
       path: "hotel",
       select: "name address"

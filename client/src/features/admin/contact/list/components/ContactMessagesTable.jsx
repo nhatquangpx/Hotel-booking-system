@@ -9,6 +9,7 @@ const ContactMessagesTable = ({
   onToggleExpanded,
   onMarkAsRead,
   onOpenReplyModal,
+  onDelete,
 }) => {
   return (
     <div className="contact-table-wrapper">
@@ -62,18 +63,23 @@ const ContactMessagesTable = ({
                   {item.isRead && item.readAt && (
                     <div className="read-meta">{formatDateTime(item.readAt)}</div>
                   )}
+                  {item.repliedAt && (
+                    <div className="reply-meta">Đã phản hồi: {formatDateTime(item.repliedAt)}</div>
+                  )}
                 </td>
                 <td>
                   <div className="action-group">
                     {!item.isRead && (
-                      <button className="mark-read-btn" onClick={() => onMarkAsRead(item._id)}>
+                      <button type="button" className="mark-read-btn" onClick={() => onMarkAsRead(item._id)}>
                         Đánh dấu đã đọc
                       </button>
                     )}
-                    <button className="reply-btn" onClick={() => onOpenReplyModal(item)}>
+                    <button type="button" className="reply-btn" onClick={() => onOpenReplyModal(item)}>
                       Phản hồi
                     </button>
-                    {item.repliedAt && <div className="reply-meta">{formatDateTime(item.repliedAt)}</div>}
+                    <button type="button" className="delete-btn" onClick={() => onDelete(item)}>
+                      Xóa
+                    </button>
                   </div>
                 </td>
               </tr>

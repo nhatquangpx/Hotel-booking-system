@@ -28,45 +28,7 @@
   --hotel-col-actions: 17%;
 
   .search-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-
-    .search-filters-row {
-      display: flex;
-      align-items: flex-end;
-      width: 100%;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .search-bar-inputs {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .add-hotel-btn-link {
-      display: flex;
-      align-items: flex-end;
-      flex-shrink: 0;
-      padding-bottom: 2px;
-
-      .MuiButton-root {
-        white-space: nowrap;
-        @include button-text;
-        padding: 8px 18px;
-        background-color: $admin-primary !important;
-        color: $text-white !important;
-        font-weight: $font-bold;
-
-        &:hover {
-          background-color: $admin-primary-hover !important;
-        }
-      }
-    }
+    // Layout: AdminShared.scss (.admin-search-toolbar)
   }
 
   .hotel-table {
@@ -286,36 +248,10 @@
   align-items: center;
 }
 
-@media (max-width: 992px) {
-  .admin-hotel-list-page .search-bar .search-bar-inputs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 768px) {
   .admin-hotel-list-page {
     .hotel-table table.hotel-table-fixed {
       min-width: 900px;
-    }
-
-    .search-bar {
-      .search-filters-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .search-bar-inputs {
-        grid-template-columns: 1fr;
-      }
-
-      .add-hotel-btn-link {
-        width: 100%;
-        padding-bottom: 0;
-
-        .MuiButton-root {
-          width: 100%;
-        }
-      }
     }
   }
 }

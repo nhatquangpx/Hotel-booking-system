@@ -30,53 +30,283 @@
 .booking-list-container .search-bar,
 .user-list-container .search-bar,
 .admin-hotel-list-page .search-bar,
-.admin-contact-page .contact-page-header {
+.admin-contact-page .search-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   margin-bottom: 1.5rem;
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   border: 1px solid $admin-border;
   border-radius: 12px;
   background: $bg-light-alt;
   box-shadow: 0 2px 8px rgba(160, 130, 109, 0.04);
 }
 
-.admin-contact-page .contact-page-header {
-  align-items: center;
-
-  p {
-    margin: 0;
-    color: $text-secondary;
-    @include body-base;
-  }
-
-  select {
-    min-width: 140px;
-    padding: 0.55rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid $border-medium;
-    background: $bg-white;
-    color: $text-primary;
-  }
-}
-
-.admin-contact-page .contact-page-header__stats {
+// Toolbar tìm kiếm dùng chung (booking + user)
+.admin-search-toolbar {
+  width: 100%;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+  flex-direction: column;
+  gap: 0.875rem;
 
-.admin-contact-page .unread-pill {
-  background: $status-warning-bg;
-  color: $status-warning-text;
-  padding: 6px 12px;
-  border-radius: 999px;
-  @include body-sm;
-  font-weight: $font-medium;
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid $admin-border;
+  }
+
+  &__title {
+    @include body-sm;
+    font-weight: $font-semibold;
+    color: $text-primary;
+    letter-spacing: 0.01em;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    margin-left: auto;
+  }
+
+  &__grid {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+
+    &--guest {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    &--booking-extra {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+
+    &--user {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &--contact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &--contact-extra {
+      grid-template-columns: 1fr 2fr;
+    }
+  }
+
+  .admin-search-toolbar__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    padding-top: 0.25rem;
+  }
+
+  .admin-search-toolbar__filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+  }
+
+  .admin-search-toolbar__filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .admin-search-toolbar__stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .unread-pill {
+    background: $status-warning-bg;
+    color: $status-warning-text;
+    padding: 6px 12px;
+    border-radius: 999px;
+    @include body-sm;
+    font-weight: $font-medium;
+    white-space: nowrap;
+  }
+
+  .view-mode-label {
+    @include body-xs;
+    color: $text-secondary;
+    font-weight: $font-semibold;
+    white-space: nowrap;
+  }
+
+  .view-mode-selector {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 4px;
+    padding: 4px;
+    background: linear-gradient(180deg, #eef1f6 0%, #e8ecf2 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .view-mode-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    min-height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: $grey-medium;
+    cursor: pointer;
+    font-family: inherit;
+    @include body-sm;
+    font-weight: $font-medium;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.85;
+
+      .MuiSvgIcon-root {
+        font-size: 1.05rem;
+      }
+    }
+
+    &__label {
+      @include body-sm;
+    }
+
+    &:hover:not(.is-active) {
+      background: rgba(255, 255, 255, 0.55);
+      color: $text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $button-primary;
+      outline-offset: 2px;
+    }
+
+    &.is-active {
+      background: $bg-white;
+      color: $text-primary;
+      font-weight: $font-semibold;
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 3px 10px rgba(0, 0, 0, 0.08);
+
+      .view-mode-option__icon {
+        color: $button-primary;
+        opacity: 1;
+      }
+    }
+  }
+
+  .admin-search-toolbar__btn {
+    white-space: nowrap;
+    @include button-text;
+    padding: 8px 16px !important;
+    background-color: $admin-primary !important;
+    color: $text-white !important;
+    font-weight: $font-bold !important;
+    box-shadow: none !important;
+
+    &:hover {
+      background-color: $admin-primary-hover !important;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    &__grid--guest {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__grid--booking-extra {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    &__grid--contact {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__grid--contact-extra {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    &__top {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__actions {
+      margin-left: 0;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    &__grid--guest,
+    &__grid--booking-extra,
+    &__grid--user,
+    &__grid--contact,
+    &__grid--contact-extra {
+      grid-template-columns: 1fr;
+    }
+
+    .view-mode-selector {
+      flex: 1;
+    }
+
+    .view-mode-option {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 6px;
+
+      &__label {
+        font-size: 0.8rem;
+      }
+    }
+
+    .admin-search-toolbar__btn {
+      width: 100%;
+    }
+
+    .admin-search-toolbar__filters {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .admin-search-toolbar__filter-group {
+      flex-direction: column;
+      align-items: stretch;
+
+      .view-mode-selector {
+        width: 100%;
+      }
+    }
+  }
 }
 
 // Table wrapper (owner .sale-table-wrap)
@@ -211,9 +441,7 @@
 .admin-btn,
 .admin-btn-primary,
 .mark-read-btn,
-.reply-btn,
-.admin-contact-page .reply-modal__actions .send-btn,
-.admin-contact-page .reply-modal__actions .cancel-btn {
+.reply-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -234,8 +462,7 @@
 
 .admin-btn-primary,
 .mark-read-btn,
-.reply-btn,
-.admin-contact-page .reply-modal__actions .send-btn {
+.reply-btn {
   background: $button-primary;
   color: $text-white;
 
@@ -245,8 +472,7 @@
 }
 
 .admin-btn-secondary,
-.admin-btn-cancel,
-.admin-contact-page .reply-modal__actions .cancel-btn {
+.admin-btn-cancel {
   background: $bg-white;
   color: $text-primary;
   border: 1px solid $border-medium;
@@ -255,19 +481,6 @@
     background: rgba($lotte-primary, 0.08);
     border-color: $lotte-primary;
   }
-}
-
-.admin-contact-page .action-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.admin-contact-page .read-meta,
-.admin-contact-page .reply-meta {
-  color: $text-secondary;
-  @include body-sm;
 }
 
 // Pagination
