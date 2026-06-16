@@ -1,5 +1,5 @@
 import { getImageUrl } from '@/constants/images';
-import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled } from '@/shared/utils';
+import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled, getRoomPrice } from '@/shared/utils';
 
 const BookingListItem = ({
   booking,
@@ -55,13 +55,13 @@ const BookingListItem = ({
           <div className="room-details">
             <h3>{booking.room?.roomNumber || 'Không có số phòng'}</h3>
             <p className="room-type">{booking.room?.type || 'Không có loại phòng'}</p>
-            <p className="room-price">{(booking.room?.price?.regular || 0).toLocaleString('vi-VN')} VNĐ/đêm</p>
+            <p className="room-price">{getRoomPrice(booking.room?.price).toLocaleString('vi-VN')} VNĐ/đêm</p>
           </div>
         </div>
 
         <div className="booking-actions">
           <div className="price-info">
-            <span className="total-price">{(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</span>
+            <span className="total-price">{(booking.finalAmount || 0).toLocaleString('vi-VN')} VNĐ</span>
           </div>
           <div className="action-buttons">
             <button

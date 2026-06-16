@@ -5,6 +5,7 @@ import Dialog from '@/components/ui/Dialog';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import {
   normalizeRoomStatus,
   getBookingStatusLabel,
@@ -23,7 +24,7 @@ const formatRoomType = (type) => {
 };
 
 const formatPrice = (price) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getRoomPrice(price));
 
 const RoomDetailDialog = ({ isOpen, onClose, roomId, onEdit, onViewHotel }) => {
   const [room, setRoom] = useState(null);
@@ -121,15 +122,7 @@ const RoomDetailDialog = ({ isOpen, onClose, roomId, onEdit, onViewHotel }) => {
             </div>
             <div className="detail-row">
               <div className="detail-label">Giá phòng:</div>
-              <div className="detail-value">
-                {formatPrice(room.price.regular)}
-                {room.price.discount > 0 && (
-                  <span className="discount-price">
-                    {' '}
-                    (Giảm: {formatPrice(room.price.discount)})
-                  </span>
-                )}
-              </div>
+              <div className="detail-value">{formatPrice(room.price)}</div>
             </div>
             <div className="detail-row">
               <div className="detail-label">Số người tối đa:</div>

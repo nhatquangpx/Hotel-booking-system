@@ -311,6 +311,12 @@
     white-space: nowrap;
     transition: background 0.2s ease, border-color 0.2s ease;
 
+    &--secondary {
+      border-color: $border-medium;
+      color: $text-secondary;
+      font-size: 0.9rem;
+    }
+
     &:hover:not(:disabled) {
       background: rgba($lotte-primary, 0.08);
       border-color: $lotte-primary-dark;
@@ -430,37 +436,8 @@
   }
 
   .factor-details {
-    &[open] summary {
+    &[open] summary.row-action-btn--detail {
       margin-bottom: 0.5rem;
-    }
-
-    summary {
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: $text-white;
-      list-style: none;
-      display: inline-flex;
-      align-items: center;
-      padding: 0.35rem 0.75rem;
-      border-radius: 999px;
-      background: $lotte-primary;
-      box-shadow: 0 2px 4px rgba(160, 130, 109, 0.25);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-
-      &:hover {
-        transform: translateY(-1px);
-        background: $lotte-primary-dark;
-        box-shadow: 0 4px 8px rgba(160, 130, 109, 0.28);
-      }
-
-      &::-webkit-details-marker {
-        display: none;
-      }
-    }
-
-    &[open] summary {
-      background: $lotte-primary-dark;
     }
   }
 
@@ -660,11 +637,11 @@
       }
 
       &--factors {
-        width: 22%;
+        width: 20%;
       }
 
       &--explain {
-        width: 22%;
+        width: 24%;
       }
     }
 
@@ -830,6 +807,86 @@
       text-align: center;
     }
 
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+
+      .factor-detail-wrap {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .factor-details[open] {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+    }
+
+    .row-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid transparent;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+
+      &--apply {
+        border-color: $lotte-primary;
+        background: $bg-white;
+        color: $lotte-primary-dark;
+
+        &:hover:not(:disabled) {
+          background: rgba($lotte-primary, 0.1);
+          border-color: $lotte-primary-dark;
+        }
+
+        &:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+      }
+
+      &--detail {
+        border-color: $lotte-primary;
+        background: $lotte-primary;
+        color: $text-white;
+        box-shadow: 0 2px 4px rgba(160, 130, 109, 0.2);
+        list-style: none;
+
+        &::-webkit-details-marker {
+          display: none;
+        }
+
+        &:hover {
+          background: $lotte-primary-dark;
+          border-color: $lotte-primary-dark;
+          box-shadow: 0 3px 6px rgba(160, 130, 109, 0.24);
+        }
+      }
+    }
+
+    .factor-details[open] summary.row-action-btn--detail {
+      background: $lotte-primary-dark;
+      border-color: $lotte-primary-dark;
+    }
+
     td.cell-factors {
       text-align: center;
       vertical-align: middle;
@@ -876,24 +933,17 @@
     }
 
     .factor-detail-wrap {
-      display: flex;
-      flex-direction: column;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
       min-width: 0;
 
       .factor-details {
-        display: flex;
+        display: inline-flex;
         flex-direction: column;
         align-items: center;
-        width: 100%;
         max-width: 100%;
         text-align: left;
-
-        summary {
-          align-self: center;
-        }
       }
 
       .factor-detail-lines {

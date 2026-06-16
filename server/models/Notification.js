@@ -34,39 +34,23 @@ const NotificationSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
-        // Owner notifications
+        // Owner + staff (recipientRole: "hotel")
         "new_booking",
-        "payment_successful",
-        "booking_cancelled",
-        "room_availability",
         "new_review",
         "negative_review",
         "checkout_today",
         "checkin_today",
         "no_show",
         "hotel_status_changed",
-        // Guest notifications
+        // Guest (recipientRole: "guest")
         "booking_confirmed",
         "payment_rejected",
         "qr_proof_resubmit",
-        "payment_reminder",
         "refund_processed",
-        "upcoming_trip_reminder",
-        "checkin_instructions",
-        "review_request",
-        "review_reply",
-        "promotion",
-        "security_alert",
-        // Admin notifications
-        "hotel_suspended",
+        // Guest + owner/staff (cùng type; phân biệt bởi recipientRole)
+        "booking_cancelled",
+        // Admin (recipientRole: "admin")
         "high_value_booking",
-        "multiple_cancellations",
-        "negative_review_spike",
-        "system_alert",
-        "security_breach_attempt",
-        "payment_issue",
-        "daily_summary",
-        "weekly_report"
       ],
       required: true
     },

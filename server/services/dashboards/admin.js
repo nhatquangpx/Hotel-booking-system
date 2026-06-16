@@ -2,6 +2,7 @@ const User = require('../../models/User');
 const Hotel = require('../../models/Hotel');
 const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
+const { bookingRevenueSumExpr } = require('../bookings/bookingAmount');
 
 const PAYMENT_STATUS_LABELS = {
   pending: 'chờ thanh toán',
@@ -33,7 +34,7 @@ const getDashboardStats = async () => {
     Booking.countDocuments(),
     Booking.aggregate([
       { $match: { paymentStatus: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      { $group: { _id: null, total: { $sum: bookingRevenueSumExpr } } }
     ])
   ]);
   

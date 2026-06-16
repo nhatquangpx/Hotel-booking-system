@@ -7,6 +7,7 @@ const { getScopedHotelIdsForOwner, calculateRevenueInRange } = require('../dashb
 const { buildReportExcelBuffer } = require('./reportExcel');
 const { REPORT_TZ, parseInclusiveRange, forEachReportDay } = require('./reportTz');
 const { aggregateRoomNightStats } = require('./roomNightsAggregate');
+const { bookingRevenueSumExpr } = require('../bookings/bookingAmount');
 
 const getScopedHotelIdsForAdmin = async (hotelId) => {
   if (!hotelId) {
@@ -53,7 +54,7 @@ const aggregateDailyRevenueAndBookings = async (hotelIds, rangeStart, rangeEndEx
         _id: {
           $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: REPORT_TZ }
         },
-        revenue: { $sum: '$totalAmount' },
+        revenue: { $sum: bookingRevenueSumExpr },
         bookingsCreated: { $sum: 1 }
       }
     }

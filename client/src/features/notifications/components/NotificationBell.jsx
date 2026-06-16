@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaBell, FaCheck, FaCalendarAlt, FaDollarSign, FaExclamationTriangle, FaUser, FaTimes, FaBan, FaClock } from 'react-icons/fa';
+import { FaCalendarAlt, FaDollarSign, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaClock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useSocket } from '@/shared/hooks';
 import { notificationConfig, getNotificationPath } from '../config/notificationConfig';
@@ -44,22 +44,18 @@ const NotificationBell = () => {
       case 'new_booking':
       case 'booking_confirmed':
       case 'checkin_today':
-      case 'checkin_reminder':
       case 'checkout_today':
-      case 'checkout_reminder':
         return <FaCalendarAlt />;
-      case 'payment_successful':
-        return <FaDollarSign />;
-      case 'payment_failed':
-        return <FaExclamationTriangle style={{ color: '#dc3545' }} />;
       case 'booking_cancelled':
+      case 'payment_rejected':
+      case 'qr_proof_resubmit':
         return <FaBan />;
+      case 'refund_processed':
+      case 'high_value_booking':
+        return <FaDollarSign />;
       case 'no_show':
         return <FaClock />;
-      case 'room_availability':
-        return <FaExclamationTriangle />;
       case 'new_review':
-      case 'review_request':
         return <FaUser />;
       case 'negative_review':
         return <FaExclamationTriangle style={{ color: '#dc3545' }} />;

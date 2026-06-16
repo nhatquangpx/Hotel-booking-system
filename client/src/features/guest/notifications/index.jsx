@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCalendarAlt, FaDollarSign, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaGift, FaShieldAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaDollarSign, FaBell, FaCheck, FaTimes, FaBan } from 'react-icons/fa';
 import { GuestLayout } from '../components/layout';
 import api from '@/apis';
 import { useAuth, useSocket } from '@/shared/hooks';
@@ -48,22 +48,13 @@ const GuestNotificationsPage = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'booking_confirmed':
-      case 'upcoming_trip_reminder':
-      case 'checkin_instructions':
         return <FaCalendarAlt />;
-      case 'payment_successful':
-      case 'payment_reminder':
       case 'refund_processed':
         return <FaDollarSign />;
       case 'booking_cancelled':
+      case 'payment_rejected':
+      case 'qr_proof_resubmit':
         return <FaBan />;
-      case 'review_request':
-      case 'review_reply':
-        return <FaUser />;
-      case 'promotion':
-        return <FaGift />;
-      case 'security_alert':
-        return <FaShieldAlt style={{ color: '#dc3545' }} />;
       default:
         return <FaBell />;
     }

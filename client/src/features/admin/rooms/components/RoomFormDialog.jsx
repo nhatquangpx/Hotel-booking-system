@@ -5,8 +5,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
 import RoomFacilitiesPicker from '@/components/rooms/RoomFacilitiesPicker';
 import api from '../../../../apis';
-import { normalizeRoomStatus } from '@/shared/utils/roomStatus';
-import { apiErrorMessage } from '@/shared/utils';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { apiErrorMessage, normalizeRoomStatus } from '@/shared/utils';
 import { getImageUrl } from '../../../../constants/images';
 import './RoomFormDialog.scss';
 
@@ -31,7 +31,6 @@ const RoomFormDialog = ({
     maxPeople: 2,
     description: '',
     facilities: [],
-    available: true,
     roomStatus: 'active',
   });
   const [selectedImages, setSelectedImages] = useState([]);
@@ -63,7 +62,6 @@ const RoomFormDialog = ({
           maxPeople: 2,
           description: '',
           facilities: [],
-          available: true,
           roomStatus: 'active',
         });
         setSelectedImages([]);
@@ -96,11 +94,10 @@ const RoomFormDialog = ({
         roomNumber: roomData.roomNumber || '',
         hotelId: roomData.hotelId?._id || roomData.hotelId || '',
         type: roomData.type || 'standard',
-        price: roomData.price?.regular || roomData.price || 500000,
+        price: getRoomPrice(roomData.price) || 500000,
         maxPeople: roomData.maxPeople || 2,
         description: roomData.description || '',
         facilities: roomData.facilities || [],
-        available: roomData.available !== undefined ? roomData.available : true,
         roomStatus: normalizeRoomStatus(roomData).roomStatus,
       });
       setExistingImages(roomData.images || []);
@@ -159,10 +156,7 @@ const RoomFormDialog = ({
         submitData.append('maxPeople', formData.maxPeople);
         submitData.append('facilities', JSON.stringify(formData.facilities));
         submitData.append('roomStatus', formData.roomStatus);
-        submitData.append('price', JSON.stringify({
-          regular: formData.price,
-          discount: formData.discount || 0,
-        }));
+        submitData.append('price', String(formData.price));
         submitData.append('existingImages', JSON.stringify(existingImages));
         selectedImages.forEach((image) => {
           submitData.append('images', image);

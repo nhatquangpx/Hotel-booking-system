@@ -55,6 +55,8 @@ const calculateNights = (checkInDate, checkOutDate) => {
   return Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
 };
 
+const { readRoomPrice } = require("../rooms/roomPrice");
+
 /**
  * Calculate total amount for a booking
  * @param {Object} room - Room object with price information
@@ -66,12 +68,7 @@ const calculateAmount = (room, nights) => {
     throw new Error("Room hoặc room.price không hợp lệ");
   }
 
-  let totalAmount = room.price.regular * nights;
-  if (room.price.discount && room.price.discount > 0) {
-    totalAmount -= room.price.discount * nights;
-  }
-
-  return Math.max(0, totalAmount); // Đảm bảo không âm
+  return Math.max(0, readRoomPrice(room.price) * nights);
 };
 
 /**

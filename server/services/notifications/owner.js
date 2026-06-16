@@ -4,6 +4,7 @@ const Hotel = require("../../models/Hotel");
 const Notification = require("../../models/Notification");
 const { createHotelNotification } = require("./core");
 const { getHotelStatusLabel } = require("../../services/hotels/status");
+const { getBookingFinalAmount } = require("../bookings/bookingAmount");
 
 /** Sự kiện vận hành KS → createHotelNotification (recipientRole: hotel). */
 
@@ -19,7 +20,7 @@ const notifyPaymentSuccessful = async (bookingId) => {
     const hotelId = booking.hotel._id;
     const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
     const checkInDate = new Date(booking.checkInDate).toLocaleDateString("vi-VN");
-    const amount = booking.totalAmount.toLocaleString("vi-VN");
+    const amount = getBookingFinalAmount(booking).toLocaleString("vi-VN");
     const paymentMethod =
       booking.paymentMethod === "vnpay" ? "cổng thanh toán VNPay" : "QR code";
 

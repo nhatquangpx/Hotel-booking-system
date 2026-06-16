@@ -13,3 +13,4 @@ export * from './postLoginRedirect';
 export * from './salePricingDisplay';
 export * from './qrPaymentRejection';
 export * from './apiErrorMessage';
+export * from './roomPrice';

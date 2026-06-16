@@ -40,10 +40,6 @@ const UserSchema = new mongoose.Schema(
         type: Boolean,
         default: false
       },
-      secret: {
-        type: String,
-        default: null
-      },
       backupCodes: [{
         code: String,
         used: {

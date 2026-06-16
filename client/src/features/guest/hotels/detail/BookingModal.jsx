@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency } from '@/shared/utils/format';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './BookingModal.scss';
 
@@ -87,7 +88,7 @@ const BookingModal = ({ isOpen, room, bookingDates, onConfirm, onClose }) => {
             </div>
           ) : (
             <p>
-              <strong>Giá:</strong> {formatCurrency(sp?.nightlyBase ?? room.price?.regular)} / đêm
+              <strong>Giá:</strong> {formatCurrency(sp?.nightlyBase ?? getRoomPrice(room.price))} / đêm
             </p>
           )}
           <p>

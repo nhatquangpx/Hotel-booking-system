@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 const SalePromotion = require("../../models/SalePromotion");
 const { vnDateKey, saleOverlapStayFilter } = require("./saleShared");
 
+const { readRoomPrice } = require("../rooms/roomPrice");
+
 function effectiveNightlyBase(room) {
-  const r = room.price?.regular ?? 0;
-  const disc = room.price?.discount ?? 0;
-  return Math.max(0, r - disc);
+  return readRoomPrice(room?.price);
 }
 
 function nightDateKeysVN(checkIn, checkOut) {
@@ -107,9 +107,7 @@ function computeStaySalePricingFromSales(room, checkIn, checkOut, sales = []) {
   let promotionApplied = null;
   if (dominantSale && discountAmount > 0) {
     promotionApplied = {
-      sale: dominantSale._id,
       title: dominantSale.title,
-      discountPercent: dominantSale.discountPercent,
     };
   }
 

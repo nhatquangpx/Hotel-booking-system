@@ -15,8 +15,9 @@ export const ownerPricingAPI = {
   },
 
   /**
-   * Áp dụng giá TB gợi ý trong kỳ cho mọi phòng loại đó (regular, discount=0).
-   * @param {{ hotelId: string, roomType: string, days: number }} body
+   * Áp dụng giá gợi ý cho mọi phòng loại đó (cập nhật price).
+   * @param {{ hotelId: string, roomType: string, days: number, date?: string }} body
+   * - date: YYYY-MM-DD — áp giá đề xuất đúng ngày đó; bỏ trống = TB cả kỳ.
    */
   applySuggestedPrices: async (body) => {
     const response = await api.post('/owner/pricing/apply-suggested', body);

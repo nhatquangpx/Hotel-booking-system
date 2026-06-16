@@ -18,31 +18,6 @@ const normalizeRoomStatus = (room) => {
     };
   }
 
-  if (room.status) {
-    if (['empty', 'occupied', 'pending'].includes(room.status)) {
-      return {
-        ...room,
-        bookingStatus: room.status,
-        roomStatus: 'active'
-      };
-    }
-    if (['maintenance', 'inactive'].includes(room.status)) {
-      return {
-        ...room,
-        bookingStatus: 'empty',
-        roomStatus: room.status
-      };
-    }
-  }
-
-  if (room.available === false) {
-    return {
-      ...room,
-      bookingStatus: 'empty',
-      roomStatus: 'maintenance'
-    };
-  }
-
   if (room.currentGuest) {
     return {
       ...room,

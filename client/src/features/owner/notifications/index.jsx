@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCalendarAlt, FaDollarSign, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaClock } from 'react-icons/fa';
+import { FaCalendarAlt, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaClock } from 'react-icons/fa';
 import OwnerLayout from '../components/OwnerLayout';
 import api from '@/apis';
 import { useAuth, useSocket } from '@/shared/hooks';
@@ -51,14 +51,10 @@ const OwnerNotificationsPage = () => {
       case 'checkin_today':
       case 'checkout_today':
         return <FaCalendarAlt />;
-      case 'payment_successful':
-        return <FaDollarSign />;
       case 'booking_cancelled':
         return <FaBan />;
       case 'no_show':
         return <FaClock />;
-      case 'room_availability':
-        return <FaExclamationTriangle />;
       case 'new_review':
         return <FaUser />;
       case 'negative_review':

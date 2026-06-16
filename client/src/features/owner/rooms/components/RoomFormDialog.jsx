@@ -4,7 +4,7 @@ import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
 import { getImageUrl } from '@/constants/images';
-import { apiErrorMessage } from '@/shared/utils';
+import { apiErrorMessage, getRoomPrice } from '@/shared/utils';
 import api from '../../../../apis';
 import './RoomFormDialog.scss';
 
@@ -124,7 +124,7 @@ const RoomFormDialog = ({
         roomNumber: roomData.roomNumber || '',
         hotelId: roomData.hotelId?._id || roomData.hotelId || '',
         type: roomData.type || 'standard',
-        price: roomData.price?.regular || roomData.price || 500000,
+        price: getRoomPrice(roomData.price) || 500000,
         maxPeople: roomData.maxPeople || 2,
         description: roomData.description || '',
         facilities: roomData.facilities || [],
@@ -216,10 +216,7 @@ const RoomFormDialog = ({
           submitData.append('roomStatus', formData.roomStatus);
         }
         
-        submitData.append('price', JSON.stringify({
-          regular: formData.price,
-          discount: 0
-        }));
+        submitData.append('price', String(formData.price));
         
         submitData.append('existingImages', JSON.stringify(existingImages));
         

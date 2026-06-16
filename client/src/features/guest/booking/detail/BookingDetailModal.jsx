@@ -4,7 +4,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import BookingReview from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
-import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled } from '@/shared/utils';
+import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled, getRoomPrice } from '@/shared/utils';
 
 const BookingDetailModal = ({
   show,
@@ -197,7 +197,7 @@ const BookingDetailModal = ({
                   <h3>Thông tin phòng</h3>
                   <p><strong>Số phòng:</strong> {booking.room?.roomNumber || 'N/A'}</p>
                   <p><strong>Loại phòng:</strong> {booking.room?.type || 'N/A'}</p>
-                  <p><strong>Giá phòng:</strong> {(booking.room?.price?.regular || 0).toLocaleString('vi-VN')} VNĐ/đêm</p>
+                  <p><strong>Giá phòng:</strong> {getRoomPrice(booking.room?.price).toLocaleString('vi-VN')} VNĐ/đêm</p>
                   <p><strong>Số người tối đa:</strong> {booking.room?.maxPeople || 'N/A'} người</p>
                   <p><strong>Mô tả:</strong> {booking.room?.description || 'N/A'}</p>
                 </div>
@@ -209,7 +209,7 @@ const BookingDetailModal = ({
                   <p><strong>Địa chỉ:</strong> {formatAddressText(booking.hotel?.address)}</p>
                   <p><strong>Nhận phòng:</strong> {formatDate(booking.checkInDate)}</p>
                   <p><strong>Trả phòng:</strong> {formatDate(booking.checkOutDate)}</p>
-                  <p><strong>Tổng tiền:</strong> {(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</p>
+                  <p><strong>Tổng tiền:</strong> {(booking.finalAmount || 0).toLocaleString('vi-VN')} VNĐ</p>
                   <p><strong>Trạng thái:</strong> {renderBookingStatus(booking)}</p>
                   {needsQrProofResubmit(booking) && (
                     <div className="owner-rejection-notice owner-rejection-notice--resubmit">

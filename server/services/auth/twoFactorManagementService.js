@@ -22,7 +22,7 @@ async function enable2FA({ userId }) {
   }
 
   const backupCodes = generateBackupCodes(10);
-  user.twoFactorAuth = { enabled: true, secret: null, backupCodes };
+  user.twoFactorAuth = { enabled: true, backupCodes };
   await user.save();
   await send2FABackupCodesEmail(user.email, backupCodes, user.name);
 
@@ -43,7 +43,7 @@ async function disable2FA({ userId }) {
     throw new ServiceError(400, "Xác thực 2 lớp chưa được bật");
   }
 
-  user.twoFactorAuth = { enabled: false, secret: null, backupCodes: [] };
+  user.twoFactorAuth = { enabled: false, backupCodes: [] };
   user.temp2FAToken = null;
   user.temp2FAExpires = null;
   await user.save();

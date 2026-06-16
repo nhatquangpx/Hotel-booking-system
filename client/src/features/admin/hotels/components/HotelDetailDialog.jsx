@@ -7,6 +7,7 @@ import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
 import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import './HotelDetailDialog.scss';
 
 const formatAddress = (address) => {
@@ -257,9 +258,7 @@ const HotelDetailDialog = ({ isOpen, onClose, hotelId, onEdit }) => {
                       <td>{room.roomNumber}</td>
                       <td>{formatRoomType(room.type)}</td>
                       <td>
-                        {room.price?.regular
-                          ? `${room.price.regular.toLocaleString('vi-VN')} VND`
-                          : '0 VND'}
+                        {getRoomPrice(room.price).toLocaleString('vi-VN')} VND
                       </td>
                       <td>
                         <RoomStatusBadges room={room} />

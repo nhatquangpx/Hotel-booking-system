@@ -13,14 +13,12 @@ export const notificationConfig = {
     },
     supportedTypes: [
       'new_booking',
-      'payment_successful',
       'booking_cancelled',
       'no_show',
       'checkin_today',
       'checkout_today',
       'new_review',
       'negative_review',
-      'room_availability',
       'hotel_status_changed'
     ]
   },
@@ -33,10 +31,7 @@ export const notificationConfig = {
       hotel: (id) => `/admin/hotels?hotelId=${id}`
     },
     supportedTypes: [
-      'new_booking',
-      'new_user',
-      'new_hotel',
-      'payment_successful',
+      'high_value_booking',
       'booking_cancelled',
       'new_review',
       'negative_review'
@@ -53,7 +48,6 @@ export const notificationConfig = {
     },
     supportedTypes: [
       'new_booking',
-      'payment_successful',
       'booking_cancelled',
       'no_show',
       'checkin_today',
@@ -75,15 +69,7 @@ export const notificationConfig = {
       'booking_cancelled',
       'payment_rejected',
       'qr_proof_resubmit',
-      'payment_successful',
-      'payment_reminder',
-      'refund_processed',
-      'upcoming_trip_reminder',
-      'checkin_instructions',
-      'review_request',
-      'review_reply',
-      'promotion',
-      'security_alert'
+      'refund_processed'
     ]
   }
 };
@@ -97,7 +83,6 @@ export const getNotificationPath = (notification, role) => {
 
   switch (notification.type) {
     case 'new_booking':
-    case 'payment_successful':
     case 'booking_cancelled':
     case 'no_show':
     case 'checkin_today':
@@ -105,34 +90,21 @@ export const getNotificationPath = (notification, role) => {
     case 'booking_confirmed':
     case 'payment_rejected':
     case 'qr_proof_resubmit':
-    case 'payment_reminder':
     case 'refund_processed':
-    case 'upcoming_trip_reminder':
-    case 'checkin_instructions':
-    case 'review_request':
+    case 'high_value_booking':
       return config.routes.booking(notification.relatedId);
-    
+
     case 'new_review':
     case 'negative_review':
-    case 'review_reply':
       if (config.routes.review) {
         return config.routes.review;
       }
       return config.routes.list;
-    
-    case 'new_user':
-      return config.routes.user ? config.routes.user(notification.relatedId) : config.routes.list;
-    
-    case 'new_hotel':
-      return config.routes.hotel ? config.routes.hotel(notification.relatedId) : config.routes.list;
 
     case 'hotel_status_changed':
       return config.routes.list;
-    
-    case 'promotion':
-    case 'security_alert':
+
     default:
       return config.routes.list;
   }
 };
-

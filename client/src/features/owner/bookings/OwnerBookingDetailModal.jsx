@@ -132,7 +132,7 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                 </div>
                 <div className="info-row total-row">
                   <span className="info-label"><strong>Tổng tiền:</strong></span>
-                  <span className="info-value"><strong>{(booking.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</strong></span>
+                  <span className="info-value"><strong>{(booking.finalAmount || 0).toLocaleString('vi-VN')} VNĐ</strong></span>
                 </div>
                 {booking.cancellationReason && (
                   <div className="info-row">

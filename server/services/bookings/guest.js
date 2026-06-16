@@ -12,6 +12,7 @@ const {
   refreshRoomBookingStatus
 } = require("./core");
 const { isGuestBookableHotelStatus } = require("../../services/hotels/status");
+const { readRoomPrice } = require("../rooms/roomPrice");
 const {
   computeStaySalePricing,
   computeStaySalePricingFromSales,
@@ -92,9 +93,8 @@ const createBooking = async (bookingData, guestId) => {
     throw new Error("Phòng không khả dụng cho đặt chỗ");
   }
 
-  // Tính tiền và snapshot ở server (không tin totalAmount từ client)
+  // Tính tiền và snapshot ở server (không tin số tiền từ client)
   const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
-  const calculatedAmount = pricing.finalAmount;
 
   const method = paymentMethod || "qr_code";
   if (method === "qr_code") {
@@ -116,10 +116,9 @@ const createBooking = async (bookingData, guestId) => {
     room: roomId,
     checkInDate: new Date(checkInDate),
     checkOutDate: new Date(checkOutDate),
-    totalAmount: calculatedAmount,
+    finalAmount: pricing.finalAmount,
     basePrice: pricing.basePrice,
     discountAmount: pricing.discountAmount,
-    finalAmount: pricing.finalAmount,
     promotionApplied: pricing.promotionApplied || undefined,
     paymentMethod: method,
     specialRequests: specialRequests || "",
@@ -259,7 +258,7 @@ const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
         nightlyBase: pricing.nightlyBase,
         finalNightly: pricing.finalNightly,
         nights: pricing.nights,
-        regularNightly: room.price?.regular ?? 0,
+        regularNightly: readRoomPrice(room.price),
         nightBreakdown: pricing.nightBreakdown,
         salePeriods: pricing.salePeriods,
         nightsOnSale: pricing.nightsOnSale,

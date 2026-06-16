@@ -48,9 +48,8 @@ const RoomCard = ({ room, onClick }) => {
     return statusMap[status] || statusMap['active'];
   };
 
-  // Ưu tiên hiển thị bookingStatus, nếu không có thì fallback về roomStatus
-  const bookingStatus = room.bookingStatus || (room.status && ['empty', 'occupied', 'pending'].includes(room.status) ? room.status : 'empty');
-  const roomStatus = room.roomStatus || (room.status && ['active', 'maintenance', 'inactive'].includes(room.status) ? room.status : 'active');
+  const bookingStatus = room.bookingStatus || 'empty';
+  const roomStatus = room.roomStatus || 'active';
   
   const bookingStatusConfig = getBookingStatusConfig(bookingStatus);
   const roomStatusConfig = getRoomStatusConfig(roomStatus);

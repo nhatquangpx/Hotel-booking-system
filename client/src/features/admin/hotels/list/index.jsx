@@ -18,6 +18,7 @@ import RoomDetailDialog from '../../rooms/components/RoomDetailDialog';
 import api from '../../../../apis';
 import { apiErrorMessage } from '@/shared/utils';
 import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import './HotelList.scss';
 
 /**
@@ -267,13 +268,7 @@ const AdminHotelListPage = () => {
     if (room) handleDeleteRoomClick(hotelId, room);
   };
 
-  const formatPrice = (price) => {
-    if (!price) return '0 VNĐ';
-    if (typeof price === 'object') {
-      return `${price.regular.toLocaleString('vi-VN')} VNĐ`;
-    }
-    return `${price.toLocaleString('vi-VN')} VNĐ`;
-  };
+  const formatPrice = (price) => `${getRoomPrice(price).toLocaleString('vi-VN')} VNĐ`;
 
   const formatRoomType = (type) => {
     const typeMap = {
