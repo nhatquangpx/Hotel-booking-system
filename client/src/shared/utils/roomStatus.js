@@ -20,30 +20,10 @@ function withNormalizedStatus(room, roomStatus, bookingStatus) {
   };
 }
 
-/**
- * Chuẩn hóa roomStatus / bookingStatus từ API (tương thích field `status` cũ).
- * Giữ nguyên các field khác của room (_id, roomNumber, type, …).
- */
+/** Chuẩn hóa roomStatus / bookingStatus từ API. */
 export function normalizeRoomStatus(room) {
   if (!room) {
     return { roomStatus: 'active', bookingStatus: 'empty' };
-  }
-
-  if (room.roomStatus != null && room.bookingStatus != null) {
-    return withNormalizedStatus(room, room.roomStatus, room.bookingStatus);
-  }
-
-  if (room.status) {
-    if (['empty', 'occupied', 'pending'].includes(room.status)) {
-      return withNormalizedStatus(room, 'active', room.status);
-    }
-    if (['maintenance', 'inactive', 'active'].includes(room.status)) {
-      return withNormalizedStatus(room, room.status, 'empty');
-    }
-  }
-
-  if (room.available === false) {
-    return withNormalizedStatus(room, 'maintenance', 'empty');
   }
 
   return withNormalizedStatus(

@@ -4,7 +4,7 @@ import { GuestLayout } from '@/features/guest/components/layout';
 import { useAuth } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
-import { formatDate } from '@/shared/utils';
+import { formatDate, getRoomPrice } from '@/shared/utils';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './Booking.scss';
 
@@ -28,7 +28,7 @@ const GuestBookingPage = () => {
     paymentMethod: 'qr_code',
     specialRequests: ''
   });
-  const [totalAmount, setTotalAmount] = useState(0);
+  const [finalAmount, setFinalAmount] = useState(0);
   const [pricePreview, setPricePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -115,7 +115,7 @@ const GuestBookingPage = () => {
           setGuest(bookingRes.guest);
           setHotel(bookingRes.hotel);
           setRoom(bookingRes.room);
-          setTotalAmount(bookingRes.totalAmount);
+          setFinalAmount(bookingRes.finalAmount);
           if (bookingRes.paymentMethod === 'qr_code') {
             setSuccessMessage(
               bookingRes.qrPaymentReportedAt
@@ -157,7 +157,7 @@ const GuestBookingPage = () => {
             checkOutDate: bookingData.checkOutDate,
           });
           setPricePreview(preview);
-          setTotalAmount(preview.finalAmount ?? 0);
+          setFinalAmount(preview.finalAmount ?? 0);
           setError(null);
         } catch (previewErr) {
           const status = previewErr?.response?.status;
@@ -165,15 +165,14 @@ const GuestBookingPage = () => {
           if ((status === 400 || status === 404) && msg) {
             setError(msg);
             setPricePreview(null);
-            setTotalAmount(0);
+            setFinalAmount(0);
           } else {
             const checkInDate = new Date(bookingData.checkInDate);
             const checkOutDate = new Date(bookingData.checkOutDate);
             const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-            const pr = roomResponse.price;
-            const nightly = Math.max(0, (pr?.regular ?? 0) - (pr?.discount ?? 0));
+            const nightly = getRoomPrice(roomResponse.price);
             setPricePreview(null);
-            setTotalAmount(nightly * nights);
+            setFinalAmount(nightly * nights);
           }
         }
         setLoading(false);
@@ -564,7 +563,7 @@ const GuestBookingPage = () => {
                       <span className="value price">
                         {pricePreview
                           ? `${pricePreview.finalNightly?.toLocaleString('vi-VN')} VNĐ/đêm`
-                          : `${room.price?.regular?.toLocaleString('vi-VN')} VNĐ/đêm`}
+                          : `${getRoomPrice(room.price).toLocaleString('vi-VN')} VNĐ/đêm`}
                       </span>
                     </div>
                     <div className="detail-item">
@@ -618,7 +617,7 @@ const GuestBookingPage = () => {
                   )}
                   <div className="summary-item total">
                     <span className="label">Tổng thanh toán:</span>
-                    <span className="value price">{totalAmount.toLocaleString('vi-VN')} VNĐ</span>
+                    <span className="value price">{finalAmount.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                 </div>
                 {showPaymentQRCode && (

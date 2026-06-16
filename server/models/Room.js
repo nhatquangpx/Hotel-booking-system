@@ -35,8 +35,9 @@ const RoomSchema = new mongoose.Schema(
       required: true
     },
     price: {
-      regular: { type: Number, required: true },
-      discount: { type: Number, default: 0 }
+      type: Number,
+      required: true,
+      min: 0,
     },
     maxPeople: {
       type: Number,

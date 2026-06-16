@@ -13,6 +13,7 @@ const { isVnpayConfigComplete } = require("../hotels/paymentConfig");
 const { getClientIp } = require("../../lib/http/requestIp");
 const { refIdsMatch } = require("../../lib/ids/mongooseIds");
 const { ServiceError } = require("../../lib/http/serviceError");
+const { getBookingFinalAmount } = require("../bookings/bookingAmount");
 
 const DEFAULT_SANDBOX_HOST = "https://sandbox.vnpayment.vn";
 
@@ -107,7 +108,7 @@ async function createVNPayPaymentUrl({ bookingId, userId, req }) {
 
   const clientIp = getClientIp(req);
   const paymentTransaction = await createPaymentTransactionWithRetry(booking, {
-    amount: booking.totalAmount,
+    amount: getBookingFinalAmount(booking),
     paymentMethod: "vnpay",
     status: "pending",
     clientIp,
@@ -131,7 +132,7 @@ async function createVNPayPaymentUrl({ bookingId, userId, req }) {
   const orderInfo = `Thanh toan dat phong ${booking.hotel?.name || "Hotel"} - Phong ${booking.room?.roomNumber || "N/A"}`;
 
   const vnpayResponse = await vnpay.buildPaymentUrl({
-    vnp_Amount: booking.totalAmount,
+    vnp_Amount: getBookingFinalAmount(booking),
     vnp_IpAddr: clientIp,
     vnp_TxnRef: transactionRef,
     vnp_OrderInfo: orderInfo,
@@ -214,13 +215,12 @@ async function confirmQrPayment({ bookingId, userId, req }) {
   const clientIp = getClientIp(req);
   booking.qrPaymentReportedAt = new Date();
   booking.qrPaymentProofUrl = proofImageUrl;
-  booking.ownerPaymentRejectedAt = undefined;
   booking.ownerPaymentRejectionReason = undefined;
   booking.ownerQrRejectionType = undefined;
   await booking.save();
 
   await createPaymentTransactionWithRetry(booking, {
-    amount: booking.totalAmount,
+    amount: getBookingFinalAmount(booking),
     paymentMethod: "qr_code",
     status: "pending",
     clientIp,
@@ -280,7 +280,7 @@ async function handleVnpaySuccess(booking, paymentResult) {
     console.error("Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:", err)
   );
 
-  if (booking.totalAmount >= 10000000) {
+  if (getBookingFinalAmount(booking) >= 10000000) {
     notifyAdminHighValueBooking(booking._id, 10000000).catch((err) =>
       console.error("Lỗi khi tạo thông báo đặt phòng giá trị cao cho admin:", err)
     );

@@ -35,7 +35,7 @@ const AdminBookingListPage = () => {
 
   const paidBookingStats = useMemo(() => {
     const paid = bookings.filter((b) => b.paymentStatus === 'paid');
-    const sum = paid.reduce((acc, b) => acc + (Number(b.totalAmount) || 0), 0);
+    const sum = paid.reduce((acc, b) => acc + (Number(b.finalAmount) || 0), 0);
     return { count: paid.length, sum };
   }, [bookings]);
 
@@ -217,7 +217,7 @@ const AdminBookingListPage = () => {
                     <td>{booking.room?.roomNumber || booking.roomName || 'N/A'}</td>
                     <td>{formatDate(booking.checkInDate || booking.checkIn)}</td>
                     <td>{formatDate(booking.checkOutDate || booking.checkOut)}</td>
-                    <td>{typeof booking.totalAmount === 'number' ? booking.totalAmount.toLocaleString('vi-VN') + ' VND' : 'N/A'}</td>
+                    <td>{typeof booking.finalAmount === 'number' ? booking.finalAmount.toLocaleString('vi-VN') + ' VND' : 'N/A'}</td>
                     <td>
                       <span className={`status-badge ${booking.paymentStatus}`}>
                         {booking.paymentStatus === 'pending' && 'Chưa thanh toán'}

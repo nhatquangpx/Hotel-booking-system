@@ -12,6 +12,7 @@ const { checkInBooking, checkOutBooking } = require("./hotelTeam");
 const { notifyGuestRefundProcessed, notifyGuestQrPaymentRejected, notifyGuestQrProofResubmitRequired } = require("../notifications/guest");
 const { sendRefundProcessedEmail, sendQrPaymentRejectedEmail, sendQrProofResubmitEmail } = require("../emails");
 const { getQrRejectionMessage } = require("./qrPaymentRejection");
+const { getBookingFinalAmount } = require("./bookingAmount");
 
 const resolveProofImageUrl = (file) => {
   if (!file) return "";
@@ -248,7 +249,7 @@ const confirmGuestRefund = async (bookingId, user, refundProofFile) => {
   booking.ownerRefundProofUrl = refundProofUrl;
   await booking.save();
 
-  const amount = Number(booking.finalAmount ?? booking.totalAmount ?? 0);
+  const amount = getBookingFinalAmount(booking);
   notifyGuestRefundProcessed(booking._id, amount, 100).catch((err) =>
     console.error("Lỗi khi gửi thông báo hoàn tiền cho khách:", err)
   );
@@ -305,7 +306,6 @@ const rejectQrPayment = async (bookingId, user, rejectionType) => {
     paymentMethod: "qr_code"
   }).sort({ createdAt: -1 });
 
-  booking.ownerPaymentRejectedAt = new Date();
   booking.ownerPaymentRejectionReason = reason;
   booking.ownerQrRejectionType = type;
 

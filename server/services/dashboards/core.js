@@ -2,6 +2,7 @@ const Hotel = require('../../models/Hotel');
 const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
 const { startOfDayReportTz, REPORT_TZ } = require('../reports/reportTz');
+const { bookingRevenueSumExpr } = require('../bookings/bookingAmount');
 
 /**
  * Dashboard Core Service
@@ -86,7 +87,7 @@ const calculateRevenueInRange = async (hotelIds, startDate, endDate) => {
     {
       $group: {
         _id: null,
-        total: { $sum: '$totalAmount' }
+        total: { $sum: bookingRevenueSumExpr }
       }
     }
   ]);
@@ -114,7 +115,7 @@ const calculateRevenueForOccupiedRooms = async (hotelIds, startDate, endDate) =>
     {
       $group: {
         _id: null,
-        total: { $sum: '$totalAmount' }
+        total: { $sum: bookingRevenueSumExpr }
       }
     }
   ]);

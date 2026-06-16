@@ -453,9 +453,10 @@ async function getHotelByFilter({ req, filters }) {
   if (hasRoomFilters) {
     const roomQuery = { roomStatus: "active" };
     if (minPrice || maxPrice) {
-      roomQuery["price.regular"] = {};
-      if (minPrice) roomQuery["price.regular"].$gte = parseInt(minPrice);
-      if (maxPrice) roomQuery["price.regular"].$lte = parseInt(maxPrice);
+      const priceCond = {};
+      if (minPrice) priceCond.$gte = parseInt(minPrice, 10);
+      if (maxPrice) priceCond.$lte = parseInt(maxPrice, 10);
+      roomQuery.price = priceCond;
     }
     if (maxPeople) roomQuery.maxPeople = { $gte: parseInt(maxPeople) };
     if (roomType) {

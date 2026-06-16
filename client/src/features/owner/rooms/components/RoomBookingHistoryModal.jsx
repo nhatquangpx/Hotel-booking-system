@@ -152,7 +152,7 @@ const RoomBookingHistoryModal = ({ room, isOpen, onClose }) => {
                           <span>{formatDate(b.checkOutDate)}</span>
                         </td>
                         <td data-label="Tổng tiền">
-                          {formatCurrency(b.finalAmount ?? b.totalAmount ?? 0)}
+                          {formatCurrency(b.finalAmount ?? 0)}
                         </td>
                         <td data-label="Thanh toán">
                           <span
@@ -188,7 +188,7 @@ const RoomBookingHistoryModal = ({ room, isOpen, onClose }) => {
                     </div>
                     <div className="room-booking-history-modal__card-row">
                       <span className="room-booking-history-modal__card-label">Tổng tiền</span>
-                      <span>{formatCurrency(b.finalAmount ?? b.totalAmount ?? 0)}</span>
+                      <span>{formatCurrency(b.finalAmount ?? 0)}</span>
                     </div>
                     <div className="room-booking-history-modal__card-row">
                       <span className="room-booking-history-modal__card-label">Thanh toán</span>

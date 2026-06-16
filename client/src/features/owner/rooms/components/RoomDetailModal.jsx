@@ -3,6 +3,7 @@ import { FaTimes, FaEdit, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { EditRoomDialog } from '../edit';
 import RoomBookingHistoryModal from './RoomBookingHistoryModal';
 import api from '@/apis';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import './RoomDetailModal.scss';
 
 /**
@@ -73,12 +74,11 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
   };
 
   const formatPrice = (price) => {
-    if (!price) return '0 VND';
-    const regularPrice = price.regular || price || 0;
+    if (!price && price !== 0) return '0 VND';
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
-    }).format(regularPrice);
+    }).format(getRoomPrice(price));
   };
 
   const handleEdit = () => {

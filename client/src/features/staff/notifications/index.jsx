@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaCalendarAlt,
-  FaDollarSign,
   FaExclamationTriangle,
   FaUser,
   FaBell,
@@ -58,8 +57,6 @@ const StaffNotificationsPage = () => {
       case 'checkin_today':
       case 'checkout_today':
         return <FaCalendarAlt />;
-      case 'payment_successful':
-        return <FaDollarSign />;
       case 'booking_cancelled':
         return <FaBan />;
       case 'no_show':

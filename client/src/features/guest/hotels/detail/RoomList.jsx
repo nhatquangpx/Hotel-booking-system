@@ -1,5 +1,6 @@
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency } from '@/shared/utils/format';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './RoomList.scss';
 
@@ -80,7 +81,7 @@ const RoomList = ({ rooms, bookingDates, onRoomSelect, loading, searchPerformed 
                       </>
                     ) : (
                       <div className="room-price">
-                        <span className="price">{formatCurrency(sp?.nightlyBase ?? room.price?.regular)}</span>
+                        <span className="price">{formatCurrency(sp?.nightlyBase ?? getRoomPrice(room.price))}</span>
                         <span className="per-night">/ đêm</span>
                       </div>
                     )}

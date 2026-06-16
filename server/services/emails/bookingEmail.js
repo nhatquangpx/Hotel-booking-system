@@ -1,4 +1,6 @@
 const { sendEmail } = require("./emailService");
+const { readRoomPrice } = require("../rooms/roomPrice");
+const { getBookingFinalAmount } = require("../bookings/bookingAmount");
 
 /**
  * Gửi hóa đơn điện tử cho booking
@@ -281,21 +283,21 @@ const sendReceiptEmail = async (booking, paymentMethod = 'qr_code', transactionR
       <div class="section-title">Chi tiết thanh toán</div>
       <div class="info-row">
         <span class="info-label">Giá phòng/đêm:</span>
-        <span class="info-value">${formatPrice(room.price?.regular || booking.totalAmount / nights)}</span>
+        <span class="info-value">${formatPrice(readRoomPrice(room.price) || getBookingFinalAmount(booking) / nights)}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Số đêm:</span>
         <span class="info-value">${nights} đêm</span>
       </div>
-      ${room.price?.discount && room.price.discount > 0 ? `
+      ${booking.discountAmount > 0 ? `
       <div class="info-row">
-        <span class="info-label">Giảm giá:</span>
-        <span class="info-value discount-value">-${formatPrice(room.price.discount * nights)}</span>
+        <span class="info-label">Khuyến mãi${booking.promotionApplied?.title ? ` (${booking.promotionApplied.title})` : ''}:</span>
+        <span class="info-value discount-value">-${formatPrice(booking.discountAmount)}</span>
       </div>
       ` : ''}
       <div class="total-section">
         <div class="total-label">Tổng thanh toán</div>
-        <div class="total-amount">${formatPrice(booking.totalAmount)}</div>
+        <div class="total-amount">${formatPrice(getBookingFinalAmount(booking))}</div>
       </div>
       <div class="info-row" style="margin-top: 15px;">
         <span class="info-label">Phương thức thanh toán:</span>
@@ -575,7 +577,7 @@ const sendCheckInReminderEmail = async (booking, daysUntilCheckIn = 2) => {
         </div>
         <div class="info-row">
           <span class="info-label">Tổng thanh toán:</span>
-          <span class="info-value"><strong>${formatPrice(booking.totalAmount)}</strong></span>
+          <span class="info-value"><strong>${formatPrice(getBookingFinalAmount(booking))}</strong></span>
         </div>
       </div>
     </div>
@@ -643,7 +645,7 @@ const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
     }
 
     const bookingIdShort = String(booking._id || "").slice(-8).toUpperCase();
-    const amount = Number(booking.finalAmount ?? booking.totalAmount ?? 0);
+    const amount = getBookingFinalAmount(booking);
     const amountStr = new Intl.NumberFormat("vi-VN").format(amount);
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
     const bookingDetailUrl = `${frontendUrl}/my-bookings?bookingId=${booking._id}`;

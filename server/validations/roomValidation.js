@@ -4,25 +4,16 @@ const { validate, mongoIdBody } = require("./common");
 const ROOM_TYPES = ["standard", "deluxe", "suite", "family", "executive"];
 const ROOM_STATUSES = ["active", "maintenance", "inactive"];
 
-/** FormData update gửi price JSON; create thường gửi số (regular). */
-function parseRoomPriceRegular(value) {
+/** FormData: price là số hoặc chuỗi số. */
+function parseRoomPrice(value) {
   if (value === undefined || value === null || value === "") {
     return null;
   }
-  if (typeof value === "object") {
-    return Number(value.regular);
+  if (typeof value === "number") {
+    return value;
   }
   if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (trimmed.startsWith("{")) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        return Number(parsed?.regular);
-      } catch {
-        return NaN;
-      }
-    }
-    return Number(trimmed);
+    return Number(value.trim());
   }
   return Number(value);
 }
@@ -32,8 +23,8 @@ function roomPriceValidation({ optional = false } = {}) {
     if (optional && (value === undefined || value === null || value === "")) {
       return true;
     }
-    const regular = parseRoomPriceRegular(value);
-    if (Number.isNaN(regular) || regular <= 0) {
+    const price = parseRoomPrice(value);
+    if (Number.isNaN(price) || price <= 0) {
       throw new Error("Giá phòng phải là số dương hợp lệ");
     }
     return true;

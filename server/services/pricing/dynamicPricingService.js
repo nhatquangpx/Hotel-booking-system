@@ -40,10 +40,10 @@ function vnDayBoundsFromKey(dateKey) {
   return { start, end };
 }
 
+const { readRoomPrice } = require("../rooms/roomPrice");
+
 function effectiveNightly(room) {
-  const r = room.price?.regular ?? 0;
-  const d = room.price?.discount ?? 0;
-  return Math.max(0, r - d);
+  return readRoomPrice(room?.price);
 }
 
 function roundVnd(amount) {
@@ -286,8 +286,7 @@ async function rollbackRoomPricesFromSnapshot(roomsBefore) {
         filter: { _id: r._id },
         update: {
           $set: {
-            "price.regular": r.price?.regular ?? 0,
-            "price.discount": r.price?.discount ?? 0,
+            price: readRoomPrice(r.price),
           },
         },
       },
@@ -309,16 +308,19 @@ function isTransactionUnsupportedError(err) {
   );
 }
 
-/** TB giá đêm thực thu (regular − discount) từ snapshot Hotel; hỗ trợ tên field cũ. */
+/** TB giá đêm (price) từ snapshot Hotel. */
 function normalizeLastBulkApplyFromDoc(raw) {
   if (!raw || !raw.lastBulkApplyAt) return null;
-  const previousAvgNightly =
-    raw.previousAvgNightly ?? raw.previousAvgRegular;
-  const appliedAvgNightly = raw.appliedAvgNightly ?? raw.appliedAvgRegular;
+  const previousAvgNightly = raw.previousAvgNightly;
+  const appliedAvgNightly = raw.appliedAvgNightly;
+  const appliedNightly = raw.appliedNightly ?? appliedAvgNightly;
   return {
     lastBulkApplyAt: new Date(raw.lastBulkApplyAt).toISOString(),
     previousAvgNightly,
     appliedAvgNightly,
+    appliedNightly,
+    appliedDate: raw.appliedDate ?? null,
+    applyMode: raw.applyMode ?? (raw.appliedDate ? "day" : "average"),
     daysWindow: raw.daysWindow,
   };
 }
@@ -511,11 +513,12 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
 }
 
 /**
- * Gán giá đêm (price.regular) cho mọi phòng đang hoạt động của loại đó
- * bằng trung bình giá đề xuất trong kỳ `days` ngày (từ hôm nay, VN).
- * Đặt discount = 0 để giá hiển thị khớp mức gợi ý.
+ * Gán giá đêm (price) cho mọi phòng đang hoạt động của loại đó.
+ * - Có `date`: dùng giá đề xuất đúng ngày đó.
+ * - Không có `date`: dùng trung bình giá đề xuất trong kỳ `days` ngày (từ hôm nay, VN).
+ * Đặt giá regular khớp mức gợi ý.
  */
-async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days }) {
+async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days, date }) {
   const d = Math.min(Math.max(parseInt(days, 10) || 14, 7), 90);
   if (!mongoose.isValidObjectId(hotelId)) {
     throw new Error("hotelId không hợp lệ");
@@ -540,8 +543,26 @@ async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days }
     throw new Error("Không có dữ liệu gợi ý cho loại phòng này");
   }
 
-  const sum = rt.daily.reduce((s, row) => s + row.suggestedNightly, 0);
-  const avgPrice = roundVnd(sum / rt.daily.length);
+  let appliedPrice;
+  let appliedDate = null;
+  let applyMode = "average";
+
+  if (date) {
+    const dateKey = String(date).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+      throw new Error("date không hợp lệ (định dạng YYYY-MM-DD)");
+    }
+    const dayRow = rt.daily.find((row) => row.date === dateKey);
+    if (!dayRow) {
+      throw new Error(`Ngày ${dateKey} không nằm trong kỳ gợi ý đang xem (${d} ngày từ hôm nay)`);
+    }
+    appliedPrice = dayRow.suggestedNightly;
+    appliedDate = dateKey;
+    applyMode = "day";
+  } else {
+    const sum = rt.daily.reduce((s, row) => s + row.suggestedNightly, 0);
+    appliedPrice = roundVnd(sum / rt.daily.length);
+  }
 
   const roomsBefore = await Room.find({
     hotelId: new mongoose.Types.ObjectId(String(hotelId)),
@@ -568,7 +589,10 @@ async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days }
   const metaPayload = {
     lastBulkApplyAt: appliedAt,
     previousAvgNightly,
-    appliedAvgNightly: avgPrice,
+    appliedAvgNightly: appliedPrice,
+    appliedNightly: appliedPrice,
+    appliedDate,
+    applyMode,
     daysWindow: d,
   };
 
@@ -577,7 +601,7 @@ async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days }
     type: roomType,
     roomStatus: "active",
   };
-  const roomUpdate = { $set: { "price.regular": avgPrice, "price.discount": 0 } };
+  const roomUpdate = { $set: { price: appliedPrice } };
 
   let updateRes;
 
@@ -613,12 +637,7 @@ async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days }
     await session.endSession();
   }
 
-  const lastBulkApply = {
-    lastBulkApplyAt: appliedAt.toISOString(),
-    previousAvgNightly,
-    appliedAvgNightly: avgPrice,
-    daysWindow: d,
-  };
+  const lastBulkApply = normalizeLastBulkApplyFromDoc(metaPayload);
 
   return {
     ok: true,
@@ -626,7 +645,10 @@ async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days }
     roomType,
     roomTypeLabel: rt.typeLabel,
     days: d,
-    avgSuggestedPrice: avgPrice,
+    applyMode,
+    appliedDate,
+    appliedNightly: appliedPrice,
+    avgSuggestedPrice: appliedPrice,
     previousAvgNightly,
     lastBulkApply,
     roomsUpdated: updateRes.modifiedCount ?? updateRes.nModified ?? 0,

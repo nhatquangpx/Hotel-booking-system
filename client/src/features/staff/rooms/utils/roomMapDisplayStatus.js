@@ -18,12 +18,8 @@ const ROOM_STATUS_LABELS = {
  * - Chữ trên thẻ: nhãn bookingStatus; thêm dòng phụ nếu roomStatus !== active
  */
 export function getRoomMapDisplayStatus(room) {
-  const bookingStatus =
-    room?.bookingStatus ||
-    (['empty', 'occupied', 'pending'].includes(room?.status) ? room.status : 'empty');
-  const roomStatus =
-    room?.roomStatus ||
-    (['active', 'maintenance', 'inactive'].includes(room?.status) ? room.status : 'active');
+  const bookingStatus = room?.bookingStatus || 'empty';
+  const roomStatus = room?.roomStatus || 'active';
 
   const displayColor = roomStatus !== 'active' ? roomStatus : bookingStatus;
   const label = BOOKING_STATUS_LABELS[bookingStatus] || 'Trống';

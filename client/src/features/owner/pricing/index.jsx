@@ -71,6 +71,7 @@ const DynamicPricingPage = () => {
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyMessage, setApplyMessage] = useState(null);
+  const [applyTarget, setApplyTarget] = useState(null);
 
   const avgSuggestedForRange =
     daily.length > 0
@@ -79,25 +80,50 @@ const DynamicPricingPage = () => {
         ) * 10000
       : 0;
 
+  const openApplyModal = (target) => {
+    setApplyMessage(null);
+    setApplyTarget(target);
+    setApplyModalOpen(true);
+  };
+
+  const closeApplyModal = () => {
+    if (applyLoading) return;
+    setApplyModalOpen(false);
+    setApplyTarget(null);
+  };
+
   const handleApplySuggested = async () => {
-    if (!hotelId || !selectedRoomType || !daily.length) return;
+    if (!hotelId || !selectedRoomType || !applyTarget) return;
     setApplyLoading(true);
     setApplyMessage(null);
     try {
-      const res = await ownerPricingAPI.applySuggestedPrices({
+      const body = {
         hotelId,
         roomType: selectedRoomType,
         days,
-      });
-      const prevNightly = res.previousAvgNightly ?? res.previousAvgRegular;
+      };
+      if (applyTarget.mode === 'day') {
+        body.date = applyTarget.date;
+      }
+
+      const res = await ownerPricingAPI.applySuggestedPrices(body);
+      const prevNightly = res.previousAvgNightly;
+      const appliedPrice = res.appliedNightly ?? res.avgSuggestedPrice;
       const prevPart =
         prevNightly != null
-          ? ` (trước đó TB đêm loại: ${formatCurrency(prevNightly)} → ${formatCurrency(res.avgSuggestedPrice)})`
+          ? ` (trước đó TB đêm loại: ${formatCurrency(prevNightly)} → ${formatCurrency(appliedPrice)})`
           : '';
+
+      const detail =
+        applyTarget.mode === 'day'
+          ? `ngày ${applyTarget.date} (${applyTarget.weekdayLabel})`
+          : `trung bình ${days} ngày`;
+
       setApplyMessage(
-        `Đã cập nhật ${res.roomsUpdated} phòng loại «${res.roomTypeLabel}» với giá đêm ${formatCurrency(res.avgSuggestedPrice)}${prevPart} — trung bình gợi ý ${days} ngày.`
+        `Đã cập nhật ${res.roomsUpdated} phòng loại «${res.roomTypeLabel}» với giá đêm ${formatCurrency(appliedPrice)}${prevPart} — theo gợi ý ${detail}.`
       );
       setApplyModalOpen(false);
+      setApplyTarget(null);
       await fetchPricing();
     } catch (e) {
       const data = e?.response?.data;
@@ -149,8 +175,8 @@ const DynamicPricingPage = () => {
                 <div className="pricing-guide-item">
                   <span className="pricing-guide-item__step">4</span>
                   <div>
-                    <strong>Áp dụng khi thấy phù hợp</strong>
-                    <p>Bạn có thể áp dụng nhanh cho cả loại phòng hoặc tiếp tục điều chỉnh riêng từng phòng.</p>
+                    <strong>Áp dụng theo từng ngày</strong>
+                    <p>Nhấn <strong>Áp dụng</strong> trên dòng ngày bạn chọn để gán giá đề xuất đó cho mọi phòng cùng loại.</p>
                   </div>
                 </div>
               </div>
@@ -188,24 +214,29 @@ const DynamicPricingPage = () => {
                     {formatDateTime(typeBlock.lastBulkApply.lastBulkApplyAt)}
                   </time>
                   {' — '}
-                  TB giá đêm thực thu (regular − discount) trước khi áp dụng:{' '}
+                  {typeBlock.lastBulkApply.applyMode === 'day' && typeBlock.lastBulkApply.appliedDate ? (
+                    <>
+                      Áp dụng giá ngày <strong>{typeBlock.lastBulkApply.appliedDate}</strong>:{' '}
+                    </>
+                  ) : (
+                    <>Áp dụng giá TB cả kỳ: </>
+                  )}
+                  TB giá đêm (price) trước khi áp dụng:{' '}
                   <strong>
-                    {formatCurrency(
-                      typeBlock.lastBulkApply.previousAvgNightly ??
-                        typeBlock.lastBulkApply.previousAvgRegular
-                    )}
+                    {formatCurrency(typeBlock.lastBulkApply.previousAvgNightly)}
                   </strong>
                   , sau khi áp dụng:{' '}
                   <strong>
                     {formatCurrency(
-                      typeBlock.lastBulkApply.appliedAvgNightly ??
-                        typeBlock.lastBulkApply.appliedAvgRegular
+                      typeBlock.lastBulkApply.appliedNightly ??
+                        typeBlock.lastBulkApply.appliedAvgNightly
                     )}
                   </strong>
                   {(() => {
                     const lb = typeBlock.lastBulkApply;
-                    const a = (lb.appliedAvgNightly ?? lb.appliedAvgRegular) ?? 0;
-                    const p = (lb.previousAvgNightly ?? lb.previousAvgRegular) ?? 0;
+                    const a =
+                      (lb.appliedNightly ?? lb.appliedAvgNightly) ?? 0;
+                    const p = lb.previousAvgNightly ?? 0;
                     const d = a - p;
                     if (d === 0) return ' (không đổi).';
                     if (d < 0) return ` (giảm ${formatCurrency(Math.abs(d))}).`;
@@ -249,18 +280,21 @@ const DynamicPricingPage = () => {
             <div className="apply-row">
               <button
                 type="button"
-                className="btn-apply-suggested"
-                onClick={() => {
-                  setApplyMessage(null);
-                  setApplyModalOpen(true);
-                }}
-                disabled={loading || !daily.length}
+                className="btn-apply-suggested btn-apply-suggested--secondary"
+                onClick={() =>
+                  openApplyModal({
+                    mode: 'average',
+                    price: avgSuggestedForRange,
+                  })
+                }
+                disabled={loading || !daily.length || applyLoading}
               >
-                Áp dụng gợi ý cho loại phòng (kỳ đang xem)
+                Áp dụng TB cả kỳ (tùy chọn)
               </button>
               <span className="apply-row-hint">
-                Gán <strong>giá đêm</strong> (regular) = trung bình giá đề xuất trong {days} ngày tới cho mọi phòng{' '}
-                <strong>{typeBlock.typeLabel}</strong>; giảm giá (discount) đặt về 0. Vẫn chỉnh chi tiết tại sơ đồ phòng.
+                Khuyến nghị: dùng nút <strong>Áp dụng</strong> trong cột Thao tác (cạnh Xem chi tiết) để gán đúng giá đề xuất
+                của <strong>từng ngày</strong> cho mọi phòng <strong>{typeBlock.typeLabel}</strong>.
+                Giảm giá khuyến mãi do SalePromotion xử lý riêng khi khách đặt phòng.
               </span>
             </div>
 
@@ -281,15 +315,28 @@ const DynamicPricingPage = () => {
               />
             </div>
 
-            <PricingDailyTable typeLabel={typeBlock.typeLabel} daily={daily} />
+            <PricingDailyTable
+              typeLabel={typeBlock.typeLabel}
+              daily={daily}
+              onApplyDay={(row) =>
+                openApplyModal({
+                  mode: 'day',
+                  date: row.date,
+                  weekdayLabel: row.weekdayLabel,
+                  price: row.suggestedNightly,
+                })
+              }
+              applyingDate={applyLoading && applyTarget?.mode === 'day' ? applyTarget.date : null}
+              applyDisabled={loading || applyLoading}
+            />
           </>
         )}
 
-        {applyModalOpen && typeBlock && (
+        {applyModalOpen && typeBlock && applyTarget && (
           <div
             className="apply-modal-overlay"
             role="presentation"
-            onClick={() => !applyLoading && setApplyModalOpen(false)}
+            onClick={closeApplyModal}
           >
             <div
               className="apply-modal"
@@ -299,22 +346,36 @@ const DynamicPricingPage = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <h3 id="apply-modal-title">Xác nhận áp dụng giá gợi ý</h3>
-              <p>
-                Bạn sắp gán <strong>giá đêm (regular)</strong> cho <strong>tất cả phòng đang hoạt động</strong> loại{' '}
-                <strong>{typeBlock.typeLabel}</strong> tại khách sạn đang chọn, bằng{' '}
-                <strong>{formatCurrency(avgSuggestedForRange)}</strong> — trung bình giá đề xuất trong{' '}
-                <strong>{days} ngày</strong> tới (theo bộ lọc hiện tại).
-              </p>
+              {applyTarget.mode === 'day' ? (
+                <p>
+                  Bạn sắp gán <strong>giá đêm</strong> cho{' '}
+                  <strong>tất cả phòng đang hoạt động</strong> loại <strong>{typeBlock.typeLabel}</strong>{' '}
+                  tại khách sạn đang chọn, bằng{' '}
+                  <strong>{formatCurrency(applyTarget.price)}</strong> — giá đề xuất của ngày{' '}
+                  <strong>
+                    {applyTarget.weekdayLabel} {applyTarget.date}
+                  </strong>
+                  .
+                </p>
+              ) : (
+                <p>
+                  Bạn sắp gán <strong>giá đêm</strong> cho{' '}
+                  <strong>tất cả phòng đang hoạt động</strong> loại <strong>{typeBlock.typeLabel}</strong>{' '}
+                  tại khách sạn đang chọn, bằng{' '}
+                  <strong>{formatCurrency(applyTarget.price)}</strong> — trung bình giá đề xuất trong{' '}
+                  <strong>{days} ngày</strong> tới (theo bộ lọc hiện tại).
+                </p>
+              )}
               <p className="apply-modal-note">
-                Giảm giá (discount) sẽ được đặt về <strong>0</strong>. Bạn vẫn có thể chỉnh riêng từng phòng sau tại{' '}
-                <strong>sơ đồ phòng</strong>.
+                Bạn vẫn có thể chỉnh riêng từng phòng sau tại{' '}
+                <strong>sơ đồ phòng</strong>. Khuyến mãi theo chương trình sale không bị ảnh hưởng.
               </p>
               <div className="apply-modal-actions">
                 <button
                   type="button"
                   className="btn-modal-cancel"
                   disabled={applyLoading}
-                  onClick={() => setApplyModalOpen(false)}
+                  onClick={closeApplyModal}
                 >
                   Hủy
                 </button>

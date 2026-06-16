@@ -25,12 +25,13 @@ async function getDynamicPricing({ ownerId, hotelId, days }) {
   }
 }
 
-async function applySuggestedPrices({ ownerId, hotelId, roomType, days }) {
+async function applySuggestedPrices({ ownerId, hotelId, roomType, days, date }) {
   try {
     const body = await dynamicPricingService.applySuggestedPricesForOwner(ownerId, {
       hotelId,
       roomType,
       days: days != null ? parseInt(days, 10) : undefined,
+      date: date || undefined,
     });
     return { status: 200, body };
   } catch (error) {

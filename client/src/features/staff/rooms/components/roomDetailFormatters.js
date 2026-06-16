@@ -1,3 +1,5 @@
+import { getRoomPrice } from '@/shared/utils/roomPrice';
+
 export const formatRoomType = (type) => {
   const typeMap = {
     standard: 'Phòng Standard',
@@ -28,10 +30,9 @@ export const formatBookingStatus = (status) => {
 };
 
 export const formatPrice = (price) => {
-  if (!price) return '0 VND';
-  const regularPrice = price.regular || price || 0;
+  if (!price && price !== 0) return '0 VND';
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-  }).format(regularPrice);
+  }).format(getRoomPrice(price));
 };

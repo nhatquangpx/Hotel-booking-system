@@ -1,15 +1,6 @@
 const Booking = require("../../models/Booking");
-const Review = require("../../models/Review");
 const { createNotification } = require("./core");
 
-/**
- * Guest Notification Service
- * All notification functions specific to guest role
- */
-
-/**
- * Notify guest when booking is confirmed (after successful payment)
- */
 const notifyGuestBookingConfirmed = async (bookingId) => {
   try {
     const booking = await Booking.findById(bookingId)
@@ -39,9 +30,6 @@ const notifyGuestBookingConfirmed = async (bookingId) => {
   }
 };
 
-/**
- * Notify guest when booking is cancelled
- */
 const notifyGuestBookingCancelled = async (bookingId) => {
   try {
     const booking = await Booking.findById(bookingId)
@@ -70,45 +58,6 @@ const notifyGuestBookingCancelled = async (bookingId) => {
   }
 };
 
-/**
- * Notify guest about payment reminder
- */
-const notifyGuestPaymentReminder = async (bookingId, dueDate) => {
-  try {
-    const booking = await Booking.findById(bookingId)
-      .populate('guest');
-
-    if (!booking || !booking.guest) {
-      return;
-    }
-
-    const guestId = booking.guest._id || booking.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
-    const dueDateStr = new Date(dueDate).toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'payment_reminder',
-      'Nhắc nhở thanh toán',
-      `Vui lòng thanh toán số tiền còn lại cho đơn #BK${bookingIdShort} trước ${dueDateStr} để giữ phòng.`,
-      bookingId,
-      'Booking'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo nhắc nhở thanh toán cho guest:', error);
-  }
-};
-
-/**
- * Notify guest about refund processed
- */
 const notifyGuestRefundProcessed = async (bookingId, refundAmount, percentage = 100) => {
   try {
     const booking = await Booking.findById(bookingId)
@@ -137,180 +86,6 @@ const notifyGuestRefundProcessed = async (bookingId, refundAmount, percentage = 
   }
 };
 
-/**
- * Notify guest about upcoming trip reminder
- */
-const notifyGuestUpcomingTrip = async (bookingId, daysUntil) => {
-  try {
-    const booking = await Booking.findById(bookingId)
-      .populate('hotel', 'name')
-      .populate('guest');
-
-    if (!booking || !booking.guest) {
-      return;
-    }
-
-    const guestId = booking.guest._id || booking.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'upcoming_trip_reminder',
-      'Nhắc nhở chuyến đi',
-      `Chỉ còn ${daysUntil} ngày nữa là đến kỳ nghỉ! Xem lại thông tin đặt phòng tại đây.`,
-      bookingId,
-      'Booking'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo nhắc nhở chuyến đi cho guest:', error);
-  }
-};
-
-/**
- * Notify guest with check-in instructions
- */
-const notifyGuestCheckInInstructions = async (bookingId, instructions) => {
-  try {
-    const booking = await Booking.findById(bookingId)
-      .populate('guest');
-
-    if (!booking || !booking.guest) {
-      return;
-    }
-
-    const guestId = booking.guest._id || booking.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'checkin_instructions',
-      'Hướng dẫn Check-in',
-      `Hướng dẫn nhận phòng: ${instructions}`,
-      bookingId,
-      'Booking'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo hướng dẫn check-in cho guest:', error);
-  }
-};
-
-/**
- * Notify guest to review after checkout
- */
-const notifyGuestReviewRequest = async (bookingId) => {
-  try {
-    const booking = await Booking.findById(bookingId)
-      .populate('guest');
-
-    if (!booking || !booking.guest) {
-      return;
-    }
-
-    const guestId = booking.guest._id || booking.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'review_request',
-      'Mời đánh giá',
-      `Bạn cảm thấy kỳ nghỉ thế nào? Hãy dành 1 phút đánh giá để nhận xu tích lũy nhé!`,
-      bookingId,
-      'Booking'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo mời đánh giá cho guest:', error);
-  }
-};
-
-/**
- * Notify guest about owner reply to review
- */
-const notifyGuestReviewReply = async (reviewId, replyMessage) => {
-  try {
-    const review = await Review.findById(reviewId)
-      .populate('guest');
-
-    if (!review || !review.guest) {
-      return;
-    }
-
-    const guestId = review.guest._id || review.guest;
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'review_reply',
-      'Phản hồi từ chủ khách sạn',
-      `Chủ khách sạn đã phản hồi đánh giá của bạn: '${replyMessage}'`,
-      reviewId,
-      'Review'
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo phản hồi đánh giá cho guest:', error);
-  }
-};
-
-/**
- * Notify guest about promotion/voucher
- */
-const notifyGuestPromotion = async (guestId, promotionTitle, discount) => {
-  try {
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'promotion',
-      'Khuyến mãi mới',
-      `Tặng bạn mã giảm giá ${discount}% cho lần đặt phòng tiếp theo nhân dịp ${promotionTitle}!`,
-      null,
-      null
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo khuyến mãi cho guest:', error);
-  }
-};
-
-/**
- * Notify guest about security alert (password change, etc.)
- */
-const notifyGuestSecurityAlert = async (guestId, alertType) => {
-  try {
-    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
-    let message = '';
-
-    switch (alertType) {
-      case 'password_changed':
-        message = 'Mật khẩu của bạn vừa được thay đổi.';
-        break;
-      case 'email_changed':
-        message = 'Email của bạn vừa được thay đổi.';
-        break;
-      default:
-        message = 'Có thay đổi bảo mật trong tài khoản của bạn.';
-    }
-
-    await createNotification(
-      guestIdStr,
-      'guest',
-      'security_alert',
-      'Cảnh báo bảo mật',
-      message,
-      null,
-      null
-    );
-  } catch (error) {
-    console.error('Lỗi khi tạo thông báo bảo mật cho guest:', error);
-  }
-};
-
-/**
- * Notify guest when owner rejects QR payment (payment not successful — booking cancelled)
- */
 const notifyGuestQrPaymentRejected = async (bookingId) => {
   try {
     const booking = await Booking.findById(bookingId)
@@ -339,9 +114,6 @@ const notifyGuestQrPaymentRejected = async (bookingId) => {
   }
 };
 
-/**
- * Notify guest to re-upload QR payment proof (invalid proof, balance exists)
- */
 const notifyGuestQrProofResubmitRequired = async (bookingId) => {
   try {
     const booking = await Booking.findById(bookingId)
@@ -373,14 +145,7 @@ const notifyGuestQrProofResubmitRequired = async (bookingId) => {
 module.exports = {
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
-  notifyGuestPaymentReminder,
   notifyGuestRefundProcessed,
   notifyGuestQrPaymentRejected,
   notifyGuestQrProofResubmitRequired,
-  notifyGuestUpcomingTrip,
-  notifyGuestCheckInInstructions,
-  notifyGuestReviewRequest,
-  notifyGuestReviewReply,
-  notifyGuestPromotion,
-  notifyGuestSecurityAlert
 };

@@ -17,5 +17,6 @@ exports.applySuggestedPrices = (req, res) =>
       hotelId: req.body?.hotelId,
       roomType: req.body?.roomType,
       days: req.body?.days,
+      date: req.body?.date,
     })
   );

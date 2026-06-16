@@ -83,8 +83,8 @@ const BookingDetailDialog = ({ isOpen, onClose, bookingId }) => {
               <tr>
                 <td className="label">Tổng tiền:</td>
                 <td className="value">
-                  {booking.totalAmount != null
-                    ? `${Number(booking.totalAmount).toLocaleString('vi-VN')} VND`
+                  {booking.finalAmount != null
+                    ? `${Number(booking.finalAmount).toLocaleString('vi-VN')} VND`
                     : 'N/A'}
                 </td>
               </tr>

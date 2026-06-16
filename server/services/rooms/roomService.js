@@ -18,6 +18,8 @@ function throwHttp(statusCode, message) {
   throw e;
 }
 
+const { readRoomPrice, normalizeRoomPriceInput } = require("./roomPrice");
+
 /**
  * @param {string} hotelId
  * @param {{ checkInDate?: string, checkOutDate?: string }} query
@@ -90,7 +92,7 @@ async function createRoom(params) {
     );
   }
 
-  const priceNumber = Number(price);
+  const priceNumber = normalizeRoomPriceInput(price);
   if (Number.isNaN(priceNumber) || priceNumber <= 0) {
     throwHttp(400, "Giá phòng phải là một số dương hợp lệ");
   }
@@ -117,10 +119,7 @@ async function createRoom(params) {
     roomNumber,
     type,
     description,
-    price: {
-      regular: priceNumber,
-      discount: 0,
-    },
+    price: priceNumber,
     maxPeople: Number(maxPeople),
     facilities: facilityList,
     roomEquipment: [],
@@ -145,8 +144,11 @@ async function updateRoom(roomId, reqBody, files, hasCloudinary) {
     try {
       body.price = JSON.parse(body.price);
     } catch {
-      body.price = { regular: 0, discount: 0 };
+      body.price = 0;
     }
+  }
+  if (body.price !== undefined) {
+    body.price = normalizeRoomPriceInput(body.price);
   }
 
   if (typeof body.facilities === "string") {

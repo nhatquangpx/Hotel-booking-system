@@ -25,11 +25,12 @@ const BookingSchema = new mongoose.Schema(
       type: Date,
       required: true
     },
-    totalAmount: {
+    /** Thành tiền sau sale — số tiền khách phải trả */
+    finalAmount: {
       type: Number,
-      required: true
+      required: true,
     },
-    /** Tổng tiền trước chương trình sale (regular − discount phòng) × số đêm */
+    /** Tổng tiền trước chương trình sale (giá phòng × số đêm) */
     basePrice: {
       type: Number,
     },
@@ -38,17 +39,8 @@ const BookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    /** Thành tiền sau sale (= totalAmount khi thanh toán) */
-    finalAmount: {
-      type: Number,
-    },
     promotionApplied: {
-      sale: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "SalePromotion",
-      },
       title: { type: String },
-      discountPercent: { type: Number },
     },
     paymentStatus: {
       type: String,
@@ -68,10 +60,6 @@ const BookingSchema = new mongoose.Schema(
     },
     qrPaymentProofUrl: {
       type: String
-    },
-    /** Chủ KS từ chối minh chứng QR (đơn chưa thanh toán, khách đã gửi minh chứng). */
-    ownerPaymentRejectedAt: {
-      type: Date
     },
     ownerPaymentRejectionReason: {
       type: String,

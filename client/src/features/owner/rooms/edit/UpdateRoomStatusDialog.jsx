@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { getRoomPrice } from '@/shared/utils/roomPrice';
 import Dialog from '@/components/ui/Dialog';
 import { apiErrorMessage } from '@/shared/utils';
 import api from '@/apis';
@@ -55,12 +56,7 @@ const UpdateRoomStatusDialog = ({ room, isOpen, onClose, onSuccess }) => {
       updateData.append('maxPeople', room.maxPeople || 2);
       updateData.append('facilities', JSON.stringify(room.facilities || []));
       
-      if (room.price) {
-        updateData.append('price', JSON.stringify({
-          regular: room.price.regular || room.price || 0,
-          discount: room.price.discount || 0
-        }));
-      }
+        updateData.append('price', String(getRoomPrice(room.price)));
 
       if (room.images && room.images.length > 0) {
         updateData.append('existingImages', JSON.stringify(room.images));
