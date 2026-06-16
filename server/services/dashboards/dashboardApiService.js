@@ -17,6 +17,16 @@ async function getRecentActivities({ adminId }) {
   return { status: 200, body: activities };
 }
 
+async function getAdminRevenueByHotel({ period }) {
+  const body = await dashboardService.getRevenueByHotel(period);
+  return { status: 200, body };
+}
+
+async function getAdminPendingContacts({ limit }) {
+  const body = await dashboardService.getPendingContacts(limit);
+  return { status: 200, body };
+}
+
 async function getOwnerDashboardStats({ ownerId, hotelId }) {
   const body = await dashboardService.getOwnerDashboardStats(ownerId, hotelId || null);
   return { status: 200, body };
@@ -48,6 +58,8 @@ async function getStaffDashboard({ staffHotelId }) {
 module.exports = {
   getAdminStats,
   getRecentActivities,
+  getAdminRevenueByHotel,
+  getAdminPendingContacts,
   getOwnerDashboardStats,
   getOwnerRevenueStats,
   getOwnerRoomStats,

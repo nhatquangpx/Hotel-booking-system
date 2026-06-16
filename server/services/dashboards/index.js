@@ -26,7 +26,9 @@ const {
 // Admin dashboard services
 const {
   getDashboardStats: getAdminDashboardStats,
-  getRecentActivities
+  getRecentActivities,
+  getRevenueByHotel,
+  getPendingContacts,
 } = require('./admin');
 
 // Staff dashboard services
@@ -52,6 +54,8 @@ module.exports = {
   // Admin services
   getAdminDashboardStats,
   getRecentActivities,
+  getRevenueByHotel,
+  getPendingContacts,
 
   // Staff services
   getStaffDashboard,

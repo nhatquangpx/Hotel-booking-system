@@ -2,7 +2,10 @@ const User = require('../../models/User');
 const Hotel = require('../../models/Hotel');
 const Room = require('../../models/Room');
 const Booking = require('../../models/Booking');
+const ContactMessage = require('../../models/ContactMessage');
 const { bookingRevenueSumExpr } = require('../bookings/bookingAmount');
+const { startOfDayReportTz } = require('../reports/reportTz');
+const { ServiceError } = require('../../lib/http/serviceError');
 
 const PAYMENT_STATUS_LABELS = {
   pending: 'chờ thanh toán',
@@ -15,6 +18,54 @@ const ROLE_LABELS = {
   admin: 'Quản trị viên',
   owner: 'Chủ khách sạn',
   staff: 'Nhân viên',
+};
+
+const PERIOD_LABELS = {
+  week: '7 ngày qua',
+  month: 'Tháng này',
+  year: 'Năm nay',
+};
+
+const normalizePeriod = (period) => {
+  const value = String(period || 'week').toLowerCase();
+  if (!['week', 'month', 'year'].includes(value)) {
+    throw new ServiceError(400, 'period phải là week, month hoặc year');
+  }
+  return value;
+};
+
+/**
+ * Khoảng thời gian [start, endExclusive) theo Asia/Ho_Chi_Minh.
+ */
+const getPeriodDateRange = (period) => {
+  const normalized = normalizePeriod(period);
+  const today = startOfDayReportTz();
+  const endExclusive = today.add(1, 'day');
+
+  if (normalized === 'week') {
+    return {
+      period: normalized,
+      periodLabel: PERIOD_LABELS.week,
+      start: today.subtract(6, 'day').toDate(),
+      endExclusive: endExclusive.toDate(),
+    };
+  }
+
+  if (normalized === 'month') {
+    return {
+      period: normalized,
+      periodLabel: PERIOD_LABELS.month,
+      start: today.startOf('month').toDate(),
+      endExclusive: endExclusive.toDate(),
+    };
+  }
+
+  return {
+    period: normalized,
+    periodLabel: PERIOD_LABELS.year,
+    start: today.startOf('year').toDate(),
+    endExclusive: endExclusive.toDate(),
+  };
 };
 
 /**
@@ -126,10 +177,92 @@ const getRecentActivities = async () => {
   ];
 
   activities.sort((a, b) => new Date(b.time) - new Date(a.time));
-  return activities.slice(0, 10);
+  return activities.slice(0, 20);
+};
+
+/**
+ * Doanh thu theo khách sạn trong kỳ (đơn đã thanh toán, theo ngày tạo đơn).
+ * @returns {Promise<{ period, periodLabel, hotels: Array<{ hotelId, hotelName, revenue, bookingCount }> }>}
+ */
+const getRevenueByHotel = async (period = 'week') => {
+  const { period: normalized, periodLabel, start, endExclusive } = getPeriodDateRange(period);
+
+  const rows = await Booking.aggregate([
+    {
+      $match: {
+        paymentStatus: 'paid',
+        createdAt: { $gte: start, $lt: endExclusive },
+        hotel: { $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: '$hotel',
+        revenue: { $sum: bookingRevenueSumExpr },
+        bookingCount: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: 'hotels',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'hotelDoc',
+      },
+    },
+    { $unwind: { path: '$hotelDoc', preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        hotelId: '$_id',
+        hotelName: { $ifNull: ['$hotelDoc.name', 'Khách sạn không xác định'] },
+        revenue: 1,
+        bookingCount: 1,
+      },
+    },
+    { $sort: { revenue: -1, hotelName: 1 } },
+  ]);
+
+  return {
+    period: normalized,
+    periodLabel,
+    hotels: rows.map((row) => ({
+      hotelId: String(row.hotelId),
+      hotelName: row.hotelName,
+      revenue: row.revenue || 0,
+      bookingCount: row.bookingCount || 0,
+    })),
+  };
+};
+
+/**
+ * Liên hệ cần xử lý: chưa đọc hoặc chưa phản hồi.
+ */
+const getPendingContacts = async (limit = 20) => {
+  const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
+
+  const messages = await ContactMessage.find({
+    $or: [{ isRead: false }, { repliedAt: null }],
+  })
+    .sort({ createdAt: -1 })
+    .limit(parsedLimit)
+    .select('name email subject message isRead repliedAt createdAt')
+    .lean();
+
+  return messages.map((msg) => ({
+    id: String(msg._id),
+    name: msg.name,
+    email: msg.email,
+    subject: msg.subject,
+    preview: String(msg.message || '').slice(0, 120),
+    isRead: Boolean(msg.isRead),
+    replied: Boolean(msg.repliedAt),
+    createdAt: msg.createdAt,
+  }));
 };
 
 module.exports = {
   getDashboardStats,
-  getRecentActivities
+  getRecentActivities,
+  getRevenueByHotel,
+  getPendingContacts,
 };

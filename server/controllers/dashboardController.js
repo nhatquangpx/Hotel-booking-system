@@ -7,6 +7,16 @@ exports.getAdminStats = (req, res) =>
 exports.getRecentActivities = (req, res) =>
   runService(res, () => dashboardApi.getRecentActivities({ adminId: req.user?.id }));
 
+exports.getAdminRevenueByHotel = (req, res) =>
+  runService(res, () =>
+    dashboardApi.getAdminRevenueByHotel({ period: req.query.period })
+  );
+
+exports.getAdminPendingContacts = (req, res) =>
+  runService(res, () =>
+    dashboardApi.getAdminPendingContacts({ limit: req.query.limit })
+  );
+
 exports.getOwnerDashboardStats = (req, res) =>
   runService(res, () =>
     dashboardApi.getOwnerDashboardStats({
