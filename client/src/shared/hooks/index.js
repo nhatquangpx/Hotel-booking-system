@@ -4,3 +4,5 @@
  */
 export { useAuth } from './useAuth';
 export { useSocket } from './useSocket';
+export { useSocketNotificationListener } from './useSocketNotificationListener';
+export { useSocketUnreadListener } from './useSocketUnreadListener';

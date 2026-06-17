@@ -15,6 +15,7 @@ import { staffDashboardAPI } from '@/apis/staff/dashboard';
 import { formatDate } from '@/shared/utils';
 import { getRoomMapDisplayStatus } from '@/features/staff/rooms/utils/roomMapDisplayStatus';
 import DashboardPanel from './DashboardPanel';
+import StaffBookingCalendar from './StaffBookingCalendar';
 import './StaffDashboard.scss';
 
 const EMPTY_DASHBOARD = {
@@ -266,6 +267,8 @@ export const StaffDashboard = () => {
               to="/staff/reviews"
             />
           </div>
+
+          <StaffBookingCalendar />
 
           <div className="staff-dashboard__panels">
             <div className="staff-dashboard__panels-tasks">
