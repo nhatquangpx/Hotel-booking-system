@@ -1,11 +1,8 @@
-import { FaSearch, FaHistory, FaCalendarDay } from 'react-icons/fa';
+import { FaSearch, FaHistory } from 'react-icons/fa';
 
 const StaffBookingFilters = ({
   searchQuery,
   onSearchChange,
-  showTodayOnly,
-  onToggleToday,
-  todayBookingsCount,
   showPastBookings,
   onTogglePast,
   statusFilter,
@@ -28,22 +25,8 @@ const StaffBookingFilters = ({
       </div>
       <button
         type="button"
-        className={`booking-quick-filter today-check-toggle ${showTodayOnly ? 'active' : ''}`}
-        onClick={onToggleToday}
-        aria-pressed={showTodayOnly}
-      >
-        <FaCalendarDay />
-        <span>
-          {showTodayOnly ? 'Bỏ lọc hôm nay' : 'Hôm nay check-in/out'}
-          {!showTodayOnly && todayBookingsCount > 0 ? ` (${todayBookingsCount})` : ''}
-        </span>
-      </button>
-      <button
-        type="button"
         className={`booking-quick-filter past-bookings-toggle ${showPastBookings ? 'active' : ''}`}
         onClick={onTogglePast}
-        disabled={showTodayOnly}
-        title={showTodayOnly ? 'Tắt lọc hôm nay để dùng hiện/ẩn đơn quá khứ' : undefined}
       >
         <FaHistory />
         <span>{showPastBookings ? 'Ẩn đơn quá khứ' : 'Hiện đơn quá khứ'}</span>

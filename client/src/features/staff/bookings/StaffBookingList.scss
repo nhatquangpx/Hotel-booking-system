@@ -1,3 +1,22 @@
-.staff-booking-list .booking-search-bar {
-  flex-wrap: wrap;
+.staff-booking-list {
+  .staff-booking-action-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(150px, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border-light, #e5e5e5);
+    border-radius: 12px;
+    background: #fcfcfc;
+  }
+
+  .staff-booking-action-cards {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .staff-booking-list .staff-booking-action-filters {
+    grid-template-columns: 1fr;
+  }
 }

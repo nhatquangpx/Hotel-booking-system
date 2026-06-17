@@ -1,10 +1,12 @@
 import { FaPhone, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
-import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut } from '@/shared/utils';
+import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut, getOwnerActionLabel } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
 
 const OwnerBookingCard = ({
   booking,
   source,
+  highlightAction = false,
+  showActionBadge = false,
   onOpenDetail,
   onOpenConfirm,
   onOpenCheckIn,
@@ -31,6 +33,8 @@ const OwnerBookingCard = ({
     booking.guestCancelSnapshot?.refundPolicyEligible &&
     booking.guestCancelRequestedAt &&
     !booking.ownerRefundCompletedAt;
+
+  const actionLabel = showActionBadge ? getOwnerActionLabel(booking) : null;
 
   const renderStatusButtons = () => {
     if (isCheckedOut) {
@@ -124,11 +128,12 @@ const OwnerBookingCard = ({
   };
 
   return (
-    <div className="booking-card">
+    <div className={`booking-card${highlightAction ? ' booking-card--needs-action' : ''}`}>
       <div className="booking-info">
         <div className="booking-id-row">
           <span className="booking-id-label">Mã đơn:</span>
           <span className="booking-id-value">{booking._id}</span>
+          {actionLabel && <span className="booking-action-badge">{actionLabel}</span>}
         </div>
         <div className="guest-name">{guest.name || 'N/A'}</div>
 

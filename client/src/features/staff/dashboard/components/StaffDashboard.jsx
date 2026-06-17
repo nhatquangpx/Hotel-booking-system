@@ -115,7 +115,7 @@ export const StaffDashboard = () => {
 
         return {
           id: task.id,
-          linkTo: task.linkTo || '/staff/bookings',
+          linkTo: task.linkTo || '/staff/bookings?filter=action',
           leading: showCheck ? (
             <span className="staff-dash-check staff-dash-check--done" aria-hidden>
               <FaCheckCircle />
@@ -250,14 +250,14 @@ export const StaffDashboard = () => {
               value={stats.checkInToday}
               icon={FaUserCheck}
               iconColor="green"
-              to="/staff/bookings"
+              to="/staff/bookings?filter=action"
             />
             <MetricCard
               title="Check-out hôm nay"
               value={stats.checkOutToday}
               icon={FaSignOutAlt}
               iconColor="default"
-              to="/staff/bookings"
+              to="/staff/bookings?filter=action"
             />
             <MetricCard
               title="Đánh giá chưa phản hồi"

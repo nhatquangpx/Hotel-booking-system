@@ -8,7 +8,7 @@ export const notificationConfig = {
     apiPrefix: '/owner',
     routes: {
       list: '/owner/notifications',
-      booking: (id) => `/owner/bookings?bookingId=${id}`,
+      booking: (id) => `/owner/bookings?filter=action&bookingId=${id}`,
       review: '/owner/reviews'
     },
     supportedTypes: [
@@ -42,6 +42,7 @@ export const notificationConfig = {
     routes: {
       list: '/staff/notifications',
       booking: (id) => `/staff/bookings?bookingId=${id}`,
+      bookingAction: (id) => `/staff/bookings?filter=action&bookingId=${id}`,
       review: '/staff/reviews',
       rooms: '/staff/rooms',
       equipment: '/staff/equipment'
@@ -82,11 +83,16 @@ export const getNotificationPath = (notification, role) => {
   if (!config || !notification.relatedId) return null;
 
   switch (notification.type) {
+    case 'checkin_today':
+    case 'checkout_today':
+      if (role === 'staff' && config.routes.bookingAction) {
+        return config.routes.bookingAction(notification.relatedId);
+      }
+      return config.routes.booking(notification.relatedId);
+
     case 'new_booking':
     case 'booking_cancelled':
     case 'no_show':
-    case 'checkin_today':
-    case 'checkout_today':
     case 'booking_confirmed':
     case 'payment_rejected':
     case 'qr_proof_resubmit':

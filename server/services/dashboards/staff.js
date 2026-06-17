@@ -152,7 +152,7 @@ async function getStaffDashboard(hotelId) {
       room: booking.room?.roomNumber != null ? String(booking.room.roomNumber) : "N/A",
       time: checkInTimeDefault,
       done: Boolean(booking.checkedInAt),
-      linkTo: "/staff/bookings",
+      linkTo: `/staff/bookings?filter=action&bookingId=${booking._id}`,
     });
   });
 
@@ -164,7 +164,7 @@ async function getStaffDashboard(hotelId) {
       room: booking.room?.roomNumber != null ? String(booking.room.roomNumber) : "N/A",
       time: checkOutTimeDefault,
       done: Boolean(booking.checkedOutAt),
-      linkTo: "/staff/bookings",
+      linkTo: `/staff/bookings?filter=action&bookingId=${booking._id}`,
     });
   });
 

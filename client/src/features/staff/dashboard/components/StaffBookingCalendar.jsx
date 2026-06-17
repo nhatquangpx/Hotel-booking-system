@@ -141,7 +141,7 @@ const StaffBookingCalendar = () => {
   };
 
   const handleBookingClick = (bookingId) => {
-    navigate(`${ROUTES.STAFF_BOOKINGS}?bookingId=${bookingId}`);
+    navigate(`${ROUTES.STAFF_BOOKINGS}?filter=action&bookingId=${bookingId}`);
   };
 
   const renderEventIndicators = (summary, compact = false) => {
