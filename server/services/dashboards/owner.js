@@ -34,6 +34,7 @@ const getDashboardStats = async (ownerId, hotelId) => {
       equipmentAttentionCount: 0,
       activeSalesCount: 0,
       reviewsAwaitingReply: 0,
+      bookingsAwaitingAction: 0,
     };
   }
 
@@ -72,6 +73,36 @@ const getDashboardStats = async (ownerId, hotelId) => {
     $or: [{ ownerResponse: { $exists: false } }, { ownerResponse: null }, { ownerResponse: '' }],
   });
 
+  const pendingPaymentCount = await Booking.countDocuments({
+    hotel: { $in: hotelIds },
+    paymentStatus: 'pending',
+  });
+
+  const refundPendingCount = await Booking.countDocuments({
+    hotel: { $in: hotelIds },
+    paymentStatus: 'cancelled',
+    guestCancelRequestedAt: { $ne: null },
+    ownerRefundCompletedAt: null,
+    'guestCancelSnapshot.wasPaid': true,
+    'guestCancelSnapshot.refundPolicyEligible': true,
+  });
+
+  const checkInOutTodayCount = await Booking.countDocuments({
+    hotel: { $in: hotelIds },
+    paymentStatus: 'paid',
+    $or: [
+      {
+        checkInDate: { $gte: today, $lt: tomorrow },
+        $or: [{ checkedInAt: null }, { checkedInAt: { $exists: false } }],
+      },
+      {
+        checkOutDate: { $gte: today, $lt: tomorrow },
+        checkedInAt: { $ne: null },
+        $or: [{ checkedOutAt: null }, { checkedOutAt: { $exists: false } }],
+      },
+    ],
+  });
+
   return {
     todayRevenue,
     availableRooms,
@@ -79,6 +110,7 @@ const getDashboardStats = async (ownerId, hotelId) => {
     equipmentAttentionCount,
     activeSalesCount,
     reviewsAwaitingReply,
+    bookingsAwaitingAction: pendingPaymentCount + refundPendingCount + checkInOutTodayCount,
   };
 };
 
@@ -164,6 +196,60 @@ const getTodayTasks = async (ownerId, hotelId) => {
   const { today, tomorrow } = getTodayDateRange();
   const tasks = [];
 
+  const pendingPayments = await Booking.find({
+    hotel: { $in: hotelIds },
+    paymentStatus: 'pending',
+  })
+    .populate('room', 'roomNumber')
+    .populate('guest', 'name')
+    .sort({ checkInDate: 1 })
+    .lean();
+
+  pendingPayments.forEach((booking) => {
+    const guestName = booking.guest?.name || 'Khách';
+    const roomNo = booking.room?.roomNumber || 'N/A';
+    const hasProof =
+      booking.paymentMethod === 'qr_code' &&
+      booking.qrPaymentReportedAt &&
+      booking.qrPaymentProofUrl;
+
+    tasks.push({
+      id: `pending-${booking._id}`,
+      type: 'urgent',
+      text: hasProof
+        ? `Xác nhận TT (đã có MC) — ${guestName} · P.${roomNo}`
+        : `Chờ xác nhận TT — ${guestName} · P.${roomNo}`,
+      urgent: true,
+      linkTo: `/owner/bookings?filter=action&bookingId=${booking._id}`,
+    });
+  });
+
+  const refundPending = await Booking.find({
+    hotel: { $in: hotelIds },
+    paymentStatus: 'cancelled',
+    guestCancelRequestedAt: { $ne: null },
+    ownerRefundCompletedAt: null,
+    'guestCancelSnapshot.wasPaid': true,
+    'guestCancelSnapshot.refundPolicyEligible': true,
+  })
+    .populate('room', 'roomNumber')
+    .populate('guest', 'name')
+    .sort({ guestCancelRequestedAt: 1 })
+    .lean();
+
+  refundPending.forEach((booking) => {
+    const guestName = booking.guest?.name || 'Khách';
+    const roomNo = booking.room?.roomNumber || 'N/A';
+
+    tasks.push({
+      id: `refund-${booking._id}`,
+      type: 'urgent',
+      text: `Chờ hoàn tiền — ${guestName} · P.${roomNo}`,
+      urgent: true,
+      linkTo: `/owner/bookings?filter=action&bookingId=${booking._id}`,
+    });
+  });
+
   // Check-in tasks (today)
   const todayCheckIns = await Booking.find({
     hotel: { $in: hotelIds },
@@ -184,7 +270,7 @@ const getTodayTasks = async (ownerId, hotelId) => {
       text: `Khách đến - Phòng ${booking.room?.roomNumber || 'N/A'}`,
       time: checkInTime,
       urgent: false,
-      linkTo: '/owner/bookings',
+      linkTo: `/owner/bookings?filter=action&bookingId=${booking._id}`,
     });
   });
 
@@ -208,7 +294,7 @@ const getTodayTasks = async (ownerId, hotelId) => {
       text: `Check-out phòng ${booking.room?.roomNumber || 'N/A'}`,
       time: checkOutTime,
       urgent: false,
-      linkTo: '/owner/bookings',
+      linkTo: `/owner/bookings?filter=action&bookingId=${booking._id}`,
     });
   });
 

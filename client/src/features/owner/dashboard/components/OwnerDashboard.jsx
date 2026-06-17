@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { FaDollarSign, FaBed, FaWrench, FaTags, FaCommentDots, FaFileExcel } from 'react-icons/fa';
+import { FaDollarSign, FaBed, FaWrench, FaTags, FaCommentDots, FaFileExcel, FaClipboardCheck } from 'react-icons/fa';
 import { ownerDashboardAPI } from '@/apis/owner/dashboard';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import MetricCard from '../../components/MetricCard';
@@ -42,6 +42,7 @@ export const OwnerDashboard = () => {
     equipmentAttentionCount: 0,
     activeSalesCount: 0,
     reviewsAwaitingReply: 0,
+    bookingsAwaitingAction: 0,
   });
   const [weeklyRevenue, setWeeklyRevenue] = useState([]);
   const [roomOccupancy, setRoomOccupancy] = useState([]);
@@ -68,6 +69,7 @@ export const OwnerDashboard = () => {
             equipmentAttentionCount: 0,
             activeSalesCount: 0,
             reviewsAwaitingReply: 0,
+            bookingsAwaitingAction: 0,
           });
           setWeeklyRevenue([]);
           setRoomOccupancy([]);
@@ -226,6 +228,13 @@ export const OwnerDashboard = () => {
           icon={FaDollarSign}
           iconColor="green"
           to="/owner/bookings"
+        />
+        <MetricCard
+          title="Đơn cần xử lý"
+          value={stats.bookingsAwaitingAction ?? 0}
+          icon={FaClipboardCheck}
+          iconColor="red"
+          to={stats.bookingsAwaitingAction > 0 ? '/owner/bookings?filter=action' : undefined}
         />
         <MetricCard
           title="Phòng trống"

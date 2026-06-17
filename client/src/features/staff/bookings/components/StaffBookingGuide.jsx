@@ -6,18 +6,18 @@ const StaffBookingGuide = () => (
       <div className="booking-guide-card__intro">
         <h3>Hướng dẫn xử lý đặt phòng</h3>
         <p>
-          Xem toàn bộ lịch sử đơn tại khách sạn, tìm đơn theo khách hoặc mã đơn, và thực hiện check-in /
-          check-out khi khách đến hoặc rời đi.
+          Tab <strong>Cần xử lý</strong> gom đơn check-in/check-out hôm nay; tab <strong>Tất cả đơn</strong> dùng
+          để tra cứu lịch sử và tìm đơn cụ thể.
         </p>
       </div>
       <div className="booking-guide-grid">
         <div className="booking-guide-item">
           <span className="booking-guide-item__step">1</span>
           <div>
-            <strong>Tìm và lọc đơn</strong>
+            <strong>Check-in / Check-out hôm nay</strong>
             <p>
-              Dùng nút &quot;Hôm nay check-in/out&quot; để xem đơn nhận hoặc trả phòng trong ngày, kèm bộ lọc và
-              tìm kiếm khi cần.
+              Mở tab Cần xử lý để xem đơn cần nhận hoặc trả phòng trong ngày. Dùng bộ lọc loại để thu hẹp danh
+              sách.
             </p>
           </div>
         </div>
@@ -33,7 +33,7 @@ const StaffBookingGuide = () => (
         <div className="booking-guide-item">
           <span className="booking-guide-item__step">3</span>
           <div>
-            <strong>Check-in / Check-out</strong>
+            <strong>Thực hiện check-in / check-out</strong>
             <p>
               Chỉ thực hiện khi đơn đã thanh toán: check-in khi khách nhận phòng, check-out khi khách trả phòng.
             </p>

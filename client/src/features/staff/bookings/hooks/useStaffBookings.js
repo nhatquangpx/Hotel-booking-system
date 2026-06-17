@@ -3,14 +3,23 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useStaffHotel } from '@/features/staff/context/StaffHotelContext';
 import api from '@/apis';
-import { isTodayCheckInOrCheckOut } from '@/shared/utils/bookingFilters';
-import { apiErrorMessage } from '@/shared/utils';
+import { apiErrorMessage, sortOwnerBookingsByCheckIn } from '@/shared/utils';
 import { filterBookingList } from '@/shared/utils/filterBookingList';
+import {
+  getStaffActionCounts,
+  filterStaffActionBookings,
+  bookingNeedsStaffAction,
+} from '@/shared/utils/staffBookingQueue';
 
 export function useStaffBookings() {
   const { hotelId, loading: hotelLoading, error: hotelError } = useStaffHotel();
   const [searchParams, setSearchParams] = useSearchParams();
   const openedBookingFromUrl = useRef(false);
+  const didSetDefaultView = useRef(false);
+  const filterFromUrl = searchParams.get('filter');
+  const [viewMode, setViewMode] = useState(() =>
+    filterFromUrl === 'all' ? 'all' : 'action'
+  );
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,8 +31,9 @@ export function useStaffBookings() {
   const [methodFilter, setMethodFilter] = useState('all');
   const [proofFilter, setProofFilter] = useState('all');
   const [showPastBookings, setShowPastBookings] = useState(false);
-  const [showTodayOnly, setShowTodayOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionSearch, setActionSearch] = useState('');
+  const [actionType, setActionType] = useState('all');
   const [previewProofUrl, setPreviewProofUrl] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -43,8 +53,7 @@ export function useStaffBookings() {
       setLoading(true);
       setError(null);
       const data = await api.staffBooking.getBookings();
-      const sorted = [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setBookings(sorted);
+      setBookings(data);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách đặt phòng');
     } finally {
@@ -55,6 +64,42 @@ export function useStaffBookings() {
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  useEffect(() => {
+    didSetDefaultView.current = false;
+  }, [hotelId]);
+
+  useEffect(() => {
+    setActionSearch('');
+    setActionType('all');
+  }, [hotelId]);
+
+  useEffect(() => {
+    if (filterFromUrl === 'action') {
+      setViewMode('action');
+    } else if (filterFromUrl === 'all') {
+      setViewMode('all');
+    }
+  }, [filterFromUrl]);
+
+  const actionCounts = useMemo(() => getStaffActionCounts(bookings), [bookings]);
+
+  useEffect(() => {
+    if (loading || hotelLoading || didSetDefaultView.current || filterFromUrl) return;
+    didSetDefaultView.current = true;
+    setViewMode(actionCounts.total > 0 ? 'action' : 'all');
+  }, [loading, hotelLoading, filterFromUrl, actionCounts.total]);
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    const next = new URLSearchParams(searchParams);
+    if (mode === 'action') {
+      next.set('filter', 'action');
+    } else {
+      next.delete('filter');
+    }
+    setSearchParams(next, { replace: true });
+  };
 
   const openCheckInModal = (booking) => {
     setSelectedBooking(booking);
@@ -112,23 +157,22 @@ export function useStaffBookings() {
     }
   };
 
-  const todayBookingsCount = useMemo(
-    () => bookings.filter((b) => isTodayCheckInOrCheckOut(b)).length,
-    [bookings]
+  const actionBookings = useMemo(
+    () => filterStaffActionBookings(bookings, { search: actionSearch, type: actionType }),
+    [bookings, actionSearch, actionType]
   );
 
-  const filteredBookings = useMemo(
-    () =>
-      filterBookingList(bookings, {
-        showTodayOnly,
-        showPastBookings,
-        searchQuery,
-        statusFilter,
-        methodFilter,
-        proofFilter,
-      }),
-    [bookings, showTodayOnly, showPastBookings, searchQuery, statusFilter, methodFilter, proofFilter]
-  );
+  const filteredBookings = useMemo(() => {
+    const filtered = filterBookingList(bookings, {
+      showTodayOnly: false,
+      showPastBookings,
+      searchQuery,
+      statusFilter,
+      methodFilter,
+      proofFilter,
+    });
+    return sortOwnerBookingsByCheckIn(filtered);
+  }, [bookings, showPastBookings, searchQuery, statusFilter, methodFilter, proofFilter]);
 
   const openDetailModal = async (bookingId) => {
     try {
@@ -162,13 +206,17 @@ export function useStaffBookings() {
     setSearchParams(next, { replace: true });
   }, [loading, hotelLoading, searchParams, setSearchParams]);
 
-  const emptyMessage = showTodayOnly
-    ? 'Không có đơn check-in hoặc check-out hôm nay'
-    : 'Không có đặt phòng phù hợp với bộ lọc';
+  const emptyMessage =
+    viewMode === 'action'
+      ? 'Không có đơn check-in hoặc check-out hôm nay phù hợp bộ lọc.'
+      : 'Không có đặt phòng phù hợp với bộ lọc';
 
   return {
     loading,
     error,
+    viewMode,
+    actionCounts,
+    actionBookings,
     filteredBookings,
     emptyMessage,
     previewProofUrl,
@@ -180,14 +228,18 @@ export function useStaffBookings() {
     processing,
     detailLoading,
     detailBooking,
+    handleViewModeChange,
+    actionFilters: {
+      search: actionSearch,
+      setSearch: setActionSearch,
+      type: actionType,
+      setType: setActionType,
+    },
     filters: {
       searchQuery,
       setSearchQuery,
-      showTodayOnly,
-      setShowTodayOnly,
       showPastBookings,
       setShowPastBookings,
-      todayBookingsCount,
       statusFilter,
       setStatusFilter,
       methodFilter,
@@ -203,6 +255,7 @@ export function useStaffBookings() {
       closeDetailModal,
       handleCheckIn,
       handleCheckOut,
+      bookingNeedsStaffAction,
     },
   };
 }
