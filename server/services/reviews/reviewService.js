@@ -5,6 +5,10 @@ const { notifyNewReview } = require("../notifications");
 const { enrichReviewDoc } = require("../../services/reviews/replyHelpers");
 const { ServiceError } = require("../../lib/http/serviceError");
 const hotelReviewService = require("./hotelReviewService");
+const {
+  getReviewStatsForHotelIds,
+  buildSingleHotelReviewFilter,
+} = require("./reviewQueryHelpers");
 
 function validateReviewInput({ rating, comment }) {
   if (!rating || rating < 1 || rating > 5) {
@@ -75,58 +79,37 @@ async function addReview({ bookingId, userId, rating, comment }) {
   };
 }
 
-async function getReviewsByHotel({ hotelId, page = 1, limit = 10 }) {
+async function getReviewsByHotel({ hotelId, page = 1, limit = 10, rating = null }) {
   const hotel = await Hotel.findById(hotelId);
   if (!hotel) throw new ServiceError(404, "Không tìm thấy khách sạn");
 
-  const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
-  const reviews = await Review.find({ hotel: hotelId })
+  const parsedLimit = parseInt(limit, 10);
+  const parsedPage = parseInt(page, 10);
+  const filter = buildSingleHotelReviewFilter(hotelId, rating);
+
+  const skip = (parsedPage - 1) * parsedLimit;
+  const reviews = await Review.find(filter)
     .populate({ path: "guest", select: "name email" })
     .populate({ path: "booking", select: "checkInDate checkOutDate" })
     .populate({ path: "replyBy", select: "name" })
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(parseInt(limit, 10));
+    .limit(parsedLimit);
 
-  const totalReviews = await Review.countDocuments({ hotel: hotelId });
-  const ratingStats = await Review.aggregate([
-    { $match: { hotel: hotel._id } },
-    {
-      $group: {
-        _id: null,
-        averageRating: { $avg: "$rating" },
-        totalRatings: { $sum: 1 },
-        ratingDistribution: { $push: "$rating" },
-      },
-    },
-  ]);
-
-  const stats = ratingStats[0] || {
-    averageRating: 0,
-    totalRatings: 0,
-    ratingDistribution: [],
-  };
-
-  const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-  stats.ratingDistribution.forEach((r) => {
-    if (ratingCounts[r] !== undefined) ratingCounts[r]++;
-  });
+  const totalReviews = await Review.countDocuments(filter);
+  const stats = await getReviewStatsForHotelIds([hotel._id]);
 
   return {
     status: 200,
     body: {
       reviews: reviews.map(enrichReviewDoc),
       pagination: {
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
+        page: parsedPage,
+        limit: parsedLimit,
         total: totalReviews,
-        pages: Math.ceil(totalReviews / parseInt(limit, 10)),
+        pages: Math.ceil(totalReviews / parsedLimit) || 0,
       },
-      stats: {
-        averageRating: Math.round(stats.averageRating * 10) / 10,
-        totalRatings: stats.totalRatings,
-        ratingCounts,
-      },
+      stats,
     },
   };
 }

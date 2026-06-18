@@ -33,7 +33,11 @@ const {
   ownerRejectQrPaymentValidation,
   validate: validateBooking,
 } = require("../validations/bookingValidation");
-const { replyReviewValidation, validate: validateReview } = require("../validations/reviewValidation");
+const {
+  replyReviewValidation,
+  listReviewsQueryValidation,
+  validate: validateReview,
+} = require("../validations/reviewValidation");
 const {
   saleHotelIdQueryValidation,
   createSaleValidation,
@@ -159,7 +163,7 @@ router.post(
 router.post('/bookings/:id/check-in', bookingIdParamValidation, bookingController.checkIn);
 router.post('/bookings/:id/check-out', bookingIdParamValidation, bookingController.checkOut);
 
-router.get('/reviews', reviewController.getReviewsByOwner);
+router.get('/reviews', listReviewsQueryValidation, validateReview, reviewController.getReviewsByOwner);
 router.put('/reviews/:id/reply', idParamValidation, replyReviewValidation, validateReview, reviewController.replyToReview);
 router.delete('/reviews/:id/reply', idParamValidation, reviewController.deleteReply);
 

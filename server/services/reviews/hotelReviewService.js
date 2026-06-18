@@ -7,6 +7,10 @@ const {
   clearHotelReply,
   enrichReviewDoc,
 } = require("../../services/reviews/replyHelpers");
+const {
+  getReviewStatsForHotelIds,
+  buildReviewListFilter,
+} = require("./reviewQueryHelpers");
 
 function throwHttp(statusCode, message) {
   const err = new Error(message);
@@ -25,45 +29,52 @@ const reviewListPopulate = [
   { path: "replyBy", select: "name" },
 ];
 
-async function listReviewsForHotelIds(hotelIds, page = 1, limit = 20) {
+async function listReviewsForHotelIds(hotelIds, page = 1, limit = 20, rating = null) {
+  const parsedLimit = parseInt(limit, 10);
+  const parsedPage = parseInt(page, 10);
+
   if (!hotelIds.length) {
     return {
       reviews: [],
-      pagination: { page: parseInt(page, 10), limit: parseInt(limit, 10), total: 0, pages: 0 },
+      pagination: { page: parsedPage, limit: parsedLimit, total: 0, pages: 0 },
+      stats: await getReviewStatsForHotelIds(hotelIds),
     };
   }
 
-  const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
-  const reviews = await Review.find({ hotel: { $in: hotelIds } })
+  const filter = buildReviewListFilter(hotelIds, rating);
+  const skip = (parsedPage - 1) * parsedLimit;
+  const reviews = await Review.find(filter)
     .populate(reviewListPopulate)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(parseInt(limit, 10));
+    .limit(parsedLimit);
 
-  const total = await Review.countDocuments({ hotel: { $in: hotelIds } });
+  const total = await Review.countDocuments(filter);
+  const stats = await getReviewStatsForHotelIds(hotelIds);
 
   return {
     reviews: reviews.map(enrichReviewDoc),
     pagination: {
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
+      page: parsedPage,
+      limit: parsedLimit,
       total,
-      pages: Math.ceil(total / parseInt(limit, 10)),
+      pages: Math.ceil(total / parsedLimit) || 0,
     },
+    stats,
   };
 }
 
-async function getReviewsByOwner(ownerId, page, limit, hotelId) {
+async function getReviewsByOwner(ownerId, page, limit, hotelId, rating = null) {
   const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
-  return listReviewsForHotelIds(hotelIds, page, limit);
+  return listReviewsForHotelIds(hotelIds, page, limit, rating);
 }
 
-async function getReviewsByStaff(staffUserId, page, limit) {
+async function getReviewsByStaff(staffUserId, page, limit, rating = null) {
   const hotel = await findHotelByStaffId(staffUserId);
   if (!hotel) {
     throwHttp(403, "Tài khoản nhân viên chưa được gán khách sạn");
   }
-  return listReviewsForHotelIds([hotel._id], page, limit);
+  return listReviewsForHotelIds([hotel._id], page, limit, rating);
 }
 
 async function assertOwnerCanAccessReview(reviewId, ownerId) {

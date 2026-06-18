@@ -25,6 +25,7 @@ const {
 const {
   addReviewValidation,
   updateReviewValidation,
+  listReviewsQueryValidation,
   validate: validateReview,
 } = require("../validations/reviewValidation");
 const {
@@ -40,7 +41,13 @@ router.get('/hotels/:id', optionalAuthenticate, hotelController.getHotelById);
 router.get('/hotels/:hotelId/rooms', roomController.getRoomsByHotel);
 router.get('/rooms/:id', roomController.getRoomById);
 router.post('/contact', submitContactValidation, validateContact, contactController.submitContact);
-router.get('/reviews/hotel/:hotelId', reviewController.getReviewsByHotel);
+router.get(
+  '/reviews/hotel/:hotelId',
+  hotelIdParamValidation,
+  listReviewsQueryValidation,
+  validateReview,
+  reviewController.getReviewsByHotel
+);
 
 router.use(authenticate, isGuest);
 

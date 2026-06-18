@@ -16,7 +16,11 @@ const {
   validate: validateProfile,
 } = require("../validations/profileValidation");
 const { updateRoomStatusValidation, validate: validateRoom } = require("../validations/roomValidation");
-const { replyReviewValidation, validate: validateReview } = require("../validations/reviewValidation");
+const {
+  replyReviewValidation,
+  listReviewsQueryValidation,
+  validate: validateReview,
+} = require("../validations/reviewValidation");
 const {
   postEquipmentValidation,
   patchEquipmentValidation,
@@ -80,7 +84,7 @@ router.post(
 
 router.get("/hotel/maintenance-contact", hotelController.getStaffHotelMaintenanceContact);
 
-router.get("/reviews", reviewController.getStaffReviews);
+router.get("/reviews", listReviewsQueryValidation, validateReview, reviewController.getStaffReviews);
 router.put("/reviews/:id/reply", idParamValidation, replyReviewValidation, validateReview, reviewController.staffReplyToReview);
 router.delete("/reviews/:id/reply", idParamValidation, reviewController.staffDeleteReply);
 

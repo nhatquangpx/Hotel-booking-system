@@ -1,0 +1,158 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.review-stats-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+  margin-bottom: 24px;
+  padding: 24px;
+  background-color: $grey-light;
+  border-radius: 8px;
+  align-items: center;
+
+  &__average {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+  }
+
+  &__value {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__number {
+    @include heading-xl;
+    font-size: 2.75rem;
+    font-weight: $font-bold;
+    color: $text-medium;
+    line-height: 1;
+  }
+
+  &__stars {
+    display: flex;
+    gap: 4px;
+
+    .star {
+      font-size: 22px;
+      color: $grey-medium;
+
+      &.active {
+        color: $star-gold;
+      }
+    }
+  }
+
+  &__total {
+    @include body-base;
+    color: $text-light;
+    margin: 8px 0 0;
+    text-align: center;
+  }
+
+  &__bars {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  &__bar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 6px 10px;
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
+    &:hover:not(.is-disabled) {
+      background-color: rgba($star-gold, 0.12);
+      border-color: rgba($star-gold, 0.35);
+    }
+
+    &.is-active {
+      background-color: rgba($star-gold, 0.18);
+      border-color: $star-gold;
+    }
+
+    &.is-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  }
+
+  &__label {
+    min-width: 50px;
+    @include body-sm;
+    color: $text-medium;
+    font-weight: $font-medium;
+  }
+
+  &__bar {
+    flex: 1;
+    height: 8px;
+    background-color: $border-medium;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    background-color: $star-gold;
+    transition: width 0.3s ease;
+  }
+
+  &__count {
+    min-width: 28px;
+    text-align: right;
+    @include body-sm;
+    color: $text-light;
+    font-weight: $font-medium;
+  }
+
+  &__clear {
+    flex-basis: 100%;
+    align-self: flex-start;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    @include body-sm;
+    color: $button-primary;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:hover {
+      color: $button-primary-hover;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .review-stats-breakdown {
+    padding: 18px;
+
+    &__average {
+      width: 100%;
+    }
+
+    &__bars {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}
