@@ -1,10 +1,11 @@
 import api from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/paginationResponse';
 
 export const staffBookingAPI = {
-  getBookings: async () => {
+  getBookings: async (params = {}) => {
     try {
-      const response = await api.get('/staff/bookings');
-      return response.data;
+      const response = await api.get('/staff/bookings', { params });
+      return unwrapPaginated(response.data, 'bookings');
     } catch (error) {
       throw error.response?.data || error.message;
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useSearchParams } from 'react-router-dom';
 import { IconButton, Tooltip, Button, Paper, TextField, Collapse } from '@mui/material';
@@ -10,6 +10,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { AdminLayout, ConfirmDeleteDialog } from '@/features/admin/components';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import HotelFormDialog from '../components/HotelFormDialog';
 import HotelDetailDialog from '../components/HotelDetailDialog';
@@ -47,6 +49,16 @@ const AdminHotelListPage = () => {
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [viewingRoomId, setViewingRoomId] = useState(null);
   const [viewingHotelId, setViewingHotelId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE.ADMIN_HOTELS,
+    total: 0,
+    totalPages: 1,
+  });
+  const resetPageOnFetch = useRef(false);
+
+  const searchKey = `${searchName}|${searchAddress}|${searchPhone}`;
 
   useEffect(() => {
     const hotelId = searchParams.get('hotelId');
@@ -57,21 +69,39 @@ const AdminHotelListPage = () => {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    fetchHotels();
-  }, []);
+    setPage(1);
+    resetPageOnFetch.current = true;
+  }, [searchKey]);
 
-  const fetchHotels = async () => {
+  const fetchHotels = useCallback(async (targetPage = page) => {
     try {
       setLoading(true);
-      const data = await api.adminHotel.getAllHotels();
-      setHotels(data);
+      const result = await api.adminHotel.getAllHotels({
+        page: targetPage,
+        limit: PAGE_SIZE.ADMIN_HOTELS,
+        searchName,
+        searchAddress,
+        searchPhone,
+      });
+      setHotels(result.items || []);
+      setPagination(result.pagination);
+      setPage(targetPage);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách khách sạn');
     } finally {
       setLoading(false);
+      resetPageOnFetch.current = false;
     }
-  };
+  }, [page, searchName, searchAddress, searchPhone]);
+
+  useEffect(() => {
+    const targetPage = resetPageOnFetch.current ? 1 : page;
+    const timer = setTimeout(() => {
+      fetchHotels(targetPage);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchHotels, page, searchKey]);
 
   const formatAddress = (address) => {
     if (!address) return 'Không có địa chỉ';
@@ -197,7 +227,7 @@ const AdminHotelListPage = () => {
   };
 
   const handleHotelSuccess = () => {
-    fetchHotels();
+    fetchHotels(page);
   };
 
   const handleOpenCreateRoomDialog = (hotel) => {
@@ -281,11 +311,7 @@ const AdminHotelListPage = () => {
     return typeMap[type] || type;
   };
 
-  const filteredHotels = hotels.filter(hotel =>
-    hotel.name?.toLowerCase().includes(searchName.toLowerCase()) &&
-    formatAddress(hotel.address).toLowerCase().includes(searchAddress.toLowerCase()) &&
-    formatContact(hotel.contactInfo).includes(searchPhone)
-  );
+  const filteredHotels = hotels;
 
   if (loading) return (
     <AdminLayout>
@@ -376,17 +402,17 @@ const AdminHotelListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredHotels.length === 0 ? (
+              {hotels.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center">
                     Không tìm thấy khách sạn nào
                   </td>
                 </tr>
               ) : (
-              filteredHotels.map((hotel, index) => (
+              hotels.map((hotel, index) => (
                 <React.Fragment key={hotel._id}>
                   <tr>
-                    <td className="col-stt">{index + 1}</td>
+                    <td className="col-stt">{(pagination.page - 1) * pagination.limit + index + 1}</td>
                     <td className="col-name">
                       <span className="cell-ellipsis" title={hotel.name}>
                         {hotel.name}
@@ -542,6 +568,17 @@ const AdminHotelListPage = () => {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          pageSize={pagination.limit}
+          onPageChange={setPage}
+          variant="admin"
+          className="admin-pagination"
+        />
+
         <ConfirmDeleteDialog
           isOpen={showDeleteModal}
           onClose={handleCancelDelete}

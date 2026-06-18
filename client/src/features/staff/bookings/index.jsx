@@ -7,6 +7,8 @@ import StaffBookingGuide from './components/StaffBookingGuide';
 import StaffBookingFilters from './components/StaffBookingFilters';
 import StaffBookingActionFilters from './components/StaffBookingActionFilters';
 import StaffBookingProofPreview from './components/StaffBookingProofPreview';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import { useStaffBookings } from './hooks/useStaffBookings';
 import '@/features/owner/bookings/BookingList.scss';
 import './StaffBookingList.scss';
@@ -18,7 +20,9 @@ const StaffBookingsPage = () => {
     viewMode,
     actionCounts,
     actionBookings,
+    actionPagination,
     filteredBookings,
+    allPagination,
     emptyMessage,
     previewProofUrl,
     setPreviewProofUrl,
@@ -110,23 +114,45 @@ const StaffBookingsPage = () => {
         {loading ? (
           <div className="loading-message">Đang tải danh sách đặt phòng...</div>
         ) : viewMode === 'action' ? (
-          actionBookings.length === 0 ? (
+          actionPagination.total === 0 ? (
             <div className="empty-message">{emptyMessage}</div>
           ) : (
-            <div className="booking-cards staff-booking-action-cards">
-              {actionBookings.map((booking) => renderCard(booking, { highlightAction: true }))}
-            </div>
+            <>
+              <div className="booking-cards staff-booking-action-cards">
+                {actionBookings.map((booking) => renderCard(booking, { highlightAction: true }))}
+              </div>
+              <Pagination
+                page={actionPagination.page}
+                totalPages={actionPagination.totalPages}
+                total={actionPagination.total}
+                pageSize={PAGE_SIZE.STAFF_BOOKINGS}
+                onPageChange={actionPagination.setPage}
+                variant="center"
+                className="booking-list-pagination"
+              />
+            </>
           )
-        ) : filteredBookings.length === 0 ? (
+        ) : allPagination.total === 0 ? (
           <div className="empty-message">{emptyMessage}</div>
         ) : (
-          <div className="booking-cards">
-            {filteredBookings.map((booking) =>
-              renderCard(booking, {
-                showActionBadge: actions.bookingNeedsStaffAction(booking),
-              })
-            )}
-          </div>
+          <>
+            <div className="booking-cards">
+              {filteredBookings.map((booking) =>
+                renderCard(booking, {
+                  showActionBadge: actions.bookingNeedsStaffAction(booking),
+                })
+              )}
+            </div>
+            <Pagination
+              page={allPagination.page}
+              totalPages={allPagination.totalPages}
+              total={allPagination.total}
+              pageSize={PAGE_SIZE.STAFF_BOOKINGS}
+              onPageChange={allPagination.setPage}
+              variant="center"
+              className="booking-list-pagination"
+            />
+          </>
         )}
 
         <OwnerBookingActionModal

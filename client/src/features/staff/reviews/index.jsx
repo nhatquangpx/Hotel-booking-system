@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FaStar } from 'react-icons/fa';
 import StaffLayout from '@/features/staff/components/StaffLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import { useStaffHotel } from '@/features/staff/context/StaffHotelContext';
 import ReplyModal from '@/features/owner/reviews/ReplyModal';
 import api from '@/apis';
@@ -13,28 +15,39 @@ const StaffReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const limit = PAGE_SIZE.STAFF_REVIEWS;
 
-  const fetchReviews = useCallback(async () => {
+  const fetchReviews = useCallback(async (pageNum = 1) => {
     if (hotelLoading || !hotelId) {
       return;
     }
     try {
       setLoading(true);
-      const data = await api.staffReview.getReviews(1, 20);
+      const data = await api.staffReview.getReviews(pageNum, limit);
       setReviews(data.reviews || []);
+      setTotalPages(data.pagination?.pages || 1);
+      setTotal(data.pagination?.total || data.reviews?.length || 0);
+      setPage(pageNum);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách đánh giá');
     } finally {
       setLoading(false);
     }
-  }, [hotelId, hotelLoading]);
+  }, [hotelId, hotelLoading, limit]);
 
   useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    setPage(1);
+  }, [hotelId]);
+
+  useEffect(() => {
+    fetchReviews(page);
+  }, [fetchReviews, page]);
 
   useEffect(() => {
     if (!hotelLoading && !hotelId) {
@@ -90,7 +103,7 @@ const StaffReviewsPage = () => {
   };
 
   const handleReplySuccess = () => {
-    fetchReviews();
+    fetchReviews(page);
   };
 
   const showNoHotel = !hotelLoading && !hotelId;
@@ -175,6 +188,18 @@ const StaffReviewsPage = () => {
               </div>
             )}
           </div>
+        )}
+
+        {hotelId && !displayError && reviews.length > 0 && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            pageSize={limit}
+            onPageChange={setPage}
+            variant="center"
+            className="reviews-pagination"
+          />
         )}
 
         {selectedReview && (

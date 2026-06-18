@@ -26,6 +26,7 @@ import {
   AdminHotelListPage,
   AdminBookingListPage,
   AdminContactMessageListPage,
+  AdminNotificationsPage,
   AdminProfileAccountPage,
   AdminProfileEditPage,
   AdminProfileChangePasswordPage,
@@ -95,6 +96,7 @@ export default function AppRoutes() {
           <Route path={ROUTES.ADMIN_HOTELS} element={<AdminHotelListPage />} />
           <Route path={ROUTES.ADMIN_BOOKINGS} element={<AdminBookingListPage />} />
           <Route path={ROUTES.ADMIN_CONTACT_MESSAGES} element={<AdminContactMessageListPage />} />
+          <Route path={ROUTES.ADMIN_NOTIFICATIONS} element={<AdminNotificationsPage />} />
           <Route path={ROUTES.ADMIN_PROFILE} element={<AdminProfileAccountPage />} />
           <Route path={ROUTES.ADMIN_PROFILE_EDIT} element={<AdminProfileEditPage />} />
           <Route path={ROUTES.ADMIN_PROFILE_CHANGE_PASSWORD} element={<AdminProfileChangePasswordPage />} />

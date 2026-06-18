@@ -8,7 +8,18 @@ function assertRole(req, role) {
   }
 }
 
-exports.getAllUsers = (req, res) => runService(res, () => userService.getAllUsers());
+exports.getAllUsers = (req, res) =>
+  runService(res, () =>
+    userService.getAllUsers({
+      page: req.query.page,
+      limit: req.query.limit,
+      all: req.query.all,
+      view: req.query.view,
+      searchName: req.query.searchName,
+      searchEmail: req.query.searchEmail,
+      searchPhone: req.query.searchPhone,
+    })
+  );
 
 exports.getUserById = (req, res) =>
   runService(res, async () => ({

@@ -38,6 +38,7 @@ export const ROUTES = {
   ADMIN_HOTELS: '/admin/hotels',
   ADMIN_BOOKINGS: '/admin/bookings',
   ADMIN_CONTACT_MESSAGES: '/admin/contact-messages',
+  ADMIN_NOTIFICATIONS: '/admin/notifications',
   ADMIN_PROFILE: '/admin/profile',
   ADMIN_PROFILE_EDIT: '/admin/profile/edit',
   ADMIN_PROFILE_CHANGE_PASSWORD: '/admin/profile/changepassword',

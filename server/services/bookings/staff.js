@@ -29,17 +29,116 @@ async function assertStaffCanAccessBooking(booking, staffUserId) {
   }
 }
 
-const getBookingsByStaff = async (staffUserId) => {
+const getBookingsByStaff = async (staffUserId, options = {}) => {
+  const {
+    page,
+    limit,
+    all,
+    view = "all",
+    showPastBookings,
+    statusFilter,
+    methodFilter,
+    proofFilter,
+    search,
+    actionSearch,
+    actionType,
+  } = options;
+
+  const {
+    parsePaginationQuery,
+    buildPaginationMeta,
+    paginatedBody,
+    escapeRegex,
+  } = require("../../lib/http/pagination");
+  const {
+    BOOKING_POPULATE,
+    buildOwnerBookingFilterQuery,
+    buildStaffActionBookingQuery,
+    startOfDay,
+    endOfDay,
+  } = require("./listQuery");
+  const User = require("../../models/User");
+
   const hotel = await findHotelByStaffId(staffUserId);
   if (!hotel) {
-    return [];
+    if (all === true || all === "true") return [];
+    return paginatedBody([], buildPaginationMeta({ page: 1, limit: limit || 12, total: 0 }), "bookings");
   }
 
-  return Booking.find({ hotel: hotel._id })
-    .populate({ path: "hotel", select: "name address" })
-    .populate({ path: "room", select: "roomNumber type" })
-    .populate({ path: "guest", select: "name email phone" })
-    .sort({ createdAt: -1 });
+  const conditions = [{ hotel: hotel._id }];
+
+  if (view === "action") {
+    conditions.push(buildStaffActionBookingQuery());
+    const q = String(actionSearch || "").trim();
+    if (q) {
+      const regex = { $regex: escapeRegex(q), $options: "i" };
+      const guests = await User.find({ $or: [{ name: regex }, { phone: regex }] }).select("_id");
+      const guestIds = guests.map((g) => g._id);
+      const searchConditions = [{ _id: regex }];
+      if (guestIds.length) searchConditions.push({ guest: { $in: guestIds } });
+      conditions.push({ $or: searchConditions });
+    }
+    if (actionType === "checkin") {
+      const today = startOfDay();
+      const dayEnd = endOfDay();
+      conditions.push({
+        paymentStatus: "paid",
+        checkedInAt: null,
+        checkInDate: { $gte: today, $lte: dayEnd },
+      });
+    } else if (actionType === "checkout") {
+      const today = startOfDay();
+      const dayEnd = endOfDay();
+      conditions.push({
+        paymentStatus: "paid",
+        checkedInAt: { $ne: null },
+        checkedOutAt: null,
+        checkOutDate: { $gte: today, $lte: dayEnd },
+      });
+    }
+  } else {
+    const filterQuery = buildOwnerBookingFilterQuery({
+      showPastBookings,
+      statusFilter,
+      methodFilter,
+      proofFilter,
+    });
+    if (Object.keys(filterQuery).length) conditions.push(filterQuery);
+
+    const q = String(search || "").trim();
+    if (q) {
+      const regex = { $regex: escapeRegex(q), $options: "i" };
+      const guests = await User.find({ $or: [{ name: regex }, { phone: regex }] }).select("_id");
+      const guestIds = guests.map((g) => g._id);
+      const searchConditions = [{ _id: regex }];
+      if (guestIds.length) searchConditions.push({ guest: { $in: guestIds } });
+      conditions.push({ $or: searchConditions });
+    }
+  }
+
+  const mongoQuery = conditions.length > 1 ? { $and: conditions } : { hotel: hotel._id };
+  const pag = parsePaginationQuery({ page, limit, all }, { defaultLimit: 12, maxLimit: 100 });
+
+  if (pag.all) {
+    return Booking.find(mongoQuery)
+      .populate(BOOKING_POPULATE)
+      .sort({ createdAt: -1 });
+  }
+
+  const [bookings, total] = await Promise.all([
+    Booking.find(mongoQuery)
+      .populate(BOOKING_POPULATE)
+      .sort({ createdAt: -1 })
+      .skip(pag.skip)
+      .limit(pag.limit),
+    Booking.countDocuments(mongoQuery),
+  ]);
+
+  return paginatedBody(
+    bookings,
+    buildPaginationMeta({ page: pag.page, limit: pag.limit, total }),
+    "bookings"
+  );
 };
 
 const getBookingById = async (bookingId, user) => {

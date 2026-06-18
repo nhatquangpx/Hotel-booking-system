@@ -5,7 +5,13 @@ const { ServiceError } = require("../lib/http/serviceError");
 
 exports.listSales = (req, res) =>
   runService(res, () =>
-    saleService.listSales({ ownerId: req.user.id, hotelId: req.query.hotelId })
+    saleService.listSales({
+      ownerId: req.user.id,
+      hotelId: req.query.hotelId,
+      page: req.query.page,
+      limit: req.query.limit,
+      all: req.query.all,
+    })
   );
 
 exports.createSale = (req, res) =>

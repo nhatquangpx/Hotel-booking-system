@@ -128,7 +128,8 @@ const HotelFormDialog = ({
 
   const fetchOwners = async () => {
     try {
-      const users = await api.adminUser.getAllUsers();
+      const result = await api.adminUser.getAllUsers({ all: true });
+      const users = result.items || [];
       setOwners(users.filter(u => u.role === 'owner'));
     } catch (err) {
       setOwners([]);

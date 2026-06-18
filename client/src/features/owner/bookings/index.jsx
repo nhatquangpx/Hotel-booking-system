@@ -4,16 +4,14 @@ import { FaSearch, FaHistory, FaClipboardCheck, FaList } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import api from '@/apis';
 import {
   apiErrorMessage,
   getOwnerActionCounts,
-  sortOwnerBookingsByCheckIn,
   bookingNeedsOwnerAction,
-  matchesBookingSearch,
-  matchesPaymentMethodFilter,
-  matchesProofFilter,
 } from '@/shared/utils';
 import OwnerBookingCard from './OwnerBookingCard';
 import OwnerBookingDetailModal from './OwnerBookingDetailModal';
@@ -31,6 +29,7 @@ const OwnerBookingListPage = () => {
     filterFromUrl === 'all' ? 'all' : 'action'
   );
   const [bookings, setBookings] = useState([]);
+  const [listBookings, setListBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -51,26 +50,93 @@ const OwnerBookingListPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailBooking, setDetailBooking] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE.OWNER_BOOKINGS,
+    total: 0,
+    totalPages: 1,
+  });
 
-  const fetchBookings = useCallback(async () => {
-    if (hotelsLoading) {
-      return;
+  const fetchActionBookings = useCallback(async () => {
+    if (hotelsLoading) return;
+    try {
+      const result = await api.ownerBooking.getOwnerBookings({
+        hotelId: selectedHotelId || undefined,
+        view: 'action',
+        all: true,
+      });
+      setBookings(result.items || []);
+    } catch (err) {
+      setError(err.message || 'Có lỗi xảy ra khi tải danh sách đặt phòng');
     }
+  }, [selectedHotelId, hotelsLoading]);
+
+  const allFilterKey = `${searchQuery}|${statusFilter}|${methodFilter}|${proofFilter}|${showPastBookings}|${selectedHotelId}`;
+
+  useEffect(() => {
+    setPage(1);
+  }, [allFilterKey, viewMode]);
+
+  const fetchAllBookings = useCallback(async (targetPage = page) => {
+    if (hotelsLoading) return;
     try {
       setLoading(true);
-      const data = await api.ownerBooking.getOwnerBookings(selectedHotelId || undefined);
-      setBookings(data);
+      const result = await api.ownerBooking.getOwnerBookings({
+        hotelId: selectedHotelId || undefined,
+        view: 'all',
+        page: targetPage,
+        limit: PAGE_SIZE.OWNER_BOOKINGS,
+        showPastBookings: showPastBookings ? 'true' : 'false',
+        statusFilter,
+        methodFilter,
+        proofFilter,
+        search: searchQuery,
+      });
+      setListBookings(result.items || []);
+      setPagination(result.pagination);
+      setPage(targetPage);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách đặt phòng');
     } finally {
       setLoading(false);
     }
-  }, [selectedHotelId, hotelsLoading]);
+  }, [
+    selectedHotelId,
+    hotelsLoading,
+    page,
+    showPastBookings,
+    statusFilter,
+    methodFilter,
+    proofFilter,
+    searchQuery,
+  ]);
+
+  const reloadBookings = useCallback(async () => {
+    if (viewMode === 'action') {
+      await fetchActionBookings();
+    } else {
+      await fetchAllBookings(page);
+    }
+  }, [viewMode, fetchActionBookings, fetchAllBookings, page]);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    if (hotelsLoading) return;
+    fetchActionBookings();
+  }, [selectedHotelId, hotelsLoading, fetchActionBookings]);
+
+  useEffect(() => {
+    if (hotelsLoading || viewMode !== 'all') return;
+    const timer = setTimeout(() => fetchAllBookings(page), 300);
+    return () => clearTimeout(timer);
+  }, [viewMode, fetchAllBookings, page, allFilterKey, hotelsLoading]);
+
+  useEffect(() => {
+    if (hotelsLoading || viewMode !== 'action') return;
+    setLoading(true);
+    fetchActionBookings().finally(() => setLoading(false));
+  }, [viewMode, fetchActionBookings, hotelsLoading, selectedHotelId]);
 
   useEffect(() => {
     didSetDefaultView.current = false;
@@ -154,9 +220,7 @@ const OwnerBookingListPage = () => {
     try {
       setProcessing(true);
       await api.ownerBooking.updateBookingStatus(selectedBooking._id, 'paid');
-      setBookings(bookings.map(b =>
-        b._id === selectedBooking._id ? { ...b, paymentStatus: 'paid' } : b
-      ));
+      await reloadBookings();
       closeModals();
       toast.success('Đã xác nhận thanh toán đơn đặt phòng');
     } catch (err) {
@@ -171,10 +235,8 @@ const OwnerBookingListPage = () => {
 
     try {
       setProcessing(true);
-      const response = await api.ownerBooking.checkIn(selectedBooking._id);
-      setBookings(bookings.map(b =>
-        b._id === selectedBooking._id ? { ...b, checkedInAt: response.booking.checkedInAt } : b
-      ));
+      await api.ownerBooking.checkIn(selectedBooking._id);
+      await reloadBookings();
       closeModals();
       toast.success('Check-in thành công');
     } catch (err) {
@@ -189,10 +251,8 @@ const OwnerBookingListPage = () => {
 
     try {
       setProcessing(true);
-      const response = await api.ownerBooking.checkOut(selectedBooking._id);
-      setBookings(bookings.map(b =>
-        b._id === selectedBooking._id ? { ...b, checkedOutAt: response.booking.checkedOutAt } : b
-      ));
+      await api.ownerBooking.checkOut(selectedBooking._id);
+      await reloadBookings();
       closeModals();
       toast.success('Check-out thành công');
     } catch (err) {
@@ -209,15 +269,8 @@ const OwnerBookingListPage = () => {
     try {
       setProcessing(true);
       setError(null);
-      const data = await api.ownerBooking.confirmGuestRefund(selectedBooking._id, refundProofFile);
-      const updated = data?.booking;
-      setBookings((prev) =>
-        prev.map((b) =>
-          b._id === selectedBooking._id
-            ? { ...b, ...(updated || {}), ownerRefundCompletedAt: updated?.ownerRefundCompletedAt || new Date() }
-            : b
-        )
-      );
+      await api.ownerBooking.confirmGuestRefund(selectedBooking._id, refundProofFile);
+      await reloadBookings();
       closeModals();
       toast.success('Đã xác nhận hoàn tiền cho khách');
     } catch (err) {
@@ -235,16 +288,7 @@ const OwnerBookingListPage = () => {
       setError(null);
       const data = await api.ownerBooking.rejectQrPayment(selectedBooking._id, rejectionType);
       const updated = data?.booking;
-      setBookings((prev) =>
-        prev.map((b) =>
-          b._id === selectedBooking._id
-            ? {
-                ...b,
-                ...(updated || {}),
-              }
-            : b
-        )
-      );
+      await reloadBookings();
       closeModals();
       const isResubmit =
         updated?.ownerQrRejectionType === 'invalid_proof' && updated?.paymentStatus === 'pending';
@@ -259,32 +303,6 @@ const OwnerBookingListPage = () => {
       setProcessing(false);
     }
   };
-
-  const filteredBookings = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const filtered = bookings.filter((booking) => {
-      if (!showPastBookings) {
-        const checkInDate = new Date(booking.checkInDate);
-        checkInDate.setHours(0, 0, 0, 0);
-        if (checkInDate < today) return false;
-      }
-
-      if (!matchesBookingSearch(booking, searchQuery)) return false;
-
-      if (statusFilter !== 'all' && booking.paymentStatus !== statusFilter) {
-        return false;
-      }
-
-      if (!matchesPaymentMethodFilter(booking, methodFilter)) return false;
-      if (!matchesProofFilter(booking, proofFilter)) return false;
-
-      return true;
-    });
-
-    return sortOwnerBookingsByCheckIn(filtered);
-  }, [bookings, showPastBookings, searchQuery, statusFilter, methodFilter, proofFilter]);
 
   const openDetailModal = async (bookingId) => {
     try {
@@ -478,26 +496,37 @@ const OwnerBookingListPage = () => {
             getBookingSource={getBookingSource}
             cardHandlers={cardHandlers}
           />
-        ) : filteredBookings.length === 0 ? (
+        ) : listBookings.length === 0 ? (
           <div className="empty-message">Không có đặt phòng phù hợp với bộ lọc</div>
         ) : (
-          <div className="booking-cards">
-            {filteredBookings.map((booking) => (
-              <OwnerBookingCard
-                key={booking._id}
-                booking={booking}
-                source={getBookingSource(booking)}
-                showActionBadge={bookingNeedsOwnerAction(booking)}
-                onOpenDetail={openDetailModal}
-                onOpenConfirm={openConfirmModal}
-                onOpenCheckIn={openCheckInModal}
-                onOpenCheckOut={openCheckOutModal}
-                onOpenRefund={openRefundModal}
-                onOpenReject={openRejectModal}
-                onPreviewProof={setPreviewProofUrl}
-              />
-            ))}
-          </div>
+          <>
+            <div className="booking-cards">
+              {listBookings.map((booking) => (
+                <OwnerBookingCard
+                  key={booking._id}
+                  booking={booking}
+                  source={getBookingSource(booking)}
+                  showActionBadge={bookingNeedsOwnerAction(booking)}
+                  onOpenDetail={openDetailModal}
+                  onOpenConfirm={openConfirmModal}
+                  onOpenCheckIn={openCheckInModal}
+                  onOpenCheckOut={openCheckOutModal}
+                  onOpenRefund={openRefundModal}
+                  onOpenReject={openRejectModal}
+                  onPreviewProof={setPreviewProofUrl}
+                />
+              ))}
+            </div>
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.limit}
+              onPageChange={setPage}
+              variant="center"
+              className="booking-list-pagination"
+            />
+          </>
         )}
 
         <OwnerBookingActionModal

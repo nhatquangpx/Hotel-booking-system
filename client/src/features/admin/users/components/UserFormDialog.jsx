@@ -48,7 +48,8 @@ const UserFormDialog = ({
   const fetchHotels = async () => {
     try {
       setHotelsLoading(true);
-      const data = await api.adminHotel.getAllHotels();
+      const result = await api.adminHotel.getAllHotels({ all: true });
+      const data = result.items || [];
       setHotels(Array.isArray(data) ? data : []);
     } catch {
       setHotels([]);

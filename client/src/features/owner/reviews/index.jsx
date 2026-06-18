@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FaStar } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import ReplyModal from './ReplyModal';
 import api from '@/apis';
@@ -17,28 +19,39 @@ const OwnerReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const limit = PAGE_SIZE.OWNER_REVIEWS;
 
-  const fetchReviews = useCallback(async () => {
+  const fetchReviews = useCallback(async (pageNum = 1) => {
     if (hotelsLoading) {
       return;
     }
     try {
       setLoading(true);
-      const data = await api.ownerReview.getOwnerReviews(1, 20, selectedHotelId || undefined);
+      const data = await api.ownerReview.getOwnerReviews(pageNum, limit, selectedHotelId || undefined);
       setReviews(data.reviews || []);
+      setTotalPages(data.pagination?.pages || 1);
+      setTotal(data.pagination?.total || data.reviews?.length || 0);
+      setPage(pageNum);
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách đánh giá');
     } finally {
       setLoading(false);
     }
-  }, [selectedHotelId, hotelsLoading]);
+  }, [selectedHotelId, hotelsLoading, limit]);
 
   useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    setPage(1);
+  }, [selectedHotelId]);
+
+  useEffect(() => {
+    fetchReviews(page);
+  }, [fetchReviews, page]);
 
   // Tạo initials từ tên
   const getInitials = (name) => {
@@ -108,8 +121,7 @@ const OwnerReviewsPage = () => {
   };
 
   const handleReplySuccess = () => {
-    // Refresh reviews list after successful reply
-    fetchReviews();
+    fetchReviews(page);
   };
 
   if (loading) {
@@ -242,6 +254,16 @@ const OwnerReviewsPage = () => {
             </div>
           )}
         </div>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          pageSize={limit}
+          onPageChange={setPage}
+          variant="center"
+          className="reviews-pagination"
+        />
 
         {/* Reply Modal */}
         {selectedReview && (

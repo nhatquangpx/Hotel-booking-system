@@ -48,13 +48,35 @@ exports.getUserBookings = (req, res) =>
 
 exports.getAllBookings = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService.getAllBookings().then((body) => ({ status: 200, body }))
+    bookingApi.bookingService.getAllBookings({
+      page: req.query.page,
+      limit: req.query.limit,
+      all: req.query.all,
+      view: req.query.view,
+      searchTerm: req.query.searchTerm,
+      searchEmail: req.query.searchEmail,
+      searchPhone: req.query.searchPhone,
+      searchCode: req.query.searchCode,
+      searchHotelName: req.query.searchHotelName,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+    }).then((body) => ({ status: 200, body }))
   );
 
 exports.getBookingsByOwner = (req, res) =>
   runService(res, () =>
     bookingApi.bookingService
-      .getBookingsByOwner(req.user.id, req.query.hotelId || null)
+      .getBookingsByOwner(req.user.id, req.query.hotelId || null, {
+        page: req.query.page,
+        limit: req.query.limit,
+        all: req.query.all,
+        view: req.query.view,
+        showPastBookings: req.query.showPastBookings,
+        statusFilter: req.query.statusFilter,
+        methodFilter: req.query.methodFilter,
+        proofFilter: req.query.proofFilter,
+        search: req.query.search,
+      })
       .then((body) => ({ status: 200, body }))
   );
 
@@ -124,7 +146,21 @@ exports.checkOut = (req, res) =>
 
 exports.getStaffBookings = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService.getBookingsByStaff(req.user.id).then((body) => ({ status: 200, body }))
+    bookingApi.bookingService
+      .getBookingsByStaff(req.user.id, {
+        page: req.query.page,
+        limit: req.query.limit,
+        all: req.query.all,
+        view: req.query.view,
+        showPastBookings: req.query.showPastBookings,
+        statusFilter: req.query.statusFilter,
+        methodFilter: req.query.methodFilter,
+        proofFilter: req.query.proofFilter,
+        search: req.query.search,
+        actionSearch: req.query.actionSearch,
+        actionType: req.query.actionType,
+      })
+      .then((body) => ({ status: 200, body }))
   );
 
 exports.getStaffBookingById = (req, res) =>

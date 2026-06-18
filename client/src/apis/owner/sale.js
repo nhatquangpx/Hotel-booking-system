@@ -1,10 +1,11 @@
 import api, { handleApiError } from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/paginationResponse';
 
 export const ownerSaleAPI = {
-  list: async (hotelId) => {
+  list: async (params = {}) => {
     try {
-      const response = await api.get('/owner/sales', { params: { hotelId } });
-      return response.data;
+      const response = await api.get('/owner/sales', { params });
+      return unwrapPaginated(response.data, 'sales');
     } catch (error) {
       handleApiError(error, 'Không tải được danh sách sale');
     }

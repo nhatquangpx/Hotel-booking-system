@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import OwnerLayout from '../components/OwnerLayout';
 import OwnerGuideCollapsible from '../components/OwnerGuideCollapsible';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerSaleAPI } from '@/apis/owner/sale';
 import Dialog from '@/components/ui/Dialog';
@@ -164,6 +166,14 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting, submitErro
 const OwnerSalePage = () => {
   const { selectedHotelId: hotelId, loading: hotelsLoading, hotels } = useOwnerHotel();
   const [sales, setSales] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE.OWNER_SALES,
+    total: 0,
+    totalPages: 1,
+  });
+  const [openCount, setOpenCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -172,31 +182,57 @@ const OwnerSalePage = () => {
   const [submitError, setSubmitError] = useState(null);
   const [pendingToggle, setPendingToggle] = useState(null);
 
-  const openCount = useMemo(() => countOpenSales(sales), [sales]);
+  const fetchOpenCount = useCallback(async () => {
+    if (!hotelId) {
+      setOpenCount(0);
+      return;
+    }
+    try {
+      const result = await ownerSaleAPI.list({ hotelId, all: true });
+      setOpenCount(countOpenSales(result.items || []));
+    } catch {
+      setOpenCount(0);
+    }
+  }, [hotelId]);
 
-  const fetchSales = useCallback(async () => {
+  const fetchSales = useCallback(async (targetPage = page) => {
     if (hotelsLoading) return;
     if (!hotelId) {
       setSales([]);
+      setPagination({ page: 1, limit: PAGE_SIZE.OWNER_SALES, total: 0, totalPages: 1 });
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const data = await ownerSaleAPI.list(hotelId);
-      setSales(Array.isArray(data) ? data : []);
+      const result = await ownerSaleAPI.list({
+        hotelId,
+        page: targetPage,
+        limit: PAGE_SIZE.OWNER_SALES,
+      });
+      setSales(result.items || []);
+      setPagination(result.pagination);
+      setPage(targetPage);
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || 'Không tải được danh sách sale');
       setSales([]);
     } finally {
       setLoading(false);
     }
-  }, [hotelId, hotelsLoading]);
+  }, [hotelId, hotelsLoading, page]);
 
   useEffect(() => {
-    fetchSales();
-  }, [fetchSales]);
+    setPage(1);
+  }, [hotelId]);
+
+  useEffect(() => {
+    fetchSales(page);
+  }, [fetchSales, page, hotelId]);
+
+  useEffect(() => {
+    fetchOpenCount();
+  }, [fetchOpenCount]);
 
   const handleFormSubmit = async (body) => {
     setSubmitting(true);
@@ -213,7 +249,8 @@ const OwnerSalePage = () => {
       setModalOpen(false);
       setEditing(null);
       setSubmitError(null);
-      await fetchSales();
+      await fetchSales(page);
+      await fetchOpenCount();
     } catch (e) {
       const msg = e?.message || 'Không lưu được chương trình sale';
       setSubmitError(msg);
@@ -231,7 +268,8 @@ const OwnerSalePage = () => {
     try {
       await ownerSaleAPI.setStatus(sale._id, open);
       setPendingToggle(null);
-      await fetchSales();
+      await fetchSales(page);
+      await fetchOpenCount();
       toast.success(open ? 'Đã mở chương trình sale' : 'Đã đóng chương trình sale');
     } catch (e) {
       const msg = e?.message || 'Không đổi trạng thái được';
@@ -267,7 +305,7 @@ const OwnerSalePage = () => {
         <div className="sale-toolbar">
           <div className="sale-toolbar-meta">
             <span className="meta-item">
-              Tổng: <strong>{sales.length}</strong>
+              Tổng: <strong>{pagination.total}</strong>
             </span>
             <span className="meta-item">
               Đang mở: <strong>{openCount}</strong>
@@ -292,7 +330,7 @@ const OwnerSalePage = () => {
         {!hotelsLoading && !loading && hotels.length === 0 && (
           <div className="state-msg">Bạn chưa có khách sạn.</div>
         )}
-        {!hotelsLoading && !loading && hotelId && sales.length === 0 && !error && (
+        {!hotelsLoading && !loading && hotelId && pagination.total === 0 && !error && (
           <div className="state-msg">Chưa có chương trình sale nào.</div>
         )}
 
@@ -375,6 +413,18 @@ const OwnerSalePage = () => {
               </tbody>
             </table>
           </div>
+        )}
+
+        {!hotelsLoading && !loading && pagination.total > 0 && (
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.limit}
+            onPageChange={setPage}
+            variant="center"
+            className="sale-pagination"
+          />
         )}
 
         <Dialog

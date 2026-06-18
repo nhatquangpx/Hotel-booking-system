@@ -1,17 +1,29 @@
 import api from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/paginationResponse';
 
 export const adminUserAPI = {
-  // Lấy tất cả người dùng
-  getAllUsers: async () => {
+  getAllUsers: async (params = {}) => {
     try {
-      const response = await api.get('/admin/users');
-      return response.data;
+      const response = await api.get('/admin/users', { params });
+      if (params.view === 'hotel') {
+        const data = response.data;
+        return {
+          items: data.hotelGroups || [],
+          pagination: data.pagination,
+          extra: {
+            orphanStaff: data.orphanStaff || [],
+            orphanOwners: data.orphanOwners || [],
+            separateRoleGroups: data.separateRoleGroups || {},
+          },
+          raw: data,
+        };
+      }
+      return unwrapPaginated(response.data, 'users');
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // Lấy thông tin chi tiết người dùng
   getUserById: async (id) => {
     try {
       const response = await api.get(`/admin/users/${id}`);
@@ -21,7 +33,6 @@ export const adminUserAPI = {
     }
   },
 
-  // Tạo người dùng mới
   createUser: async (userData) => {
     try {
       const response = await api.post('/admin/users', userData);
@@ -31,7 +42,6 @@ export const adminUserAPI = {
     }
   },
 
-  // Cập nhật thông tin người dùng
   updateUser: async (id, userData) => {
     try {
       const response = await api.put(`/admin/users/${id}`, userData);
@@ -41,7 +51,6 @@ export const adminUserAPI = {
     }
   },
 
-  // Xóa người dùng
   deleteUser: async (id) => {
     try {
       const response = await api.delete(`/admin/users/${id}`);
@@ -51,7 +60,6 @@ export const adminUserAPI = {
     }
   },
 
-  // Cập nhật trạng thái người dùng
   updateUserStatus: async (id, status) => {
     try {
       const response = await api.put(`/admin/users/${id}/status`, { status });
@@ -59,7 +67,7 @@ export const adminUserAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
 };
 
-export default adminUserAPI; 
+export default adminUserAPI;

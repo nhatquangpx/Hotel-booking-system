@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { IconButton, Tooltip, Paper, TextField } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import api from '@/apis';
 import { AdminLayout } from '@/features/admin/components';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import BookingDetailDialog from '../components/BookingDetailDialog';
 import BookingViewModeSelector from './components/BookingViewModeSelector';
 import BookingListByHotel from './components/BookingListByHotel';
 import BookingRevenueReportExport from './components/BookingRevenueReportExport';
 import { formatDate } from '@/shared/utils';
 import {
-  filterAdminBookings,
-  groupBookingsByHotel,
   VIEW_MODES,
 } from './utils/bookingListHelpers';
 import './BookingList.scss';
@@ -38,6 +38,15 @@ const dateFieldSx = {
 const AdminBookingListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [bookings, setBookings] = useState([]);
+  const [hotelGroups, setHotelGroups] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE.ADMIN_BOOKINGS,
+    total: 0,
+    totalPages: 1,
+  });
+  const resetPageOnFetch = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,37 +70,28 @@ const AdminBookingListPage = () => {
 
   const fetchHotels = useCallback(async () => {
     try {
-      const response = await api.adminHotel.getAllHotels();
-      setHotels(response);
+      const result = await api.adminHotel.getAllHotels({ all: true });
+      setHotels(result.items || []);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách khách sạn');
     }
   }, []);
 
-  const fetchBookings = useCallback(async () => {
+  const searchKey = `${searchTerm}|${searchEmail}|${searchPhone}|${searchCode}|${searchHotelName}|${startDate}|${endDate}|${viewMode}`;
+
+  useEffect(() => {
+    setPage(1);
+    resetPageOnFetch.current = true;
+  }, [searchKey]);
+
+  const fetchBookings = useCallback(async (targetPage = page) => {
     try {
       setLoading(true);
-      const data = await api.adminBooking.getAllBookings();
-      setBookings(data);
-      setError(null);
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi tải danh sách đặt phòng');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchHotels();
-  }, [fetchHotels]);
-
-  useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
-
-  const filteredBookings = useMemo(
-    () =>
-      filterAdminBookings(bookings, {
+      const isHotelView = viewMode === VIEW_MODES.HOTEL;
+      const result = await api.adminBooking.getAllBookings({
+        page: targetPage,
+        limit: isHotelView ? PAGE_SIZE.ADMIN_HOTEL_GROUPS : PAGE_SIZE.ADMIN_BOOKINGS,
+        view: isHotelView ? 'hotel' : 'list',
         searchTerm,
         searchEmail,
         searchPhone,
@@ -99,29 +99,53 @@ const AdminBookingListPage = () => {
         searchHotelName,
         startDate,
         endDate,
-      }),
-    [
-      bookings,
-      searchTerm,
-      searchEmail,
-      searchPhone,
-      searchCode,
-      searchHotelName,
-      startDate,
-      endDate,
-    ]
-  );
+      });
 
-  const hotelGroups = useMemo(
-    () => groupBookingsByHotel(filteredBookings, hotels),
-    [filteredBookings, hotels]
-  );
+      if (isHotelView) {
+        setHotelGroups(result.items || []);
+        setBookings([]);
+      } else {
+        setBookings(result.items || []);
+        setHotelGroups([]);
+      }
+      setPagination(result.pagination);
+      setPage(targetPage);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Có lỗi xảy ra khi tải danh sách đặt phòng');
+    } finally {
+      setLoading(false);
+      resetPageOnFetch.current = false;
+    }
+  }, [
+    page,
+    viewMode,
+    searchTerm,
+    searchEmail,
+    searchPhone,
+    searchCode,
+    searchHotelName,
+    startDate,
+    endDate,
+  ]);
+
+  useEffect(() => {
+    fetchHotels();
+  }, [fetchHotels]);
+
+  useEffect(() => {
+    const targetPage = resetPageOnFetch.current ? 1 : page;
+    const timer = setTimeout(() => {
+      fetchBookings(targetPage);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchBookings, page, searchKey]);
 
   const paidBookingStats = useMemo(() => {
-    const paid = filteredBookings.filter((b) => b.paymentStatus === 'paid');
+    const paid = bookings.filter((b) => b.paymentStatus === 'paid');
     const sum = paid.reduce((acc, b) => acc + (Number(b.finalAmount) || 0), 0);
     return { count: paid.length, sum };
-  }, [filteredBookings]);
+  }, [bookings]);
 
   return (
     <AdminLayout>
@@ -204,13 +228,13 @@ const AdminBookingListPage = () => {
 
         <BookingRevenueReportExport hotels={hotels} />
 
-        {!loading && bookings.length > 0 && (
+        {!loading && pagination.total > 0 && (
           <div className="admin-booking-readonly-summary admin-summary-card">
-            <strong>Tổng quan thanh toán</strong>
+            <strong>Tổng quan thanh toán (trang hiện tại)</strong>
             <span>
-              Hiển thị <strong>{filteredBookings.length}</strong> / {bookings.length} đơn
+              Tổng <strong>{pagination.total}</strong> đơn khớp bộ lọc
               {' '}
-              — Đã thanh toán: <strong>{paidBookingStats.count}</strong> — Tổng tiền:{' '}
+              — Đã thanh toán trên trang này: <strong>{paidBookingStats.count}</strong> — Tổng tiền:{' '}
               <strong>{paidBookingStats.sum.toLocaleString('vi-VN')} VND</strong>
             </span>
             <span className="admin-booking-readonly-summary__hint">
@@ -251,14 +275,14 @@ const AdminBookingListPage = () => {
                       Đang tải...
                     </td>
                   </tr>
-                ) : filteredBookings.length === 0 ? (
+                ) : bookings.length === 0 ? (
                   <tr>
                     <td colSpan="10" className="text-center">
                       Không tìm thấy đơn đặt phòng nào
                     </td>
                   </tr>
                 ) : (
-                  filteredBookings.map((booking) => (
+                  bookings.map((booking) => (
                     <tr key={booking._id}>
                       <td>{booking._id.slice(-6).toUpperCase()}</td>
                       <td>{booking.guest?.name || booking.userName || 'N/A'}</td>
@@ -298,6 +322,16 @@ const AdminBookingListPage = () => {
             </table>
           </div>
         )}
+
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          pageSize={pagination.limit}
+          onPageChange={setPage}
+          variant="admin"
+          className="admin-pagination"
+        />
 
         <BookingDetailDialog
           isOpen={!!viewingBookingId}

@@ -3,8 +3,21 @@ const { runService } = require("../lib/http/controllerHelper");
 
 exports.getAllHotels = (req, res) =>
   runService(res, () =>
-    hotelService.getAllHotels({ req, city: req.query.city, starRating: req.query.starRating })
+    hotelService.getAllHotels({
+      req,
+      city: req.query.city,
+      starRating: req.query.starRating,
+      page: req.query.page,
+      limit: req.query.limit,
+      all: req.query.all,
+      searchName: req.query.searchName,
+      searchAddress: req.query.searchAddress,
+      searchPhone: req.query.searchPhone,
+    })
   );
+
+exports.getGuestHotelCities = (req, res) =>
+  runService(res, () => hotelService.getGuestHotelCities());
 
 exports.getHotelById = (req, res) =>
   runService(res, () => hotelService.getHotelById({ req, id: req.params.id }));

@@ -31,6 +31,10 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 30px;
   }
+
+  .hotel-list-pagination {
+    margin-top: 2rem;
+  }
 }
 
 // Tăng độ ưu tiên selector để override các style khác

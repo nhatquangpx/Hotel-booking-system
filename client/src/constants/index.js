@@ -7,4 +7,5 @@ export * from './roles';
 export * from './images';
 export * from './slides';
 export * from './cities';
+export * from './pagination';
 

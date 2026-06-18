@@ -20,6 +20,8 @@ import {
   markReadInList,
   markAllReadInList,
 } from '@/features/notifications/utils/notificationRead';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import '@/features/owner/notifications/Notifications.scss';
 
 const StaffNotificationsPage = () => {
@@ -29,9 +31,10 @@ const StaffNotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
-  const limit = 20;
+  const limit = PAGE_SIZE.NOTIFICATIONS;
 
   const formatTimeAgo = (date) => {
     const now = new Date();
@@ -72,28 +75,20 @@ const StaffNotificationsPage = () => {
     }
   };
 
-  const fetchNotifications = async (pageNum = 1, append = false) => {
+  const fetchNotifications = async (pageNum = 1) => {
     setLoading(true);
     try {
       const response = await api.notification.staff.getNotifications(pageNum, limit);
-      if (append) {
-        setNotifications((prev) => [...prev, ...response.notifications]);
-      } else {
-        setNotifications(response.notifications);
-      }
-      setUnreadCount(response.unreadCount);
-      setHasMore(response.pagination.page < response.pagination.totalPages);
+      setNotifications(response.notifications || []);
+      setUnreadCount(response.unreadCount || 0);
+      setTotalPages(response.pagination?.totalPages || 1);
+      setTotal(response.pagination?.total || response.notifications?.length || 0);
       setPage(pageNum);
     } catch (error) {
       console.error('Lỗi khi tải thông báo:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLoadMore = () => {
-    if (!hasMore || loading) return;
-    fetchNotifications(page + 1, true);
   };
 
   const handleMarkAsRead = async (notificationId) => {
@@ -118,7 +113,8 @@ const StaffNotificationsPage = () => {
     setNotifications((prev) => {
       const exists = prev.some((n) => n._id === notification._id);
       if (exists) return prev;
-      return [notification, ...prev];
+      if (page === 1) return [notification, ...prev].slice(0, limit);
+      return prev;
     });
   };
 
@@ -140,8 +136,9 @@ const StaffNotificationsPage = () => {
   };
 
   useEffect(() => {
-    fetchNotifications(1, false);
-  }, []);
+    fetchNotifications(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   return (
     <StaffLayout>
@@ -201,17 +198,15 @@ const StaffNotificationsPage = () => {
           )}
         </div>
 
-        {hasMore && (
-          <div className="notifications-footer">
-            <button
-              className="load-more-btn"
-              onClick={handleLoadMore}
-              disabled={loading}
-            >
-              {loading ? 'Đang tải...' : 'Tải thêm thông báo'}
-            </button>
-          </div>
-        )}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          pageSize={limit}
+          onPageChange={setPage}
+          variant="center"
+          className="notifications-pagination"
+        />
       </div>
     </StaffLayout>
   );

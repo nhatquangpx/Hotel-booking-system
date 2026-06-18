@@ -43,6 +43,7 @@ const AdminLayout = ({ children }) => {
       return 'Quản lý đặt phòng';
     }
     if (location.pathname.includes('/admin/contact-messages')) return 'Hộp thư liên hệ';
+    if (location.pathname.includes('/admin/notifications')) return 'Thông báo';
     return 'Admin';
   };
 

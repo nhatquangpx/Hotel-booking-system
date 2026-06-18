@@ -15,6 +15,7 @@ import BookingModal from './BookingModal';
 import HotelContact from './HotelContact';
 import HotelReviews from './HotelReviews';
 import { getEffectiveRefundMinDaysBeforeCheckIn } from '@/shared/utils/hotelPolicies';
+import { PAGE_SIZE } from '@/constants/pagination';
 import {
   isGuestBookableHotel,
   getHotelStatusLabel,
@@ -85,7 +86,7 @@ const GuestHotelDetailPage = () => {
 
     try {
       setReviewsLoading(true);
-      const response = await api.review.getReviewsByHotel(hotelId, reviewPage, 10);
+      const response = await api.review.getReviewsByHotel(hotelId, reviewPage, PAGE_SIZE.HOTEL_REVIEWS);
       setReviews(response.reviews || []);
       setReviewStats(response.stats || null);
       setReviewTotalPages(response.pagination?.pages || 1);

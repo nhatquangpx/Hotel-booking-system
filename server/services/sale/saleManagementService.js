@@ -31,13 +31,42 @@ function applyScopeToDoc(doc, scope, roomType) {
   else if (scope === "room_type") doc.roomType = roomType;
 }
 
-async function listSales({ ownerId, hotelId }) {
+async function listSales({ ownerId, hotelId, page, limit, all }) {
   if (!hotelId) throw new ServiceError(400, "Vui lòng cung cấp hotelId");
   await assertOwnerHotel(ownerId, hotelId);
 
+  const {
+    parsePaginationQuery,
+    buildPaginationMeta,
+    paginatedBody,
+  } = require("../../lib/http/pagination");
+
   const ymdToday = vnDateKey();
-  const list = await SalePromotion.find({ hotelId }).sort({ startDate: -1, createdAt: -1 }).lean();
-  return { status: 200, body: list.map((s) => enrichSaleForOwner(s, ymdToday)) };
+  const pag = parsePaginationQuery({ page, limit, all }, { defaultLimit: 10, maxLimit: 100 });
+  const query = { hotelId };
+
+  if (pag.all) {
+    const list = await SalePromotion.find(query).sort({ startDate: -1, createdAt: -1 }).lean();
+    return { status: 200, body: list.map((s) => enrichSaleForOwner(s, ymdToday)) };
+  }
+
+  const [list, total] = await Promise.all([
+    SalePromotion.find(query)
+      .sort({ startDate: -1, createdAt: -1 })
+      .skip(pag.skip)
+      .limit(pag.limit)
+      .lean(),
+    SalePromotion.countDocuments(query),
+  ]);
+
+  return {
+    status: 200,
+    body: paginatedBody(
+      list.map((s) => enrichSaleForOwner(s, ymdToday)),
+      buildPaginationMeta({ page: pag.page, limit: pag.limit, total }),
+      "sales"
+    ),
+  };
 }
 
 async function createSale({ ownerId, body }) {

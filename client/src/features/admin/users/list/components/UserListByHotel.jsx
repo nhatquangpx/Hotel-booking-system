@@ -1,6 +1,7 @@
 import React from 'react';
 import UserTable from './UserTable';
 import UserListByRole from './UserListByRole';
+import Pagination from '@/shared/components/Pagination/Pagination';
 import { HOTEL_VIEW_SEPARATE_ROLES, getRoleLabel } from '../utils/userListHelpers';
 
 const formatAddress = (address) => {
@@ -15,6 +16,7 @@ const UserListByHotel = ({
   orphanOwners,
   separateRoleGroups,
   loading,
+  hotelPagination,
   onEdit,
   onDelete,
   onView,
@@ -82,6 +84,18 @@ const UserListByHotel = ({
           </section>
         );
       })}
+
+      {hotelPagination && (
+        <Pagination
+          page={hotelPagination.page}
+          totalPages={hotelPagination.totalPages}
+          total={hotelPagination.total}
+          pageSize={hotelPagination.pageSize}
+          onPageChange={hotelPagination.onPageChange}
+          variant="admin"
+          className="admin-pagination hotel-groups-pagination"
+        />
+      )}
 
       {orphanOwners.length > 0 && (
         <section className="user-group-section">
