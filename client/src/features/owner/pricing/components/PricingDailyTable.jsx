@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatCurrency } from '@/shared/utils/format';
+import { formatCurrency } from '@/shared/utils';
 
 /**
  * Bảng chi tiết giá động theo từng ngày trong kỳ.

@@ -14,13 +14,13 @@ import RoomList from './RoomList';
 import BookingModal from './BookingModal';
 import HotelContact from './HotelContact';
 import HotelReviews from './HotelReviews';
-import { getEffectiveRefundMinDaysBeforeCheckIn } from '@/shared/utils/hotelPolicies';
 import { PAGE_SIZE } from '@/constants/pagination';
 import {
+  getEffectiveRefundMinDaysBeforeCheckIn,
   isGuestBookableHotel,
   getHotelStatusLabel,
   getHotelStatusBannerMessage,
-} from '@/shared/utils/hotelStatus';
+} from '@/shared/utils';
 import './HotelDetail.scss';
 
 /**

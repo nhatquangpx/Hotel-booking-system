@@ -1,5 +1,5 @@
 import { toast } from 'react-toastify';
-import { formatDate } from './format';
+import { formatDate } from '../core/format';
 
 /** Chuẩn hoá về 00:00:00 local — đồng bộ logic server `toBookingDateOnly`. */
 export function toCalendarDateOnly(dateValue) {

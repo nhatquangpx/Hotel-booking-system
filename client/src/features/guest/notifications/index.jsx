@@ -10,7 +10,7 @@ import {
   markReadInList,
   markAllReadInList,
 } from '@/features/notifications/utils/notificationRead';
-import { formatDateTime } from '@/shared/utils/format';
+import { formatDateTime } from '@/shared/utils';
 import Pagination from '@/shared/components/Pagination/Pagination';
 import { PAGE_SIZE } from '@/constants/pagination';
 import './Notifications.scss';

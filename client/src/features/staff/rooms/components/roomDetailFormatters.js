@@ -1,4 +1,4 @@
-import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { getRoomPrice } from '@/shared/utils';
 
 export const formatRoomType = (type) => {
   const typeMap = {

@@ -30,6 +30,6 @@ export function computeGuestRefundEligibility(booking) {
   return {
     eligible: daysUntilCheckIn >= minNoticeDays,
     minNoticeDays,
-    daysUntilCheckIn
+    daysUntilCheckIn,
   };
 }

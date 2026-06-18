@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../shared/hooks";
 import { ROUTES } from "@/constants/routes";
-import { LOGIN_REQUIRED_MESSAGE } from "@/shared/utils/roleAccessMessages";
+import { LOGIN_REQUIRED_MESSAGE } from '@/shared/utils';
 import RoleAccessDenied from "./RoleAccessDenied";
 
 /** Protects routes based on authentication and role */

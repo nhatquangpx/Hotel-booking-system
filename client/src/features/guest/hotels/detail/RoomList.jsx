@@ -1,6 +1,5 @@
 import { getImageUrl } from '@/constants/images';
-import { formatCurrency } from '@/shared/utils/format';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { formatCurrency, getRoomPrice } from '@/shared/utils';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './RoomList.scss';
 

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, Hotel, Favorite, AccountCircle, Logout, KeyboardArrowDown, Menu, Close } from "@mui/icons-material"
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { performLogout } from '@/shared/utils/authSession'
+import { performLogout } from '@/shared/utils'
 import { ROLES } from '@/constants/roles'
 import { ROUTES } from '@/constants/routes'
 import { IMAGE_PATHS } from '@/constants/images'

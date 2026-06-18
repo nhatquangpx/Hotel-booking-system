@@ -1,8 +1,8 @@
-import { formatCurrency } from '@/shared/utils/format';
 import {
+  formatCurrency,
   getGuestSalePricingSummary,
   formatNightBreakdownLine,
-} from '@/shared/utils/salePricingDisplay';
+} from '@/shared/utils';
 import './GuestSalePricingBreakdown.scss';
 
 /**

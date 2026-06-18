@@ -5,11 +5,11 @@ import Dialog from '@/components/ui/Dialog';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
 import {
+  getRoomPrice,
   normalizeRoomStatus,
   getBookingStatusLabel,
-} from '@/shared/utils/roomStatus';
+} from '@/shared/utils';
 import './RoomDetailDialog.scss';
 
 const formatRoomType = (type) => {

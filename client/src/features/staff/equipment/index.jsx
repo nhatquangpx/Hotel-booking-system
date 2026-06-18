@@ -7,7 +7,8 @@ import EquipmentGuide from '@/features/owner/equipment/EquipmentGuide';
 import EquipmentDeleteDialog from '@/features/owner/equipment/EquipmentDeleteDialog';
 import EquipmentRepairRequestDialog from '@/features/owner/equipment/EquipmentRepairRequestDialog';
 import EquipmentRoomCard from '@/features/owner/equipment/EquipmentRoomCard';
-import { apiErrorMessage, mergeRoomIntoList } from '@/features/owner/equipment/equipmentUtils';
+import { apiErrorMessage } from '@/shared/utils';
+import { mergeRoomIntoList } from '@/features/owner/equipment/equipmentUtils';
 import '@/features/owner/equipment/EquipmentPage.scss';
 
 const StaffEquipmentPage = () => {

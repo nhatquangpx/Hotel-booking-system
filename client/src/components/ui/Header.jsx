@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { FaBars, FaTimes, FaUser, FaKey, FaSignOutAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { setUser } from '@/store/slices/userSlice';
-import { performLogout } from '@/shared/utils/authSession';
+import { performLogout } from '@/shared/utils';
 import { useAuth } from '@/shared/hooks';
 import api from '@/apis';
 import {

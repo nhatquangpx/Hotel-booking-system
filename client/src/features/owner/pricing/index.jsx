@@ -3,7 +3,7 @@ import OwnerLayout from '../components/OwnerLayout';
 import OwnerGuideCollapsible from '../components/OwnerGuideCollapsible';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerPricingAPI } from '@/apis/owner/pricing';
-import { formatCurrency, formatDateTime } from '@/shared/utils/format';
+import { formatCurrency, formatDateTime } from '@/shared/utils';
 import PriceSuggestionChart from './components/PriceSuggestionChart';
 import PricingFilters from './components/PricingFilters';
 import PricingDailyTable from './components/PricingDailyTable';

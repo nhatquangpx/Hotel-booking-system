@@ -1,4 +1,4 @@
-import { getEffectiveRefundMinDaysBeforeCheckIn } from '@/shared/utils/hotelPolicies';
+import { getEffectiveRefundMinDaysBeforeCheckIn } from '@/shared/utils';
 import './HotelPolicies.scss';
 
 /**

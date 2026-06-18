@@ -1,5 +1,5 @@
 import api from '../config/axios';
-import { unwrapPaginated } from '@/shared/utils/paginationResponse';
+import { unwrapPaginated } from '@/shared/utils/core/paginationResponse';
 
 export const adminHotelAPI = {
   getAllHotels: async (params = {}) => {

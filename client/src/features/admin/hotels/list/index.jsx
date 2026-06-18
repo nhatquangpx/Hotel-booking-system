@@ -18,9 +18,7 @@ import HotelDetailDialog from '../components/HotelDetailDialog';
 import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import RoomDetailDialog from '../../rooms/components/RoomDetailDialog';
 import api from '../../../../apis';
-import { apiErrorMessage } from '@/shared/utils';
-import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { apiErrorMessage, getHotelStatusLabel, getRoomPrice } from '@/shared/utils';
 import './HotelList.scss';
 
 /**

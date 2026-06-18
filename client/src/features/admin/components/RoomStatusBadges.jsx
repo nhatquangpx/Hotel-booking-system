@@ -3,7 +3,7 @@ import {
   normalizeRoomStatus,
   getRoomStatusLabel,
   getBookingStatusLabel,
-} from '@/shared/utils/roomStatus';
+} from '@/shared/utils';
 
 /**
  * Hiển thị roomStatus (+ bookingStatus khi không trống) cho admin.

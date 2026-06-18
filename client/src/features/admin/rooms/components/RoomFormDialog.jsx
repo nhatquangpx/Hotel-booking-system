@@ -5,8 +5,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@/components/ui/Dialog';
 import RoomFacilitiesPicker from '@/components/rooms/RoomFacilitiesPicker';
 import api from '../../../../apis';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
-import { apiErrorMessage, normalizeRoomStatus } from '@/shared/utils';
+import { getRoomPrice, apiErrorMessage, normalizeRoomStatus } from '@/shared/utils';
 import { getImageUrl } from '../../../../constants/images';
 import './RoomFormDialog.scss';
 

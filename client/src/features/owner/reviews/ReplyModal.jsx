@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { FaStar, FaTimes } from 'react-icons/fa';
-import { formatDate, apiErrorMessage } from '@/shared/utils';
-import { getHotelReply } from '@/shared/utils/reviewReply';
+import { formatDate, apiErrorMessage, getHotelReply } from '@/shared/utils';
 import './ReplyModal.scss';
 
 /**
