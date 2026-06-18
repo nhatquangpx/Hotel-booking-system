@@ -118,6 +118,21 @@
   }
 
   .reviews-section {
+    .reviews-list-loading {
+      text-align: center;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      @include body-sm;
+      color: $text-secondary;
+      background-color: $grey-light;
+      border-radius: 8px;
+    }
+
+    .reviews-list--loading {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
     .section-title {
       @include heading-lg;
       color: $text-primary;

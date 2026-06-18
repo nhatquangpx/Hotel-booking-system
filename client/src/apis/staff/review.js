@@ -22,9 +22,11 @@ function throwReviewApiError(error, defaultMessage) {
 }
 
 export const staffReviewAPI = {
-  getReviews: async (page = 1, limit = 20) => {
+  getReviews: async (page = 1, limit = 20, rating = null) => {
     try {
-      const response = await api.get('/staff/reviews', { params: { page, limit } });
+      const params = { page, limit };
+      if (rating != null) params.rating = rating;
+      const response = await api.get('/staff/reviews', { params });
       return response.data;
     } catch (error) {
       throwReviewApiError(error, 'Có lỗi xảy ra khi tải danh sách đánh giá');

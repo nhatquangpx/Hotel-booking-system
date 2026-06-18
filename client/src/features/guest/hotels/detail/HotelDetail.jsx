@@ -59,6 +59,15 @@ const GuestHotelDetailPage = () => {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewTotalPages, setReviewTotalPages] = useState(1);
+  const [reviewRatingFilter, setReviewRatingFilter] = useState(null);
+
+  useEffect(() => {
+    setReviewPage(1);
+    setReviewRatingFilter(null);
+    setReviews([]);
+    setReviewStats(null);
+    setReviewTotalPages(1);
+  }, [id]);
 
   useEffect(() => {
     const fetchHotelDetails = async () => {
@@ -78,32 +87,43 @@ const GuestHotelDetailPage = () => {
     fetchHotelDetails();
   }, [id]);
 
-  // Fetch reviews khi hotel đã load
-  const fetchReviews = async () => {
-    if (!hotel) return;
-    const hotelId = hotel._id || hotel.id;
-    if (!hotelId) return;
-
-    try {
-      setReviewsLoading(true);
-      const response = await api.review.getReviewsByHotel(hotelId, reviewPage, PAGE_SIZE.HOTEL_REVIEWS);
-      setReviews(response.reviews || []);
-      setReviewStats(response.stats || null);
-      setReviewTotalPages(response.pagination?.pages || 1);
-      setReviewsLoading(false);
-    } catch (err) {
-      console.error('Error fetching reviews:', err);
-      setReviews([]);
-      setReviewsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (hotel && (hotel._id || hotel.id)) {
-      fetchReviews();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hotel, reviewPage]);
+    const hotelId = hotel?._id || hotel?.id;
+    if (!hotel || !hotelId || String(hotelId) !== String(id)) return;
+
+    let cancelled = false;
+
+    const loadReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const response = await api.review.getReviewsByHotel(
+          hotelId,
+          reviewPage,
+          PAGE_SIZE.HOTEL_REVIEWS,
+          reviewRatingFilter
+        );
+        if (cancelled || String(hotelId) !== String(id)) return;
+        setReviews(response.reviews || []);
+        setReviewStats(response.stats || null);
+        setReviewTotalPages(response.pagination?.pages || 1);
+      } catch (err) {
+        if (cancelled || String(hotelId) !== String(id)) return;
+        console.error('Error fetching reviews:', err);
+        setReviews([]);
+        setReviewStats(null);
+        setReviewTotalPages(1);
+      } finally {
+        if (!cancelled && String(hotelId) === String(id)) {
+          setReviewsLoading(false);
+        }
+      }
+    };
+
+    loadReviews();
+    return () => {
+      cancelled = true;
+    };
+  }, [hotel, id, reviewPage, reviewRatingFilter]);
 
   const handleBookingDateChange = (e) => {
     const { name, value } = e.target;
@@ -214,6 +234,11 @@ const GuestHotelDetailPage = () => {
     setReviewPage(page);
   };
 
+  const handleReviewRatingFilterChange = (rating) => {
+    setReviewRatingFilter(rating);
+    setReviewPage(1);
+  };
+
   if (loading && !hotel) {
     return (
       <GuestLayout>
@@ -299,6 +324,8 @@ const GuestHotelDetailPage = () => {
               currentPage={reviewPage}
               totalPages={reviewTotalPages}
               onPageChange={handleReviewPageChange}
+              selectedRating={reviewRatingFilter}
+              onRatingFilterChange={handleReviewRatingFilterChange}
             />
           </>
         )}

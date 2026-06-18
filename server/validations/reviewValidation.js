@@ -1,5 +1,12 @@
-const { body } = require("express-validator");
+const { body, query } = require("express-validator");
 const { validate } = require("./common");
+
+const listReviewsQueryValidation = [
+  query("rating")
+    .optional({ values: "falsy" })
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Rating lọc phải là số từ 1 đến 5"),
+];
 
 const addReviewValidation = [
   body("rating")
@@ -36,6 +43,7 @@ const replyReviewValidation = [
 
 module.exports = {
   validate,
+  listReviewsQueryValidation,
   addReviewValidation,
   updateReviewValidation,
   replyReviewValidation,

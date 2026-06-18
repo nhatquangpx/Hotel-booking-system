@@ -32,10 +32,12 @@ export const reviewAPI = {
   },
 
   // Lấy danh sách đánh giá của khách sạn
-  getReviewsByHotel: async (hotelId, page = 1, limit = 10) => {
+  getReviewsByHotel: async (hotelId, page = 1, limit = 10, rating = null) => {
     try {
+      const params = { page, limit };
+      if (rating != null) params.rating = rating;
       const response = await api.get(`/guest/reviews/hotel/${hotelId}`, {
-        params: { page, limit }
+        params
       });
       return response.data;
     } catch (error) {

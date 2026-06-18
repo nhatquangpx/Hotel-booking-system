@@ -17,6 +17,7 @@ exports.getReviewsByHotel = (req, res) =>
       hotelId: req.params.hotelId,
       page: req.query.page,
       limit: req.query.limit,
+      rating: req.query.rating,
     })
   );
 
@@ -41,14 +42,20 @@ exports.deleteReview = (req, res) =>
 exports.getReviewsByOwner = (req, res) =>
   runService(res, () =>
     reviewService.hotelReviewService
-      .getReviewsByOwner(req.user.id, req.query.page, req.query.limit, req.query.hotelId || null)
+      .getReviewsByOwner(
+        req.user.id,
+        req.query.page,
+        req.query.limit,
+        req.query.hotelId || null,
+        req.query.rating
+      )
       .then((body) => ({ status: 200, body }))
   );
 
 exports.getStaffReviews = (req, res) =>
   runService(res, () =>
     reviewService.hotelReviewService
-      .getReviewsByStaff(req.user.id, req.query.page, req.query.limit)
+      .getReviewsByStaff(req.user.id, req.query.page, req.query.limit, req.query.rating)
       .then((body) => ({ status: 200, body }))
   );
 

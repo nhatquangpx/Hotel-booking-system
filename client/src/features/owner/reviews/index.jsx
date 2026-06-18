@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaStar } from 'react-icons/fa';
 import OwnerLayout from '@/features/owner/components/OwnerLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
@@ -6,6 +6,7 @@ import Pagination from '@/shared/components/Pagination/Pagination';
 import { PAGE_SIZE } from '@/constants/pagination';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import ReplyModal from './ReplyModal';
+import ReviewStatsBreakdown from '@/shared/components/ReviewStatsBreakdown/ReviewStatsBreakdown';
 import api from '@/apis';
 import { formatDate, getHotelReply, formatReplyResponderLabel } from '@/shared/utils';
 import './Reviews.scss';
@@ -17,98 +18,122 @@ import './Reviews.scss';
 const OwnerReviewsPage = () => {
   const { selectedHotelId, loading: hotelsLoading } = useOwnerHotel();
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [reviewStats, setReviewStats] = useState(null);
+  const [ratingFilter, setRatingFilter] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const prevHotelIdRef = useRef(selectedHotelId);
   const limit = PAGE_SIZE.OWNER_REVIEWS;
 
-  const fetchReviews = useCallback(async (pageNum = 1) => {
-    if (hotelsLoading) {
-      return;
-    }
-    try {
-      setLoading(true);
-      const data = await api.ownerReview.getOwnerReviews(pageNum, limit, selectedHotelId || undefined);
-      setReviews(data.reviews || []);
-      setTotalPages(data.pagination?.pages || 1);
-      setTotal(data.pagination?.total || data.reviews?.length || 0);
-      setPage(pageNum);
-      setError(null);
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi tải danh sách đánh giá');
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedHotelId, hotelsLoading, limit]);
-
   useEffect(() => {
-    setPage(1);
-  }, [selectedHotelId]);
+    if (hotelsLoading) return;
 
-  useEffect(() => {
-    fetchReviews(page);
-  }, [fetchReviews, page]);
+    let cancelled = false;
+    let pageToFetch = page;
+    let ratingToFetch = ratingFilter;
 
-  // Tạo initials từ tên
+    if (prevHotelIdRef.current !== selectedHotelId) {
+      prevHotelIdRef.current = selectedHotelId;
+      pageToFetch = 1;
+      ratingToFetch = null;
+      setReviews([]);
+      setReviewStats(null);
+      setInitialLoading(true);
+      if (page !== 1) setPage(1);
+      if (ratingFilter !== null) setRatingFilter(null);
+    }
+
+    const requestedHotelId = selectedHotelId;
+
+    const loadReviews = async () => {
+      setListLoading(true);
+      try {
+        const data = await api.ownerReview.getOwnerReviews(
+          pageToFetch,
+          limit,
+          requestedHotelId || undefined,
+          ratingToFetch
+        );
+        if (cancelled || requestedHotelId !== prevHotelIdRef.current) return;
+        setReviews(data.reviews || []);
+        setReviewStats(data.stats || null);
+        setTotalPages(data.pagination?.pages || 1);
+        setTotal(data.pagination?.total || data.reviews?.length || 0);
+        setError(null);
+      } catch (err) {
+        if (cancelled || requestedHotelId !== prevHotelIdRef.current) return;
+        setError(err.message || 'Có lỗi xảy ra khi tải danh sách đánh giá');
+        setReviews([]);
+        setReviewStats(null);
+        setTotalPages(1);
+        setTotal(0);
+      } finally {
+        if (!cancelled && requestedHotelId === prevHotelIdRef.current) {
+          setListLoading(false);
+          setInitialLoading(false);
+        }
+      }
+    };
+
+    loadReviews();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedHotelId, hotelsLoading, page, ratingFilter, limit, refreshKey]);
+
   const getInitials = (name) => {
     if (!name) return 'U';
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
-  // Tạo màu ngẫu nhiên cho avatar dựa trên tên
   const getAvatarColor = (name) => {
     if (!name) return '#A0826D';
     const colors = [
-      '#2ecc71', // Xanh lá
-      '#3498db', // Xanh dương
-      '#9b59b6', // Tím
-      '#e74c3c', // Đỏ
-      '#f39c12', // Cam
-      '#1abc9c', // Xanh ngọc
-      '#A0826D', // Nâu
+      '#2ecc71',
+      '#3498db',
+      '#9b59b6',
+      '#e74c3c',
+      '#f39c12',
+      '#1abc9c',
+      '#A0826D',
     ];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
+    return colors[name.charCodeAt(0) % colors.length];
   };
 
-  // Render star rating
   const renderStars = (rating) => {
     const roundedRating = Math.round(rating);
     const stars = [];
-
     for (let i = 0; i < 5; i++) {
-      if (i < roundedRating) {
-        stars.push(
-          <FaStar key={i} className="star star-filled" />
-        );
-      } else {
-        stars.push(
-          <FaStar key={i} className="star star-empty" />
-        );
-      }
+      stars.push(
+        <FaStar
+          key={i}
+          className={i < roundedRating ? 'star star-filled' : 'star star-empty'}
+        />
+      );
     }
-
     return stars;
   };
 
-  // Truncate text helper
   const truncateText = (text, maxLength = 150) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + '...';
+    return `${text.substring(0, maxLength).trim()}...`;
   };
 
   const handleReply = (reviewId) => {
-    const review = reviews.find(r => r._id === reviewId);
+    const review = reviews.find((r) => r._id === reviewId);
     if (review) {
       setSelectedReview(review);
       setIsReplyModalOpen(true);
@@ -121,24 +146,19 @@ const OwnerReviewsPage = () => {
   };
 
   const handleReplySuccess = () => {
-    fetchReviews(page);
+    setRefreshKey((key) => key + 1);
   };
 
-  if (loading) {
+  const handleRatingFilterChange = (rating) => {
+    setRatingFilter(rating);
+    setPage(1);
+  };
+
+  if (initialLoading) {
     return (
       <OwnerLayout>
         <div className="owner-reviews-page">
           <div className="loading">Đang tải...</div>
-        </div>
-      </OwnerLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <OwnerLayout>
-        <div className="owner-reviews-page">
-          <div className="error-message">{error}</div>
         </div>
       </OwnerLayout>
     );
@@ -187,22 +207,41 @@ const OwnerReviewsPage = () => {
             </div>
           </div>
         </OwnerGuideCollapsible>
-        <div className="reviews-section">          
-          {reviews.length === 0 ? (
+
+        {error && <div className="error-message">{error}</div>}
+
+        <div className="reviews-section">
+          <ReviewStatsBreakdown
+            stats={reviewStats}
+            selectedRating={ratingFilter}
+            onRatingSelect={handleRatingFilterChange}
+          />
+
+          {listLoading && (
+            <div className="reviews-list-loading">Đang tải đánh giá...</div>
+          )}
+
+          {!listLoading && reviews.length === 0 ? (
             <div className="empty-reviews">
-              <p>Chưa có đánh giá nào</p>
+              <p>
+                {ratingFilter
+                  ? `Không có đánh giá ${ratingFilter} sao`
+                  : 'Chưa có đánh giá nào'}
+              </p>
             </div>
           ) : (
-            <div className="reviews-list">
+            reviews.length > 0 && (
+            <div className={`reviews-list${listLoading ? ' reviews-list--loading' : ''}`}>
               {reviews.map((review) => {
                 const initials = getInitials(review.guest?.name);
                 const avatarColor = getAvatarColor(review.guest?.name);
                 const roomNumber = review.booking?.room?.roomNumber || 'N/A';
+                const reply = getHotelReply(review);
 
                 return (
                   <div key={review._id} className="review-card">
                     <div className="review-header">
-                      <div 
+                      <div
                         className="review-avatar"
                         style={{ backgroundColor: avatarColor }}
                       >
@@ -229,29 +268,31 @@ const OwnerReviewsPage = () => {
                           {formatDate(review.createdAt)}
                         </div>
                       </div>
-                      {getHotelReply(review) && (
+                      {reply && (
                         <div className="review-response">
                           <div className="review-response__label">
-                            Phản hồi {formatReplyResponderLabel(getHotelReply(review))}:
+                            Phản hồi {formatReplyResponderLabel(reply)}:
                           </div>
                           <div className="review-response__content">
-                            {truncateText(getHotelReply(review).text, 150)}
+                            {truncateText(reply.text, 150)}
                           </div>
                         </div>
                       )}
                     </div>
                     <div className="review-actions">
                       <button
+                        type="button"
                         className="reply-button"
                         onClick={() => handleReply(review._id)}
                       >
-                        {getHotelReply(review) ? 'Chỉnh sửa phản hồi' : 'Phản hồi'}
+                        {reply ? 'Chỉnh sửa phản hồi' : 'Phản hồi'}
                       </button>
                     </div>
                   </div>
                 );
               })}
             </div>
+            )
           )}
         </div>
 
@@ -265,7 +306,6 @@ const OwnerReviewsPage = () => {
           className="reviews-pagination"
         />
 
-        {/* Reply Modal */}
         {selectedReview && (
           <ReplyModal
             review={selectedReview}
@@ -281,4 +321,3 @@ const OwnerReviewsPage = () => {
 };
 
 export default OwnerReviewsPage;
-

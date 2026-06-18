@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaStar } from 'react-icons/fa';
 import StaffLayout from '@/features/staff/components/StaffLayout';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
@@ -6,6 +6,7 @@ import Pagination from '@/shared/components/Pagination/Pagination';
 import { PAGE_SIZE } from '@/constants/pagination';
 import { useStaffHotel } from '@/features/staff/context/StaffHotelContext';
 import ReplyModal from '@/features/owner/reviews/ReplyModal';
+import ReviewStatsBreakdown from '@/shared/components/ReviewStatsBreakdown/ReviewStatsBreakdown';
 import api from '@/apis';
 import { formatDate, getHotelReply, formatReplyResponderLabel } from '@/shared/utils';
 import '@/features/owner/reviews/Reviews.scss';
@@ -13,48 +14,77 @@ import '@/features/owner/reviews/Reviews.scss';
 const StaffReviewsPage = () => {
   const { hotelId, loading: hotelLoading, error: hotelError } = useStaffHotel();
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [reviewStats, setReviewStats] = useState(null);
+  const [ratingFilter, setRatingFilter] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const prevHotelIdRef = useRef(hotelId);
   const limit = PAGE_SIZE.STAFF_REVIEWS;
-
-  const fetchReviews = useCallback(async (pageNum = 1) => {
-    if (hotelLoading || !hotelId) {
-      return;
-    }
-    try {
-      setLoading(true);
-      const data = await api.staffReview.getReviews(pageNum, limit);
-      setReviews(data.reviews || []);
-      setTotalPages(data.pagination?.pages || 1);
-      setTotal(data.pagination?.total || data.reviews?.length || 0);
-      setPage(pageNum);
-      setError(null);
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi tải danh sách đánh giá');
-    } finally {
-      setLoading(false);
-    }
-  }, [hotelId, hotelLoading, limit]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [hotelId]);
-
-  useEffect(() => {
-    fetchReviews(page);
-  }, [fetchReviews, page]);
 
   useEffect(() => {
     if (!hotelLoading && !hotelId) {
-      setLoading(false);
+      setInitialLoading(false);
+      setListLoading(false);
       setReviews([]);
+      setReviewStats(null);
+      return;
     }
-  }, [hotelLoading, hotelId]);
+    if (hotelLoading || !hotelId) return;
+
+    let cancelled = false;
+    let pageToFetch = page;
+    let ratingToFetch = ratingFilter;
+
+    if (prevHotelIdRef.current !== hotelId) {
+      prevHotelIdRef.current = hotelId;
+      pageToFetch = 1;
+      ratingToFetch = null;
+      setReviews([]);
+      setReviewStats(null);
+      setInitialLoading(true);
+      if (page !== 1) setPage(1);
+      if (ratingFilter !== null) setRatingFilter(null);
+    }
+
+    const requestedHotelId = hotelId;
+
+    const loadReviews = async () => {
+      setListLoading(true);
+      try {
+        const data = await api.staffReview.getReviews(pageToFetch, limit, ratingToFetch);
+        if (cancelled || requestedHotelId !== prevHotelIdRef.current) return;
+        setReviews(data.reviews || []);
+        setReviewStats(data.stats || null);
+        setTotalPages(data.pagination?.pages || 1);
+        setTotal(data.pagination?.total || data.reviews?.length || 0);
+        setError(null);
+      } catch (err) {
+        if (cancelled || requestedHotelId !== prevHotelIdRef.current) return;
+        setError(err.message || 'Có lỗi xảy ra khi tải danh sách đánh giá');
+        setReviews([]);
+        setReviewStats(null);
+        setTotalPages(1);
+        setTotal(0);
+      } finally {
+        if (!cancelled && requestedHotelId === prevHotelIdRef.current) {
+          setListLoading(false);
+          setInitialLoading(false);
+        }
+      }
+    };
+
+    loadReviews();
+    return () => {
+      cancelled = true;
+    };
+  }, [hotelId, hotelLoading, page, ratingFilter, limit, refreshKey]);
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -103,13 +133,18 @@ const StaffReviewsPage = () => {
   };
 
   const handleReplySuccess = () => {
-    fetchReviews(page);
+    setRefreshKey((key) => key + 1);
+  };
+
+  const handleRatingFilterChange = (rating) => {
+    setRatingFilter(rating);
+    setPage(1);
   };
 
   const showNoHotel = !hotelLoading && !hotelId;
   const displayError = error || (!hotelLoading && hotelError);
 
-  if (loading && hotelId) {
+  if (initialLoading && hotelId) {
     return (
       <StaffLayout>
         <div className="owner-reviews-page">
@@ -139,12 +174,27 @@ const StaffReviewsPage = () => {
 
         {hotelId && !displayError && (
           <div className="reviews-section">
-            {reviews.length === 0 ? (
+            <ReviewStatsBreakdown
+              stats={reviewStats}
+              selectedRating={ratingFilter}
+              onRatingSelect={handleRatingFilterChange}
+            />
+
+            {listLoading && (
+              <div className="reviews-list-loading">Đang tải đánh giá...</div>
+            )}
+
+            {!listLoading && reviews.length === 0 ? (
               <div className="empty-reviews">
-                <p>Chưa có đánh giá nào</p>
+                <p>
+                  {ratingFilter
+                    ? `Không có đánh giá ${ratingFilter} sao`
+                    : 'Chưa có đánh giá nào'}
+                </p>
               </div>
             ) : (
-              <div className="reviews-list">
+              reviews.length > 0 && (
+              <div className={`reviews-list${listLoading ? ' reviews-list--loading' : ''}`}>
                 {reviews.map((review) => {
                   const initials = getInitials(review.guest?.name);
                   const avatarColor = getAvatarColor(review.guest?.name);
@@ -186,6 +236,7 @@ const StaffReviewsPage = () => {
                   );
                 })}
               </div>
+              )
             )}
           </div>
         )}
