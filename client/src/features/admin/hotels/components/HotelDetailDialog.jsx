@@ -6,8 +6,7 @@ import Dialog from '@/components/ui/Dialog';
 import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
-import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { getHotelStatusLabel, getRoomPrice } from '@/shared/utils';
 import './HotelDetailDialog.scss';
 
 const formatAddress = (address) => {

@@ -5,8 +5,11 @@ import { GuestLayout } from '@/features/guest/components/layout';
 import BookingDetailModal from '../detail/BookingDetailModal';
 import BookingListItem from './BookingListItem';
 import api from '@/apis';
-import { needsQrProofResubmit, isQrPaymentRejectedCancelled } from '@/shared/utils';
-import { computeGuestRefundEligibility } from '@/shared/utils/hotelPolicies';
+import {
+  needsQrProofResubmit,
+  isQrPaymentRejectedCancelled,
+  computeGuestRefundEligibility,
+} from '@/shared/utils';
 import './MyBookings.scss';
 
 /**

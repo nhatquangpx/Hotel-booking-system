@@ -5,7 +5,7 @@ import {
   getHotelStatusLabel,
   isGuestBookableHotel,
   getHotelStatusBannerMessage,
-} from '@/shared/utils/hotelStatus';
+} from '@/shared/utils';
 import { HotelWishlistButton } from './HotelWishlistButton';
 import './HotelCard.scss';
 

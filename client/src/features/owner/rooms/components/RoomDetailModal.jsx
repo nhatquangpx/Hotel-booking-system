@@ -3,7 +3,7 @@ import { FaTimes, FaEdit, FaHistory, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { EditRoomDialog } from '../edit';
 import RoomBookingHistoryModal from './RoomBookingHistoryModal';
 import api from '@/apis';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { getRoomPrice } from '@/shared/utils';
 import './RoomDetailModal.scss';
 
 /**

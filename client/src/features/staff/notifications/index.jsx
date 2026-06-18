@@ -13,7 +13,7 @@ import {
 import StaffLayout from '../components/StaffLayout';
 import api from '@/apis';
 import { useAuth, useSocket } from '@/shared/hooks';
-import { formatDateTime } from '@/shared/utils/format';
+import { formatDateTime } from '@/shared/utils';
 import { getNotificationPath } from '@/features/notifications/config/notificationConfig';
 import {
   isNotificationReadByUser,

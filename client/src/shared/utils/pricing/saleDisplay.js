@@ -1,4 +1,4 @@
-import { formatDate, formatCurrency } from './format';
+import { formatDate, formatCurrency } from '../core/format';
 
 /** YYYY-MM-DD → dd/mm/yyyy */
 export function formatSaleDateRange(startDate, endDate) {

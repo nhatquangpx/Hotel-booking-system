@@ -1,4 +1,4 @@
 export {
   normalizeRoomStatus,
   sortRoomsByNumber,
-} from '@/shared/utils/roomStatus';
+} from '@/shared/utils';

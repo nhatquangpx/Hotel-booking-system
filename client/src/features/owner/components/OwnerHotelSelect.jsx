@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaHotel, FaChevronDown } from 'react-icons/fa';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
-import { getHotelStatusLabel } from '@/shared/utils/hotelStatus';
+import { getHotelStatusLabel } from '@/shared/utils';
 import './OwnerHotelSelect.scss';
 
 /**

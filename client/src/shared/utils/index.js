@@ -1,17 +1,29 @@
 /**
- * Shared Utilities
- * Common utility functions
+ * Shared Utilities — barrel export
+ *
+ * Cấu trúc theo domain:
+ * - core/    format, localStorage, apiError, pagination
+ * - auth/    session, post-login redirect, role access
+ * - booking/ dates, check-in/out, queues, QR payment
+ * - hotel/   status, policies, room status & price
+ * - review/  reply formatting
+ * - pricing/ sale display
  */
-export * from './format';
-export * from './localStorage';
-export * from './bookingFilters';
-export * from './bookingCheckInOut';
-export * from './ownerBookingQueue';
-export * from './staffBookingQueue';
-export * from './reviewReply';
-export * from './roomStatus';
-export * from './postLoginRedirect';
-export * from './salePricingDisplay';
-export * from './qrPaymentRejection';
-export * from './apiErrorMessage';
-export * from './roomPrice';
+
+// Core
+export * from './core';
+
+// Auth
+export * from './auth';
+
+// Booking
+export * from './booking';
+
+// Hotel
+export * from './hotel';
+
+// Review
+export * from './review';
+
+// Pricing
+export * from './pricing';

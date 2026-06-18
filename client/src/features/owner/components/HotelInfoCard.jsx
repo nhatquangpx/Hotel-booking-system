@@ -4,7 +4,7 @@ import Dialog from '@/components/ui/Dialog';
 import { getImageUrl } from '@/constants/images';
 import ImageSlider from './ImageSlider';
 import ImageModal from './ImageModal';
-import { getHotelStatusLabel, getHotelStatusBannerMessage } from '@/shared/utils/hotelStatus';
+import { getHotelStatusLabel, getHotelStatusBannerMessage } from '@/shared/utils';
 import './HotelInfoCard.scss';
 
 /**

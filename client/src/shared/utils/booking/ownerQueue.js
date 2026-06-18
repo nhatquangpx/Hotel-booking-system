@@ -1,7 +1,12 @@
 /**
  * Hàng đợi xử lý đơn cho chủ khách sạn.
  */
-import { isSameCalendarDay } from './bookingFilters';
+import { isSameCalendarDay } from './dates';
+import {
+  matchesBookingSearch,
+  matchesPaymentMethodFilter,
+  matchesProofFilter,
+} from './search';
 
 export function needsOwnerRefundConfirm(booking) {
   return (
@@ -94,39 +99,6 @@ export function sortOwnerBookingsByCheckInOutPriority(bookings, referenceDate = 
     if (aCi !== bCi) return aCi - bCi;
     return new Date(a.checkOutDate) - new Date(b.checkOutDate);
   });
-}
-
-export function matchesBookingSearch(booking, query) {
-  const q = (query || '').trim().toLowerCase();
-  if (!q) return true;
-
-  const guestName = (booking.guest?.name || '').toLowerCase();
-  const guestPhone = (booking.guest?.phone || '').toLowerCase();
-  const bookingId = (booking._id || '').toLowerCase();
-  const roomNumber = String(booking.room?.roomNumber || '').toLowerCase();
-
-  return (
-    guestName.includes(q) ||
-    guestPhone.includes(q) ||
-    bookingId.includes(q) ||
-    roomNumber.includes(q)
-  );
-}
-
-export function matchesPaymentMethodFilter(booking, methodFilter) {
-  if (!methodFilter || methodFilter === 'all') return true;
-  return booking.paymentMethod === methodFilter;
-}
-
-export function matchesProofFilter(booking, proofFilter) {
-  if (!proofFilter || proofFilter === 'all') return true;
-  if (proofFilter === 'proof_submitted') {
-    return booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt);
-  }
-  if (proofFilter === 'proof_missing') {
-    return booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt;
-  }
-  return true;
 }
 
 export function filterOwnerPaymentQueue(bookings, { search = '', method = 'all', proof = 'all' } = {}) {

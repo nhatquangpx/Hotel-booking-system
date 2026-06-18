@@ -5,7 +5,7 @@ import {
   needsOwnerCheckInToday,
   needsOwnerCheckOutToday,
   needsOwnerCheckInOutToday,
-} from './ownerBookingQueue';
+} from './ownerQueue';
 
 export const needsStaffCheckInToday = needsOwnerCheckInToday;
 export const needsStaffCheckOutToday = needsOwnerCheckOutToday;

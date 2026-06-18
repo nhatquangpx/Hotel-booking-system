@@ -1,6 +1,4 @@
-/**
- * Chuẩn hoá message lỗi từ API (axios / throw object / string).
- */
+/** Chuẩn hoá message lỗi từ API (axios / throw object / string). */
 export function apiErrorMessage(err, fallback = 'Đã xảy ra lỗi') {
   if (typeof err === 'string' && err.trim()) return err;
   if (err && typeof err === 'object') {

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { getRoomPrice } from '@/shared/utils/roomPrice';
+import { getRoomPrice, apiErrorMessage } from '@/shared/utils';
 import Dialog from '@/components/ui/Dialog';
-import { apiErrorMessage } from '@/shared/utils';
 import api from '@/apis';
 import './UpdateRoomStatusDialog.scss';
 

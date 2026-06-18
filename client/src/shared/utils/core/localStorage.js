@@ -1,6 +1,4 @@
-/**
- * Đọc boolean từ localStorage an toàn (JSON hỏng, chuỗi "true"/"false" thuần, v.v.).
- */
+/** Đọc boolean từ localStorage an toàn (JSON hỏng, chuỗi "true"/"false" thuần, v.v.). */
 export function readLocalStorageBoolean(key, fallback = false) {
   try {
     const raw = localStorage.getItem(key);

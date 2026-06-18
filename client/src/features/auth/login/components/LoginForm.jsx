@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import api from '@/apis';
 import { setLogin } from '@/store/slices/userSlice';
-import { resolvePostLoginNavigation } from '@/shared/utils/postLoginRedirect';
+import { resolvePostLoginNavigation } from '@/shared/utils';
 import { Slide } from '@/components';
 import { IMAGE_PATHS } from '@/constants/images';
 import { DEFAULT_SLIDE_IMAGES } from '@/constants/slides';

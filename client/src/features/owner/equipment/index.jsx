@@ -7,7 +7,8 @@ import EquipmentGuide from './EquipmentGuide';
 import EquipmentDeleteDialog from './EquipmentDeleteDialog';
 import EquipmentRepairRequestDialog from './EquipmentRepairRequestDialog';
 import EquipmentRoomCard from './EquipmentRoomCard';
-import { apiErrorMessage, mergeRoomIntoList } from './equipmentUtils';
+import { apiErrorMessage } from '@/shared/utils';
+import { mergeRoomIntoList } from './equipmentUtils';
 import './EquipmentPage.scss';
 
 /**
