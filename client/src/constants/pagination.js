@@ -1,0 +1,18 @@
+/**
+ * Kích thước trang mặc định theo từng màn hình
+ */
+export const PAGE_SIZE = {
+  GUEST_HOTELS: 12,
+  HOTEL_REVIEWS: 10,
+  NOTIFICATIONS: 15,
+  ADMIN_USERS: 15,
+  ADMIN_HOTELS: 10,
+  ADMIN_BOOKINGS: 20,
+  ADMIN_CONTACT: 20,
+  ADMIN_HOTEL_GROUPS: 5,
+  OWNER_BOOKINGS: 12,
+  OWNER_SALES: 10,
+  OWNER_REVIEWS: 10,
+  STAFF_BOOKINGS: 12,
+  STAFF_REVIEWS: 10,
+};

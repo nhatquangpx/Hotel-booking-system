@@ -33,6 +33,7 @@ const {
 } = require("../validations/paramsValidation");
 
 router.get('/hotels', hotelController.getAllHotels);
+router.get('/hotels/cities', hotelController.getGuestHotelCities);
 router.get('/hotels/filter', hotelController.getHotelByFilter);
 router.get('/hotels/featured', hotelController.getFeaturedHotels);
 router.get('/hotels/:id', optionalAuthenticate, hotelController.getHotelById);

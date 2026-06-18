@@ -1,4 +1,5 @@
 import { GuestLayout } from '@/features/guest/components/layout';
+import Pagination from '@/shared/components/Pagination/Pagination';
 import { HotelFilters, HotelCard, HotelListHeader } from './components';
 import { useHotelFilters } from './hooks/useHotelFilters';
 import { useGuestWishlist } from '@/features/guest/hooks';
@@ -11,15 +12,18 @@ import './HotelList.scss';
 export const GuestHotelListPage = () => {
   const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
 
-  const { 
-    hotels, 
-    cities, 
-    filters, 
-    loading, 
-    error, 
-    handleFilterChange, 
-    handleAmenityToggle, 
-    clearFilters 
+  const {
+    hotels,
+    cities,
+    filters,
+    loading,
+    error,
+    page,
+    setPage,
+    pagination,
+    handleFilterChange,
+    handleAmenityToggle,
+    clearFilters,
   } = useHotelFilters();
 
   return (
@@ -49,7 +53,7 @@ export const GuestHotelListPage = () => {
           )}
 
           <div className="hotel-grid">
-            {hotels && hotels.map((hotel) => (
+            {hotels.map((hotel) => (
               <HotelCard
                 key={hotel._id}
                 hotel={hotel}
@@ -58,6 +62,18 @@ export const GuestHotelListPage = () => {
               />
             ))}
           </div>
+
+          {!loading && !error && pagination.total > 0 && (
+            <Pagination
+              page={page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.limit}
+              onPageChange={setPage}
+              variant="guest"
+              className="hotel-list-pagination"
+            />
+          )}
         </div>
       </div>
     </GuestLayout>

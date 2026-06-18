@@ -7,7 +7,8 @@ export * from './users';
 export * from './hotels';
 export * from './bookings';
 export * from './contact';
-export { 
+export { default as AdminNotificationsPage } from './notifications';
+export {
   AdminProfileAccountPage,
   AdminProfileEditPage,
   AdminProfileChangePasswordPage,

@@ -1,13 +1,11 @@
 import api from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/paginationResponse';
 
 export const ownerBookingAPI = {
-  // Cập nhật trạng thái đặt phòng
-  getOwnerBookings: async (hotelId) => {
+  getOwnerBookings: async (params = {}) => {
     try {
-      const params = {};
-      if (hotelId) params.hotelId = hotelId;
       const response = await api.get('/owner/bookings', { params });
-      return response.data;
+      return unwrapPaginated(response.data, 'bookings');
     } catch (error) {
       throw error.response?.data || error.message;
     }

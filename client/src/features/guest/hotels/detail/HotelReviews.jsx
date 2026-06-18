@@ -1,5 +1,6 @@
 import { FaStar } from 'react-icons/fa';
 import { formatDate, getHotelReply, formatReviewReplyTitle } from '@/shared/utils';
+import Pagination from '@/shared/components/Pagination/Pagination';
 import './HotelReviews.scss';
 
 /**
@@ -124,25 +125,13 @@ const HotelReviews = ({
           </div>
 
           {totalPages > 1 && (
-            <div className="reviews-pagination">
-              <button
-                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="pagination-btn"
-              >
-                Trước
-              </button>
-              <span className="page-info">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="pagination-btn"
-              >
-                Sau
-              </button>
-            </div>
+            <Pagination
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              variant="guest"
+              className="reviews-pagination"
+            />
           )}
         </>
       )}

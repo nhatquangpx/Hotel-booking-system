@@ -12,6 +12,8 @@ import ContactFilterSelector, {
   REPLIED_FILTERS,
 } from "./components/ContactFilterSelector";
 import ReplyContactModal from "./components/ReplyContactModal";
+import Pagination from "@/shared/components/Pagination/Pagination";
+import { PAGE_SIZE } from "@/constants/pagination";
 import "./ContactMessageList.scss";
 
 const textFieldSx = {
@@ -19,7 +21,7 @@ const textFieldSx = {
   InputProps: { style: { color: "var(--admin-text)" } },
 };
 
-const PAGE_LIMIT = 20;
+const PAGE_LIMIT = PAGE_SIZE.ADMIN_CONTACT;
 
 const AdminContactMessageListPage = () => {
   const [messages, setMessages] = useState([]);
@@ -319,20 +321,15 @@ const AdminContactMessageListPage = () => {
           onDelete={handleDeleteClick}
         />
 
-        <div className="contact-pagination admin-pagination">
-          <button disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
-            Trước
-          </button>
-          <span>
-            Trang {pagination.page} / {pagination.totalPages || 1}
-          </span>
-          <button
-            disabled={page >= (pagination.totalPages || 1)}
-            onClick={() => handlePageChange(page + 1)}
-          >
-            Sau
-          </button>
-        </div>
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages || 1}
+          total={pagination.total}
+          pageSize={PAGE_LIMIT}
+          onPageChange={handlePageChange}
+          variant="admin"
+          className="contact-pagination admin-pagination"
+        />
 
         <ReplyContactModal
           message={replyingMessage}

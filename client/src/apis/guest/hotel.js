@@ -1,32 +1,39 @@
 import api from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/paginationResponse';
 
 export const userHotelAPI = {
-  // Lấy tất cả khách sạn
-  getAllHotels: async () => {
+  getHotelCities: async () => {
     try {
-      const response = await api.get('/guest/hotels');
+      const response = await api.get('/guest/hotels/cities');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // Lấy khách sạn theo bộ lọc
-  getHotelByFilter: async (filters) => {
+  getAllHotels: async (params = {}) => {
+    try {
+      const response = await api.get('/guest/hotels', { params });
+      return unwrapPaginated(response.data, 'hotels');
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getHotelByFilter: async (filters = {}) => {
     try {
       const response = await api.get('/guest/hotels/filter', { params: filters });
-      return response.data;
+      return unwrapPaginated(response.data, 'hotels');
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // Lấy thông tin chi tiết khách sạn
   getHotelById: async (id, options = {}) => {
     try {
       const params = {};
       if (options.forBooking) {
-        params.forBooking = "true";
+        params.forBooking = 'true';
       }
       const response = await api.get(`/guest/hotels/${id}`, { params });
       return response.data;
@@ -35,7 +42,6 @@ export const userHotelAPI = {
     }
   },
 
-  // Lấy danh sách khách sạn nổi bật
   getFeaturedHotels: async () => {
     try {
       const response = await api.get('/guest/hotels/featured');
@@ -45,7 +51,6 @@ export const userHotelAPI = {
     }
   },
 
-  // Tìm kiếm khách sạn
   searchHotels: async (searchParams) => {
     try {
       const response = await api.get('/guest/hotels/search', { params: searchParams });
@@ -53,7 +58,7 @@ export const userHotelAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
 };
 
-export default userHotelAPI; 
+export default userHotelAPI;

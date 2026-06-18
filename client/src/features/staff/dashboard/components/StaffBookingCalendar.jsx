@@ -70,8 +70,8 @@ const StaffBookingCalendar = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await staffBookingAPI.getBookings();
-      setBookings(Array.isArray(data) ? data : []);
+      const result = await staffBookingAPI.getBookings({ all: true });
+      setBookings(result.items || []);
     } catch (err) {
       setBookings([]);
       setError(err.message || 'Không thể tải lịch đặt phòng');

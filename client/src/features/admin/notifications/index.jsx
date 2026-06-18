@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCalendarAlt, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaClock } from 'react-icons/fa';
-import OwnerLayout from '../components/OwnerLayout';
+import {
+  FaCalendarAlt,
+  FaDollarSign,
+  FaExclamationTriangle,
+  FaUser,
+  FaBell,
+  FaCheck,
+  FaTimes,
+  FaBan,
+} from 'react-icons/fa';
+import { AdminLayout } from '@/features/admin/components';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import api from '@/apis';
 import { useAuth, useSocket } from '@/shared/hooks';
 import { formatDateTime } from '@/shared/utils/format';
@@ -11,11 +22,9 @@ import {
   markReadInList,
   markAllReadInList,
 } from '@/features/notifications/utils/notificationRead';
-import Pagination from '@/shared/components/Pagination/Pagination';
-import { PAGE_SIZE } from '@/constants/pagination';
-import './Notifications.scss';
+import '@/features/owner/notifications/Notifications.scss';
 
-const OwnerNotificationsPage = () => {
+const AdminNotificationsPage = () => {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
   const navigate = useNavigate();
@@ -27,53 +36,36 @@ const OwnerNotificationsPage = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const limit = PAGE_SIZE.NOTIFICATIONS;
 
-  // Format thời gian
   const formatTimeAgo = (date) => {
     const now = new Date();
     const notificationDate = new Date(date);
     const diffInSeconds = Math.floor((now - notificationDate) / 1000);
 
-    if (diffInSeconds < 60) {
-      return 'Vừa xong';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} phút trước`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} giờ trước`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} ngày trước`;
-    }
+    if (diffInSeconds < 60) return 'Vừa xong';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+    return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
   };
 
-  // Lấy icon theo loại thông báo
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'new_booking':
-      case 'checkin_today':
-      case 'checkout_today':
-        return <FaCalendarAlt />;
+      case 'high_value_booking':
+        return <FaDollarSign />;
       case 'booking_cancelled':
         return <FaBan />;
-      case 'no_show':
-        return <FaClock />;
       case 'new_review':
         return <FaUser />;
       case 'negative_review':
         return <FaExclamationTriangle style={{ color: '#dc3545' }} />;
-      case 'hotel_status_changed':
-        return <FaExclamationTriangle style={{ color: '#e67e22' }} />;
       default:
         return <FaBell />;
     }
   };
 
-  // Fetch notifications
   const fetchNotifications = async (pageNum = 1) => {
     setLoading(true);
     try {
-      const response = await api.notification.owner.getNotifications(pageNum, limit);
+      const response = await api.notification.admin.getNotifications(pageNum, limit);
       setNotifications(response.notifications || []);
       setUnreadCount(response.unreadCount || 0);
       setTotalPages(response.pagination?.totalPages || 1);
@@ -86,53 +78,45 @@ const OwnerNotificationsPage = () => {
     }
   };
 
-  // Mark as read
   const handleMarkAsRead = async (notificationId) => {
     try {
-      await api.notification.owner.markAsRead(notificationId);
+      await api.notification.admin.markAsRead(notificationId);
       setNotifications((prev) => markReadInList(prev, notificationId, userId));
-      // Unread count sẽ được update từ socket
     } catch (error) {
       console.error('Lỗi khi đánh dấu thông báo:', error);
     }
   };
 
-  // Mark all as read
   const handleMarkAllAsRead = async () => {
     try {
-      await api.notification.owner.markAllAsRead();
+      await api.notification.admin.markAllAsRead();
       setNotifications((prev) => markAllReadInList(prev, userId));
-      // Unread count sẽ được update từ socket
     } catch (error) {
       console.error('Lỗi khi đánh dấu tất cả thông báo:', error);
     }
   };
 
-  // Handle realtime notification
   const handleRealtimeNotification = (notification) => {
-    setNotifications(prev => {
-      const exists = prev.some(n => n._id === notification._id);
+    setNotifications((prev) => {
+      const exists = prev.some((n) => n._id === notification._id);
       if (exists) return prev;
       if (page === 1) return [notification, ...prev].slice(0, limit);
       return prev;
     });
   };
 
-  // Handle realtime unread count update
   const handleUnreadCountUpdate = (count) => {
     setUnreadCount(count);
   };
 
-  // Setup Socket.io connection for realtime notifications
   useSocket(handleRealtimeNotification, handleUnreadCountUpdate);
 
-  // Handle notification click
   const handleNotificationClick = (notification) => {
     if (!isNotificationReadByUser(notification, userId)) {
       handleMarkAsRead(notification._id);
     }
 
-    const path = getNotificationPath(notification, 'owner');
+    const path = getNotificationPath(notification, 'admin');
     if (path) {
       navigate(path);
     }
@@ -144,11 +128,12 @@ const OwnerNotificationsPage = () => {
   }, [page]);
 
   return (
-    <OwnerLayout>
-      <div className="notifications-page">
+    <AdminLayout>
+      <div className="notifications-page admin-notifications">
         <div className="notifications-header">
-          <button 
-            className="mark-all-read-btn" 
+          <h1>Thông báo</h1>
+          <button
+            className="mark-all-read-btn"
             onClick={handleMarkAllAsRead}
             disabled={unreadCount === 0}
           >
@@ -165,37 +150,37 @@ const OwnerNotificationsPage = () => {
             notifications.map((notification) => {
               const read = isNotificationReadByUser(notification, userId);
               return (
-              <div
-                key={notification._id}
-                className={`notification-item ${!read ? 'unread' : ''}`}
-                onClick={() => handleNotificationClick(notification)}
-              >
-                <div className="notification-icon">
-                  {getNotificationIcon(notification.type)}
-                </div>
-                <div className="notification-content">
-                  <div className="notification-title-row">
-                    <div className="notification-title">{notification.title}</div>
-                    {!read && (
-                      <button
-                        className="mark-read-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMarkAsRead(notification._id);
-                        }}
-                        title="Đánh dấu là đã đọc"
-                      >
-                        <FaTimes />
-                      </button>
-                    )}
+                <div
+                  key={notification._id}
+                  className={`notification-item ${!read ? 'unread' : ''}`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <div className="notification-icon">
+                    {getNotificationIcon(notification.type)}
                   </div>
-                  <div className="notification-message">{notification.message}</div>
-                  <div className="notification-time">
-                    {formatTimeAgo(notification.createdAt)} • {formatDateTime(notification.createdAt)}
+                  <div className="notification-content">
+                    <div className="notification-title-row">
+                      <div className="notification-title">{notification.title}</div>
+                      {!read && (
+                        <button
+                          className="mark-read-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsRead(notification._id);
+                          }}
+                          title="Đánh dấu là đã đọc"
+                        >
+                          <FaTimes />
+                        </button>
+                      )}
+                    </div>
+                    <div className="notification-message">{notification.message}</div>
+                    <div className="notification-time">
+                      {formatTimeAgo(notification.createdAt)} • {formatDateTime(notification.createdAt)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
+              );
             })
           )}
         </div>
@@ -210,9 +195,8 @@ const OwnerNotificationsPage = () => {
           className="notifications-pagination"
         />
       </div>
-    </OwnerLayout>
+    </AdminLayout>
   );
 };
 
-export default OwnerNotificationsPage;
-
+export default AdminNotificationsPage;

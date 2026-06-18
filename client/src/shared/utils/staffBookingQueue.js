@@ -5,8 +5,6 @@ import {
   needsOwnerCheckInToday,
   needsOwnerCheckOutToday,
   needsOwnerCheckInOutToday,
-  filterOwnerCheckInOutQueue,
-  sortOwnerBookingsByCheckInOutPriority,
 } from './ownerBookingQueue';
 
 export const needsStaffCheckInToday = needsOwnerCheckInToday;
@@ -33,16 +31,4 @@ export function getStaffActionCounts(bookings, referenceDate = new Date()) {
     checkIn,
     checkOut,
   };
-}
-
-export function filterStaffActionBookings(
-  bookings,
-  { search = '', type = 'all' } = {},
-  referenceDate = new Date()
-) {
-  return filterOwnerCheckInOutQueue(bookings, { search, type }, referenceDate);
-}
-
-export function sortStaffActionBookings(bookings, referenceDate = new Date()) {
-  return sortOwnerBookingsByCheckInOutPriority(bookings, referenceDate);
 }

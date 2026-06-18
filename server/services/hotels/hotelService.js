@@ -20,26 +20,98 @@ const {
   isGuestHotelByIdRequest,
   shouldExposePaymentConfig,
 } = require("./helpers");
+const {
+  parsePaginationQuery,
+  buildPaginationMeta,
+  escapeRegex,
+  paginatedBody,
+} = require("../../lib/http/pagination");
 
-async function getAllHotels({ req, city, starRating }) {
+function mapGuestHotels(req, hotels) {
+  return hotels.map((h) =>
+    applyGuestHotelPayloadSanitize(req, h.toObject ? h.toObject() : { ...h })
+  );
+}
+
+function buildAdminHotelListQuery({ searchName, searchAddress, searchPhone, city, starRating }) {
   const query = {};
-  if (city) query["address.city"] = { $regex: city, $options: "i" };
+  if (city) query["address.city"] = { $regex: escapeRegex(city), $options: "i" };
   if (starRating) query.starRating = starRating;
 
-  const hotels = await Hotel.find(query).populate({
-    path: "ownerId",
-    select: "name email phone _id",
-  });
+  const name = String(searchName || "").trim();
+  const address = String(searchAddress || "").trim();
+  const phone = String(searchPhone || "").trim();
 
-  if (req.baseUrl === "/api/guest") {
-    return {
-      status: 200,
-      body: hotels.map((h) =>
-        applyGuestHotelPayloadSanitize(req, h.toObject ? h.toObject() : { ...h })
-      ),
-    };
+  if (name) query.name = { $regex: escapeRegex(name), $options: "i" };
+  if (phone) query["contactInfo.phone"] = { $regex: escapeRegex(phone), $options: "i" };
+  if (address) {
+    query.$or = [
+      { "address.street": { $regex: escapeRegex(address), $options: "i" } },
+      { "address.city": { $regex: escapeRegex(address), $options: "i" } },
+      { "address.number": { $regex: escapeRegex(address), $options: "i" } },
+    ];
   }
-  return { status: 200, body: hotels };
+
+  return query;
+}
+
+async function getGuestHotelCities() {
+  const cities = await Hotel.distinct("address.city", {
+    status: "active",
+    "address.city": { $nin: [null, ""] },
+  });
+  return {
+    status: 200,
+    body: cities.filter(Boolean).sort((a, b) => a.localeCompare(b, "vi")),
+  };
+}
+
+async function getAllHotels({
+  req,
+  city,
+  starRating,
+  page,
+  limit,
+  all,
+  searchName,
+  searchAddress,
+  searchPhone,
+}) {
+  const isGuest = req.baseUrl === "/api/guest";
+  const query = isGuest
+    ? (() => {
+        const q = {};
+        if (city) q["address.city"] = { $regex: escapeRegex(city), $options: "i" };
+        if (starRating) q.starRating = starRating;
+        return q;
+      })()
+    : buildAdminHotelListQuery({ searchName, searchAddress, searchPhone, city, starRating });
+
+  const pag = parsePaginationQuery(
+    { page, limit, all },
+    { defaultLimit: isGuest ? 12 : 10, maxLimit: 100 }
+  );
+
+  const baseQuery = Hotel.find(query)
+    .populate({ path: "ownerId", select: "name email phone _id" })
+    .sort({ createdAt: -1 });
+
+  if (pag.all) {
+    const hotels = await baseQuery;
+    const body = isGuest ? mapGuestHotels(req, hotels) : hotels;
+    return { status: 200, body };
+  }
+
+  const [hotels, total] = await Promise.all([
+    baseQuery.skip(pag.skip).limit(pag.limit),
+    Hotel.countDocuments(query),
+  ]);
+
+  const items = isGuest ? mapGuestHotels(req, hotels) : hotels;
+  return {
+    status: 200,
+    body: paginatedBody(items, buildPaginationMeta({ page: pag.page, limit: pag.limit, total }), "hotels"),
+  };
 }
 
 async function getHotelById({ req, id }) {
@@ -436,16 +508,19 @@ async function getHotelByFilter({ req, filters }) {
     maxPeople,
     roomType,
     amenities,
+    page,
+    limit,
+    all,
   } = filters;
 
   const hotelQuery = { status: "active" };
-  if (city) hotelQuery["address.city"] = { $regex: city, $options: "i" };
-  if (starRating) hotelQuery.starRating = parseInt(starRating);
-  if (name) hotelQuery.name = { $regex: name, $options: "i" };
+  if (city) hotelQuery["address.city"] = { $regex: escapeRegex(city), $options: "i" };
+  if (starRating) hotelQuery.starRating = parseInt(starRating, 10);
+  if (name) hotelQuery.name = { $regex: escapeRegex(name), $options: "i" };
   if (search) {
     hotelQuery.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { "address.city": { $regex: search, $options: "i" } },
+      { name: { $regex: escapeRegex(search), $options: "i" } },
+      { "address.city": { $regex: escapeRegex(search), $options: "i" } },
     ];
   }
 
@@ -458,7 +533,7 @@ async function getHotelByFilter({ req, filters }) {
       if (maxPrice) priceCond.$lte = parseInt(maxPrice, 10);
       roomQuery.price = priceCond;
     }
-    if (maxPeople) roomQuery.maxPeople = { $gte: parseInt(maxPeople) };
+    if (maxPeople) roomQuery.maxPeople = { $gte: parseInt(maxPeople, 10) };
     if (roomType) {
       const roomTypes = Array.isArray(roomType) ? roomType : [roomType];
       roomQuery.type = { $in: roomTypes };
@@ -480,18 +555,36 @@ async function getHotelByFilter({ req, filters }) {
     if (hotelIds.length > 0) {
       hotelQuery._id = { $in: hotelIds.map((hid) => new mongoose.Types.ObjectId(hid)) };
     } else {
-      return { status: 200, body: [] };
+      const pag = parsePaginationQuery({ page, limit, all }, { defaultLimit: 12, maxLimit: 100 });
+      if (pag.all) return { status: 200, body: [] };
+      return {
+        status: 200,
+        body: paginatedBody([], buildPaginationMeta({ page: pag.page, limit: pag.limit, total: 0 }), "hotels"),
+      };
     }
   }
 
-  const hotels = await Hotel.find(hotelQuery)
+  const pag = parsePaginationQuery({ page, limit, all }, { defaultLimit: 12, maxLimit: 100 });
+  const baseQuery = Hotel.find(hotelQuery)
     .populate({ path: "ownerId", select: "name email phone _id" })
     .sort({ createdAt: -1 });
 
+  if (pag.all) {
+    const hotels = await baseQuery;
+    return { status: 200, body: mapGuestHotels(req, hotels) };
+  }
+
+  const [hotels, total] = await Promise.all([
+    baseQuery.skip(pag.skip).limit(pag.limit),
+    Hotel.countDocuments(hotelQuery),
+  ]);
+
   return {
     status: 200,
-    body: hotels.map((h) =>
-      applyGuestHotelPayloadSanitize(req, h.toObject ? h.toObject() : { ...h })
+    body: paginatedBody(
+      mapGuestHotels(req, hotels),
+      buildPaginationMeta({ page: pag.page, limit: pag.limit, total }),
+      "hotels"
     ),
   };
 }
@@ -542,6 +635,7 @@ async function getStaffHotelMaintenanceContact({ hotel }) {
 
 module.exports = {
   getAllHotels,
+  getGuestHotelCities,
   getHotelById,
   getHotelsByOwner,
   createHotel,

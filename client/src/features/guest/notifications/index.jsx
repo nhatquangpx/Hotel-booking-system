@@ -11,6 +11,8 @@ import {
   markAllReadInList,
 } from '@/features/notifications/utils/notificationRead';
 import { formatDateTime } from '@/shared/utils/format';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import './Notifications.scss';
 
 const GuestNotificationsPage = () => {
@@ -20,9 +22,10 @@ const GuestNotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
-  const limit = 20;
+  const limit = PAGE_SIZE.NOTIFICATIONS;
 
   // Format thời gian
   const formatTimeAgo = (date) => {
@@ -61,29 +64,20 @@ const GuestNotificationsPage = () => {
   };
 
   // Fetch notifications
-  const fetchNotifications = async (pageNum = 1, append = false) => {
+  const fetchNotifications = async (pageNum = 1) => {
     setLoading(true);
     try {
       const response = await api.notification.guest.getNotifications(pageNum, limit);
-      if (append) {
-        setNotifications(prev => [...prev, ...response.notifications]);
-      } else {
-        setNotifications(response.notifications);
-      }
-      setUnreadCount(response.unreadCount);
-      setHasMore(response.pagination.page < response.pagination.totalPages);
+      setNotifications(response.notifications || []);
+      setUnreadCount(response.unreadCount || 0);
+      setTotalPages(response.pagination?.totalPages || 1);
+      setTotal(response.pagination?.total || response.notifications?.length || 0);
       setPage(pageNum);
     } catch (error) {
       console.error('Lỗi khi tải thông báo:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Load more
-  const handleLoadMore = () => {
-    if (!hasMore || loading) return;
-    fetchNotifications(page + 1, true);
   };
 
   // Mark as read
@@ -110,12 +104,11 @@ const GuestNotificationsPage = () => {
 
   // Handle realtime notification
   const handleRealtimeNotification = (notification) => {
-    // Thêm notification mới vào đầu danh sách
     setNotifications(prev => {
-      // Kiểm tra xem notification đã tồn tại chưa (tránh duplicate)
       const exists = prev.some(n => n._id === notification._id);
       if (exists) return prev;
-      return [notification, ...prev];
+      if (page === 1) return [notification, ...prev].slice(0, limit);
+      return prev;
     });
   };
 
@@ -141,8 +134,9 @@ const GuestNotificationsPage = () => {
   };
 
   useEffect(() => {
-    fetchNotifications(1, false);
-  }, []);
+    fetchNotifications(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   return (
     <GuestLayout>
@@ -203,17 +197,15 @@ const GuestNotificationsPage = () => {
             )}
           </div>
 
-          {hasMore && (
-            <div className="notifications-footer">
-              <button
-                className="load-more-btn"
-                onClick={handleLoadMore}
-                disabled={loading}
-              >
-                {loading ? 'Đang tải...' : 'Tải thêm thông báo'}
-              </button>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            pageSize={limit}
+            onPageChange={setPage}
+            variant="center"
+            className="notifications-pagination"
+          />
         </div>
       </div>
     </GuestLayout>

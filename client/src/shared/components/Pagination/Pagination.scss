@@ -1,0 +1,104 @@
+@use '@/styles/global' as *;
+@use '@/styles/text' as *;
+
+.app-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+
+  &__summary {
+    @include body-sm;
+    color: $text-secondary;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-left: auto;
+  }
+
+  &__info {
+    @include body-sm;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+
+  &__btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid $border-medium;
+    background: $bg-white;
+    border-radius: 8px;
+    color: $text-primary;
+    cursor: pointer;
+    font-weight: 500;
+    @include body-sm;
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba($lotte-primary, 0.08);
+      border-color: $lotte-primary;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &--admin {
+    padding: 0.75rem 1rem;
+    background: $bg-white;
+    border: 1px solid var(--admin-border, $border-light);
+    border-radius: 12px;
+  }
+
+  &--guest {
+    justify-content: center;
+
+    .app-pagination__controls {
+      margin-left: 0;
+    }
+
+    .app-pagination__btn {
+      background-color: $button-primary;
+      color: $text-white;
+      border: none;
+
+      &:hover:not(:disabled) {
+        background-color: $button-primary-hover;
+      }
+
+      &:disabled {
+        background-color: $grey-medium;
+      }
+    }
+  }
+
+  &--center {
+    justify-content: center;
+
+    .app-pagination__controls {
+      margin-left: 0;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .app-pagination {
+    flex-direction: column;
+    align-items: stretch;
+
+    &__controls {
+      margin-left: 0;
+      justify-content: center;
+    }
+
+    &__summary {
+      text-align: center;
+    }
+  }
+}

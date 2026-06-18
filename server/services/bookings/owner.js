@@ -56,29 +56,87 @@ const toPublicUrl = (relativeOrAbsoluteUrl) => {
  * @param {String} ownerId - Owner user ID
  * @returns {Promise<Array>} Array of bookings
  */
-const getBookingsByOwner = async (ownerId, hotelId) => {
-  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
+const getBookingsByOwner = async (ownerId, hotelId, options = {}) => {
+  const {
+    page,
+    limit,
+    all,
+    view = "all",
+    showPastBookings,
+    statusFilter,
+    methodFilter,
+    proofFilter,
+    search,
+  } = options;
 
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
   if (hotelIds.length === 0) {
-    return [];
+    if (all === true || all === "true") return [];
+    return paginatedBody([], buildPaginationMeta({ page: 1, limit: limit || 12, total: 0 }), "bookings");
   }
 
-  const bookings = await Booking.find({ hotel: { $in: hotelIds } })
-    .populate({
-      path: "hotel",
-      select: "name address"
-    })
-    .populate({
-      path: "room",
-      select: "roomNumber type"
-    })
-    .populate({
-      path: "guest",
-      select: "name email phone"
-    })
-    .sort({ createdAt: -1 });
+  const {
+    parsePaginationQuery,
+    buildPaginationMeta,
+    paginatedBody,
+  } = require("../../lib/http/pagination");
+  const {
+    BOOKING_POPULATE,
+    buildOwnerBookingFilterQuery,
+    buildOwnerActionBookingQuery,
+  } = require("./listQuery");
+  const User = require("../../models/User");
 
-  return bookings;
+  const baseQuery = { hotel: { $in: hotelIds } };
+  const conditions = [baseQuery];
+
+  if (view === "action") {
+    conditions.push(buildOwnerActionBookingQuery());
+  } else {
+    const filterQuery = buildOwnerBookingFilterQuery({
+      showPastBookings,
+      statusFilter,
+      methodFilter,
+      proofFilter,
+    });
+    if (Object.keys(filterQuery).length) conditions.push(filterQuery);
+  }
+
+  const q = String(search || "").trim();
+  if (q) {
+    const regex = { $regex: require("../../lib/http/pagination").escapeRegex(q), $options: "i" };
+    const guests = await User.find({
+      $or: [{ name: regex }, { phone: regex }],
+    }).select("_id");
+    const guestIds = guests.map((g) => g._id);
+    const searchConditions = [{ _id: regex }];
+    if (guestIds.length) searchConditions.push({ guest: { $in: guestIds } });
+    conditions.push({ $or: searchConditions });
+  }
+
+  const mongoQuery = conditions.length > 1 ? { $and: conditions } : baseQuery;
+  const pag = parsePaginationQuery({ page, limit, all }, { defaultLimit: 12, maxLimit: 100 });
+
+  if (pag.all) {
+    return Booking.find(mongoQuery)
+      .populate(BOOKING_POPULATE)
+      .sort({ createdAt: -1 });
+  }
+
+  const [bookings, total] = await Promise.all([
+    Booking.find(mongoQuery)
+      .populate(BOOKING_POPULATE)
+      .sort({ createdAt: -1 })
+      .skip(pag.skip)
+      .limit(pag.limit),
+    Booking.countDocuments(mongoQuery),
+  ]);
+
+  return paginatedBody(
+    bookings,
+    buildPaginationMeta({ page: pag.page, limit: pag.limit, total }),
+    "bookings"
+  );
 };
 
 /**

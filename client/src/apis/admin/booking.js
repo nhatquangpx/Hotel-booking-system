@@ -1,10 +1,19 @@
 import api from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/paginationResponse';
 
 export const adminBookingAPI = {
-  getAllBookings: async () => {
+  getAllBookings: async (params = {}) => {
     try {
-      const response = await api.get('/admin/bookings');
-      return response.data;
+      const response = await api.get('/admin/bookings', { params });
+      if (params.view === 'hotel') {
+        const data = response.data;
+        return {
+          items: data.hotelGroups || [],
+          pagination: data.pagination,
+          raw: data,
+        };
+      }
+      return unwrapPaginated(response.data, 'bookings');
     } catch (error) {
       throw error.response?.data || error.message;
     }

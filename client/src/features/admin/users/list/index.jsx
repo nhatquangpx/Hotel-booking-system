@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Paper, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { AdminLayout, ConfirmDeleteDialog } from '@/features/admin/components';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import UserFormDialog from '../components/UserFormDialog';
 import UserDetailDialog from '../components/UserDetailDialog';
 import UserTable from './components/UserTable';
@@ -14,12 +16,9 @@ import api from '../../../../apis';
 import { apiErrorMessage } from '@/shared/utils';
 import {
   VIEW_MODES,
-  filterUsers,
   groupUsersByRole,
-  buildHotelViewData,
 } from './utils/userListHelpers';
 import './UserList.scss';
-
 /**
  * Admin User List page feature
  * List and manage users for admin
@@ -27,13 +26,26 @@ import './UserList.scss';
 const AdminUserListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [users, setUsers] = useState([]);
-  const [hotels, setHotels] = useState([]);
+  const [hotelGroups, setHotelGroups] = useState([]);
+  const [hotelViewExtra, setHotelViewExtra] = useState({
+    orphanStaff: [],
+    orphanOwners: [],
+    separateRoleGroups: {},
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [viewMode, setViewMode] = useState(VIEW_MODES.LIST);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE.ADMIN_USERS,
+    total: 0,
+    totalPages: 1,
+  });
+  const resetPageOnFetch = useRef(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [deletingUser, setDeletingUser] = useState(false);
@@ -49,32 +61,63 @@ const AdminUserListPage = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchHotels();
-  }, []);
+  const searchKey = `${searchTerm}|${searchEmail}|${searchPhone}|${viewMode}`;
 
-  const fetchUsers = async () => {
+  useEffect(() => {
+    setPage(1);
+    resetPageOnFetch.current = true;
+  }, [searchKey]);
+
+  const fetchUsers = useCallback(async (targetPage = page) => {
     try {
       setLoading(true);
-      const data = await api.adminUser.getAllUsers();
-      setUsers(data);
+      const isHotelView = viewMode === VIEW_MODES.HOTEL;
+      const isRoleView = viewMode === VIEW_MODES.ROLE;
+
+      const params = {
+        view: isHotelView ? 'hotel' : 'list',
+        searchName: searchTerm,
+        searchEmail,
+        searchPhone,
+      };
+
+      if (isRoleView) {
+        params.all = true;
+      } else {
+        params.page = targetPage;
+        params.limit = isHotelView ? PAGE_SIZE.ADMIN_HOTEL_GROUPS : PAGE_SIZE.ADMIN_USERS;
+      }
+
+      const result = await api.adminUser.getAllUsers(params);
+
+      if (isHotelView) {
+        setHotelGroups(result.items || []);
+        setHotelViewExtra(result.extra || {});
+        setUsers([]);
+      } else {
+        setUsers(result.items || []);
+        setHotelGroups([]);
+      }
+      setPagination(result.pagination);
+      if (!isRoleView) {
+        setPage(targetPage);
+      }
       setError(null);
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra khi tải danh sách người dùng');
     } finally {
       setLoading(false);
+      resetPageOnFetch.current = false;
     }
-  };
+  }, [page, viewMode, searchTerm, searchEmail, searchPhone]);
 
-  const fetchHotels = async () => {
-    try {
-      const data = await api.adminHotel.getAllHotels();
-      setHotels(data);
-    } catch {
-      // Không chặn trang nếu tải KS thất bại; chế độ theo KS sẽ trống
-    }
-  };
+  useEffect(() => {
+    const targetPage = resetPageOnFetch.current ? 1 : page;
+    const timer = setTimeout(() => {
+      fetchUsers(targetPage);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchUsers, page, searchKey]);
 
   const handleDeleteClick = (user) => {
     setUserToDelete(user);
@@ -87,7 +130,7 @@ const AdminUserListPage = () => {
     try {
       setDeletingUser(true);
       await api.adminUser.deleteUser(userToDelete._id);
-      setUsers((prev) => prev.filter((user) => user._id !== userToDelete._id));
+      await fetchUsers(page);
       setShowDeleteModal(false);
       setUserToDelete(null);
       toast.success('Xóa người dùng thành công');
@@ -134,36 +177,14 @@ const AdminUserListPage = () => {
   };
 
   const handleUserSuccess = () => {
-    fetchUsers();
-    if (viewMode === VIEW_MODES.HOTEL) {
-      fetchHotels();
-    }
+    fetchUsers(page);
   };
 
   const handleViewModeChange = (newMode) => {
     setViewMode(newMode);
   };
 
-  const filteredUsers = useMemo(
-    () =>
-      filterUsers(users, {
-        searchTerm,
-        searchEmail,
-        searchPhone,
-        selectedRole: 'all',
-      }),
-    [users, searchTerm, searchEmail, searchPhone]
-  );
-
-  const roleGroups = useMemo(
-    () => groupUsersByRole(filteredUsers),
-    [filteredUsers]
-  );
-
-  const hotelViewData = useMemo(
-    () => buildHotelViewData(hotels, filteredUsers, users),
-    [hotels, filteredUsers, users]
-  );
+  const roleGroups = useMemo(() => groupUsersByRole(users), [users]);
 
   const renderUserList = () => {
     if (viewMode === VIEW_MODES.ROLE) {
@@ -181,11 +202,18 @@ const AdminUserListPage = () => {
     if (viewMode === VIEW_MODES.HOTEL) {
       return (
         <UserListByHotel
-          hotelGroups={hotelViewData.hotelGroups}
-          orphanStaff={hotelViewData.orphanStaff}
-          orphanOwners={hotelViewData.orphanOwners}
-          separateRoleGroups={hotelViewData.separateRoleGroups}
+          hotelGroups={hotelGroups}
+          orphanStaff={hotelViewExtra.orphanStaff}
+          orphanOwners={hotelViewExtra.orphanOwners}
+          separateRoleGroups={hotelViewExtra.separateRoleGroups}
           loading={loading}
+          hotelPagination={{
+            page: pagination.page,
+            totalPages: pagination.totalPages,
+            total: pagination.total,
+            pageSize: pagination.limit,
+            onPageChange: setPage,
+          }}
           onEdit={handleOpenEditDialog}
           onDelete={handleDeleteClick}
           onView={handleOpenViewDialog}
@@ -195,14 +223,26 @@ const AdminUserListPage = () => {
 
     return (
       <UserTable
-        users={filteredUsers}
+        users={users}
         loading={loading}
+        startIndex={(pagination.page - 1) * pagination.limit}
         onEdit={handleOpenEditDialog}
         onDelete={handleDeleteClick}
         onView={handleOpenViewDialog}
       />
     );
   };
+
+  const paginationProps =
+    viewMode === VIEW_MODES.LIST
+      ? {
+          page: pagination.page,
+          totalPages: pagination.totalPages,
+          total: pagination.total,
+          pageSize: pagination.limit,
+          onPageChange: setPage,
+        }
+      : null;
 
   return (
     <AdminLayout>
@@ -261,6 +301,10 @@ const AdminUserListPage = () => {
         {error && <div className="error-message">{error}</div>}
 
         {renderUserList()}
+
+        {paginationProps && (
+          <Pagination {...paginationProps} variant="admin" className="admin-pagination" />
+        )}
 
         <ConfirmDeleteDialog
           isOpen={showDeleteModal}

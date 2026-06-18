@@ -73,7 +73,8 @@ const RoomFormDialog = ({
 
   const fetchHotels = async () => {
     try {
-      const data = await api.adminHotel.getAllHotels();
+      const result = await api.adminHotel.getAllHotels({ all: true });
+      const data = result.items || [];
       setHotels(data);
       if (!isEdit && data && data.length > 0 && !hotelId) {
         setFormData(prev => ({
