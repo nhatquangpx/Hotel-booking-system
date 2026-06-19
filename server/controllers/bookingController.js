@@ -3,52 +3,38 @@ const { runService } = require("../lib/http/controllerHelper");
 
 exports.createBooking = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService
-      .createGuestBooking(
-        {
-          hotelId: req.body.hotelId ?? req.body.hotel,
-          roomId: req.body.roomId ?? req.body.room,
-          checkInDate: req.body.checkInDate,
-          checkOutDate: req.body.checkOutDate,
-          paymentMethod: req.body.paymentMethod,
-          specialRequests: req.body.specialRequests,
-        },
-        req.user.id
-      )
-      .then((body) => ({ status: 201, body }))
+    bookingApi.createBooking({
+      bookingData: {
+        hotelId: req.body.hotelId ?? req.body.hotel,
+        roomId: req.body.roomId ?? req.body.room,
+        checkInDate: req.body.checkInDate,
+        checkOutDate: req.body.checkOutDate,
+        paymentMethod: req.body.paymentMethod,
+        specialRequests: req.body.specialRequests,
+      },
+      userId: req.user.id,
+    })
   );
 
 exports.getPricePreview = (req, res) =>
-  runService(res, async () => {
-    const { hotelId, roomId, checkInDate, checkOutDate } = req.query;
-    if (!hotelId || !roomId || !checkInDate || !checkOutDate) {
-      const { ServiceError } = require("../lib/http/serviceError");
-      throw new ServiceError(400, "Thiếu hotelId, roomId, checkInDate hoặc checkOutDate");
-    }
-    const body = await bookingApi.bookingService.previewBookingPrice(
-      hotelId,
-      roomId,
-      checkInDate,
-      checkOutDate
-    );
-    return { status: 200, body };
-  });
+  runService(res, () =>
+    bookingApi.getPricePreview({
+      hotelId: req.query.hotelId,
+      roomId: req.query.roomId,
+      checkInDate: req.query.checkInDate,
+      checkOutDate: req.query.checkOutDate,
+    })
+  );
 
 exports.getMyBookings = (req, res) =>
-  runService(res, () =>
-    bookingApi.bookingService.getMyBookings(req.user.id).then((body) => ({ status: 200, body }))
-  );
+  runService(res, () => bookingApi.getMyBookings({ userId: req.user.id }));
 
 exports.getUserBookings = (req, res) =>
-  runService(res, () =>
-    bookingApi.bookingService
-      .getUserBookings(req.params.userId)
-      .then((body) => ({ status: 200, body }))
-  );
+  runService(res, () => bookingApi.getUserBookings({ userId: req.params.userId }));
 
 exports.getAllBookings = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService.getAllBookings({
+    bookingApi.getAllBookings({
       page: req.query.page,
       limit: req.query.limit,
       all: req.query.all,
@@ -60,13 +46,15 @@ exports.getAllBookings = (req, res) =>
       searchHotelName: req.query.searchHotelName,
       startDate: req.query.startDate,
       endDate: req.query.endDate,
-    }).then((body) => ({ status: 200, body }))
+    })
   );
 
 exports.getBookingsByOwner = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService
-      .getBookingsByOwner(req.user.id, req.query.hotelId || null, {
+    bookingApi.getBookingsByOwner({
+      ownerId: req.user.id,
+      hotelId: req.query.hotelId || null,
+      query: {
         page: req.query.page,
         limit: req.query.limit,
         all: req.query.all,
@@ -76,27 +64,21 @@ exports.getBookingsByOwner = (req, res) =>
         methodFilter: req.query.methodFilter,
         proofFilter: req.query.proofFilter,
         search: req.query.search,
-      })
-      .then((body) => ({ status: 200, body }))
+      },
+    })
   );
 
 exports.getBookingById = (req, res) =>
   runService(res, () => bookingApi.getBookingByIdForUser({ id: req.params.id, user: req.user }));
 
 exports.getAvailableRooms = (req, res) =>
-  runService(res, async () => {
-    const { hotelId, checkInDate, checkOutDate } = req.query;
-    if (!hotelId || !checkInDate || !checkOutDate) {
-      const { ServiceError } = require("../lib/http/serviceError");
-      throw new ServiceError(400, "Vui lòng cung cấp đầy đủ hotelId, checkInDate và checkOutDate");
-    }
-    const body = await bookingApi.bookingService.getAvailableRooms(
-      hotelId,
-      checkInDate,
-      checkOutDate
-    );
-    return { status: 200, body };
-  });
+  runService(res, () =>
+    bookingApi.getAvailableRooms({
+      hotelId: req.query.hotelId,
+      checkInDate: req.query.checkInDate,
+      checkOutDate: req.query.checkOutDate,
+    })
+  );
 
 exports.updateBookingStatus = (req, res) =>
   runService(res, () =>
@@ -110,33 +92,17 @@ exports.cancelBooking = (req, res) =>
 
 exports.confirmGuestRefund = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService
-      .confirmOwnerGuestRefund(req.params.id, req.user, req.file)
-      .then((booking) => ({
-        status: 200,
-        body: { message: "Đã xác nhận hoàn tiền cho khách", booking },
-      }))
+    bookingApi.confirmGuestRefund({ id: req.params.id, user: req.user, file: req.file })
   );
 
 exports.rejectQrPayment = (req, res) =>
-  runService(res, async () => {
-    const booking = await bookingApi.bookingService.rejectOwnerQrPayment(
-      req.params.id,
-      req.user,
-      req.body.rejectionType
-    );
-    const isResubmit =
-      booking.ownerQrRejectionType === "invalid_proof" && booking.paymentStatus === "pending";
-    return {
-      status: 200,
-      body: {
-        message: isResubmit
-          ? "Đã yêu cầu khách tải lại minh chứng và thông báo cho khách"
-          : "Đã hủy đơn đặt phòng và thông báo cho khách",
-        booking,
-      },
-    };
-  });
+  runService(res, () =>
+    bookingApi.rejectQrPayment({
+      id: req.params.id,
+      user: req.user,
+      rejectionType: req.body.rejectionType,
+    })
+  );
 
 exports.checkIn = (req, res) =>
   runService(res, () => bookingApi.checkInWithNotification({ id: req.params.id, user: req.user }));
@@ -146,8 +112,9 @@ exports.checkOut = (req, res) =>
 
 exports.getStaffBookings = (req, res) =>
   runService(res, () =>
-    bookingApi.bookingService
-      .getBookingsByStaff(req.user.id, {
+    bookingApi.getStaffBookings({
+      staffId: req.user.id,
+      query: {
         page: req.query.page,
         limit: req.query.limit,
         all: req.query.all,
@@ -159,8 +126,8 @@ exports.getStaffBookings = (req, res) =>
         search: req.query.search,
         actionSearch: req.query.actionSearch,
         actionType: req.query.actionType,
-      })
-      .then((body) => ({ status: 200, body }))
+      },
+    })
   );
 
 exports.getStaffBookingById = (req, res) =>
