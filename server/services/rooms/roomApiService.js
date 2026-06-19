@@ -108,6 +108,69 @@ async function postOwnerEquipmentRepairRequest({ req, hotelId }) {
   return { status: 200, body: { message: "Đã gửi email báo sửa chữa", count } };
 }
 
+async function getOwnerRoomEquipment({ hotelId, ownerId }) {
+  const body = await roomEquipmentService.getOwnerRoomEquipmentForHotel(hotelId, ownerId);
+  return { status: 200, body };
+}
+
+async function postOwnerRoomEquipment({ roomId, ownerId, body }) {
+  const result = await roomEquipmentService.postOwnerRoomEquipment(roomId, ownerId, body);
+  return { status: 201, body: result };
+}
+
+async function patchOwnerRoomEquipment({ roomId, equipmentId, ownerId, body }) {
+  const result = await roomEquipmentService.patchOwnerRoomEquipment(
+    roomId,
+    equipmentId,
+    ownerId,
+    body
+  );
+  return { status: 200, body: result };
+}
+
+async function deleteOwnerRoomEquipment({ roomId, equipmentId, ownerId }) {
+  const result = await roomEquipmentService.deleteOwnerRoomEquipment(
+    roomId,
+    equipmentId,
+    ownerId
+  );
+  return { status: 200, body: result };
+}
+
+async function getStaffRoomEquipment({ staffId }) {
+  const body = await roomEquipmentService.getStaffRoomEquipmentForHotel(staffId);
+  return { status: 200, body };
+}
+
+async function postStaffRoomEquipment({ roomId, staffId, body }) {
+  const result = await roomEquipmentService.postStaffRoomEquipment(roomId, staffId, body);
+  return { status: 201, body: result };
+}
+
+async function patchStaffRoomEquipment({ roomId, equipmentId, staffId, body }) {
+  const result = await roomEquipmentService.patchStaffRoomEquipment(
+    roomId,
+    equipmentId,
+    staffId,
+    body
+  );
+  return { status: 200, body: result };
+}
+
+async function deleteStaffRoomEquipment({ roomId, equipmentId, staffId }) {
+  const result = await roomEquipmentService.deleteStaffRoomEquipment(
+    roomId,
+    equipmentId,
+    staffId
+  );
+  return { status: 200, body: result };
+}
+
+async function getOwnerRoomBookings({ ownerId, roomId }) {
+  const body = await bookingService.getBookingsByRoomForOwner(ownerId, roomId);
+  return { status: 200, body };
+}
+
 module.exports = {
   getRoomsByHotel,
   getRoomById,
@@ -118,6 +181,13 @@ module.exports = {
   updateStaffRoomStatus,
   postStaffEquipmentRepairRequest,
   postOwnerEquipmentRepairRequest,
-  roomEquipmentService,
-  bookingService,
+  getOwnerRoomEquipment,
+  postOwnerRoomEquipment,
+  patchOwnerRoomEquipment,
+  deleteOwnerRoomEquipment,
+  getStaffRoomEquipment,
+  postStaffRoomEquipment,
+  patchStaffRoomEquipment,
+  deleteStaffRoomEquipment,
+  getOwnerRoomBookings,
 };

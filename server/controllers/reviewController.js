@@ -41,60 +41,49 @@ exports.deleteReview = (req, res) =>
 
 exports.getReviewsByOwner = (req, res) =>
   runService(res, () =>
-    reviewService.hotelReviewService
-      .getReviewsByOwner(
-        req.user.id,
-        req.query.page,
-        req.query.limit,
-        req.query.hotelId || null,
-        req.query.rating
-      )
-      .then((body) => ({ status: 200, body }))
+    reviewService.getReviewsByOwner({
+      ownerId: req.user.id,
+      page: req.query.page,
+      limit: req.query.limit,
+      hotelId: req.query.hotelId,
+      rating: req.query.rating,
+    })
   );
 
 exports.getStaffReviews = (req, res) =>
   runService(res, () =>
-    reviewService.hotelReviewService
-      .getReviewsByStaff(req.user.id, req.query.page, req.query.limit, req.query.rating)
-      .then((body) => ({ status: 200, body }))
+    reviewService.getStaffReviews({
+      staffId: req.user.id,
+      page: req.query.page,
+      limit: req.query.limit,
+      rating: req.query.rating,
+    })
   );
 
 exports.replyToReview = (req, res) =>
   runService(res, () =>
-    reviewService.hotelReviewService
-      .replyAsOwner(req.params.id, req.user.id, req.body?.response)
-      .then((review) => ({
-        status: 200,
-        body: { message: "Phản hồi đã được gửi thành công", review },
-      }))
+    reviewService.replyToReview({
+      reviewId: req.params.id,
+      ownerId: req.user.id,
+      response: req.body?.response,
+    })
   );
 
 exports.staffReplyToReview = (req, res) =>
   runService(res, () =>
-    reviewService.hotelReviewService
-      .replyAsStaff(req.params.id, req.user.id, req.body?.response)
-      .then((review) => ({
-        status: 200,
-        body: { message: "Phản hồi đã được gửi thành công", review },
-      }))
+    reviewService.staffReplyToReview({
+      reviewId: req.params.id,
+      staffId: req.user.id,
+      response: req.body?.response,
+    })
   );
 
 exports.deleteReply = (req, res) =>
   runService(res, () =>
-    reviewService.hotelReviewService
-      .deleteReplyAsOwner(req.params.id, req.user.id)
-      .then((review) => ({
-        status: 200,
-        body: { message: "Phản hồi đã được xóa thành công", review },
-      }))
+    reviewService.deleteReply({ reviewId: req.params.id, ownerId: req.user.id })
   );
 
 exports.staffDeleteReply = (req, res) =>
   runService(res, () =>
-    reviewService.hotelReviewService
-      .deleteReplyAsStaff(req.params.id, req.user.id)
-      .then((review) => ({
-        status: 200,
-        body: { message: "Phản hồi đã được xóa thành công", review },
-      }))
+    reviewService.staffDeleteReply({ reviewId: req.params.id, staffId: req.user.id })
   );
