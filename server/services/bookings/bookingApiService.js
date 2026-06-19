@@ -47,6 +47,57 @@ async function getStaffBookingByIdWithReview({ id, user }) {
   return { status: 200, body: await attachReviewToBooking(booking) };
 }
 
+async function createBooking({ bookingData, userId }) {
+  const body = await bookingService.createGuestBooking(bookingData, userId);
+  return { status: 201, body };
+}
+
+async function getPricePreview({ hotelId, roomId, checkInDate, checkOutDate }) {
+  if (!hotelId || !roomId || !checkInDate || !checkOutDate) {
+    throw new ServiceError(400, "Thiếu hotelId, roomId, checkInDate hoặc checkOutDate");
+  }
+  const body = await bookingService.previewBookingPrice(
+    hotelId,
+    roomId,
+    checkInDate,
+    checkOutDate
+  );
+  return { status: 200, body };
+}
+
+async function getMyBookings({ userId }) {
+  const body = await bookingService.getMyBookings(userId);
+  return { status: 200, body };
+}
+
+async function getUserBookings({ userId }) {
+  const body = await bookingService.getUserBookings(userId);
+  return { status: 200, body };
+}
+
+async function getAllBookings(query = {}) {
+  const body = await bookingService.getAllBookings(query);
+  return { status: 200, body };
+}
+
+async function getBookingsByOwner({ ownerId, hotelId, query = {} }) {
+  const body = await bookingService.getBookingsByOwner(ownerId, hotelId || null, query);
+  return { status: 200, body };
+}
+
+async function getStaffBookings({ staffId, query = {} }) {
+  const body = await bookingService.getBookingsByStaff(staffId, query);
+  return { status: 200, body };
+}
+
+async function getAvailableRooms({ hotelId, checkInDate, checkOutDate }) {
+  if (!hotelId || !checkInDate || !checkOutDate) {
+    throw new ServiceError(400, "Vui lòng cung cấp đầy đủ hotelId, checkInDate và checkOutDate");
+  }
+  const body = await bookingService.getAvailableRooms(hotelId, checkInDate, checkOutDate);
+  return { status: 200, body };
+}
+
 async function handlePaidStatusSideEffects(bookingId, oldStatus) {
   const populatedBooking = await Booking.findById(bookingId)
     .populate("guest", "name email phone")
@@ -74,9 +125,6 @@ async function handlePaidStatusSideEffects(bookingId, oldStatus) {
     console.error("Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:", err)
   );
 
-  if (oldStatus !== "paid") {
-    // side effects only when transitioning to paid
-  }
 }
 
 async function updateBookingStatus({ id, status, user }) {
@@ -115,6 +163,29 @@ async function cancelBooking({ id, user, body }) {
   };
 }
 
+async function confirmGuestRefund({ id, user, file }) {
+  const booking = await bookingService.confirmOwnerGuestRefund(id, user, file);
+  return {
+    status: 200,
+    body: { message: "Đã xác nhận hoàn tiền cho khách", booking },
+  };
+}
+
+async function rejectQrPayment({ id, user, rejectionType }) {
+  const booking = await bookingService.rejectOwnerQrPayment(id, user, rejectionType);
+  const isResubmit =
+    booking.ownerQrRejectionType === "invalid_proof" && booking.paymentStatus === "pending";
+  return {
+    status: 200,
+    body: {
+      message: isResubmit
+        ? "Đã yêu cầu khách tải lại minh chứng và thông báo cho khách"
+        : "Đã hủy đơn đặt phòng và thông báo cho khách",
+      booking,
+    },
+  };
+}
+
 async function checkInWithNotification({ id, user, staff = false }) {
   const booking = staff
     ? await bookingService.staffCheckIn(id, user)
@@ -132,11 +203,20 @@ async function checkOutWithNotification({ id, user, staff = false }) {
 }
 
 module.exports = {
+  createBooking,
+  getPricePreview,
+  getMyBookings,
+  getUserBookings,
+  getAllBookings,
+  getBookingsByOwner,
+  getStaffBookings,
+  getAvailableRooms,
   getBookingByIdForUser,
   getStaffBookingByIdWithReview,
   updateBookingStatus,
   cancelBooking,
+  confirmGuestRefund,
+  rejectQrPayment,
   checkInWithNotification,
   checkOutWithNotification,
-  bookingService,
 };
