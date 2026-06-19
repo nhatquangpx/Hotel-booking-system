@@ -17,59 +17,66 @@ exports.deleteRoom = (req, res) =>
 
 exports.getOwnerRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService.getOwnerRoomEquipmentForHotel(req.params.hotelId, req.user.id).then(
-      (body) => ({ status: 200, body })
-    )
+    roomApi.getOwnerRoomEquipment({ hotelId: req.params.hotelId, ownerId: req.user.id })
   );
 
 exports.postOwnerRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService
-      .postOwnerRoomEquipment(req.params.roomId, req.user.id, req.body)
-      .then((body) => ({ status: 201, body }))
+    roomApi.postOwnerRoomEquipment({
+      roomId: req.params.roomId,
+      ownerId: req.user.id,
+      body: req.body,
+    })
   );
 
 exports.patchOwnerRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService
-      .patchOwnerRoomEquipment(req.params.roomId, req.params.equipmentId, req.user.id, req.body)
-      .then((body) => ({ status: 200, body }))
+    roomApi.patchOwnerRoomEquipment({
+      roomId: req.params.roomId,
+      equipmentId: req.params.equipmentId,
+      ownerId: req.user.id,
+      body: req.body,
+    })
   );
 
 exports.deleteOwnerRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService
-      .deleteOwnerRoomEquipment(req.params.roomId, req.params.equipmentId, req.user.id)
-      .then((body) => ({ status: 200, body }))
+    roomApi.deleteOwnerRoomEquipment({
+      roomId: req.params.roomId,
+      equipmentId: req.params.equipmentId,
+      ownerId: req.user.id,
+    })
   );
 
 exports.getStaffRoomEquipment = (req, res) =>
-  runService(res, () =>
-    roomApi.roomEquipmentService.getStaffRoomEquipmentForHotel(req.user.id).then((body) => ({
-      status: 200,
-      body,
-    }))
-  );
+  runService(res, () => roomApi.getStaffRoomEquipment({ staffId: req.user.id }));
 
 exports.postStaffRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService
-      .postStaffRoomEquipment(req.params.roomId, req.user.id, req.body)
-      .then((body) => ({ status: 201, body }))
+    roomApi.postStaffRoomEquipment({
+      roomId: req.params.roomId,
+      staffId: req.user.id,
+      body: req.body,
+    })
   );
 
 exports.patchStaffRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService
-      .patchStaffRoomEquipment(req.params.roomId, req.params.equipmentId, req.user.id, req.body)
-      .then((body) => ({ status: 200, body }))
+    roomApi.patchStaffRoomEquipment({
+      roomId: req.params.roomId,
+      equipmentId: req.params.equipmentId,
+      staffId: req.user.id,
+      body: req.body,
+    })
   );
 
 exports.deleteStaffRoomEquipment = (req, res) =>
   runService(res, () =>
-    roomApi.roomEquipmentService
-      .deleteStaffRoomEquipment(req.params.roomId, req.params.equipmentId, req.user.id)
-      .then((body) => ({ status: 200, body }))
+    roomApi.deleteStaffRoomEquipment({
+      roomId: req.params.roomId,
+      equipmentId: req.params.equipmentId,
+      staffId: req.user.id,
+    })
   );
 
 exports.postStaffEquipmentRepairRequest = (req, res) =>
@@ -77,9 +84,7 @@ exports.postStaffEquipmentRepairRequest = (req, res) =>
 
 exports.getOwnerRoomBookings = (req, res) =>
   runService(res, () =>
-    roomApi.bookingService
-      .getBookingsByRoomForOwner(req.user.id, req.params.id)
-      .then((body) => ({ status: 200, body }))
+    roomApi.getOwnerRoomBookings({ ownerId: req.user.id, roomId: req.params.id })
   );
 
 exports.getStaffRooms = (req, res) => runService(res, () => roomApi.getStaffRooms({ req }));

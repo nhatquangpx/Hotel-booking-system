@@ -161,11 +161,64 @@ async function deleteReview({ reviewId, userId }) {
   return { status: 200, body: { message: "Đánh giá đã được xóa thành công" } };
 }
 
+async function getReviewsByOwner({ ownerId, page, limit, hotelId, rating }) {
+  const body = await hotelReviewService.getReviewsByOwner(
+    ownerId,
+    page,
+    limit,
+    hotelId || null,
+    rating
+  );
+  return { status: 200, body };
+}
+
+async function getStaffReviews({ staffId, page, limit, rating }) {
+  const body = await hotelReviewService.getReviewsByStaff(staffId, page, limit, rating);
+  return { status: 200, body };
+}
+
+async function replyToReview({ reviewId, ownerId, response }) {
+  const review = await hotelReviewService.replyAsOwner(reviewId, ownerId, response);
+  return {
+    status: 200,
+    body: { message: "Phản hồi đã được gửi thành công", review },
+  };
+}
+
+async function staffReplyToReview({ reviewId, staffId, response }) {
+  const review = await hotelReviewService.replyAsStaff(reviewId, staffId, response);
+  return {
+    status: 200,
+    body: { message: "Phản hồi đã được gửi thành công", review },
+  };
+}
+
+async function deleteReply({ reviewId, ownerId }) {
+  const review = await hotelReviewService.deleteReplyAsOwner(reviewId, ownerId);
+  return {
+    status: 200,
+    body: { message: "Phản hồi đã được xóa thành công", review },
+  };
+}
+
+async function staffDeleteReply({ reviewId, staffId }) {
+  const review = await hotelReviewService.deleteReplyAsStaff(reviewId, staffId);
+  return {
+    status: 200,
+    body: { message: "Phản hồi đã được xóa thành công", review },
+  };
+}
+
 module.exports = {
   addReview,
   getReviewsByHotel,
   getReviewByBooking,
   updateReview,
   deleteReview,
-  hotelReviewService,
+  getReviewsByOwner,
+  getStaffReviews,
+  replyToReview,
+  staffReplyToReview,
+  deleteReply,
+  staffDeleteReply,
 };
