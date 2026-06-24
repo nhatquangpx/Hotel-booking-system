@@ -5,6 +5,7 @@ import { useAuth } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
 import { formatDate, getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './Booking.scss';
 
@@ -556,7 +557,7 @@ const GuestBookingPage = () => {
                     </div>
                     <div className="detail-item">
                       <span className="label">Loại phòng:</span>
-                      <span className="value">{room.type}</span>
+                      <span className="value">{formatRoomType(room.type)}</span>
                     </div>
                     <div className="detail-item">
                       <span className="label">Giá phòng (ước tính):</span>

@@ -7,6 +7,7 @@ import RoomStatusBadges from '@/features/admin/components/RoomStatusBadges';
 import api from '../../../../apis';
 import { getImageUrl } from '../../../../constants/images';
 import { getHotelStatusLabel, getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import './HotelDetailDialog.scss';
 
 const formatAddress = (address) => {
@@ -31,17 +32,6 @@ const renderStarRating = (rating) => {
       ))}
     </>
   );
-};
-
-const formatRoomType = (type) => {
-  const typeMap = {
-    standard: 'Phòng tiêu chuẩn',
-    deluxe: 'Phòng cao cấp',
-    suite: 'Phòng Suite',
-    family: 'Phòng gia đình',
-    executive: 'Phòng hạng sang',
-  };
-  return typeMap[type] || type;
 };
 
 const HotelDetailDialog = ({ isOpen, onClose, hotelId, onEdit }) => {

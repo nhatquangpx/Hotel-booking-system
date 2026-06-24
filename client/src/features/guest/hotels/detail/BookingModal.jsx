@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency, getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './BookingModal.scss';
 
@@ -63,7 +64,7 @@ const BookingModal = ({ isOpen, room, bookingDates, onConfirm, onClose }) => {
             <strong>Số phòng:</strong> {room.roomNumber}
           </p>
           <p>
-            <strong>Loại phòng:</strong> {room.type}
+            <strong>Loại phòng:</strong> {formatRoomType(room.type)}
           </p>
           {hasSale ? (
             <div className="modal-price-sale">

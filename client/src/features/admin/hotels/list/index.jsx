@@ -19,6 +19,7 @@ import RoomFormDialog from '../../rooms/components/RoomFormDialog';
 import RoomDetailDialog from '../../rooms/components/RoomDetailDialog';
 import api from '../../../../apis';
 import { apiErrorMessage, getHotelStatusLabel, getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import './HotelList.scss';
 
 /**
@@ -297,17 +298,6 @@ const AdminHotelListPage = () => {
   };
 
   const formatPrice = (price) => `${getRoomPrice(price).toLocaleString('vi-VN')} VNĐ`;
-
-  const formatRoomType = (type) => {
-    const typeMap = {
-      'standard': 'Phòng tiêu chuẩn',
-      'deluxe': 'Phòng cao cấp',
-      'suite': 'Phòng Suite',
-      'family': 'Phòng gia đình',
-      'executive': 'Phòng hạng sang'
-    };
-    return typeMap[type] || type;
-  };
 
   const filteredHotels = hotels;
 

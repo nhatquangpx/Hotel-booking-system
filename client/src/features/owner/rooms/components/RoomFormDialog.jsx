@@ -6,6 +6,7 @@ import Dialog from '@/components/ui/Dialog';
 import { getImageUrl } from '@/constants/images';
 import { apiErrorMessage, getRoomPrice } from '@/shared/utils';
 import api from '../../../../apis';
+import { ROOM_TYPE_OPTIONS } from '@/constants/roomTypes';
 import './RoomFormDialog.scss';
 
 const RoomFormDialog = ({ 
@@ -36,13 +37,7 @@ const RoomFormDialog = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const roomTypes = [
-    { value: 'standard', label: 'Phòng tiêu chuẩn' },
-    { value: 'deluxe', label: 'Phòng cao cấp' },
-    { value: 'suite', label: 'Phòng Suite' },
-    { value: 'family', label: 'Phòng gia đình' },
-    { value: 'executive', label: 'Phòng hạng sang' },
-  ];
+  const roomTypes = ROOM_TYPE_OPTIONS;
 
   const facilityOptions = [
     'TV', 'Wifi', 'Minibar', 'Điều hòa', 'Bồn tắm', 'Ban công', 

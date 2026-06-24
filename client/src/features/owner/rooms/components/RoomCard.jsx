@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaBed, FaCheckCircle, FaExclamationCircle, FaClock, FaTools } from 'react-icons/fa';
+import { formatRoomType } from '@/constants/roomTypes';
 import './RoomCard.scss';
 
 /**
@@ -57,17 +58,6 @@ const RoomCard = ({ room, onClick }) => {
   
   // Nếu roomStatus không phải active, hiển thị màu theo roomStatus
   const displayColor = roomStatus !== 'active' ? roomStatusConfig.color : bookingStatusConfig.color;
-
-  const formatRoomType = (type) => {
-    const typeMap = {
-      'standard': 'Phòng Standard',
-      'deluxe': 'Phòng Deluxe',
-      'suite': 'Phòng Suite',
-      'family': 'Phòng gia đình',
-      'executive': 'Phòng hạng sang'
-    };
-    return typeMap[type] || type || 'Phòng';
-  };
 
   return (
     <div 

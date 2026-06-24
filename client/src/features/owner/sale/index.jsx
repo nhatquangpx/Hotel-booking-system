@@ -8,18 +8,11 @@ import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerSaleAPI } from '@/apis/owner/sale';
 import Dialog from '@/components/ui/Dialog';
 import { saleStatusDisplay, countOpenSales, vnTodayYmd } from './saleUtils';
+import { formatRoomType, ROOM_TYPE_OPTIONS } from '@/constants/roomTypes';
 import './SalePage.scss';
 
-const ROOM_TYPES = [
-  { value: 'standard', label: 'Tiêu chuẩn' },
-  { value: 'deluxe', label: 'Deluxe' },
-  { value: 'suite', label: 'Suite' },
-  { value: 'family', label: 'Gia đình' },
-  { value: 'executive', label: 'Executive' },
-];
-
 const scopeLabel = (s) => (s.scope === 'hotel' ? 'Toàn khách sạn' : 'Theo loại phòng');
-const roomTypeLabel = (value) => ROOM_TYPES.find((r) => r.value === value)?.label || value || '—';
+const roomTypeLabel = (value) => formatRoomType(value);
 
 function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting, submitError }) {
   const [title, setTitle] = useState(initial?.title || '');
@@ -118,7 +111,7 @@ function SaleForm({ initial, hotelId, onSubmit, onCancel, submitting, submitErro
         <div className="form-group">
           <label>Loại phòng</label>
           <select value={roomType} onChange={(e) => setRoomType(e.target.value)}>
-            {ROOM_TYPES.map((rt) => (
+            {ROOM_TYPE_OPTIONS.map((rt) => (
               <option key={rt.value} value={rt.value}>
                 {rt.label}
               </option>

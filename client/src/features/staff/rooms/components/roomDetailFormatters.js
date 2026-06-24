@@ -1,15 +1,5 @@
+export { formatRoomType } from '@/constants/roomTypes';
 import { getRoomPrice } from '@/shared/utils';
-
-export const formatRoomType = (type) => {
-  const typeMap = {
-    standard: 'Phòng Standard',
-    deluxe: 'Phòng Deluxe',
-    suite: 'Phòng Suite',
-    family: 'Phòng gia đình',
-    executive: 'Phòng hạng sang',
-  };
-  return typeMap[type] || type || 'Phòng';
-};
 
 export const formatRoomStatus = (status) => {
   const statusMap = {
@@ -17,7 +7,7 @@ export const formatRoomStatus = (status) => {
     maintenance: 'Bảo trì',
     inactive: 'Tạm ngưng',
   };
-  return statusMap[status] || status || 'Hoạt động';
+  return statusMap[status] || status || '—';
 };
 
 export const formatBookingStatus = (status) => {
