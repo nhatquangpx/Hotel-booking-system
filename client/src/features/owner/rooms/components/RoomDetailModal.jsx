@@ -4,6 +4,7 @@ import { EditRoomDialog } from '../edit';
 import RoomBookingHistoryModal from './RoomBookingHistoryModal';
 import api from '@/apis';
 import { getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import './RoomDetailModal.scss';
 
 /**
@@ -43,17 +44,6 @@ const RoomDetailModal = ({ room, isOpen, onClose, onEdit, onStatusUpdate, onDele
 
   const roomData = roomDetails || room;
   if (!roomData) return null;
-
-  const formatRoomType = (type) => {
-    const typeMap = {
-      'standard': 'Phòng Standard',
-      'deluxe': 'Phòng Deluxe',
-      'suite': 'Phòng Suite',
-      'family': 'Phòng gia đình',
-      'executive': 'Phòng hạng sang'
-    };
-    return typeMap[type] || type || 'Phòng';
-  };
 
   const formatRoomStatus = (status) => {
     const statusMap = {

@@ -10,18 +10,8 @@ import {
   normalizeRoomStatus,
   getBookingStatusLabel,
 } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import './RoomDetailDialog.scss';
-
-const formatRoomType = (type) => {
-  const types = {
-    standard: 'Phòng tiêu chuẩn',
-    deluxe: 'Phòng cao cấp',
-    suite: 'Phòng Suite',
-    family: 'Phòng gia đình',
-    executive: 'Phòng hạng sang',
-  };
-  return types[type] || type;
-};
 
 const formatPrice = (price) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getRoomPrice(price));

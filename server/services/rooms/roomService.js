@@ -56,7 +56,9 @@ async function getRoomById(roomId) {
   });
 }
 
-const VALID_ROOM_TYPES = ["standard", "deluxe", "suite", "family", "executive"];
+const { ROOM_TYPES } = require("./roomTypes");
+
+const VALID_ROOM_TYPES = ROOM_TYPES;
 
 /**
  * @param {object} params

@@ -5,6 +5,7 @@ import BookingReview from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
 import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled, getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 
 const BookingDetailModal = ({
   show,
@@ -196,7 +197,7 @@ const BookingDetailModal = ({
                 <div className="detail-block">
                   <h3>Thông tin phòng</h3>
                   <p><strong>Số phòng:</strong> {booking.room?.roomNumber || 'N/A'}</p>
-                  <p><strong>Loại phòng:</strong> {booking.room?.type || 'N/A'}</p>
+                  <p><strong>Loại phòng:</strong> {formatRoomType(booking.room?.type)}</p>
                   <p><strong>Giá phòng:</strong> {getRoomPrice(booking.room?.price).toLocaleString('vi-VN')} VNĐ/đêm</p>
                   <p><strong>Số người tối đa:</strong> {booking.room?.maxPeople || 'N/A'} người</p>
                   <p><strong>Mô tả:</strong> {booking.room?.description || 'N/A'}</p>

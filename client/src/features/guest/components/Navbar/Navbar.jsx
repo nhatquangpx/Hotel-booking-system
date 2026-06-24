@@ -86,25 +86,27 @@ export const Navbar = () => {
         <img src={IMAGE_PATHS.LOGO_VERTICAL_WHITE} alt="logo" />
       </a>
 
-      <div className='navbar_menu navbar_menu--desktop'>
-        {navLinks.map((item) => (
-          <Link key={item.to} to={item.to} className="menu-item">
-            {item.label}
-          </Link>
-        ))}
-      </div>
+      <div className="navbar_center">
+        <div className='navbar_menu navbar_menu--desktop'>
+          {navLinks.map((item) => (
+            <Link key={item.to} to={item.to} className="menu-item">
+              {item.label}
+            </Link>
+          ))}
+        </div>
 
-      <form className='navbar_search' onSubmit={handleSearch}>
-        <input 
-          type="text" 
-          placeholder='Tìm khách sạn hoặc địa danh...' 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <IconButton type="submit">
-          <Search sx={{ color: '#ffffff' }} />
-        </IconButton>
-      </form>
+        <form className='navbar_search' onSubmit={handleSearch}>
+          <input 
+            type="text" 
+            placeholder='Tìm khách sạn hoặc địa danh...' 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <IconButton type="submit">
+            <Search sx={{ color: '#ffffff' }} />
+          </IconButton>
+        </form>
+      </div>
 
       <div className='navbar_right'>
         {user && <NotificationBell />}

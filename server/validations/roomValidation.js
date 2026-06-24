@@ -1,7 +1,6 @@
 const { body } = require("express-validator");
 const { validate, mongoIdBody } = require("./common");
-
-const ROOM_TYPES = ["standard", "deluxe", "suite", "family", "executive"];
+const { ROOM_TYPES } = require("../services/rooms/roomTypes");
 const ROOM_STATUSES = ["active", "maintenance", "inactive"];
 
 /** FormData: price là số hoặc chuỗi số. */

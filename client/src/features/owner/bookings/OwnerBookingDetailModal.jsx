@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { formatDate, formatDateTime } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
+import { formatRoomType } from '@/constants/roomTypes';
 
 const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewProof }) => {
   const [hotelImageIndex, setHotelImageIndex] = useState(0);
@@ -100,7 +101,7 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                 </div>
                 <div className="info-row">
                   <span className="info-label">Phòng:</span>
-                  <span className="info-value">{booking.room?.roomNumber || 'N/A'} - {booking.room?.type || 'N/A'}</span>
+                  <span className="info-value">{booking.room?.roomNumber || 'N/A'} - {formatRoomType(booking.room?.type)}</span>
                 </div>
                 <div className="info-row">
                   <span className="info-label">Nhận phòng:</span>

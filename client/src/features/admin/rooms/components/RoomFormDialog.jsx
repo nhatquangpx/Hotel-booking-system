@@ -7,6 +7,7 @@ import RoomFacilitiesPicker from '@/components/rooms/RoomFacilitiesPicker';
 import api from '../../../../apis';
 import { getRoomPrice, apiErrorMessage, normalizeRoomStatus } from '@/shared/utils';
 import { getImageUrl } from '../../../../constants/images';
+import { ROOM_TYPE_OPTIONS } from '@/constants/roomTypes';
 import './RoomFormDialog.scss';
 
 /**
@@ -38,13 +39,7 @@ const RoomFormDialog = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const roomTypes = [
-    { value: 'standard', label: 'Phòng tiêu chuẩn' },
-    { value: 'deluxe', label: 'Phòng cao cấp' },
-    { value: 'suite', label: 'Phòng Suite' },
-    { value: 'family', label: 'Phòng gia đình' },
-    { value: 'executive', label: 'Phòng hạng sang' },
-  ];
+  const roomTypes = ROOM_TYPE_OPTIONS;
 
   useEffect(() => {
     if (isOpen) {

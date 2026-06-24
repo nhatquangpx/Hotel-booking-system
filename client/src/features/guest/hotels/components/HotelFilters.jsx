@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ROOM_TYPE_OPTIONS } from '@/constants/roomTypes';
 import './HotelFilters.scss';
 
 /**
@@ -23,13 +24,7 @@ export const HotelFilters = ({ filters, cities, onFilterChange, onAmenityToggle,
       setIsExpanded(true);
     }
   }, [hasAdvancedFilters]);
-  const roomTypes = [
-    { value: 'standard', label: 'Phòng tiêu chuẩn' },
-    { value: 'deluxe', label: 'Phòng cao cấp' },
-    { value: 'suite', label: 'Phòng Suite' },
-    { value: 'family', label: 'Phòng gia đình' },
-    { value: 'executive', label: 'Phòng hạng sang' }
-  ];
+  const roomTypes = ROOM_TYPE_OPTIONS;
 
   // Danh sách tiện ích phòng (facilities) - dựa trên Room model
   const facilitiesOptions = [

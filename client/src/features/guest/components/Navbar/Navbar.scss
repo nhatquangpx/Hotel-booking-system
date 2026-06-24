@@ -51,10 +51,28 @@
     }
   }
 
+  .navbar_center {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0;
+    gap: 1.5rem;
+    margin-left: 2rem;
+
+    @include xl {
+      margin-left: 1.5rem;
+    }
+
+    @include lg {
+      display: none;
+    }
+  }
+
   .navbar_menu {
     display: flex;
     gap: 4rem;
-    margin: 0 1rem;
+    margin: 0;
 
     @include xl {
       gap: 2.5rem;
@@ -90,9 +108,10 @@
     align-items: center;
     gap: 10px;
     padding: 0 20px;
-    flex: 1 1 350px;
+    flex: 0 1 350px;
+    width: 100%;
     max-width: 350px;
-    min-width: 0;
+    min-width: 180px;
     background-color: $bg-luxury-light;
     border-radius: 20px;
     height: 40px;
@@ -122,9 +141,6 @@
       padding: 8px 14px;
     }
 
-    @include lg {
-      display: none;
-    }
   }
 
   .navbar_right {
@@ -133,7 +149,10 @@
     gap: 0.75rem;
     position: relative;
     flex-shrink: 0;
-    margin-left: auto;
+
+    @include lg {
+      margin-left: auto;
+    }
 
     @include sm {
       gap: 0.35rem;

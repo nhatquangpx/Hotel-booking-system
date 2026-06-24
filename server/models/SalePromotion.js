@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
-
-const ROOM_TYPES = ["standard", "deluxe", "suite", "family", "executive"];
+const { ROOM_TYPES } = require("../services/rooms/roomTypes");
 
 const SalePromotionSchema = new mongoose.Schema(
   {

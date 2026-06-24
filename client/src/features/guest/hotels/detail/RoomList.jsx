@@ -1,5 +1,6 @@
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency, getRoomPrice } from '@/shared/utils';
+import { formatRoomType } from '@/constants/roomTypes';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './RoomList.scss';
 
@@ -49,7 +50,7 @@ const RoomList = ({ rooms, bookingDates, onRoomSelect, loading, searchPerformed 
                 </div>
                 <div className="room-info">
                   <h3>{room.roomNumber}</h3>
-                  <p className="room-type">{room.type}</p>
+                  <p className="room-type">{formatRoomType(room.type)}</p>
 
                   <div className="room-price-block">
                     {hasSale ? (

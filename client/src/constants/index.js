@@ -8,4 +8,5 @@ export * from './images';
 export * from './slides';
 export * from './cities';
 export * from './pagination';
+export * from './roomTypes';
 

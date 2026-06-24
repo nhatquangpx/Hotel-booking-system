@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaChevronDown } from 'react-icons/fa';
-import { ROOM_TYPE_LABELS } from './constants';
+import { formatRoomType } from '@/constants/roomTypes';
 import EquipmentRoomPanel from './EquipmentRoomPanel';
 
 /**
@@ -23,7 +23,7 @@ const EquipmentRoomCard = ({
   onRequestDelete,
 }) => {
   const id = String(room._id);
-  const typeLabel = ROOM_TYPE_LABELS[room.type] || room.type;
+  const typeLabel = formatRoomType(room.type);
   const equipment = room.roomEquipment || [];
 
   return (

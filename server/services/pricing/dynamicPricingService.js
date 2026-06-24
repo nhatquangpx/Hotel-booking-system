@@ -3,20 +3,10 @@ const Hotel = require("../../models/Hotel");
 const Room = require("../../models/Room");
 const Booking = require("../../models/Booking");
 const { getOwnerHotelIds } = require("../dashboards/core");
+const { ROOM_TYPE_ORDER, ROOM_TYPE_LABEL_VI } = require("../rooms/roomTypes");
 
 const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WD_LABEL_VI = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-
-/** Thứ tự hiển thị / xử lý loại phòng (khớp enum Room.type) */
-const ROOM_TYPE_ORDER = ["standard", "deluxe", "suite", "family", "executive"];
-
-const ROOM_TYPE_LABEL_VI = {
-  standard: "Tiêu chuẩn",
-  deluxe: "Deluxe",
-  suite: "Suite",
-  family: "Gia đình",
-  executive: "Executive",
-};
 
 /**
  * Chỉ số thứ trong tuần theo múi giờ Asia/Ho_Chi_Minh (0 = Chủ nhật)
