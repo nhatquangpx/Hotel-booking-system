@@ -32,6 +32,7 @@ const PricingDailyTable = ({
             <col className="detail-table__col detail-table__col--book" />
             <col className="detail-table__col detail-table__col--price" />
             <col className="detail-table__col detail-table__col--suggested" />
+            <col className="detail-table__col detail-table__col--delta" />
             <col className="detail-table__col detail-table__col--factors" />
             <col className="detail-table__col detail-table__col--explain" />
           </colgroup>
@@ -42,6 +43,7 @@ const PricingDailyTable = ({
               <th scope="col">Đã đặt / Tổng</th>
               <th scope="col">Giá TB hiện tại</th>
               <th scope="col">Giá đề xuất</th>
+              <th scope="col">Chênh lệch cả kỳ</th>
               <th scope="col">Hệ số</th>
               <th scope="col">Thao tác</th>
             </tr>
@@ -52,6 +54,17 @@ const PricingDailyTable = ({
               const occBand =
                 occPct <= 25 ? 'occ-pill--low' : occPct <= 75 ? 'occ-pill--mid' : 'occ-pill--high';
               const isApplying = applyingDate === row.date;
+              const periodDelta =
+                row.estimatedPeriodDeltaIfApply ??
+                row.estimatedDailyDeltaRevenue ??
+                row.estimatedDeltaRevenue ??
+                0;
+              const deltaClass =
+                periodDelta > 0 ? 'cell-delta--up' : periodDelta < 0 ? 'cell-delta--down' : 'cell-delta--flat';
+              const formatDelta = (value) => {
+                if (value === 0) return '0';
+                return `${value > 0 ? '+' : ''}${formatCurrency(value)}`;
+              };
               return (
                 <tr key={row.date}>
                   <td className="cell-date">
@@ -71,6 +84,9 @@ const PricingDailyTable = ({
                     <span className="cell-price__box cell-price__box--suggested">
                       {formatCurrency(row.suggestedNightly)}
                     </span>
+                  </td>
+                  <td className={`cell-delta ${deltaClass}`}>
+                    <span className="cell-delta__total">{formatDelta(periodDelta)}</span>
                   </td>
                   <td className="cell-factors">
                     <div className="factors-inner" role="group" aria-label="Hệ số occ / mùa / thứ">

@@ -74,11 +74,18 @@ const DynamicPricingPage = () => {
   const [applyTarget, setApplyTarget] = useState(null);
 
   const avgSuggestedForRange =
-    daily.length > 0
+    typeBlock?.avgSuggestedNightly ??
+    typeSummary?.avgSuggestedNightly ??
+    (daily.length > 0
       ? Math.round(
           daily.reduce((s, r) => s + (r.suggestedNightly || 0), 0) / daily.length / 10000
         ) * 10000
-      : 0;
+      : 0);
+
+  const formatEstimatedDelta = (value) => {
+    if (value === 0) return 'Không đổi';
+    return `${value > 0 ? '+' : ''}${formatCurrency(value)}`;
+  };
 
   const openApplyModal = (target) => {
     setApplyMessage(null);
@@ -251,7 +258,7 @@ const DynamicPricingPage = () => {
                 </p>
               </div>
             )}
-            <div className="summary-grid summary-grid--3">
+            <div className="summary-grid summary-grid--4">
               <div className="summary-card">
                 <span className="label">Loại phòng</span>
                 <strong className="summary-type">
@@ -263,8 +270,12 @@ const DynamicPricingPage = () => {
                 <span className="label">Giá đêm TB hiện tại (loại này)</span>
                 <strong>{formatCurrency(typeBlock.avgCurrentNightly)}</strong>
               </div>
+              <div className="summary-card summary-card--suggested">
+                <span className="label">Giá đêm TB gợi ý (kỳ đã chọn)</span>
+                <strong>{formatCurrency(avgSuggestedForRange)}</strong>
+              </div>
               <div className="summary-card summary-card--highlight">
-                <span className="label">Chênh lệch ước tính — loại này (kỳ đã chọn)</span>
+                <span className="label">Chênh lệch cả kỳ nếu áp giá TB gợi ý</span>
                 <strong
                   className={
                     (typeSummary?.estimatedAdditionalRevenue ?? 0) >= 0 ? 'positive' : 'negative'
@@ -275,9 +286,8 @@ const DynamicPricingPage = () => {
                 </strong>
               </div>
             </div>
-            {typeSummary?.note && <p className="summary-note">{typeSummary.note}</p>}
 
-            <div className="apply-row">
+            <div className="apply-row apply-row--promo">
               <button
                 type="button"
                 className="btn-apply-suggested btn-apply-suggested--secondary"
@@ -285,17 +295,20 @@ const DynamicPricingPage = () => {
                   openApplyModal({
                     mode: 'average',
                     price: avgSuggestedForRange,
+                    estimatedDeltaRevenue: typeSummary?.estimatedAdditionalRevenue ?? 0,
                   })
                 }
                 disabled={loading || !daily.length || applyLoading}
               >
                 Áp dụng TB cả kỳ (tùy chọn)
               </button>
-              <span className="apply-row-hint">
-                Khuyến nghị: dùng nút <strong>Áp dụng</strong> trong cột Thao tác (cạnh Xem chi tiết) để gán đúng giá đề xuất
-                của <strong>từng ngày</strong> cho mọi phòng <strong>{typeBlock.typeLabel}</strong>.
-                Giảm giá khuyến mãi do SalePromotion xử lý riêng khi khách đặt phòng.
-              </span>
+              <div className="apply-row-copy">
+                {typeSummary?.note && <p className="summary-note">{typeSummary.note}</p>}
+                <p className="apply-row-hint">
+                  Khuyến nghị: dùng nút <strong>Áp dụng</strong> trong cột Thao tác (cạnh Xem chi tiết) để gán đúng giá đề xuất
+                  của <strong>từng ngày</strong> cho mọi phòng <strong>{typeBlock.typeLabel}</strong>.
+                </p>
+              </div>
             </div>
 
             {applyMessage && (
@@ -324,6 +337,11 @@ const DynamicPricingPage = () => {
                   date: row.date,
                   weekdayLabel: row.weekdayLabel,
                   price: row.suggestedNightly,
+                  estimatedDeltaRevenue:
+                    row.estimatedPeriodDeltaIfApply ??
+                    row.estimatedDailyDeltaRevenue ??
+                    row.estimatedDeltaRevenue ??
+                    0,
                 })
               }
               applyingDate={applyLoading && applyTarget?.mode === 'day' ? applyTarget.date : null}
@@ -366,8 +384,29 @@ const DynamicPricingPage = () => {
                   <strong>{days} ngày</strong> tới (theo bộ lọc hiện tại).
                 </p>
               )}
+              <p className="apply-modal-delta">
+                {applyTarget.mode === 'day'
+                  ? `Chênh lệch doanh thu ước tính cả kỳ (${days} ngày, phòng trống từng đêm) nếu áp giá gợi ý ngày này: `
+                  : `Chênh lệch doanh thu ước tính cả kỳ (${days} ngày, phòng trống từng đêm) nếu áp giá TB gợi ý: `}
+                <strong
+                  className={
+                    (applyTarget.estimatedDeltaRevenue ?? 0) >= 0 ? 'positive' : 'negative'
+                  }
+                >
+                  {formatEstimatedDelta(applyTarget.estimatedDeltaRevenue ?? 0)}
+                </strong>
+                {' '}
+                — cộng từng đêm, chỉ phòng trống, giá riêng từng phòng
+                {applyTarget.mode === 'average' && (
+                  <>
+                    {' '}
+                    (giá TB gợi ý {formatCurrency(applyTarget.price)}).
+                  </>
+                )}
+                {applyTarget.mode === 'day' && '.'}
+              </p>
               <p className="apply-modal-note">
-                Bạn vẫn có thể chỉnh riêng từng phòng sau tại{' '}
+                Phòng đã có đơn trùng đêm đó không tính vào chênh lệch (vẫn giữ giá trên hóa đơn). Bạn vẫn có thể chỉnh riêng từng phòng sau tại{' '}
                 <strong>sơ đồ phòng</strong>. Khuyến mãi theo chương trình sale không bị ảnh hưởng.
               </p>
               <div className="apply-modal-actions">

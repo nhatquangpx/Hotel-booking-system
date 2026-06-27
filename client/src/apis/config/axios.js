@@ -24,6 +24,24 @@ const api = axios.create({
   },
 });
 
+const getCsrfTokenFromCookie = () => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+api.interceptors.request.use((config) => {
+  const method = (config.method || 'get').toLowerCase();
+  if (['post', 'put', 'patch', 'delete'].includes(method)) {
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken) {
+      config.headers = config.headers || {};
+      config.headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+  return config;
+});
+
 const AUTH_SKIP_REFRESH = [
   '/auth/login',
   '/auth/register',

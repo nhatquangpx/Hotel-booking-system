@@ -4,8 +4,9 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import BookingReview from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
-import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled, getRoomPrice } from '@/shared/utils';
+import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled, getRoomPrice, shouldShowPendingHoldCountdown, isPendingHoldTrackable, isPendingHoldExpiredBooking } from '@/shared/utils';
 import { formatRoomType } from '@/constants/roomTypes';
+import { usePendingHoldCountdown } from '@/shared/hooks';
 
 const BookingDetailModal = ({
   show,
@@ -16,6 +17,7 @@ const BookingDetailModal = ({
   onListBookingPatch,
   onReviewUpdate,
   onError,
+  onHoldExpired,
 }) => {
   const navigate = useNavigate();
   const [payingBookingId, setPayingBookingId] = useState(null);
@@ -24,6 +26,13 @@ const BookingDetailModal = ({
   const [roomImageIndex, setRoomImageIndex] = useState(0);
   const [previewProofUrl, setPreviewProofUrl] = useState(null);
   const [detailProofImage, setDetailProofImage] = useState(null);
+
+  const holdTrackable = booking ? isPendingHoldTrackable(booking) : false;
+  const showActiveCountdown = booking ? shouldShowPendingHoldCountdown(booking) : false;
+  const { formatted: holdCountdown, expired: holdExpired } = usePendingHoldCountdown(
+    booking?.pendingExpiresAt,
+    { enabled: show && holdTrackable, onExpired: onHoldExpired }
+  );
 
   useEffect(() => {
     if (!show) return;
@@ -59,6 +68,9 @@ const BookingDetailModal = ({
     if (detailBooking.checkedInAt) return <span className="status checked-in">Đã checkin</span>;
     if (detailBooking.paymentStatus === 'paid') return <span className="status paid">Đã thanh toán</span>;
     if (detailBooking.paymentStatus === 'pending') {
+      if (isPendingHoldExpiredBooking(detailBooking)) {
+        return <span className="status cancelled">Hết hạn giữ phòng</span>;
+      }
       if (detailBooking.paymentMethod === 'qr_code' && detailBooking.qrPaymentReportedAt) {
         return <span className="status pending">Chờ xác nhận thanh toán</span>;
       }
@@ -68,7 +80,7 @@ const BookingDetailModal = ({
   };
 
   const handleContinuePaymentFromDetail = async () => {
-    if (!booking) return;
+    if (!booking || holdExpired) return;
     if (booking.paymentMethod === 'vnpay') {
       try {
         setPayingBookingId(booking._id);
@@ -134,6 +146,18 @@ const BookingDetailModal = ({
         {loading && <div className="loading">Đang tải chi tiết...</div>}
         {!loading && booking && (
           <div className="detail-grid">
+            {showActiveCountdown && holdCountdown && (
+              <div className="pending-hold-countdown" role="status">
+                <strong>Thời hạn giữ phòng:</strong> còn{' '}
+                <span className="pending-hold-countdown__time">{holdCountdown}</span> — đơn sẽ tự hủy nếu chưa hoàn
+                tất thanh toán
+              </div>
+            )}
+            {holdTrackable && holdExpired && (
+              <div className="pending-hold-countdown pending-hold-countdown--expired" role="status">
+                Đơn đã quá thời hạn giữ phòng. Đang cập nhật trạng thái…
+              </div>
+            )}
             <div className="detail-layout">
               <div className="detail-left">
                 <div className="image-section">
@@ -263,13 +287,14 @@ const BookingDetailModal = ({
                     className="pay-continue-btn"
                     onClick={handleContinuePaymentFromDetail}
                     disabled={
+                      holdExpired ||
                       payingBookingId === booking._id ||
                       (booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt))
                     }
                   >
                     {payingBookingId === booking._id ? 'Đang mở thanh toán...' : 'Tiếp tục thanh toán'}
                   </button>
-                  {booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt && (
+                  {booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt && !holdExpired && (
                     <>
                       <input
                         type="file"
@@ -281,7 +306,7 @@ const BookingDetailModal = ({
                         type="button"
                         className="pay-continue-btn"
                         onClick={handleConfirmQrPaymentFromDetail}
-                        disabled={confirmingQrBookingId === booking._id}
+                        disabled={confirmingQrBookingId === booking._id || holdExpired}
                       >
                         {confirmingQrBookingId === booking._id ? 'Đang ghi nhận...' : 'Tôi đã chuyển khoản'}
                       </button>

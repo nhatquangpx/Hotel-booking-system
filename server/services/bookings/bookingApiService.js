@@ -65,8 +65,14 @@ async function getPricePreview({ hotelId, roomId, checkInDate, checkOutDate }) {
   return { status: 200, body };
 }
 
-async function getMyBookings({ userId }) {
-  const body = await bookingService.getMyBookings(userId);
+async function getMyBookings({ userId, hotelId, startDate, endDate, page, limit }) {
+  const body = await bookingService.getMyBookings(userId, {
+    hotelId,
+    startDate,
+    endDate,
+    page,
+    limit,
+  });
   return { status: 200, body };
 }
 

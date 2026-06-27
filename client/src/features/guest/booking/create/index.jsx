@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { GuestLayout } from '@/features/guest/components/layout';
-import { useAuth } from '@/shared/hooks';
+import { useAuth, usePendingHoldCountdown } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
-import { formatDate, getRoomPrice } from '@/shared/utils';
+import { formatDate, getRoomPrice, shouldShowPendingHoldCountdown, isPendingHoldTrackable, isPendingHoldExpiredBooking } from '@/shared/utils';
 import { formatRoomType } from '@/constants/roomTypes';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './Booking.scss';
@@ -34,8 +34,6 @@ const GuestBookingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showPaymentQRCode, setShowPaymentQRCode] = useState(false);
-  const [countdown, setCountdown] = useState(900); // 15 phút = 900 giây
-  const countdownRef = useRef();
   const [guest, setGuest] = useState(null);
   const [vnpayResuming, setVnpayResuming] = useState(false);
   const [confirmingQrPayment, setConfirmingQrPayment] = useState(false);
@@ -90,6 +88,15 @@ const GuestBookingPage = () => {
   const qrImageSrc = getImageUrl(qrConfig?.qrImageUrl || IMAGE_PATHS.QR_CODE) || IMAGE_PATHS.QR_CODE;
 
   const qrPaymentReported = booking?.paymentMethod === 'qr_code' && Boolean(booking?.qrPaymentReportedAt);
+  const holdTrackable = showPaymentQRCode && isPendingHoldTrackable(booking);
+  const showActiveCountdown = showPaymentQRCode && shouldShowPendingHoldCountdown(booking);
+  const handleHoldExpired = useCallback(() => {
+    navigate('/my-bookings');
+  }, [navigate]);
+  const { formatted: holdCountdown, expired: holdExpired } = usePendingHoldCountdown(
+    booking?.pendingExpiresAt,
+    { enabled: holdTrackable, onExpired: handleHoldExpired }
+  );
   const shouldRenderErrorFallback = Boolean(
     error && !hotel && !room && !booking && !showPaymentQRCode
   );
@@ -109,6 +116,11 @@ const GuestBookingPage = () => {
           }
           if (bookingRes.paymentStatus === 'paid') {
             setError('Đơn đặt phòng đã được thanh toán.');
+            setLoading(false);
+            return;
+          }
+          if (isPendingHoldExpiredBooking(bookingRes)) {
+            setError('Đơn đã quá thời hạn giữ phòng chưa thanh toán. Vui lòng đặt phòng mới.');
             setLoading(false);
             return;
           }
@@ -200,7 +212,7 @@ const GuestBookingPage = () => {
   };
 
   const handleConfirmQrPayment = async () => {
-    if (!booking?._id) return;
+    if (!booking?._id || holdExpired) return;
     try {
       setConfirmingQrPayment(true);
       setQrActionError('');
@@ -228,26 +240,10 @@ const GuestBookingPage = () => {
   };
 
   useEffect(() => {
-    if (showPaymentQRCode) {
-      setCountdown(900);
-      countdownRef.current = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownRef.current);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(countdownRef.current);
-    }
-  }, [showPaymentQRCode]);
-
-  useEffect(() => {
-    if (showPaymentQRCode && countdown === 0) {
+    if (showPaymentQRCode && holdExpired) {
       navigate('/my-bookings');
     }
-  }, [showPaymentQRCode, countdown, navigate]);
+  }, [showPaymentQRCode, holdExpired, navigate]);
 
   useEffect(() => {
     if (resumeBookingId || !hotel) return;
@@ -325,10 +321,6 @@ const GuestBookingPage = () => {
           setSuccessMessage('Đặt phòng thành công! Vui lòng quét mã QR để thanh toán.');
           setShowPaymentQRCode(true);
 
-          setTimeout(() => {
-            navigate('/my-bookings');
-          }, 900000);
-          
           setSubmitting(false);
         }
       } catch (err) {
@@ -464,10 +456,19 @@ const GuestBookingPage = () => {
                     Bạn đã báo đã chuyển khoản. Vui lòng chờ khách sạn xác nhận để tránh thanh toán trùng.
                   </p>
                 )}
-                <div className="countdown-timer">
-                  Tự động chuyển hướng sau: <span className="countdown-value">{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</span> phút
-                </div>
-                {!qrPaymentReported && booking?._id && (
+                {showActiveCountdown && holdCountdown && (
+                  <div className="countdown-timer" role="status">
+                    Thời hạn giữ phòng: còn{' '}
+                    <span className="countdown-value">{holdCountdown}</span> — đơn sẽ tự hủy nếu
+                    chưa hoàn tất thanh toán
+                  </div>
+                )}
+                {holdTrackable && holdExpired && (
+                  <div className="countdown-timer countdown-timer--expired" role="status">
+                    Đơn đã quá thời hạn giữ phòng. Đang chuyển hướng…
+                  </div>
+                )}
+                {!qrPaymentReported && booking?._id && !holdExpired && (
                   <div className="proof-upload-form">
                     <label htmlFor="qr-proof-file-create">Ảnh minh chứng <span className="required-mark">*</span></label>
                     <input
@@ -481,7 +482,7 @@ const GuestBookingPage = () => {
                     />
                   </div>
                 )}
-                {!qrPaymentReported && booking?._id && (
+                {!qrPaymentReported && booking?._id && !holdExpired && (
                   <button
                     className="back-to-bookings-btn"
                     onClick={handleConfirmQrPayment}
@@ -490,7 +491,7 @@ const GuestBookingPage = () => {
                     {confirmingQrPayment ? 'Đang ghi nhận...' : 'Tôi đã chuyển khoản'}
                   </button>
                 )}
-                {!qrPaymentReported && booking?._id && !proofImage && (
+                {!qrPaymentReported && booking?._id && !holdExpired && !proofImage && (
                   <p className="proof-required-hint">Vui lòng tải lên ảnh minh chứng trước khi xác nhận thanh toán.</p>
                 )}
                 {!qrPaymentReported && qrActionError && (

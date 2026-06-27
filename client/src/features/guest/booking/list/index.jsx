@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { GuestLayout } from '@/features/guest/components/layout';
+import Pagination from '@/shared/components/Pagination/Pagination';
+import { PAGE_SIZE } from '@/constants/pagination';
 import BookingDetailModal from '../detail/BookingDetailModal';
 import BookingListItem from './BookingListItem';
 import api from '@/apis';
@@ -9,6 +11,7 @@ import {
   needsQrProofResubmit,
   isQrPaymentRejectedCancelled,
   computeGuestRefundEligibility,
+  isPendingHoldExpiredBooking,
 } from '@/shared/utils';
 import './MyBookings.scss';
 
@@ -21,6 +24,17 @@ const GuestMyBookingsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const user = useSelector(state => state.user.user);
   const [bookings, setBookings] = useState([]);
+  const [filterHotels, setFilterHotels] = useState([]);
+  const [hotelFilter, setHotelFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE.GUEST_BOOKINGS,
+    total: 0,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
@@ -34,6 +48,45 @@ const GuestMyBookingsPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailBooking, setDetailBooking] = useState(null);
+  const openedBookingFromUrl = useRef(false);
+
+  const fetchBookings = useCallback(
+    async (targetPage) => {
+      if (!user) return;
+      const result = await api.userBooking.getMyBookings({
+        page: targetPage,
+        limit: PAGE_SIZE.GUEST_BOOKINGS,
+        hotelId: hotelFilter || undefined,
+        startDate: dateFrom || undefined,
+        endDate: dateTo || undefined,
+      });
+      setBookings(result.items || []);
+      setPagination(result.pagination);
+      if (result.filterHotels?.length) {
+        setFilterHotels(result.filterHotels);
+      }
+    },
+    [user, hotelFilter, dateFrom, dateTo]
+  );
+
+  const refreshBookings = useCallback(async () => {
+    try {
+      await fetchBookings(page);
+    } catch (err) {
+      console.error('Error refreshing bookings:', err);
+    }
+  }, [fetchBookings, page]);
+
+  const handleHoldExpired = useCallback(async () => {
+    await refreshBookings();
+    if (!detailBooking?._id) return;
+    try {
+      const updated = await api.userBooking.getBookingById(detailBooking._id);
+      setDetailBooking(updated);
+    } catch (err) {
+      console.error('Error refreshing booking detail after hold expiry:', err);
+    }
+  }, [refreshBookings, detailBooking?._id]);
 
   useEffect(() => {
     if (!user) {
@@ -41,25 +94,30 @@ const GuestMyBookingsPage = () => {
       return;
     }
 
-    const fetchBookings = async () => {
+    const load = async () => {
       try {
         setLoading(true);
-        const response = await api.userBooking.getMyBookings();
-        if (response && Array.isArray(response)) {
-          setBookings(response);
-        } else {
-          setBookings([]);
-        }
-        setLoading(false);
+        setError(null);
+        await fetchBookings(page);
       } catch (err) {
         setError('Không thể tải danh sách đặt phòng');
-        setLoading(false);
         console.error('Error fetching bookings:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchBookings();
-  }, [user, navigate]);
+    load();
+  }, [user, navigate, page, hotelFilter, dateFrom, dateTo, fetchBookings]);
+
+  const clearFilters = () => {
+    setHotelFilter('');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = Boolean(hotelFilter || dateFrom || dateTo);
 
   const openCancelModal = (bookingId) => {
     setCancelBookingId(bookingId);
@@ -129,34 +187,37 @@ const GuestMyBookingsPage = () => {
       }
       return <span className="status cancelled">Đã hủy</span>;
     }
-    
-    // Nếu đã checkout (ưu tiên cao nhất)
+
     if (booking.checkedOutAt) {
       return <span className="status checked-out">Đã checkout</span>;
     }
-    
-    // Nếu đã checkin nhưng chưa checkout
+
     if (booking.checkedInAt) {
       return <span className="status checked-in">Đã checkin</span>;
     }
-    
-    // Nếu đã thanh toán nhưng chưa checkin
+
     if (booking.paymentStatus === 'paid') {
       return <span className="status paid">Đã thanh toán</span>;
     }
-    
-    // Chờ thanh toán
+
     if (booking.paymentStatus === 'pending') {
+      if (isPendingHoldExpiredBooking(booking)) {
+        return <span className="status cancelled">Hết hạn giữ phòng</span>;
+      }
       if (booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) {
         return <span className="status pending">Chờ xác nhận thanh toán</span>;
       }
       return <span className="status pending">Chờ thanh toán</span>;
     }
-    
+
     return <span className="status">{booking.paymentStatus}</span>;
   };
 
   const handleContinuePayment = async (b) => {
+    if (isPendingHoldExpiredBooking(b)) {
+      setError('Đơn đã quá thời hạn giữ phòng. Vui lòng đặt phòng mới.');
+      return;
+    }
     if (b.paymentMethod === 'vnpay') {
       try {
         setPayingBookingId(b._id);
@@ -212,16 +273,14 @@ const GuestMyBookingsPage = () => {
 
   useEffect(() => {
     const bookingIdFromQuery = searchParams.get('bookingId');
-    if (!bookingIdFromQuery || loading || !bookings.length) return;
+    if (!bookingIdFromQuery || openedBookingFromUrl.current || !user) return;
 
-    const matchedBooking = bookings.find((b) => b._id === bookingIdFromQuery);
-    if (!matchedBooking) return;
-
+    openedBookingFromUrl.current = true;
     openDetailModal(bookingIdFromQuery);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('bookingId');
     setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams, loading, bookings]);
+  }, [searchParams, setSearchParams, user]);
 
   const cancelTarget =
     showCancelModal && cancelBookingId ? bookings.find((b) => b._id === cancelBookingId) : null;
@@ -239,6 +298,8 @@ const GuestMyBookingsPage = () => {
         !refundBankAccountNumber.trim() ||
         !refundBankName.trim()));
 
+  const showEmptyState = !loading && !error && pagination.total === 0;
+
   return (
     <GuestLayout>
       <div className="my-bookings-container">
@@ -251,41 +312,110 @@ const GuestMyBookingsPage = () => {
           <strong>không</strong> dùng để xét hoàn tiền (không có khoản đã thu). Hotline{' '}
           <a href="tel:0332915004">0332915004</a>.
         </div>
-        
+
+        <div className="my-bookings-filters">
+          <div className="my-bookings-filters__field">
+            <label htmlFor="my-bookings-hotel">Khách sạn</label>
+            <select
+              id="my-bookings-hotel"
+              value={hotelFilter}
+              onChange={(e) => {
+                setHotelFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Tất cả khách sạn</option>
+              {filterHotels.map((h) => (
+                <option key={h._id} value={h._id}>
+                  {h.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="my-bookings-filters__field">
+            <label htmlFor="my-bookings-from">Nhận phòng từ</label>
+            <input
+              id="my-bookings-from"
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className="my-bookings-filters__field">
+            <label htmlFor="my-bookings-to">Đến</label>
+            <input
+              id="my-bookings-to"
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          {hasActiveFilters && (
+            <button type="button" className="my-bookings-filters__clear" onClick={clearFilters}>
+              Xóa bộ lọc
+            </button>
+          )}
+        </div>
+
         {loading && <div className="loading">Đang tải...</div>}
-        
+
         {error && <div className="error-message">{error}</div>}
-        
-        {!loading && !error && (!bookings || bookings.length === 0) && (
+
+        {showEmptyState && !hasActiveFilters && (
           <div className="no-bookings">
             <p>Bạn chưa có đặt phòng nào</p>
-            <button 
-              className="browse-hotels-btn"
-              onClick={() => navigate('/hotels')}
-            >
+            <button className="browse-hotels-btn" type="button" onClick={() => navigate('/hotels')}>
               Tìm khách sạn ngay
             </button>
           </div>
         )}
-        
-        {!loading && !error && bookings && bookings.length > 0 && (
-          <div className="bookings-list">
-            {bookings.map((booking) => (
-              <BookingListItem
-                key={booking._id}
-                booking={booking}
-                statusNode={renderBookingStatus(booking)}
-                payingBookingId={payingBookingId}
-                canCancel={canGuestSubmitCancel(booking)}
-                onOpenDetail={openDetailModal}
-                onContinuePayment={handleContinuePayment}
-                onOpenCancel={openCancelModal}
-              />
-            ))}
+
+        {showEmptyState && hasActiveFilters && (
+          <div className="no-bookings no-bookings--filtered">
+            <p>Không có đặt phòng phù hợp bộ lọc</p>
+            <button type="button" className="browse-hotels-btn browse-hotels-btn--secondary" onClick={clearFilters}>
+              Xóa bộ lọc
+            </button>
           </div>
         )}
-        
-        {/* Modal hủy đặt phòng */}
+
+        {!loading && !error && bookings.length > 0 && (
+          <>
+            <div className="bookings-list">
+              {bookings.map((booking) => (
+                <BookingListItem
+                  key={booking._id}
+                  booking={booking}
+                  statusNode={renderBookingStatus(booking)}
+                  payingBookingId={payingBookingId}
+                  canCancel={canGuestSubmitCancel(booking)}
+                  onOpenDetail={openDetailModal}
+                  onContinuePayment={handleContinuePayment}
+                  onOpenCancel={openCancelModal}
+                  onHoldExpired={refreshBookings}
+                />
+              ))}
+            </div>
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.limit}
+              onPageChange={setPage}
+              variant="guest"
+              className="my-bookings-pagination"
+            />
+          </>
+        )}
+
         {showCancelModal && (
           <div className="cancel-modal-overlay">
             <div className="cancel-modal">
@@ -398,6 +528,7 @@ const GuestMyBookingsPage = () => {
           }
           onReviewUpdate={handleDetailReviewUpdate}
           onError={setError}
+          onHoldExpired={handleHoldExpired}
         />
       </div>
     </GuestLayout>
@@ -405,4 +536,3 @@ const GuestMyBookingsPage = () => {
 };
 
 export default GuestMyBookingsPage;
-

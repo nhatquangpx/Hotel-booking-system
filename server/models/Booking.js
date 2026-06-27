@@ -107,7 +107,11 @@ const BookingSchema = new mongoose.Schema(
     checkInReminderSent: {
       type: Boolean,
       default: false
-    }
+    },
+    /** Hết hạn giữ phòng khi paymentStatus = pending (tự hủy nếu chưa thanh toán). */
+    pendingExpiresAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
@@ -120,6 +124,8 @@ BookingSchema.index({
   checkInDate: 1,
   checkOutDate: 1,
 });
+
+BookingSchema.index({ paymentStatus: 1, pendingExpiresAt: 1 });
 
 const Booking = mongoose.model("Booking", BookingSchema);
 module.exports = Booking;

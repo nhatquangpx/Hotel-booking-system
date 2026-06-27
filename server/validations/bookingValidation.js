@@ -99,6 +99,30 @@ const ownerUpdateBookingStatusValidation = [
     .withMessage("status không hợp lệ"),
 ];
 
+const optionalIsoDateQuery = (field) =>
+  query(field)
+    .optional({ values: "falsy" })
+    .isISO8601()
+    .withMessage(`${field} không hợp lệ`);
+
+/** GET /guest/bookings — danh sách đặt phòng của khách */
+const guestMyBookingsQueryValidation = [
+  query("hotelId")
+    .optional({ values: "falsy" })
+    .isMongoId()
+    .withMessage("hotelId không hợp lệ"),
+  optionalIsoDateQuery("startDate"),
+  optionalIsoDateQuery("endDate"),
+  query("page")
+    .optional({ values: "falsy" })
+    .isInt({ min: 1 })
+    .withMessage("page phải là số nguyên dương"),
+  query("limit")
+    .optional({ values: "falsy" })
+    .isInt({ min: 1, max: 100 })
+    .withMessage("limit phải từ 1 đến 100"),
+];
+
 const ownerRejectQrPaymentValidation = [
   body("rejectionType")
     .notEmpty()
@@ -115,4 +139,5 @@ module.exports = {
   cancelBookingValidation,
   ownerUpdateBookingStatusValidation,
   ownerRejectQrPaymentValidation,
+  guestMyBookingsQueryValidation,
 };

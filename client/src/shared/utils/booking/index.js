@@ -4,3 +4,4 @@ export * from './qrPayment';
 export * from './search';
 export * from './ownerQueue';
 export * from './staffQueue';
+export * from './pendingHold';

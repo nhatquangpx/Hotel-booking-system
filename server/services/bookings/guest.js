@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Booking = require("../../models/Booking");
 const Room = require("../../models/Room");
 const Hotel = require("../../models/Hotel");
@@ -9,9 +10,12 @@ const {
   getGuestRefundPolicyEligibility,
   getBookingWithPopulate,
   getBookingById: getBookingByIdCore,
-  refreshRoomBookingStatus
+  refreshRoomBookingStatus,
 } = require("./core");
+const { reserveRoomBooking } = require("./reserveRoom");
+const { computePendingExpiresAt } = require("../../lib/booking/pendingHoldConfig");
 const { isGuestBookableHotelStatus } = require("../../services/hotels/status");
+const { cancelExpiredPendingBookings } = require("./pendingExpiry");
 const { readRoomPrice } = require("../rooms/roomPrice");
 const {
   computeStaySalePricing,
@@ -60,6 +64,8 @@ const sanitizeGuestHotelPaymentConfig = (hotel) => {
 const createBooking = async (bookingData, guestId) => {
   const { hotelId, roomId, checkInDate, checkOutDate, paymentMethod, specialRequests } = bookingData;
 
+  await cancelExpiredPendingBookings();
+
   const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
@@ -87,13 +93,14 @@ const createBooking = async (bookingData, guestId) => {
     throw new Error("Phòng không thuộc về khách sạn đã chọn");
   }
 
-  // Check room availability (includes room status, booking status, and date conflicts)
+  // Kiểm tra nhanh trước khi tính giá (tránh tính toán không cần thiết).
   const isAvailable = await checkRoomAvailability(room, checkInDate, checkOutDate);
   if (!isAvailable) {
-    throw new Error("Phòng không khả dụng cho đặt chỗ");
+    const err = new Error("Phòng không khả dụng cho đặt chỗ");
+    err.statusCode = 400;
+    throw err;
   }
 
-  // Tính tiền và snapshot ở server (không tin số tiền từ client)
   const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
 
   const method = paymentMethod || "qr_code";
@@ -107,27 +114,26 @@ const createBooking = async (bookingData, guestId) => {
       throw err;
     }
   }
-  // Với VNPay, kiểm tra merchant config ở bước tạo payment URL để tránh false-negative.
 
-  // Create new booking
-  const newBooking = new Booking({
-    guest: guestId,
-    hotel: hotelId,
-    room: roomId,
-    checkInDate: new Date(checkInDate),
-    checkOutDate: new Date(checkOutDate),
-    finalAmount: pricing.finalAmount,
-    basePrice: pricing.basePrice,
-    discountAmount: pricing.discountAmount,
-    promotionApplied: pricing.promotionApplied || undefined,
-    paymentMethod: method,
-    specialRequests: specialRequests || "",
-    cancellationReason: "",
-    paymentStatus: "pending"
+  const savedBooking = await reserveRoomBooking({
+    roomId,
+    bookingDoc: {
+      guest: guestId,
+      hotel: hotelId,
+      room: roomId,
+      checkInDate: new Date(checkInDate),
+      checkOutDate: new Date(checkOutDate),
+      finalAmount: pricing.finalAmount,
+      basePrice: pricing.basePrice,
+      discountAmount: pricing.discountAmount,
+      promotionApplied: pricing.promotionApplied || undefined,
+      paymentMethod: method,
+      specialRequests: specialRequests || "",
+      cancellationReason: "",
+      paymentStatus: "pending",
+      pendingExpiresAt: computePendingExpiresAt(),
+    },
   });
-
-  // Save booking to database
-  const savedBooking = await newBooking.save();
 
   // Update room bookingStatus based on today's bookings (pending/empty/occupied)
   await refreshRoomBookingStatus(roomId);
@@ -175,28 +181,94 @@ const previewBookingPrice = async (hotelId, roomId, checkInDate, checkOutDate) =
   };
 };
 
-/**
- * Get all bookings for a guest
- * @param {String} guestId - Guest user ID
- * @returns {Promise<Array>} Array of bookings
- */
-const getMyBookings = async (guestId) => {
-  const bookings = await Booking.find({ guest: guestId })
-    .populate({
-      path: "hotel",
-      select: `name address images starRating policies ${Hotel.PAYMENT_CONFIG_SELECT}`
-    })
-    .populate({
-      path: "room",
-      select: "roomNumber type price images"
-    })
-    .sort({ createdAt: -1 });
+function startOfDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
-  return bookings.map((booking) => {
-    const bookingObj = booking.toObject ? booking.toObject() : { ...booking };
-    bookingObj.hotel = sanitizeGuestHotelPaymentConfig(bookingObj.hotel);
-    return bookingObj;
-  });
+function endOfDay(date) {
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+const GUEST_BOOKING_POPULATE = [
+  {
+    path: "hotel",
+    select: `name address images starRating policies ${Hotel.PAYMENT_CONFIG_SELECT}`,
+  },
+  {
+    path: "room",
+    select: "roomNumber type price images",
+  },
+];
+
+function mapGuestBookingRow(booking) {
+  const bookingObj = booking.toObject ? booking.toObject() : { ...booking };
+  bookingObj.hotel = sanitizeGuestHotelPaymentConfig(bookingObj.hotel);
+  return bookingObj;
+}
+
+async function getGuestFilterHotels(guestId) {
+  const guestOid = new mongoose.Types.ObjectId(String(guestId));
+  const rows = await Booking.aggregate([
+    { $match: { guest: guestOid } },
+    { $group: { _id: "$hotel" } },
+  ]);
+  const hotelIds = rows.map((r) => r._id).filter(Boolean);
+  if (!hotelIds.length) return [];
+  return Hotel.find({ _id: { $in: hotelIds } })
+    .select("name")
+    .sort({ name: 1 })
+    .lean();
+}
+
+/**
+ * Danh sách đặt phòng của khách (lọc + phân trang).
+ * @param {String} guestId
+ * @param {{ hotelId?: string, startDate?: string, endDate?: string, page?: number, limit?: number }} options
+ */
+const getMyBookings = async (guestId, options = {}) => {
+  const { hotelId, startDate, endDate, page, limit } = options;
+  const {
+    parsePaginationQuery,
+    buildPaginationMeta,
+    paginatedBody,
+  } = require("../../lib/http/pagination");
+
+  await cancelExpiredPendingBookings();
+
+  const query = { guest: guestId };
+  if (hotelId && mongoose.isValidObjectId(String(hotelId))) {
+    query.hotel = hotelId;
+  }
+  if (startDate) {
+    query.checkInDate = { ...(query.checkInDate || {}), $gte: startOfDay(startDate) };
+  }
+  if (endDate) {
+    query.checkInDate = { ...(query.checkInDate || {}), $lte: endOfDay(endDate) };
+  }
+
+  const pag = parsePaginationQuery({ page, limit }, { defaultLimit: 10, maxLimit: 50 });
+  const filterHotels = await getGuestFilterHotels(guestId);
+
+  const [bookings, total] = await Promise.all([
+    Booking.find(query)
+      .populate(GUEST_BOOKING_POPULATE)
+      .sort({ createdAt: -1 })
+      .skip(pag.skip)
+      .limit(pag.limit),
+    Booking.countDocuments(query),
+  ]);
+
+  const body = paginatedBody(
+    bookings.map(mapGuestBookingRow),
+    buildPaginationMeta({ page: pag.page, limit: pag.limit, total }),
+    "bookings"
+  );
+  body.filterHotels = filterHotels;
+  return body;
 };
 
 /**
@@ -206,6 +278,8 @@ const getMyBookings = async (guestId) => {
  * @returns {Promise<Object>} Booking object
  */
 const getBookingById = async (bookingId, user) => {
+  await cancelExpiredPendingBookings();
+
   const booking = await getBookingByIdCore(bookingId, user, {
     hotel: `name address images starRating contactInfo policies ${Hotel.PAYMENT_CONFIG_SELECT}`,
     room: "roomNumber type price images maxPeople description facilities"
@@ -224,6 +298,8 @@ const getBookingById = async (bookingId, user) => {
  * @returns {Promise<Array>} Array of available rooms
  */
 const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
+  await cancelExpiredPendingBookings();
+
   const dateValidation = validateBookingDates(checkInDate, checkOutDate);
   if (!dateValidation.valid) {
     throw new Error(dateValidation.error);

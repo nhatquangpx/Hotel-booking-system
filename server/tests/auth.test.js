@@ -95,24 +95,16 @@ describe("Health & Auth", () => {
 
   describe("POST /api/auth/logout", () => {
     it("logout thành công", async () => {
-      const loginRes = await loginAs(app, {
-        email: data.credentials.guest.email,
-        password: data.password,
-      });
-      const cookies = loginRes.headers["set-cookie"];
-      const res = await request(app).post("/api/auth/logout").set("Cookie", cookies);
+      const agent = await authedRequest(app, data.credentials.guest);
+      const res = await agent.post("/api/auth/logout");
       expect(res.status).toBe(200);
     });
   });
 
   describe("POST /api/auth/refresh", () => {
     it("refresh token thành công", async () => {
-      const loginRes = await loginAs(app, {
-        email: data.credentials.guest.email,
-        password: data.password,
-      });
-      const cookies = loginRes.headers["set-cookie"];
-      const res = await request(app).post("/api/auth/refresh").set("Cookie", cookies);
+      const agent = await authedRequest(app, data.credentials.guest);
+      const res = await agent.post("/api/auth/refresh");
       expect(res.status).toBe(200);
       expect(res.body.user).toBeDefined();
     });
@@ -133,6 +125,42 @@ describe("Health & Auth", () => {
         .post("/api/auth/forgotpassword")
         .send({ email: data.credentials.guest.email });
       expect([200, 400]).toContain(res.status);
+    });
+  });
+
+  describe("CSRF protection", () => {
+    it("từ chối POST đã đăng nhập nhưng thiếu header CSRF", async () => {
+      const agent = request.agent(app);
+      const loginRes = await agent.post("/api/auth/login").send({
+        email: data.credentials.guest.email,
+        password: data.password,
+      });
+      expect(loginRes.status).toBe(200);
+
+      const { checkInDate, checkOutDate } = data.futureStayDates({ checkInOffset: 15, nights: 2 });
+      const res = await agent.post("/api/guest/bookings").send({
+        hotel: data.hotelId,
+        room: data.roomIdDeluxe,
+        checkInDate,
+        checkOutDate,
+        paymentMethod: "qr_code",
+      });
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe("CSRF_INVALID");
+    });
+
+    it("cho phép POST khi có CSRF hợp lệ sau đăng nhập", async () => {
+      const guest = await authedRequest(app, data.credentials.guest);
+      const { checkInDate, checkOutDate } = data.futureStayDates({ checkInOffset: 16, nights: 2 });
+      const res = await guest.post("/api/guest/bookings").send({
+        hotel: data.hotelId,
+        room: data.roomIdDeluxe,
+        checkInDate,
+        checkOutDate,
+        paymentMethod: "qr_code",
+      });
+      expect(res.status).toBe(201);
+      expect(res.body.pendingExpiresAt).toBeDefined();
     });
   });
 });

@@ -14,6 +14,10 @@ const { getClientIp } = require("../../lib/http/requestIp");
 const { refIdsMatch } = require("../../lib/ids/mongooseIds");
 const { ServiceError } = require("../../lib/http/serviceError");
 const { getBookingFinalAmount } = require("../bookings/bookingAmount");
+const { isPendingHoldExpired } = require("../../lib/booking/pendingHold");
+const { cancelPendingBookingDueToExpiry } = require("../bookings/pendingExpiry");
+const { checkRoomAvailability, refreshRoomBookingStatus } = require("../bookings/core");
+const { computePendingExpiresAt } = require("../../lib/booking/pendingHoldConfig");
 
 const DEFAULT_SANDBOX_HOST = "https://sandbox.vnpayment.vn";
 
@@ -88,6 +92,15 @@ const resolveProofImageUrl = (file) => {
   return null;
 };
 
+async function rejectIfPendingHoldExpired(booking) {
+  if (!isPendingHoldExpired(booking)) return booking;
+  await cancelPendingBookingDueToExpiry(booking);
+  throw new ServiceError(
+    400,
+    "Đơn đã quá thời hạn giữ phòng chưa thanh toán và đã bị hủy. Vui lòng đặt phòng mới."
+  );
+}
+
 async function createVNPayPaymentUrl({ bookingId, userId, req }) {
   if (!bookingId) throw new ServiceError(400, "Vui lòng cung cấp bookingId");
 
@@ -105,6 +118,8 @@ async function createVNPayPaymentUrl({ bookingId, userId, req }) {
   if (booking.paymentMethod !== "vnpay") {
     throw new ServiceError(400, "Phương thức thanh toán không phải VNPay");
   }
+
+  await rejectIfPendingHoldExpired(booking);
 
   const clientIp = getClientIp(req);
   const paymentTransaction = await createPaymentTransactionWithRetry(booking, {
@@ -127,8 +142,9 @@ async function createVNPayPaymentUrl({ bookingId, userId, req }) {
   }
 
   const vnpay = getVNPayInstance(merchantConfig);
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const holdExpiresAt = booking.pendingExpiresAt
+    ? new Date(booking.pendingExpiresAt)
+    : computePendingExpiresAt();
   const orderInfo = `Thanh toan dat phong ${booking.hotel?.name || "Hotel"} - Phong ${booking.room?.roomNumber || "N/A"}`;
 
   const vnpayResponse = await vnpay.buildPaymentUrl({
@@ -140,7 +156,7 @@ async function createVNPayPaymentUrl({ bookingId, userId, req }) {
     vnp_ReturnUrl: process.env.VNPAY_RETURN_URL,
     vnp_Locale: VnpLocale.VN,
     vnp_CreateDate: dateFormat(new Date()),
-    vnp_ExpireDate: dateFormat(tomorrow),
+    vnp_ExpireDate: dateFormat(holdExpiresAt),
   });
 
   return {
@@ -170,6 +186,8 @@ async function confirmQrPayment({ bookingId, userId, req }) {
   if (booking.paymentStatus === "cancelled") {
     throw new ServiceError(400, "Đơn đặt phòng đã bị hủy");
   }
+
+  await rejectIfPendingHoldExpired(booking);
 
   const qr = resolveEffectiveQrConfig(booking.hotel?.paymentConfig?.qr || {});
   if (!qr.isConfigured) {
@@ -237,21 +255,97 @@ async function confirmQrPayment({ bookingId, userId, req }) {
   };
 }
 
-async function handleVnpaySuccess(booking, paymentResult) {
-  const updatedBooking = await Booking.findByIdAndUpdate(
-    booking._id,
+async function handleVnpayRefundRequired({ booking, paymentResult, paymentTransaction, reason }) {
+  paymentTransaction.status = "success";
+  paymentTransaction.errorMessage = reason;
+  await paymentTransaction.save();
+
+  console.error(
+    `VNPay thanh toán thành công nhưng không thể xác nhận booking ${booking._id}: ${reason}`
+  );
+
+  return {
+    redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?message=${encodeURIComponent(reason)}&refundPending=1&bookingId=${booking._id}`,
+  };
+}
+
+async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
+  const freshBooking = await Booking.findById(booking._id);
+  if (!freshBooking) {
+    return {
+      redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?message=${encodeURIComponent("Không tìm thấy đơn đặt phòng")}`,
+    };
+  }
+
+  if (freshBooking.paymentStatus === "paid") {
+    return {
+      redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}`,
+    };
+  }
+
+  if (freshBooking.paymentStatus === "cancelled") {
+    return handleVnpayRefundRequired({
+      booking: freshBooking,
+      paymentResult,
+      paymentTransaction,
+      reason:
+        "Đơn đã bị hủy trước khi thanh toán hoàn tất. Số tiền sẽ được hoàn trong 3–7 ngày làm việc. Vui lòng liên hệ hỗ trợ nếu cần.",
+    });
+  }
+
+  if (freshBooking.paymentStatus !== "pending") {
+    return handleVnpayRefundRequired({
+      booking: freshBooking,
+      paymentResult,
+      paymentTransaction,
+      reason: "Trạng thái đơn không hợp lệ để xác nhận thanh toán. Vui lòng liên hệ hỗ trợ để được hoàn tiền.",
+    });
+  }
+
+  const roomAvailable = await checkRoomAvailability(
+    freshBooking.room,
+    freshBooking.checkInDate,
+    freshBooking.checkOutDate,
+    freshBooking._id
+  );
+
+  if (!roomAvailable) {
+    return handleVnpayRefundRequired({
+      booking: freshBooking,
+      paymentResult,
+      paymentTransaction,
+      reason:
+        "Phòng không còn trống cho khoảng ngày đã chọn. Số tiền sẽ được hoàn trong 3–7 ngày làm việc. Vui lòng đặt phòng khác hoặc liên hệ hỗ trợ.",
+    });
+  }
+
+  const updatedBooking = await Booking.findOneAndUpdate(
+    { _id: booking._id, paymentStatus: "pending" },
     {
       paymentStatus: "paid",
       vnpTransactionRef: paymentResult.vnp_TxnRef,
+      $unset: { pendingExpiresAt: "" },
     },
     { new: true }
   );
 
   if (!updatedBooking) {
-    return {
-      redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?message=${encodeURIComponent("Lỗi cập nhật trạng thái đặt phòng")}`,
-    };
+    const latest = await Booking.findById(booking._id);
+    if (latest?.paymentStatus === "paid") {
+      return {
+        redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}`,
+      };
+    }
+    return handleVnpayRefundRequired({
+      booking: latest || freshBooking,
+      paymentResult,
+      paymentTransaction,
+      reason:
+        "Không thể cập nhật trạng thái đơn. Vui lòng liên hệ hỗ trợ để được hoàn tiền nếu đã bị trừ tiền.",
+    });
   }
+
+  await refreshRoomBookingStatus(updatedBooking.room);
 
   console.log(`Đã cập nhật booking ${booking._id} thành paid sau khi thanh toán VNPay thành công`);
 
@@ -345,7 +439,7 @@ async function vnpayCallback({ query }) {
   if (paymentResult.vnp_ResponseCode === "00") {
     paymentTransaction.status = "success";
     await paymentTransaction.save();
-    return handleVnpaySuccess(booking, paymentResult);
+    return handleVnpaySuccess(booking, paymentResult, paymentTransaction);
   }
 
   paymentTransaction.status = "failed";

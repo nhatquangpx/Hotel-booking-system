@@ -61,6 +61,12 @@ const RoomSchema = new mongoose.Schema(
       type: String,
       enum: ["empty", "occupied", "pending"],
       default: "empty"
+    },
+    /** Bộ đếm nội bộ — serialize ghi đơn đặt phòng theo phòng (chống overbooking). */
+    bookingReservationSeq: {
+      type: Number,
+      default: 0,
+      select: false,
     }
   },
   { timestamps: true }

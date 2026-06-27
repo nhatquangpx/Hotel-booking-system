@@ -225,6 +225,9 @@ const updateBookingStatus = async (bookingId, status, user) => {
   }
 
   booking.paymentStatus = status;
+  if (status === "paid") {
+    booking.pendingExpiresAt = undefined;
+  }
   await booking.save();
 
   if (status === "paid") {

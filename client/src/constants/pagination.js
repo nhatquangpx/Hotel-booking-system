@@ -2,6 +2,7 @@
  * Kích thước trang mặc định theo từng màn hình
  */
 export const PAGE_SIZE = {
+  GUEST_BOOKINGS: 10,
   GUEST_HOTELS: 12,
   HOTEL_REVIEWS: 10,
   NOTIFICATIONS: 15,

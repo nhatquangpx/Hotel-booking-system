@@ -56,6 +56,7 @@ const calculateNights = (checkInDate, checkOutDate) => {
 };
 
 const { readRoomPrice } = require("../rooms/roomPrice");
+const { buildActiveBookingHoldFilter } = require("../../lib/booking/pendingHold");
 
 /**
  * Calculate total amount for a booking
@@ -72,6 +73,30 @@ const calculateAmount = (room, nights) => {
 };
 
 /**
+ * Truy vấn đơn đặt phòng đang chiếm phòng trùng khoảng ngày.
+ */
+const buildBookingConflictQuery = (
+  roomId,
+  startDate,
+  endDate,
+  excludeBookingId = null,
+  now = new Date()
+) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const query = {
+    room: roomId,
+    checkInDate: { $lt: end },
+    checkOutDate: { $gt: start },
+    ...buildActiveBookingHoldFilter(now),
+  };
+  if (excludeBookingId) {
+    query._id = { $ne: excludeBookingId };
+  }
+  return query;
+};
+
+/**
  * Check if room is available for the given date range
  * Checks all necessary conditions: booking conflicts and room status
  * NOTE: Room.bookingStatus is NOT used here, it only reflects current occupancy state.
@@ -82,14 +107,11 @@ const calculateAmount = (room, nights) => {
  * @returns {Promise<Boolean>} True if room is available, false otherwise
  */
 const checkRoomAvailability = async (roomIdOrRoom, startDate, endDate, excludeBookingId = null) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
   // Get room object if only roomId is provided
   let room;
   let roomId;
-  
-  if (typeof roomIdOrRoom === 'string' || roomIdOrRoom instanceof mongoose.Types.ObjectId) {
+
+  if (typeof roomIdOrRoom === "string" || roomIdOrRoom instanceof mongoose.Types.ObjectId) {
     roomId = roomIdOrRoom;
     room = await Room.findById(roomId);
   } else {
@@ -97,32 +119,18 @@ const checkRoomAvailability = async (roomIdOrRoom, startDate, endDate, excludeBo
     roomId = room._id || room.id;
   }
 
-  // Check if room exists
   if (!room) {
     return false;
   }
 
-  // Check room status - must be active
   if (room.roomStatus !== "active") {
     return false;
   }
 
-  // Find conflicting bookings
-  const query = {
-    room: roomId,
-    checkInDate: { $lt: end },
-    checkOutDate: { $gt: start },
-    paymentStatus: { $in: ["pending", "paid"] } // Only consider active bookings
-  };
+  const conflictingBooking = await Booking.findOne(
+    buildBookingConflictQuery(roomId, startDate, endDate, excludeBookingId)
+  );
 
-  // Exclude current booking when updating
-  if (excludeBookingId) {
-    query._id = { $ne: excludeBookingId };
-  }
-
-  const conflictingBooking = await Booking.findOne(query);
-  
-  // Room is available only if no conflicting booking found
   return !conflictingBooking;
 };
 
@@ -416,8 +424,8 @@ const refreshRoomBookingStatus = async (roomId) => {
   // Find relevant bookings for this room that are not fully in the past
   const bookings = await Booking.find({
     room: room._id,
-    paymentStatus: { $in: ["pending", "paid"] },
-    checkOutDate: { $gt: now }
+    checkOutDate: { $gt: now },
+    ...buildActiveBookingHoldFilter(now),
   });
 
   // 1. Occupied: has been checked-in and not yet checked-out
@@ -458,6 +466,7 @@ const refreshRoomBookingStatus = async (roomId) => {
 module.exports = {
   calculateNights,
   calculateAmount,
+  buildBookingConflictQuery,
   checkRoomAvailability,
   DEFAULT_REFUND_MIN_DAYS_BEFORE_CHECKIN,
   normalizeRefundMinDaysBeforeCheckIn,

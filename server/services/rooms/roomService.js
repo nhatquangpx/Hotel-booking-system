@@ -19,6 +19,7 @@ function throwHttp(statusCode, message) {
 }
 
 const { readRoomPrice, normalizeRoomPriceInput } = require("./roomPrice");
+const { buildActiveBookingHoldFilter } = require("../../lib/booking/pendingHold");
 
 /**
  * @param {string} hotelId
@@ -37,7 +38,7 @@ async function listRoomsByHotel(hotelId, query = {}) {
       /** Nửa khoảng [checkIn, checkOut) giống checkRoomAvailability: checkout = ngày trả phòng, không trùng đêm với nhận cùng ngày */
       checkInDate: { $lt: endDate },
       checkOutDate: { $gt: startDate },
-      paymentStatus: { $in: ["pending", "paid"] },
+      ...buildActiveBookingHoldFilter(),
     });
 
     const bookedRoomIds = bookings.map((booking) => booking.room.toString());
@@ -224,8 +225,8 @@ async function deleteRoom(roomId) {
 
   const activeBookings = await BookingHistory.countDocuments({
     room: roomId,
-    paymentStatus: { $in: ["pending", "paid"] },
     checkOutDate: { $gte: new Date() },
+    ...buildActiveBookingHoldFilter(),
   });
 
   if (activeBookings > 0) {

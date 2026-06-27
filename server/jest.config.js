@@ -11,4 +11,5 @@ module.exports = {
   verbose: true,
   forceExit: true,
   detectOpenHandles: true,
+  maxWorkers: 1,
 };
