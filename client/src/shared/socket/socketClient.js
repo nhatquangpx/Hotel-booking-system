@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 let socket = null;
 let activeUserId = null;
 let pingIntervalId = null;
+let disconnectTimerId = null;
 
 const listeners = {
   notification: new Set(),
@@ -31,6 +32,32 @@ function clearPingInterval() {
   if (pingIntervalId != null) {
     clearInterval(pingIntervalId);
     pingIntervalId = null;
+  }
+}
+
+function cancelPendingDisconnect() {
+  if (disconnectTimerId != null) {
+    clearTimeout(disconnectTimerId);
+    disconnectTimerId = null;
+  }
+}
+
+function teardownSocket() {
+  clearPingInterval();
+  cancelPendingDisconnect();
+  if (!socket) return;
+
+  const sock = socket;
+  socket = null;
+  activeUserId = null;
+  sock.off('connect_error');
+  sock.off('new_notification');
+  sock.off('unread_count_update');
+
+  if (sock.connected) {
+    sock.disconnect();
+  } else {
+    sock.close();
   }
 }
 
@@ -65,14 +92,14 @@ export function subscribeSocketUnreadCount(callback) {
 export function connectSocket(userId) {
   if (!userId) return null;
 
+  cancelPendingDisconnect();
+
   if (socket && activeUserId === userId) {
     return socket;
   }
 
   if (socket) {
-    clearPingInterval();
-    socket.disconnect();
-    socket = null;
+    teardownSocket();
   }
 
   activeUserId = userId;
@@ -101,10 +128,13 @@ export function disconnectSocketIfIdle() {
     return;
   }
 
-  clearPingInterval();
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
-  activeUserId = null;
+  cancelPendingDisconnect();
+  // Trì hoãn ngắt kết nối để tránh race với React StrictMode (mount → unmount → mount).
+  disconnectTimerId = setTimeout(() => {
+    disconnectTimerId = null;
+    if (listeners.notification.size > 0 || listeners.unread.size > 0) {
+      return;
+    }
+    teardownSocket();
+  }, 0);
 }

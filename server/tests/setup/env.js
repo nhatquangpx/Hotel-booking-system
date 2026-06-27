@@ -1,4 +1,5 @@
 process.env.NODE_ENV = "test";
+process.env.MONGODB_DISABLE_TRANSACTIONS = "1";
 process.env.JWT_SECRET = "PASSWORDSECRET";
 process.env.JWT_ACCESS_EXPIRES = "15m";
 process.env.JWT_REFRESH_DAYS = "7";
@@ -10,6 +11,7 @@ process.env.VNPAY_HOST = "https://sandbox.vnpayment.vn";
 process.env.VNPAY_TMN_CODE = "YV6R3LQ0";
 process.env.VNPAY_SECURE_SECRET = "DGN4FIGZ3YANTCEX6JWK3TJWM4MKC5OB";
 process.env.VNPAY_RETURN_URL = "http://localhost:8001/api/payment/vnpay-return";
-process.env.CLOUDINARY_API_KEY="145147238915166"
-process.env.CLOUDINARY_API_SECRET="qrRV5uMt5wbuBn44PMrzkpzj0Bw"
-process.env.CLOUDINARY_CLOUD_NAME="dkufqfmj3"
+// Test dùng lưu file local — không gọi Cloudinary (tránh upload thật khi chạy Jest).
+delete process.env.CLOUDINARY_API_KEY;
+delete process.env.CLOUDINARY_API_SECRET;
+delete process.env.CLOUDINARY_CLOUD_NAME;

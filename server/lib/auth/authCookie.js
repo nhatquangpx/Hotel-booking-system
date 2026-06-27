@@ -1,4 +1,5 @@
 const { REFRESH_MS } = require("./refreshTokenConfig");
+const { clearCsrfCookie } = require("./csrf");
 
 const ACCESS_COOKIE_NAME = "access_token";
 const REFRESH_COOKIE_NAME = "refresh_token";
@@ -53,6 +54,7 @@ const clearCookie = (res, name, path) => {
 const clearAuthCookies = (res) => {
   clearCookie(res, ACCESS_COOKIE_NAME, "/");
   clearCookie(res, REFRESH_COOKIE_NAME, REFRESH_COOKIE_PATH);
+  clearCsrfCookie(res);
 };
 
 const setAuthCookie = (res, token) => setAccessCookie(res, token);

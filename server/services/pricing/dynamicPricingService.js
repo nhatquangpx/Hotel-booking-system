@@ -4,6 +4,7 @@ const Room = require("../../models/Room");
 const Booking = require("../../models/Booking");
 const { getOwnerHotelIds } = require("../dashboards/core");
 const { ROOM_TYPE_ORDER, ROOM_TYPE_LABEL_VI } = require("../rooms/roomTypes");
+const { buildActiveBookingHoldFilter } = require("../../lib/booking/pendingHold");
 
 const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WD_LABEL_VI = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
@@ -211,7 +212,7 @@ function groupRoomsByType(rooms) {
 /**
  * Một query booking giao với [todayStartVN, todayStartVN + days), sau đó đếm phòng đang chiếm
  * theo từng đêm VN và từng loại (trùng điều kiện overlap countDocuments cũ).
- * @returns {{ nightSlots: Array<{ dateKey: string, nightStart: Date, nightEnd: Date }>, occupiedByTypeDay: Record<string, number[]> }}
+ * @returns {{ nightSlots: Array<{ dateKey: string, nightStart: Date, nightEnd: Date }>, occupiedByTypeDay: Record<string, number[]>, occupiedRoomIdsByTypeDay: Record<string, Set<string>[]> }}
  */
 async function buildOccupiedRoomsByTypeAndDay(hotelId, rooms, types, days, todayStartVN) {
   const allRoomIds = rooms.map((r) => r._id);
@@ -227,8 +228,11 @@ async function buildOccupiedRoomsByTypeAndDay(hotelId, rooms, types, days, today
 
   /** @type {Record<string, number[]>} */
   const occupiedByTypeDay = {};
+  /** @type {Record<string, Set<string>[]>} */
+  const occupiedRoomIdsByTypeDay = {};
   for (const t of types) {
     occupiedByTypeDay[t] = new Array(days).fill(0);
+    occupiedRoomIdsByTypeDay[t] = Array.from({ length: days }, () => new Set());
   }
 
   const roomIdToType = new Map(rooms.map((r) => [r._id.toString(), r.type]));
@@ -236,9 +240,9 @@ async function buildOccupiedRoomsByTypeAndDay(hotelId, rooms, types, days, today
   const overlapBookings = await Booking.find({
     hotel: hotelId,
     room: { $in: allRoomIds },
-    paymentStatus: { $in: ["paid", "pending"] },
     checkInDate: { $lt: rangeEnd },
     checkOutDate: { $gt: todayStartVN },
+    ...buildActiveBookingHoldFilter(),
   })
     .select("room checkInDate checkOutDate")
     .lean();
@@ -249,13 +253,45 @@ async function buildOccupiedRoomsByTypeAndDay(hotelId, rooms, types, days, today
     const cin = b.checkInDate;
     const cout = b.checkOutDate;
     const row = occupiedByTypeDay[rt];
+    const idSets = occupiedRoomIdsByTypeDay[rt];
+    const roomId = String(b.room);
     for (let i = 0; i < days; i++) {
       const { nightStart, nightEnd } = nightSlots[i];
-      if (cin < nightEnd && cout > nightStart) row[i]++;
+      if (cin < nightEnd && cout > nightStart) {
+        row[i]++;
+        idSets[i].add(roomId);
+      }
     }
   }
 
-  return { nightSlots, occupiedByTypeDay };
+  return { nightSlots, occupiedByTypeDay, occupiedRoomIdsByTypeDay };
+}
+
+/**
+ * Chênh lệch doanh thu ước tính trong một đêm: chỉ phòng chưa có đơn trùng đêm đó.
+ * Σ (giá gợi ý − giá hiện tại) trên các phòng trống.
+ */
+function estimateVacantRoomDeltaRevenue(typeRooms, suggestedNightly, occupiedRoomIds) {
+  const occupied = occupiedRoomIds || new Set();
+  let delta = 0;
+  for (const room of typeRooms) {
+    if (occupied.has(room._id.toString())) continue;
+    delta += suggestedNightly - effectiveNightly(room);
+  }
+  return delta;
+}
+
+/** Cộng chênh lệch phòng trống từng đêm trong kỳ với cùng một mức giá áp dụng. */
+function estimatePeriodVacantDeltaRevenue(typeRooms, applyPrice, occupiedRoomIdsByNight) {
+  let total = 0;
+  for (let i = 0; i < occupiedRoomIdsByNight.length; i++) {
+    total += estimateVacantRoomDeltaRevenue(
+      typeRooms,
+      applyPrice,
+      occupiedRoomIdsByNight[i]
+    );
+  }
+  return total;
 }
 
 function orderedRoomTypes(roomsByType) {
@@ -376,13 +412,8 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
     const todayKey = vnDateKey(new Date());
     const todayStartVN = new Date(`${todayKey}T00:00:00+07:00`);
 
-    const { nightSlots, occupiedByTypeDay } = await buildOccupiedRoomsByTypeAndDay(
-      hid,
-      rooms,
-      types,
-      days,
-      todayStartVN
-    );
+    const { nightSlots, occupiedByTypeDay, occupiedRoomIdsByTypeDay } =
+      await buildOccupiedRoomsByTypeAndDay(hid, rooms, types, days, todayStartVN);
 
     /** @type {Array<{ type: string, typeLabel: string, roomCount: number, avgCurrentNightly: number, daily: object[], summary: object }>} */
     const roomTypesOut = [];
@@ -398,11 +429,12 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
       const histMult = historicalWeekdayMultipliers(counts);
 
       const daily = [];
-      let typeDeltaRevenue = 0;
 
       for (let i = 0; i < days; i++) {
         const { dateKey, nightStart } = nightSlots[i];
         const occupiedRooms = occupiedByTypeDay[roomType][i];
+        const occupiedRoomIds = occupiedRoomIdsByTypeDay[roomType][i];
+        const vacantRooms = Math.max(0, totalRooms - occupiedRooms);
 
         const occupancyRate = totalRooms > 0 ? occupiedRooms / totalRooms : 0;
         const wd = vnWeekdayIndex(nightStart);
@@ -418,17 +450,22 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
         const afterClamp = Math.min(maxP, Math.max(minP, rawBeforeClamp));
         const suggestedNightly = roundVnd(afterClamp);
 
-        const deltaPerNight = suggestedNightly - avgCurrentNightly;
-        typeDeltaRevenue += occupiedRooms * deltaPerNight;
+        const oneNightDelta = estimateVacantRoomDeltaRevenue(
+          typeRooms,
+          suggestedNightly,
+          occupiedRoomIds
+        );
 
         daily.push({
           date: dateKey,
           weekdayLabel: WD_LABEL_VI[wd],
           occupancyRate: Math.round(occupancyRate * 1000) / 1000,
           occupiedRooms,
+          vacantRooms,
           totalRooms,
           avgCurrentNightly: Math.round(avgCurrentNightly),
           suggestedNightly,
+          estimatedDailyDeltaRevenue: Math.round(oneNightDelta),
           factors: {
             occupancy: occMult,
             season: seaMult,
@@ -461,7 +498,27 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
         });
       }
 
-      hotelTotalDelta += typeDeltaRevenue;
+      const occupiedNights = occupiedRoomIdsByTypeDay[roomType];
+      for (const row of daily) {
+        row.estimatedPeriodDeltaIfApply = Math.round(
+          estimatePeriodVacantDeltaRevenue(typeRooms, row.suggestedNightly, occupiedNights)
+        );
+      }
+
+      const suggestedSum = daily.reduce((s, row) => s + row.suggestedNightly, 0);
+      const avgSuggestedNightly = daily.length ? roundVnd(suggestedSum / daily.length) : 0;
+
+      const periodDeltaPerDaySuggest = daily.reduce(
+        (s, row) => s + (row.estimatedDailyDeltaRevenue || 0),
+        0
+      );
+      let periodDeltaAtAvg = estimatePeriodVacantDeltaRevenue(
+        typeRooms,
+        avgSuggestedNightly,
+        occupiedNights
+      );
+
+      hotelTotalDelta += periodDeltaAtAvg;
 
       const metaByType =
         hotel.dynamicPricingByRoomType && typeof hotel.dynamicPricingByRoomType === "object"
@@ -475,12 +532,15 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
         typeLabel: ROOM_TYPE_LABEL_VI[roomType] || roomType,
         roomCount: totalRooms,
         avgCurrentNightly: Math.round(avgCurrentNightly),
+        avgSuggestedNightly,
         daily,
         lastBulkApply,
         summary: {
-          estimatedAdditionalRevenue: Math.round(typeDeltaRevenue),
+          avgSuggestedNightly,
+          estimatedAdditionalRevenue: Math.round(periodDeltaAtAvg),
+          estimatedPeriodDeltaPerDaySuggest: Math.round(periodDeltaPerDaySuggest),
           note:
-            "Chênh lệch doanh thu ước tính cho loại phòng này: giữ nguyên số phòng đã đặt, chỉ đổi giá đêm TB của loại đó.",
+            "Chênh lệch cả kỳ = cộng từng đêm chỉ phòng trống, Σ (giá áp dụng − giá hiện tại từng phòng). Thẻ tổng hợp dùng giá TB gợi ý mọi đêm; cột bảng dùng giá gợi ý của ngày trên dòng đó cho mọi đêm — cùng cách tính.",
         },
       });
     }
@@ -494,7 +554,7 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
       summary: {
         estimatedAdditionalRevenue: Math.round(hotelTotalDelta),
         note:
-          "Tổng chênh lệch = cộng dồn theo từng loại phòng (mỗi loại có giá và tỷ lệ lấp đầy riêng). Giả định số phòng đã đặt không đổi.",
+          "Tổng chênh lệch = cộng theo từng loại phòng nếu áp giá TB gợi ý cả kỳ (mỗi đêm × Σ từng phòng).",
       },
     });
   }

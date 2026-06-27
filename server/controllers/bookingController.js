@@ -27,7 +27,16 @@ exports.getPricePreview = (req, res) =>
   );
 
 exports.getMyBookings = (req, res) =>
-  runService(res, () => bookingApi.getMyBookings({ userId: req.user.id }));
+  runService(res, () =>
+    bookingApi.getMyBookings({
+      userId: req.user.id,
+      hotelId: req.query.hotelId,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+      page: req.query.page,
+      limit: req.query.limit,
+    })
+  );
 
 exports.getUserBookings = (req, res) =>
   runService(res, () => bookingApi.getUserBookings({ userId: req.params.userId }));

@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { csrfProtection } = require("./middlewares/csrfProtection");
 
 const authRoutes = require("./routes/authRoutes");
 const guestRoutes = require("./routes/guestRoutes");
@@ -30,7 +31,7 @@ function createApp() {
       },
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"],
       preflightContinue: false,
       optionsSuccessStatus: 204,
     })
@@ -39,6 +40,7 @@ function createApp() {
   app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(csrfProtection);
 
   app.use("/api/auth", authRoutes);
   app.use("/api/guest", guestRoutes);

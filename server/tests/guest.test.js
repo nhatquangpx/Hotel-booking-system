@@ -95,7 +95,14 @@ describe("Guest — chức năng khách hàng", () => {
     it("GET /bookings — danh sách đặt phòng", async () => {
       const res = await guest.get("/api/guest/bookings");
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(Array.isArray(res.body.bookings)).toBe(true);
+      expect(res.body.pagination).toMatchObject({
+        page: expect.any(Number),
+        limit: expect.any(Number),
+        total: expect.any(Number),
+        totalPages: expect.any(Number),
+      });
+      expect(Array.isArray(res.body.filterHotels)).toBe(true);
     });
 
     it("GET /bookings/available-rooms", async () => {

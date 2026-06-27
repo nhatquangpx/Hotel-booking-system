@@ -20,6 +20,7 @@ const {
   pricePreviewQueryValidation,
   createBookingValidation,
   cancelBookingValidation,
+  guestMyBookingsQueryValidation,
   validate: validateBooking,
 } = require("../validations/bookingValidation");
 const {
@@ -55,7 +56,12 @@ router.get('/profile', userController.getGuestProfile);
 router.put('/profile', updateSelfProfileValidation, validateProfile, userController.updateGuestProfile);
 router.put('/profile/changepassword', changePasswordValidation, validateProfile, userController.changeGuestPassword);
 
-router.get('/bookings', bookingController.getMyBookings);
+router.get(
+  '/bookings',
+  guestMyBookingsQueryValidation,
+  validateBooking,
+  bookingController.getMyBookings
+);
 router.get(
   '/bookings/available-rooms',
   availableRoomsQueryValidation,

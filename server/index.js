@@ -7,6 +7,7 @@ const { createApp } = require("./app");
 const { initializeSocket } = require("./socket/socketServer");
 const { sendCheckInReminders } = require("./services/emails");
 const { deactivateAllExpiredSales } = require("./services/sale/saleLifecycle");
+const { cancelExpiredPendingBookings } = require("./services/bookings/pendingExpiry");
 
 const app = createApp();
 const server = http.createServer(app);
@@ -55,6 +56,24 @@ cron.schedule(
   }
 );
 
+cron.schedule(
+  "*/5 * * * *",
+  async () => {
+    try {
+      const { cancelled } = await cancelExpiredPendingBookings();
+      if (cancelled > 0) {
+        console.log(`Đã tự hủy ${cancelled} đơn pending quá hạn giữ phòng`);
+      }
+    } catch (error) {
+      console.error("Lỗi khi hủy đơn pending quá hạn:", error);
+    }
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Ho_Chi_Minh",
+  }
+);
+
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(
@@ -62,5 +81,8 @@ server.listen(PORT, () => {
   );
   console.log(
     "Scheduled job đồng bộ sale hết hạn đã được kích hoạt (00:05 AM hàng ngày, Asia/Ho_Chi_Minh)"
+  );
+  console.log(
+    "Scheduled job hủy đơn pending quá hạn đã được kích hoạt (mỗi 5 phút, Asia/Ho_Chi_Minh)"
   );
 });

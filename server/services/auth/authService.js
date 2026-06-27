@@ -20,6 +20,7 @@ const {
   getRefreshTokenFromRequest,
   getTokenFromRequest,
 } = require("../../lib/auth/authCookie");
+const { setCsrfCookie } = require("../../lib/auth/csrf");
 const {
   createAccessToken,
   createRefreshToken,
@@ -67,11 +68,13 @@ async function issueAuthSession(res, user, staffHotel, extra = {}) {
   const refreshToken = createRefreshToken();
   await persistRefreshToken(user, refreshToken);
   setAuthCookies(res, accessToken, refreshToken);
+  const csrfToken = setCsrfCookie(res);
   return {
     status: 200,
     body: {
       user: formatAuthUser(user, staffHotel),
       requires2FA: false,
+      csrfToken,
       ...extra,
     },
   };
@@ -272,11 +275,13 @@ async function refreshToken({ req, res }) {
   const newRefreshToken = createRefreshToken();
   await persistRefreshToken(user, newRefreshToken);
   setAuthCookies(res, accessToken, newRefreshToken);
+  const csrfToken = setCsrfCookie(res);
 
   return {
     status: 200,
     body: {
       message: "Làm mới phiên đăng nhập thành công",
+      csrfToken,
       user: formatAuthUser(user, staffHotel),
     },
   };

@@ -1,11 +1,17 @@
 import api from '../config/axios';
+import { unwrapPaginated } from '@/shared/utils/core/paginationResponse';
 
 export const userBookingAPI = {
-  // Lấy tất cả đặt phòng của người dùng
-  getMyBookings: async () => {
+  /** Danh sách đặt phòng (lọc khách sạn, khoảng ngày nhận phòng, phân trang). */
+  getMyBookings: async (params = {}) => {
     try {
-      const response = await api.get('/guest/bookings');
-      return response.data;
+      const response = await api.get('/guest/bookings', { params });
+      const { items, pagination } = unwrapPaginated(response.data, 'bookings');
+      return {
+        items,
+        pagination,
+        filterHotels: response.data?.filterHotels ?? [],
+      };
     } catch (error) {
       throw error.response?.data || error.message;
     }
