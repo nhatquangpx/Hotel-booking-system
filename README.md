@@ -1,10 +1,12 @@
 # StayJourney — Hệ thống đặt phòng khách sạn
 
-**StayJourney** là ứng dụng web full-stack hỗ trợ **tìm kiếm khách sạn, đặt phòng trực tuyến và vận hành khách sạn** với **bốn vai trò**: **Guest (khách hàng)**, **Owner (chủ khách sạn)**, **Staff (nhân viên)** và **Admin (quản trị viên)**.
+**StayJourney** là ứng dụng web full-stack hỗ trợ **tìm kiếm khách sạn, đặt phòng trực tuyến và vận hành chuỗi khách sạn** với **bốn vai trò**: **Guest (khách hàng)**, **Owner (chủ khách sạn)**, **Staff (nhân viên)** và **Admin (quản trị viên)**.
 
 Giao diện responsive; API có lớp **validation** (`express-validator`) và **CSRF protection** trên các thao tác ghi dữ liệu quan trọng.
 
-> Dự án phục vụ mục đích học tập / đồ án tốt nghiệp — chạy trên môi trường **local**.
+> Dự án phục vụ mục đích học tập / đồ án tốt nghiệp — chạy trên môi trường **local** (không bao gồm deploy production).
+
+**Hướng dẫn cài đặt chi tiết (PDF):** ` Huong-dan-cai-dat.pdf` 
 
 ---
 
@@ -65,23 +67,23 @@ Giao diện responsive; API có lớp **validation** (`express-validator`) và *
 | Tầng | Công nghệ |
 |------|-----------|
 | Frontend | React 18, Vite 5, React Router 6, Redux Toolkit, SCSS, Material UI, Axios, Socket.IO Client, React Toastify, Font Awesome / React Icons |
-| Backend | Node.js, Express 4, MongoDB (Mongoose 8), Socket.IO |
+| Backend | Node.js, Express 4, MongoDB (Mongoose 8), Socket.IO, node-cron |
 | Xác thực | JWT (access + refresh trong **HttpOnly cookie**), bcryptjs, 2FA (OTP email / mã dự phòng) |
 | Bảo mật API | **CSRF** (double-submit cookie), `express-validator` |
-| Upload | Multer + Cloudinary |
+| Upload | Multer + Cloudinary (fallback lưu local `server/uploads/`) |
 | Thanh toán | VNPay sandbox, QR chuyển khoản theo cấu hình từng KS |
 | Email | Nodemailer / Gmail SMTP (OTP, nhắc check-in, liên hệ, bảo trì…) |
 | Báo cáo | ExcelJS (xuất doanh thu) |
-| Lịch | node-cron (email nhắc 9:00, tắt sale hết hạn 00:05, hủy đơn pending quá hạn mỗi 5 phút) |
-| Kiểm thử | Jest, Supertest, mongodb-memory-server (`server/tests/`) |
+| Lịch | node-cron (email nhắc 9:00, tắt sale hết hạn 00:05, hủy đơn pending quá hạn mỗi 5 phút) — múi giờ `Asia/Ho_Chi_Minh` |
+| Kiểm thử | Jest, Supertest, mongodb-memory-server (`server/tests/`, 161 test cases) |
 
 ---
 
 ## Cấu trúc thư mục
 
 ```
-StayJourney/
-├── client/                 # React (Vite)
+Hotel-booking-system/
+├── client/                 # React (Vite), port 3000
 │   ├── src/
 │   │   ├── apis/           # API theo role (guest, owner, staff, admin)
 │   │   ├── components/     # UI dùng chung
@@ -90,7 +92,7 @@ StayJourney/
 │   │   ├── routes/         # AppRoutes + ProtectedRoute
 │   │   └── shared/         # hooks, utils, socket, components
 │   └── .env.example
-├── server/
+├── server/                 # Node.js (Express), port 8001
 │   ├── config/             # DB, multer/Cloudinary
 │   ├── controllers/
 │   ├── lib/                # auth cookie, CSRF, booking helpers, pagination…
@@ -101,12 +103,9 @@ StayJourney/
 │   ├── services/           # booking, sale, pricing, notifications, emails…
 │   ├── socket/
 │   ├── tests/              # API integration tests (Jest)
+│   ├── uploads/            # Ảnh local khi chưa cấu hình Cloudinary
 │   ├── validations/        # express-validator rules
 │   └── .env.example
-├── README.md
-└── HUONG_DAN_CAI_DAT.md
-```
-
 ---
 
 ## API (prefix)
@@ -123,88 +122,131 @@ StayJourney/
 
 ---
 
-## Validation (server)
-
-Các module trong `server/validations/`: `auth` (gồm đăng ký), `booking`, `hotel`, `room`, `user`, `profile`, `review`, `contact`, `payment`, `sale`, `pricing`, `equipment`, `params`, `common`.
-
-- Middleware `validate` trả `400` kèm `message` và `errors[]`.
-- Upload multipart: multer chạy **trước** validation (ví dụ xác nhận QR, tạo KS/phòng).
-- Một số rule nghiệp vụ: giá phòng JSON `{ regular, discount }`, đặt phòng chấp nhận `hotel`/`room` hoặc `hotelId`/`roomId`, ngưỡng hoàn tiền theo chính sách KS.
-
----
-
-## Cài đặt chạy local
-
-> Hướng dẫn chi tiết (MongoDB, Cloudinary, Gmail, VNPay, seed DB, xử lý lỗi): **[HUONG_DAN_CAI_DAT.md](./HUONG_DAN_CAI_DAT.md)**
+## Cài đặt và chạy local
 
 ### Yêu cầu
 
-- Node.js 18+
-- MongoDB (Atlas hoặc local)
-- Tài khoản Cloudinary (ảnh), Gmail App Password (email), VNPay sandbox (tùy chọn demo thanh toán)
+| Phần mềm | Phiên bản |
+|----------|-----------|
+| Node.js | 18+ (LTS) |
+| npm | Đi kèm Node.js |
+| MongoDB | Atlas (khuyến nghị) hoặc Community (local) |
+| Gmail App Password | Bắt buộc nếu đăng nhập Admin/Owner (2FA qua email) |
+| Cloudinary | Khuyến nghị (thiếu → lưu ảnh tại `server/uploads/`) |
+| VNPay Sandbox | Tùy chọn (demo thanh toán online) |
 
-### 1. Backend
+### Mô hình local
+
+| Thành phần | URL |
+|------------|-----|
+| Frontend (Vite) | `http://localhost:3000` |
+| Backend API | `http://localhost:8001/api` |
+| Socket.IO | `http://localhost:8001` |
+| Health check | `GET http://localhost:8001/health` |
+
+Client gọi API **trực tiếp** qua `VITE_API_URL` (không dùng Vite proxy). JWT trong HttpOnly cookie; request ghi dữ liệu kèm header `X-CSRF-Token`.
+
+### 1. Clone và cấu hình
+
+```bash
+git clone <url-repo-cua-ban>
+cd Hotel-booking-system
+```
+
+**Backend** (`server/.env`):
 
 ```bash
 cd server
-cp .env.example .env
-# Chỉnh MONGO_URL, JWT_SECRET, FRONTEND_URL, Cloudinary, Email, VNPay…
-npm install
-npm run dev
+cp .env.example .env   # Windows: Copy-Item .env.example .env
 ```
 
-Mặc định: `http://localhost:8001`
+Điền tối thiểu: `MONGO_URL`, `MONGO_DB_NAME` (`StayJourney`), `JWT_SECRET`, `FRONTEND_URL` (`http://localhost:3000`), `EMAIL_USER`, `EMAIL_PASS`. Tùy chọn: `CLOUDINARY_*`, `VNPAY_*`, `DEFAULT_QR_*`.
 
-### 2. Frontend
+**Frontend** (`client/.env`):
 
 ```bash
 cd client
 cp .env.example .env
-# VITE_API_URL=http://localhost:8001/api
-npm install
-npm run dev
 ```
 
-Mặc định Vite: `http://localhost:3000`
+```env
+VITE_API_URL=http://localhost:8001/api
+```
 
-### 3. Seed dữ liệu mẫu (khuyến nghị)
+### 2. Cài dependencies
+
+```bash
+cd server && npm install
+cd ../client && npm install
+```
+
+### 3. Seed dữ liệu mẫu (khuyến nghị lần đầu)
 
 ```bash
 cd server
-npm run db:seed
+npm run db:reseed    # xóa DB rồi seed lại
+# hoặc: npm run db:seed   # thêm dữ liệu, không xóa cũ
 ```
 
-Mật khẩu demo: `123456` — xem danh sách tài khoản trong [HUONG_DAN_CAI_DAT.md](./HUONG_DAN_CAI_DAT.md#9-seed-dữ-liệu-mẫu).
+**Tài khoản demo** (mật khẩu chung: `123456`):
 
-### 4. Kiểm tra
+| Vai trò | Email |
+|---------|--------|
+| Guest | `quang.dn225911@sis.hust.edu.vn` |
+| Admin | `doannhatquang0@gmail.com` |
+| Owner | `nhtquangforwork@gmail.com` |
+| Staff | `demonlord29082004@gmail.com` |
 
-- `GET http://localhost:8001/health` → `{ "status": "ok", ... }`
-- Đăng nhập đúng role → redirect theo `ROLE_HOME_ROUTES` (`guest` → `/`, `admin` → `/admin`, …)
+> Admin/Owner cần **email hoạt động** để nhận OTP 2FA khi đăng nhập lần đầu.
+
+### 4. Chạy ứng dụng (2 terminal)
+
+```bash
+# Terminal 1 — Backend (:8001)
+cd server
+npm start            # hoặc npm run dev (cần nodemon: npm i -g nodemon)
+
+# Terminal 2 — Frontend (:3000)
+cd client
+npm run dev
+```
+
+Mở `http://localhost:3000`. Đăng nhập đúng role → redirect: Guest `/`, Owner `/owner`, Staff `/staff`, Admin `/admin`.
+
+### 5. Kiểm tra
+
+```bash
+curl http://localhost:8001/health
+# → { "status": "ok", ... }
+
+cd server && npm test
+# → 161/161 test cases
+```
 
 ---
 
 ## Biến môi trường chính
 
-Chi tiết: `server/.env.example`, `client/.env.example`.
+Chi tiết: `server/.env.example`, `client/.env.example`. Xem đầy đủ trong `Huong-dan-cai-dat.pdf`.
 
 | Biến | Mô tả |
 |------|--------|
 | `MONGO_URL`, `MONGO_DB_NAME` | Kết nối MongoDB (mặc định DB: `StayJourney`) |
-| `JWT_SECRET`, `JWT_ACCESS_EXPIRES`, `JWT_REFRESH_DAYS` | Token |
-| `FRONTEND_URL` | Origin frontend local (`http://localhost:3000`) — CORS + cookie |
-| `VITE_API_URL` | Base API cho client (`http://localhost:8001/api`) |
-| `CLOUDINARY_*` | Upload ảnh |
-| `EMAIL_USER`, `EMAIL_PASS` | Gửi mail (Gmail App Password) |
+| `JWT_SECRET`, `JWT_ACCESS_EXPIRES`, `JWT_REFRESH_DAYS` | Token (refresh là **số ngày**, ví dụ `7`) |
+| `FRONTEND_URL` | Origin frontend (`http://localhost:3000`) — CORS + cookie |
+| `VITE_API_URL` | Base API client (`http://localhost:8001/api`) |
+| `CLOUDINARY_*` | Upload ảnh cloud (thiếu → `server/uploads/`) |
+| `EMAIL_USER`, `EMAIL_PASS` | Gmail App Password |
 | `VNPAY_*` | Cổng VNPay sandbox |
 | `DEFAULT_QR_*` | QR mặc định khi tạo KS (admin) |
-| `BOOKING_PENDING_HOLD_MINUTES` | Thời gian giữ phòng khi đơn pending (mặc định 30 phút) |
+| `BOOKING_PENDING_HOLD_MINUTES` | Giữ phòng khi đơn pending (mặc định 30 phút) |
 
 ---
 
 ## Luồng nghiệp vụ tiêu biểu
 
 1. **Đặt phòng:** Guest chọn ngày → `price-preview` (sale theo đêm) → `POST /guest/bookings` → QR hoặc VNPay.
-2. **Giữ phòng:** Đơn `pending` được giữ trong `BOOKING_PENDING_HOLD_MINUTES`; cron tự hủy nếu quá hạn.
+2. **Giữ phòng:** Đơn `pending` được giữ trong `BOOKING_PENDING_HOLD_MINUTES`; cron tự hủy nếu quá hạn (mỗi 5 phút).
 3. **QR:** Guest upload biên lai → Owner/Staff xác nhận thanh toán trên đơn.
 4. **Sale:** Owner tạo chương trình → `salePricingService` tính đêm sale/regular → hiển thị breakdown cho guest.
 5. **Thông báo:** Socket.IO + lưu DB; chuông thông báo trên header các role.
@@ -219,11 +261,11 @@ Chi tiết: `server/.env.example`, `client/.env.example`.
 | Lệnh | Mô tả |
 |------|--------|
 | `npm run dev` | Nodemon API (development) |
-| `npm start` | Chạy API (không hot-reload) |
-| `npm test` | Chạy toàn bộ API tests |
+| `npm start` | Chạy API (`node index.js`) |
+| `npm test` | Chạy 161 API tests |
 | `npm run test:watch` | Tests ở chế độ watch |
 | `npm run test:coverage` | Báo cáo coverage |
-| `npm run db:seed` | Seed dữ liệu mẫu |
+| `npm run db:seed` | Thêm dữ liệu mẫu (không xóa cũ) |
 | `npm run db:reset` | Xóa toàn bộ collection |
 | `npm run db:reseed` | Reset rồi seed lại |
 | `npm run db:supplement` | Bổ sung dữ liệu |
@@ -233,15 +275,15 @@ Chi tiết: `server/.env.example`, `client/.env.example`.
 
 | Lệnh | Mô tả |
 |------|--------|
-| `npm run dev` | Vite dev server |
-| `npm run build` | Build static (không dùng trong phạm vi đồ án) |
-| `npm run preview` | Xem trước bản build |
+| `npm run dev` | Vite dev server (port 3000) |
+| `npm run build` | Build static → `dist/` |
+| `npm run preview` | Xem trước bản build (port 4173) |
 
 ---
 
 ## Kiểm thử
 
-Bộ test API tích hợp nằm trong `server/tests/`, dùng **Jest + Supertest** với MongoDB in-memory:
+Bộ test API tích hợp trong `server/tests/`, dùng **Jest + Supertest** với MongoDB in-memory:
 
 | File test | Phạm vi |
 |-----------|---------|
@@ -254,21 +296,16 @@ Bộ test API tích hợp nằm trong `server/tests/`, dùng **Jest + Supertest*
 | `booking-lifecycle.test.js` | Vòng đời đơn đặt |
 | `authorization.test.js` | Phân quyền theo role |
 
-```bash
-cd server
-npm test
-```
-
-Ngoài test tự động, kiểm thử thủ công trên các luồng demo (đặt phòng, thanh toán, sale, check-in/out…).
-
 ---
 
 ## Ghi chú phát triển local
 
-- `FRONTEND_URL` phải trùng URL frontend bạn mở trên trình duyệt (`http://localhost:3000`).
+- `FRONTEND_URL` phải trùng URL frontend trên trình duyệt (`http://localhost:3000`).
 - Không trộn `localhost` với `127.0.0.1` giữa client và server.
-- Admin/Owner bật **2FA** khi đăng nhập lần đầu (OTP qua email).
-- Cron jobs chạy khi server đang bật: nhắc check-in (9:00), đồng bộ sale hết hạn (00:05), hủy đơn pending quá hạn (mỗi 5 phút) — múi giờ `Asia/Ho_Chi_Minh`.
+- Admin/Owner bật **2FA** khi đăng nhập lần đầu (OTP qua email, xử lý trên trang `/login`).
+- Cron jobs chạy khi server đang bật — múi giờ `Asia/Ho_Chi_Minh`.
+- Script seed/reset hardcode DB `StayJourney`; runtime server đọc `MONGO_DB_NAME`.
+- `npm run dev` cần `nodemon` (chưa có trong `package.json`) — dùng `npm start` hoặc `npm i -g nodemon`.
 
 ---
 
