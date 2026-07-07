@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import api from '@/apis';
@@ -127,6 +127,12 @@ export const LoginForm = () => {
       const result = await api.auth.verify2FA(userId, otpCode, rememberDevice);
 
       if (result.user) {
+        if (result.backupCodesRegenerated) {
+          toast.info(
+            'Bạn đã dùng mã dự phòng cuối cùng. 10 mã mới đã được gửi đến email của bạn.'
+          );
+        }
+
         dispatch(setLogin({ user: result.user }));
 
         if (rememberMe) { 

@@ -60,9 +60,14 @@ const AdminTwoFactorPage = () => {
     try {
       setSaving(true);
       const result = await api.auth.enable2FA();
-      
-      setTwoFactorStatus(prev => ({ ...prev, enabled: true }));
-      setBackupCodes(result.backupCodes || []);
+      const codes = result.backupCodes || [];
+
+      setTwoFactorStatus((prev) => ({
+        ...prev,
+        enabled: true,
+        remainingBackupCodes: codes.length,
+      }));
+      setBackupCodes(codes);
       setShowBackupCodes(true);
       
       toast.success('Đã bật xác thực 2 lớp thành công! Mã dự phòng đã được gửi đến email của bạn.');

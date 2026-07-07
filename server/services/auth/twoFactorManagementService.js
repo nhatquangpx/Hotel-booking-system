@@ -10,6 +10,31 @@ const {
 const { send2FABackupCodesEmail } = require("../emails");
 const { ServiceError } = require("../../lib/http/serviceError");
 
+const BACKUP_CODE_COUNT = 10;
+
+function countRemainingBackupCodes(user) {
+  return user.twoFactorAuth?.backupCodes?.filter((code) => !code.used).length || 0;
+}
+
+function assignNewBackupCodes(user, count = BACKUP_CODE_COUNT) {
+  const backupCodes = generateBackupCodes(count);
+  user.twoFactorAuth.backupCodes = backupCodes;
+  return backupCodes;
+}
+
+async function autoRegenerateBackupCodesIfExhausted(user) {
+  if (!user.twoFactorAuth?.enabled) return false;
+  if (countRemainingBackupCodes(user) > 0) return false;
+
+  const backupCodes = assignNewBackupCodes(user);
+  await send2FABackupCodesEmail(user.email, backupCodes, user.name);
+
+  console.log(
+    `Đã tự động tạo lại backup codes cho user ${user._id} (${user.email}) sau khi dùng mã cuối cùng`
+  );
+  return true;
+}
+
 async function enable2FA({ userId }) {
   const user = await User.findById(userId);
   if (!user) throw new ServiceError(404, "Người dùng không tồn tại!");
@@ -21,7 +46,7 @@ async function enable2FA({ userId }) {
     throw new ServiceError(400, "Xác thực 2 lớp đã được bật");
   }
 
-  const backupCodes = generateBackupCodes(10);
+  const backupCodes = generateBackupCodes(BACKUP_CODE_COUNT);
   user.twoFactorAuth = { enabled: true, backupCodes };
   await user.save();
   await send2FABackupCodesEmail(user.email, backupCodes, user.name);
@@ -57,8 +82,7 @@ async function get2FAStatus({ userId }) {
   if (!user) throw new ServiceError(404, "Người dùng không tồn tại!");
 
   const isEnabled = user.twoFactorAuth?.enabled || false;
-  const remainingBackupCodes =
-    user.twoFactorAuth?.backupCodes?.filter((code) => !code.used).length || 0;
+  const remainingBackupCodes = countRemainingBackupCodes(user);
 
   return {
     status: 200,
@@ -77,8 +101,7 @@ async function regenerateBackupCodes({ userId }) {
     throw new ServiceError(400, "Xác thực 2 lớp chưa được bật");
   }
 
-  const backupCodes = generateBackupCodes(10);
-  user.twoFactorAuth.backupCodes = backupCodes;
+  const backupCodes = assignNewBackupCodes(user);
   await user.save();
   await send2FABackupCodesEmail(user.email, backupCodes, user.name);
 
@@ -139,6 +162,10 @@ async function removeAllTrustedDevicesForUser({ userId }) {
 }
 
 module.exports = {
+  BACKUP_CODE_COUNT,
+  countRemainingBackupCodes,
+  assignNewBackupCodes,
+  autoRegenerateBackupCodesIfExhausted,
   enable2FA,
   disable2FA,
   get2FAStatus,

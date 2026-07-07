@@ -13,6 +13,7 @@ const {
   getDeviceInfo,
   addTrustedDevice,
 } = require("./deviceAuth");
+const { autoRegenerateBackupCodesIfExhausted } = require("./twoFactorManagementService");
 const { findHotelByStaffId } = require("../hotels/staffHotel");
 const {
   setAuthCookies,
@@ -192,10 +193,16 @@ async function verify2FA({ userId, otpCode, rememberDevice, req, res }) {
           30
         );
       }
+
+      const backupCodesRegenerated = await autoRegenerateBackupCodesIfExhausted(user);
+
       console.log(
         `Đăng nhập thành công với backup code: User ${user._id} (${user.email})`
       );
-      return issueAuthSession(res, user, staffHotel, { usedBackupCode: true });
+      return issueAuthSession(res, user, staffHotel, {
+        usedBackupCode: true,
+        backupCodesRegenerated,
+      });
     }
 
     throw new ServiceError(400, "Mã OTP không hợp lệ hoặc đã hết hạn");
