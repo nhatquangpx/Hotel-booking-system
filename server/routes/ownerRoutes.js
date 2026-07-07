@@ -172,7 +172,6 @@ router.get('/notifications/unread-count', notificationController.getUnreadCount)
 router.put('/notifications/:id/read', idParamValidation, notificationController.markAsRead);
 router.put('/notifications/read-all', notificationController.markAllAsRead);
 router.get('/notifications/load-more', notificationController.loadMoreNotifications);
-router.post('/notifications/check-no-show', notificationController.checkNoShowBookings);
 
 router.get('/dashboard/stats', dashboardController.getOwnerDashboardStats);
 router.get('/dashboard/revenue', dashboardController.getOwnerRevenueStats);

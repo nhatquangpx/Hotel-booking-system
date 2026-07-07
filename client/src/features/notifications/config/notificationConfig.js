@@ -14,7 +14,6 @@ export const notificationConfig = {
     supportedTypes: [
       'new_booking',
       'booking_cancelled',
-      'no_show',
       'checkin_today',
       'checkout_today',
       'new_review',
@@ -50,7 +49,6 @@ export const notificationConfig = {
     supportedTypes: [
       'new_booking',
       'booking_cancelled',
-      'no_show',
       'checkin_today',
       'checkout_today',
       'new_review',
@@ -92,7 +90,6 @@ export const getNotificationPath = (notification, role) => {
 
     case 'new_booking':
     case 'booking_cancelled':
-    case 'no_show':
     case 'booking_confirmed':
     case 'payment_rejected':
     case 'qr_proof_resubmit':

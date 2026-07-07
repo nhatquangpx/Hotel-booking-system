@@ -27,6 +27,3 @@ exports.loadMoreNotifications = (req, res) =>
       limit: req.query.limit,
     })
   );
-
-exports.checkNoShowBookings = (req, res) =>
-  runService(res, () => inboxApiService.runNoShowCheck({ userRole: req.user.role }));

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCalendarAlt, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaClock } from 'react-icons/fa';
+import { FaCalendarAlt, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan } from 'react-icons/fa';
 import OwnerLayout from '../components/OwnerLayout';
 import api from '@/apis';
 import { useAuth, useSocket } from '@/shared/hooks';
@@ -56,8 +56,6 @@ const OwnerNotificationsPage = () => {
         return <FaCalendarAlt />;
       case 'booking_cancelled':
         return <FaBan />;
-      case 'no_show':
-        return <FaClock />;
       case 'new_review':
         return <FaUser />;
       case 'negative_review':

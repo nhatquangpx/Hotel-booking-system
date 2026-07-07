@@ -1,7 +1,6 @@
 const Booking = require("../../models/Booking");
 const Review = require("../../models/Review");
 const Hotel = require("../../models/Hotel");
-const Notification = require("../../models/Notification");
 const { createHotelNotification } = require("./core");
 const { getHotelStatusLabel } = require("../../services/hotels/status");
 const { getBookingFinalAmount } = require("../bookings/bookingAmount");
@@ -148,63 +147,6 @@ const notifyNewReview = async (reviewId) => {
   }
 };
 
-const notifyNoShow = async (bookingId) => {
-  try {
-    const booking = await Booking.findById(bookingId).populate("hotel", "name");
-
-    if (!booking?.hotel) return;
-
-    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
-
-    await createHotelNotification(
-      booking.hotel._id,
-      "no_show",
-      "Khách vắng mặt",
-      `Đã quá giờ check-in nhưng khách chưa đến — đơn #BK${bookingIdShort}.`,
-      bookingId,
-      "Booking"
-    );
-  } catch (error) {
-    console.error("Lỗi khi tạo thông báo khách vắng mặt:", error);
-  }
-};
-
-const checkNoShowBookings = async () => {
-  try {
-    const now = new Date();
-    const noShowBookings = await Booking.find({
-      checkInDate: { $lt: now },
-      checkedInAt: { $exists: false },
-      paymentStatus: { $in: ["paid", "pending"] },
-    })
-      .populate("hotel", "ownerId")
-      .limit(100);
-
-    let notifiedCount = 0;
-    for (const booking of noShowBookings) {
-      if (!booking.hotel) continue;
-
-      const existingNotification = await Notification.findOne({
-        recipientRole: "hotel",
-        hotel: booking.hotel._id,
-        type: "no_show",
-        relatedId: booking._id,
-        relatedModel: "Booking",
-      });
-
-      if (!existingNotification) {
-        await notifyNoShow(booking._id);
-        notifiedCount++;
-      }
-    }
-
-    return { checked: noShowBookings.length, notified: notifiedCount };
-  } catch (error) {
-    console.error("Lỗi khi kiểm tra no-show bookings:", error);
-    throw error;
-  }
-};
-
 /** Admin đổi trạng thái KS — thông báo owner + staff qua kênh hotel. */
 const notifyHotelStatusChanged = async (hotelId, previousStatus, newStatus) => {
   try {
@@ -253,6 +195,4 @@ module.exports = {
   notifyCheckIn,
   notifyCheckOut,
   notifyNewReview,
-  notifyNoShow,
-  checkNoShowBookings,
 };

@@ -8,7 +8,6 @@ import {
   FaCheck,
   FaTimes,
   FaBan,
-  FaClock,
 } from 'react-icons/fa';
 import StaffLayout from '../components/StaffLayout';
 import api from '@/apis';
@@ -62,8 +61,6 @@ const StaffNotificationsPage = () => {
         return <FaCalendarAlt />;
       case 'booking_cancelled':
         return <FaBan />;
-      case 'no_show':
-        return <FaClock />;
       case 'new_review':
         return <FaUser />;
       case 'negative_review':

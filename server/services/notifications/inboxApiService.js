@@ -1,5 +1,4 @@
 const Notification = require("../../models/Notification");
-const { checkNoShowBookings } = require("./owner");
 const realtimeNotifier = require("./realtimeNotifier");
 const inbox = require("./inbox");
 const { ServiceError } = require("../../lib/http/serviceError");
@@ -96,19 +95,10 @@ async function loadMoreNotifications({ req, page = 1, limit = 10 }) {
   };
 }
 
-async function runNoShowCheck({ userRole }) {
-  if (userRole !== "owner") {
-    throw new ServiceError(403, "Chỉ chủ khách sạn mới có quyền thực hiện thao tác này");
-  }
-  const result = await checkNoShowBookings();
-  return { status: 200, body: { message: "Đã kiểm tra no-show bookings", ...result } };
-}
-
 module.exports = {
   getNotifications,
   getUnreadCount,
   markAsRead,
   markAllAsRead,
   loadMoreNotifications,
-  runNoShowCheck,
 };

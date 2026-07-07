@@ -40,7 +40,6 @@ const NotificationSchema = new mongoose.Schema(
         "negative_review",
         "checkout_today",
         "checkin_today",
-        "no_show",
         "hotel_status_changed",
         // Guest (recipientRole: "guest")
         "booking_confirmed",

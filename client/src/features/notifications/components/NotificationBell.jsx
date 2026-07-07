@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaCalendarAlt, FaDollarSign, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan, FaClock } from 'react-icons/fa';
+import { FaCalendarAlt, FaDollarSign, FaExclamationTriangle, FaUser, FaBell, FaCheck, FaTimes, FaBan } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useSocket } from '@/shared/hooks';
 import { notificationConfig, getNotificationPath } from '../config/notificationConfig';
@@ -53,8 +53,6 @@ const NotificationBell = () => {
       case 'refund_processed':
       case 'high_value_booking':
         return <FaDollarSign />;
-      case 'no_show':
-        return <FaClock />;
       case 'new_review':
         return <FaUser />;
       case 'negative_review':

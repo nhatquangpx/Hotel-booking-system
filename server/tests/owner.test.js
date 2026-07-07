@@ -200,11 +200,6 @@ describe("Owner — chủ khách sạn", () => {
       expect(res.status).toBe(200);
     });
 
-    it("POST /notifications/check-no-show", async () => {
-      const res = await owner.post("/api/owner/notifications/check-no-show");
-      expect(res.status).toBe(200);
-    });
-
     it("GET /reports/export", async () => {
       const from = data.toIsoDate(data.addDays(new Date(), -30));
       const to = data.toIsoDate(new Date());

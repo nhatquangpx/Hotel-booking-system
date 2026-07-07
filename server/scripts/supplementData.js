@@ -376,24 +376,6 @@ async function backfillNotifications() {
       });
     }
 
-    if (
-      booking.checkInDate < now &&
-      !booking.checkedInAt &&
-      ["paid", "pending"].includes(booking.paymentStatus)
-    ) {
-      pushUniqueNotification(notifications, keySet, {
-        recipientRole: "hotel",
-        hotel: hotelId,
-        type: "no_show",
-        title: "Khách vắng mặt",
-        message: `Đã quá giờ check-in nhưng khách chưa đến — đơn #BK${idShort}.`,
-        relatedId: booking._id,
-        relatedModel: "Booking",
-        readBy: [],
-        createdAt: addDays(new Date(booking.checkInDate), 1),
-      });
-    }
-
     if (booking.ownerRefundCompletedAt) {
       pushUniqueNotification(notifications, keySet, {
         recipient: booking.guest?._id || booking.guest,
