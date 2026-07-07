@@ -191,7 +191,7 @@ const OwnerBookingActionModal = ({
             <p className="refund-proof-hint">
               {refundProofFile
                 ? `Đã chọn: ${refundProofFile.name}`
-                : 'Bắt buộc tải ảnh minh chứng trước khi xác nhận hoàn tiền.'}
+                : 'Chuyển khoản hoàn vào STK khách đã cung cấp (QR hay VNPay đều hoàn thủ công), sau đó tải ảnh minh chứng.'}
             </p>
           </div>
         )}

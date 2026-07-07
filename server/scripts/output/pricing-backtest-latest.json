@@ -1,0 +1,284 @@
+{
+  "meta": {
+    "generatedAt": "2026-07-03T18:16:34.855Z",
+    "dataMarker": "__PRICING_BACKTEST__",
+    "evaluationDays": 90,
+    "lookbackDays": 84,
+    "evalFrom": "2026-04-05",
+    "evalTo": "2026-07-03",
+    "targetHotelId": "6a36b5b3e8dfd4cdcf924e45",
+    "targetHotelName": "Sunrise Resort Nẵng",
+    "targetRoomType": "standard",
+    "targetRoomTypeLabel": "Phòng tiêu chuẩn",
+    "elasticity": 0.7,
+    "assumptions": [
+      "Phạm vi: 1 khách sạn × 1 loại phòng — khớp luồng owner chọn KS rồi xem giá gợi ý cho loại phòng đó.",
+      "Chỉ dùng booking paid có marker __PRICING_BACKTEST__ (bộ data chuẩn, không lẫn seed ngẫu nhiên).",
+      "Baseline = giá TB của loại phòng đang test, không đổi theo ngày.",
+      "Doanh thu = số đêm-phòng bán của loại đó × giá gợi ý; RevPAR = doanh thu ÷ (số phòng loại × số đêm).",
+      "Kịch bản ablation (occ/mùa/thứ): occupancy cố định — chỉ đổi giá (so sánh thiết kế).",
+      "Kịch bản chính full_elastic: đàn hồi hai chiều — tăng giá ↓cầu, giảm giá ↑cầu.",
+      "Hệ số đàn hồi e=0.7: đổi giá X% → phản ứng cầu ~e×X% (trên phòng trống hoặc phòng đang bận của loại đó).",
+      "Hệ số thứ: lookback 84 ngày theo loại phòng, kết thúc trước đêm đánh giá."
+    ],
+    "reportMode": "single_room_type"
+  },
+  "result": {
+    "hotelId": "6a36b5b3e8dfd4cdcf924e45",
+    "hotelName": "Sunrise Resort Nẵng",
+    "roomType": "standard",
+    "typeLabel": "Phòng tiêu chuẩn",
+    "roomCount": 5,
+    "avgBaselineNightly": 486000,
+    "paidBookingsUsed": 157,
+    "evaluationNights": 90,
+    "scenarios": {
+      "fixed": {
+        "id": "fixed",
+        "label": "Giá cố định (baseline)",
+        "factors": {
+          "occupancy": false,
+          "season": false,
+          "historicalWeekday": false
+        },
+        "metrics": {
+          "totalRevenue": 113724000,
+          "roomNightsSold": 234,
+          "roomNightsAvailable": 450,
+          "revpar": 252720,
+          "adr": 486000,
+          "occupancyPct": 52
+        },
+        "upliftRevparPct": 0
+      },
+      "full": {
+        "id": "full",
+        "label": "Đa hệ số đầy đủ (thuật toán hiện tại)",
+        "factors": {
+          "occupancy": true,
+          "season": true,
+          "historicalWeekday": true
+        },
+        "metrics": {
+          "totalRevenue": 120100000,
+          "roomNightsSold": 234,
+          "roomNightsAvailable": 450,
+          "revpar": 266889,
+          "adr": 513248,
+          "occupancyPct": 52
+        },
+        "upliftRevparPct": 5.6
+      },
+      "occ_only": {
+        "id": "occ_only",
+        "label": "Chỉ hệ số lấp đầy",
+        "factors": {
+          "occupancy": true,
+          "season": false,
+          "historicalWeekday": false
+        },
+        "metrics": {
+          "totalRevenue": 116190000,
+          "roomNightsSold": 234,
+          "roomNightsAvailable": 450,
+          "revpar": 258200,
+          "adr": 496538,
+          "occupancyPct": 52
+        },
+        "upliftRevparPct": 2.2
+      },
+      "season_only": {
+        "id": "season_only",
+        "label": "Chỉ hệ số mùa/lễ",
+        "factors": {
+          "occupancy": false,
+          "season": true,
+          "historicalWeekday": false
+        },
+        "metrics": {
+          "totalRevenue": 115600000,
+          "roomNightsSold": 234,
+          "roomNightsAvailable": 450,
+          "revpar": 256889,
+          "adr": 494017,
+          "occupancyPct": 52
+        },
+        "upliftRevparPct": 1.6
+      },
+      "weekday_only": {
+        "id": "weekday_only",
+        "label": "Chỉ hệ số thứ (lịch sử)",
+        "factors": {
+          "occupancy": false,
+          "season": false,
+          "historicalWeekday": true
+        },
+        "metrics": {
+          "totalRevenue": 116510000,
+          "roomNightsSold": 234,
+          "roomNightsAvailable": 450,
+          "revpar": 258911,
+          "adr": 497906,
+          "occupancyPct": 52
+        },
+        "upliftRevparPct": 2.4
+      },
+      "full_elastic": {
+        "id": "full_elastic",
+        "label": "Đa hệ số + đàn hồi hai chiều (e=0.7)",
+        "metrics": {
+          "totalRevenue": 115744502,
+          "roomNightsSold": 225.96008230452674,
+          "roomNightsAvailable": 450,
+          "revpar": 257210,
+          "adr": 512234,
+          "occupancyPct": 50.2
+        },
+        "upliftRevparPct": 1.8,
+        "elasticity": 0.7
+      }
+    },
+    "insights": {
+      "byOccupancyBand": [
+        {
+          "key": "low",
+          "nights": 16,
+          "roomNightsSold": 14,
+          "roomNightsAvailable": 80,
+          "fixedRevenue": 6804000,
+          "dynamicRevenue": 6730000,
+          "fixedRevpar": 85050,
+          "dynamicRevpar": 84125,
+          "upliftRevparPct": -1.1
+        },
+        {
+          "key": "mid",
+          "nights": 54,
+          "roomNightsSold": 135,
+          "roomNightsAvailable": 270,
+          "fixedRevenue": 65610000,
+          "dynamicRevenue": 67940000,
+          "fixedRevpar": 243000,
+          "dynamicRevpar": 251630,
+          "upliftRevparPct": 3.6
+        },
+        {
+          "key": "high",
+          "nights": 20,
+          "roomNightsSold": 85,
+          "roomNightsAvailable": 100,
+          "fixedRevenue": 41310000,
+          "dynamicRevenue": 45430000,
+          "fixedRevpar": 413100,
+          "dynamicRevpar": 454300,
+          "upliftRevparPct": 10
+        }
+      ],
+      "bySeasonBand": [
+        {
+          "key": "normal",
+          "nights": 52,
+          "roomNightsSold": 140,
+          "roomNightsAvailable": 260,
+          "fixedRevenue": 68040000,
+          "dynamicRevenue": 71620000,
+          "fixedRevpar": 261692,
+          "dynamicRevpar": 275462,
+          "upliftRevparPct": 5.3
+        },
+        {
+          "key": "peak",
+          "nights": 38,
+          "roomNightsSold": 94,
+          "roomNightsAvailable": 190,
+          "fixedRevenue": 45684000,
+          "dynamicRevenue": 48480000,
+          "fixedRevpar": 240442,
+          "dynamicRevpar": 255158,
+          "upliftRevparPct": 6.1
+        }
+      ],
+      "byWeekday": [
+        {
+          "key": "CN",
+          "nights": 13,
+          "roomNightsSold": 23,
+          "roomNightsAvailable": 65,
+          "fixedRevenue": 11178000,
+          "dynamicRevenue": 11070000,
+          "fixedRevpar": 171969,
+          "dynamicRevpar": 170308,
+          "upliftRevparPct": -1
+        },
+        {
+          "key": "T2",
+          "nights": 13,
+          "roomNightsSold": 30,
+          "roomNightsAvailable": 65,
+          "fixedRevenue": 14580000,
+          "dynamicRevenue": 15290000,
+          "fixedRevpar": 224308,
+          "dynamicRevpar": 235231,
+          "upliftRevparPct": 4.9
+        },
+        {
+          "key": "T3",
+          "nights": 13,
+          "roomNightsSold": 41,
+          "roomNightsAvailable": 65,
+          "fixedRevenue": 19926000,
+          "dynamicRevenue": 21880000,
+          "fixedRevpar": 306554,
+          "dynamicRevpar": 336615,
+          "upliftRevparPct": 9.8
+        },
+        {
+          "key": "T4",
+          "nights": 13,
+          "roomNightsSold": 44,
+          "roomNightsAvailable": 65,
+          "fixedRevenue": 21384000,
+          "dynamicRevenue": 23520000,
+          "fixedRevpar": 328985,
+          "dynamicRevpar": 361846,
+          "upliftRevparPct": 10
+        },
+        {
+          "key": "T5",
+          "nights": 13,
+          "roomNightsSold": 40,
+          "roomNightsAvailable": 65,
+          "fixedRevenue": 19440000,
+          "dynamicRevenue": 20580000,
+          "fixedRevpar": 299077,
+          "dynamicRevpar": 316615,
+          "upliftRevparPct": 5.9
+        },
+        {
+          "key": "T6",
+          "nights": 13,
+          "roomNightsSold": 31,
+          "roomNightsAvailable": 65,
+          "fixedRevenue": 15066000,
+          "dynamicRevenue": 15620000,
+          "fixedRevpar": 231785,
+          "dynamicRevpar": 240308,
+          "upliftRevparPct": 3.7
+        },
+        {
+          "key": "T7",
+          "nights": 12,
+          "roomNightsSold": 25,
+          "roomNightsAvailable": 60,
+          "fixedRevenue": 12150000,
+          "dynamicRevenue": 12140000,
+          "fixedRevpar": 202500,
+          "dynamicRevpar": 202333,
+          "upliftRevparPct": -0.1
+        }
+      ]
+    }
+  },
+  "overallConclusion": "\n── KẾT LUẬN ──\n\nMục tiêu: \"Sunrise Resort Nẵng\" — loại Phòng tiêu chuẩn (standard), 90 đêm, e=0.7.\n\n1. Kịch bản thực tế ★ full_elastic: Δ RevPAR +1.8%\n2. Tham chiếu không elasticity (full): +5.6% RevPAR\n\n3. Xu hướng theo lấp đầy (occupancy cố định):\n   • Lấp đầy cao: Δ RevPAR +10%\n   • Lấp đầy thấp: Δ RevPAR -1.1%\n\n• Thuật toán CÓ HIỆU QUẢ cho loại phòng này: áp giá gợi ý vượt baseline +1.8% RevPAR (có đàn hồi).\n• Khớp production: owner chọn 1 KS → xem/áp giá gợi ý cho đúng loại phòng đang quản lý.\n• Muốn thử loại khác: chạy lại với --roomType=deluxe (cùng hoặc khác --hotelId).",
+  "analysis": "\n── KẾT QUẢ: Sunrise Resort Nẵng — Phòng tiêu chuẩn ──\n\n  5 phòng | 157 đơn | baseline 486.000đ/đêm | e=0.7\n\n  • Giá cố định (baseline): RevPAR 252.720 | Occ 52% | ADR 486.000 | Δ —\n  • Đa hệ số đầy đủ (thuật toán hiện tại): RevPAR 266.889 | Occ 52% | ADR 513.248 | Δ +5.6%\n  • Chỉ hệ số lấp đầy: RevPAR 258.200 | Occ 52% | ADR 496.538 | Δ +2.2%\n  • Chỉ hệ số mùa/lễ: RevPAR 256.889 | Occ 52% | ADR 494.017 | Δ +1.6%\n  • Chỉ hệ số thứ (lịch sử): RevPAR 258.911 | Occ 52% | ADR 497.906 | Δ +2.4%\n  • Đa hệ số + đàn hồi hai chiều (e=0.7) ★: RevPAR 257.210 | Occ 50.2% | ADR 512.234 | Δ +1.8%\n\n  Kết luận loại phòng: full_elastic +1.8% RevPAR; full (không elasticity) +5.6%.\n\n  Theo mức lấp đầy (occupancy cố định, so thiết kế giá):\n    • Lấp đầy cao: Δ RevPAR +10%\n    • Lấp đầy thấp: Δ RevPAR -1.1%\n\n── KẾT LUẬN ──\n\nMục tiêu: \"Sunrise Resort Nẵng\" — loại Phòng tiêu chuẩn (standard), 90 đêm, e=0.7.\n\n1. Kịch bản thực tế ★ full_elastic: Δ RevPAR +1.8%\n2. Tham chiếu không elasticity (full): +5.6% RevPAR\n\n3. Xu hướng theo lấp đầy (occupancy cố định):\n   • Lấp đầy cao: Δ RevPAR +10%\n   • Lấp đầy thấp: Δ RevPAR -1.1%\n\n• Thuật toán CÓ HIỆU QUẢ cho loại phòng này: áp giá gợi ý vượt baseline +1.8% RevPAR (có đàn hồi).\n• Khớp production: owner chọn 1 KS → xem/áp giá gợi ý cho đúng loại phòng đang quản lý.\n• Muốn thử loại khác: chạy lại với --roomType=deluxe (cùng hoặc khác --hotelId)."
+}

@@ -53,7 +53,7 @@ const notifyBookingCancelled = async (bookingId) => {
       booking.guestCancelSnapshot?.refundPolicyEligible &&
       !booking.ownerRefundCompletedAt;
     const refundHint = refundPending
-      ? " Đơn đã thanh toán — cần hoàn tiền cho khách (xem chi tiết đơn: STK nhận hoàn nếu thanh toán QR, hoặc hoàn qua cổng VNPay)."
+      ? " Đơn đã thanh toán — cần chuyển khoản hoàn thủ công vào STK khách đã cung cấp (xem chi tiết đơn)."
       : "";
 
     await createHotelNotification(

@@ -665,6 +665,23 @@ const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
         Khách sạn đã xác nhận hoàn tiền nhưng chưa đính kèm ảnh minh chứng trong hệ thống.
       </div>`;
 
+    const refundBankParts = [
+      booking.guestRefundBankAccountName,
+      booking.guestRefundBankAccountNumber,
+      booking.guestRefundBankName,
+    ].filter(Boolean);
+    const refundBankRow = refundBankParts.length
+      ? `
+                  <tr>
+                    <td style="padding:12px 14px;font-size:14px;color:#79747E;text-align:right;font-weight:600;">
+                      STK nhận hoàn:
+                    </td>
+                    <td style="padding:12px 14px;font-size:14px;color:#1C1B1F;text-align:left;">
+                      ${refundBankParts.join(" — ")}
+                    </td>
+                  </tr>`
+      : "";
+
     const html = `
 <!DOCTYPE html>
 <html>
@@ -695,13 +712,13 @@ const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:12px 14px;font-size:14px;color:#79747E;text-align:right;font-weight:600;">
-                      Phương thức thanh toán ban đầu:
+                    <td style="padding:12px 14px;border-bottom:1px solid #eceff3;font-size:14px;color:#79747E;text-align:right;font-weight:600;">
+                      Cách thanh toán ban đầu:
                     </td>
-                    <td style="padding:12px 14px;font-size:14px;color:#1C1B1F;text-align:left;">
+                    <td style="padding:12px 14px;border-bottom:1px solid #eceff3;font-size:14px;color:#1C1B1F;text-align:left;">
                       ${booking.paymentMethod === "vnpay" ? "VNPay" : "QR chuyển khoản"}
                     </td>
-                  </tr>
+                  </tr>${refundBankRow}
                 </table>
                 ${proofHtml}
               </td>
@@ -714,7 +731,7 @@ const sendRefundProcessedEmail = async (booking, refundProofImageUrl = "") => {
             </tr>
             <tr>
               <td style="padding:14px 24px 24px;font-size:13px;line-height:1.7;color:#6d7278;text-align:center;">
-                Nếu đã quá thời gian mà bạn chưa nhận tiền, vui lòng liên hệ trực tiếp khách sạn để được hỗ trợ.
+                Nếu đã quá thời gian mà bạn chưa nhận tiền vào tài khoản đã cung cấp khi hủy, vui lòng liên hệ trực tiếp khách sạn để được hỗ trợ.
               </td>
             </tr>
           </table>

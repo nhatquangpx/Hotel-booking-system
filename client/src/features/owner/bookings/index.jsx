@@ -385,16 +385,19 @@ const OwnerBookingListPage = () => {
                 <span className="booking-guide-item__step">1</span>
                 <div>
                   <strong>Xác nhận thanh toán</strong>
-                  <p>Ưu tiên đơn QR đã gửi minh chứng; dùng bộ lọc trong từng mục để thu hẹp danh sách.</p>
+                  <p>
+                    Ưu tiên đơn QR đã gửi minh chứng; dùng bộ lọc trong từng mục để thu hẹp danh sách. Minh chứng QR
+                    không hợp lệ: yêu cầu tải lại; chưa thành công: hủy đơn.
+                  </p>
                 </div>
               </div>
               <div className="booking-guide-item">
                 <span className="booking-guide-item__step">2</span>
                 <div>
-                  <strong>Hoàn tiền & minh chứng QR</strong>
+                  <strong>Hoàn tiền khi khách hủy</strong>
                   <p>
-                    Xử lý hoàn tiền sau khi đã chuyển khoản. Minh chứng QR không hợp lệ: yêu cầu tải lại; chưa thành
-                    công: hủy đơn.
+                    Với đơn đã thanh toán (QR hoặc VNPay) và đủ điều kiện hoàn, chuyển khoản thủ công vào STK khách đã
+                    cung cấp khi hủy, tải ảnh minh chứng rồi xác nhận trên hệ thống.
                   </p>
                 </div>
               </div>
@@ -599,7 +602,7 @@ const OwnerBookingListPage = () => {
         <OwnerBookingActionModal
           show={showRefundModal}
           title="Xác nhận hoàn tiền cho khách"
-          prompt="Khách đã hủy đơn (đủ điều kiện hoàn). Sau khi đã chuyển khoản hoàn / hoàn VNPay, xác nhận cho"
+          prompt="Khách đã hủy đơn (đủ điều kiện hoàn). Sau khi đã chuyển khoản hoàn vào STK khách cung cấp, xác nhận cho"
           booking={selectedBooking}
           processing={processing}
           confirmText="Đã hoàn tiền cho khách"

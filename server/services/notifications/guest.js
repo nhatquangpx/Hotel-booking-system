@@ -77,7 +77,7 @@ const notifyGuestRefundProcessed = async (bookingId, refundAmount, percentage = 
       'guest',
       'refund_processed',
       'Hoàn tiền thành công',
-      `Khách sạn đã xác nhận hoàn tiền ${percentage}% cho đơn #BK${bookingIdShort}. Số tiền ${amountStr} VNĐ — vui lòng đối chiếu tài khoản theo cách thanh toán bạn đã dùng (chuyển khoản/VNPay). Nếu chưa nhận, liên hệ trực tiếp khách sạn.`,
+      `Khách sạn đã xác nhận hoàn tiền ${percentage}% cho đơn #BK${bookingIdShort}. Số tiền ${amountStr} VNĐ — vui lòng đối chiếu tài khoản ngân hàng bạn đã cung cấp khi hủy đơn. Nếu chưa nhận, liên hệ trực tiếp khách sạn.`,
       bookingId,
       'Booking'
     );

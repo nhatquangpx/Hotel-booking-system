@@ -289,7 +289,7 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
       paymentResult,
       paymentTransaction,
       reason:
-        "Đơn đã bị hủy trước khi thanh toán hoàn tất. Số tiền sẽ được hoàn trong 3–7 ngày làm việc. Vui lòng liên hệ hỗ trợ nếu cần.",
+        "Đơn đã bị hủy trước khi thanh toán hoàn tất. Vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
     });
   }
 
@@ -298,7 +298,7 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
       booking: freshBooking,
       paymentResult,
       paymentTransaction,
-      reason: "Trạng thái đơn không hợp lệ để xác nhận thanh toán. Vui lòng liên hệ hỗ trợ để được hoàn tiền.",
+      reason: "Trạng thái đơn không hợp lệ để xác nhận thanh toán. Vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
     });
   }
 
@@ -315,7 +315,7 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
       paymentResult,
       paymentTransaction,
       reason:
-        "Phòng không còn trống cho khoảng ngày đã chọn. Số tiền sẽ được hoàn trong 3–7 ngày làm việc. Vui lòng đặt phòng khác hoặc liên hệ hỗ trợ.",
+        "Phòng không còn trống cho khoảng ngày đã chọn. Vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền, hoặc đặt phòng khác.",
     });
   }
 
@@ -341,7 +341,7 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
       paymentResult,
       paymentTransaction,
       reason:
-        "Không thể cập nhật trạng thái đơn. Vui lòng liên hệ hỗ trợ để được hoàn tiền nếu đã bị trừ tiền.",
+        "Không thể cập nhật trạng thái đơn. Vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
     });
   }
 

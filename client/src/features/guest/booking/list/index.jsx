@@ -306,8 +306,8 @@ const GuestMyBookingsPage = () => {
         <h1>Danh sách đặt phòng của tôi</h1>
         <div className="cancel-policy-reminder">
           <strong>Lưu ý:</strong> Bạn có thể gửi hủy đơn khi chưa check-in. Với đơn <strong>đã thanh toán</strong>, chỉ
-          khi còn đủ số ngày trước ngày nhận phòng theo chính sách khách sạn thì bạn được hoàn tiền — hệ thống sẽ yêu cầu
-          nhập thông tin tài khoản ngân hàng để nhận hoàn. Nếu hủy ngoài thời hạn hoàn (áp dụng cho đơn đã thanh toán),
+          khi còn đủ số ngày trước ngày nhận phòng theo chính sách khách sạn thì bạn được hoàn tiền — dù thanh toán bằng
+          QR hay VNPay, khách sạn sẽ chuyển khoản hoàn thủ công; hệ thống sẽ yêu cầu nhập STK nhận hoàn. Nếu hủy ngoài thời hạn hoàn (áp dụng cho đơn đã thanh toán),
           đơn vẫn hủy nhưng không kèm hoàn tiền theo quy định. Với đơn <strong>chưa thanh toán</strong>, mốc số ngày đó{' '}
           <strong>không</strong> dùng để xét hoàn tiền (không có khoản đã thu). Hotline{' '}
           <a href="tel:0332915004">0332915004</a>.
@@ -425,8 +425,8 @@ const GuestMyBookingsPage = () => {
               {cancelTarget?.paymentStatus === 'paid' && cancelRefundRef.eligible && (
                 <p className="cancel-modal__hint cancel-modal__hint--ok">
                   Đơn đã thanh toán và còn ít nhất <strong>{cancelRefundRef.minNoticeDays}</strong> ngày trước ngày
-                  nhận phòng — bạn <strong>được hoàn tiền</strong> theo quy định. Vui lòng nhập thông tin tài khoản ngân
-                  hàng bên dưới để nhận hoàn tiền.
+                  nhận phòng — bạn <strong>được hoàn tiền</strong> theo quy định. Khách sạn sẽ chuyển khoản hoàn thủ công
+                  (QR hay VNPay) — vui lòng nhập STK nhận hoàn bên dưới.
                 </p>
               )}
               {cancelTarget?.paymentStatus === 'paid' && !cancelRefundRef.eligible && (

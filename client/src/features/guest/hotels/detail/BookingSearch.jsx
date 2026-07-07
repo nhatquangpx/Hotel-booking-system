@@ -41,9 +41,10 @@ const BookingSearch = ({
           <strong>Đặt phòng:</strong> ngày trả phòng phải sau ngày nhận phòng (tối thiểu một đêm).
         </p>
         <p>
-          <strong>Hoàn tiền khi hủy (chỉ khi đã thanh toán):</strong> nếu sau này bạn đã thanh toán và cần hủy, để
-          được hoàn theo quy định khách sạn thường phải còn ít nhất <strong>{refundMinDaysBeforeCheckIn}</strong> ngày
-          (theo lịch) trước ngày nhận phòng — chi tiết hiển thị khi hủy đơn.
+          <strong>Hoàn tiền khi hủy (chỉ khi đã thanh toán):</strong> nếu sau này bạn đã thanh toán (QR hoặc VNPay) và
+          cần hủy, để được hoàn theo quy định khách sạn thường phải còn ít nhất{' '}
+          <strong>{refundMinDaysBeforeCheckIn}</strong> ngày (theo lịch) trước ngày nhận phòng — tiền hoàn chuyển thủ
+          công vào STK bạn cung cấp khi hủy.
         </p>
         <p>
           <strong>Chưa thanh toán:</strong> con số ngày trên <strong>không</strong> phải điều kiện hoàn tiền (không có

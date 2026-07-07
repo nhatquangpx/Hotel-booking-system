@@ -26,10 +26,10 @@ const HotelPolicies = ({ hotel }) => {
         <div className="policy-item">
           <h3>Hủy đặt &amp; hoàn tiền</h3>
           <p>
-            <strong>Đã thanh toán:</strong> để được hoàn tiền khi hủy, thường cần còn ít nhất{' '}
-            <strong>{refundDays}</strong> ngày (theo lịch) trước ngày nhận phòng — theo cấu hình khách sạn. Nếu hủy
-            khi không còn đủ số ngày đó, đơn vẫn có thể hủy nhưng <strong>không áp dụng hoàn tiền</strong> theo quy định
-            chung.
+            <strong>Đã thanh toán:</strong> để được hoàn tiền khi hủy (QR hoặc VNPay), thường cần còn ít nhất{' '}
+            <strong>{refundDays}</strong> ngày (theo lịch) trước ngày nhận phòng — theo cấu hình khách sạn. Tiền hoàn
+            được chuyển khoản thủ công vào tài khoản bạn cung cấp khi hủy. Nếu hủy khi không còn đủ số ngày đó, đơn
+            vẫn có thể hủy nhưng <strong>không áp dụng hoàn tiền</strong> theo quy định chung.
           </p>
           <p>
             <strong>Chưa thanh toán:</strong> bạn vẫn có thể gửi hủy đơn trên hệ thống (khi còn cho phép). Con số{' '}
