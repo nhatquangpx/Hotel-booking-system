@@ -48,16 +48,15 @@ const getBookingsByStaff = async (staffUserId, options = {}) => {
     parsePaginationQuery,
     buildPaginationMeta,
     paginatedBody,
-    escapeRegex,
   } = require("../../lib/http/pagination");
   const {
     BOOKING_POPULATE,
     buildOwnerBookingFilterQuery,
     buildStaffActionBookingQuery,
+    buildBookingSearchFilter,
     startOfDay,
     endOfDay,
   } = require("./listQuery");
-  const User = require("../../models/User");
 
   const hotel = await findHotelByStaffId(staffUserId);
   if (!hotel) {
@@ -71,12 +70,8 @@ const getBookingsByStaff = async (staffUserId, options = {}) => {
     conditions.push(buildStaffActionBookingQuery());
     const q = String(actionSearch || "").trim();
     if (q) {
-      const regex = { $regex: escapeRegex(q), $options: "i" };
-      const guests = await User.find({ $or: [{ name: regex }, { phone: regex }] }).select("_id");
-      const guestIds = guests.map((g) => g._id);
-      const searchConditions = [{ _id: regex }];
-      if (guestIds.length) searchConditions.push({ guest: { $in: guestIds } });
-      conditions.push({ $or: searchConditions });
+      const searchFilter = await buildBookingSearchFilter(q, { hotelIds: [hotel._id] });
+      if (searchFilter) conditions.push(searchFilter);
     }
     if (actionType === "checkin") {
       const today = startOfDay();
@@ -93,7 +88,18 @@ const getBookingsByStaff = async (staffUserId, options = {}) => {
         paymentStatus: "paid",
         checkedInAt: { $ne: null },
         checkedOutAt: null,
-        checkOutDate: { $gte: today, $lte: dayEnd },
+        $or: [
+          { checkOutDate: { $gte: today, $lte: dayEnd } },
+          { checkOutDate: { $lt: today } },
+        ],
+      });
+    } else if (actionType === "overstay") {
+      const today = startOfDay();
+      conditions.push({
+        paymentStatus: "paid",
+        checkedInAt: { $ne: null },
+        checkedOutAt: null,
+        checkOutDate: { $lt: today },
       });
     }
   } else {
@@ -107,12 +113,8 @@ const getBookingsByStaff = async (staffUserId, options = {}) => {
 
     const q = String(search || "").trim();
     if (q) {
-      const regex = { $regex: escapeRegex(q), $options: "i" };
-      const guests = await User.find({ $or: [{ name: regex }, { phone: regex }] }).select("_id");
-      const guestIds = guests.map((g) => g._id);
-      const searchConditions = [{ _id: regex }];
-      if (guestIds.length) searchConditions.push({ guest: { $in: guestIds } });
-      conditions.push({ $or: searchConditions });
+      const searchFilter = await buildBookingSearchFilter(q, { hotelIds: [hotel._id] });
+      if (searchFilter) conditions.push(searchFilter);
     }
   }
 

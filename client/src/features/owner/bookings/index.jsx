@@ -12,6 +12,7 @@ import {
   apiErrorMessage,
   getOwnerActionCounts,
   bookingNeedsOwnerAction,
+  isOverstayCheckout,
 } from '@/shared/utils';
 import OwnerBookingCard from './OwnerBookingCard';
 import OwnerBookingDetailModal from './OwnerBookingDetailModal';
@@ -41,6 +42,9 @@ const OwnerBookingListPage = () => {
   const [processing, setProcessing] = useState(false);
   const [refundProofFile, setRefundProofFile] = useState(null);
   const [rejectionType, setRejectionType] = useState('');
+  const [lateCheckoutFeeAmount, setLateCheckoutFeeAmount] = useState('');
+  const [lateCheckoutFeeNote, setLateCheckoutFeeNote] = useState('');
+  const [lateCheckoutOfflineConfirmed, setLateCheckoutOfflineConfirmed] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [proofFilter, setProofFilter] = useState('all');
@@ -181,6 +185,9 @@ const OwnerBookingListPage = () => {
 
   const openCheckOutModal = (booking) => {
     setSelectedBooking(booking);
+    setLateCheckoutFeeAmount('');
+    setLateCheckoutFeeNote('');
+    setLateCheckoutOfflineConfirmed(false);
     setShowCheckOutModal(true);
   };
 
@@ -205,6 +212,9 @@ const OwnerBookingListPage = () => {
     setSelectedBooking(null);
     setRefundProofFile(null);
     setRejectionType('');
+    setLateCheckoutFeeAmount('');
+    setLateCheckoutFeeNote('');
+    setLateCheckoutOfflineConfirmed(false);
   };
 
   const handleConfirmBooking = async () => {
@@ -251,7 +261,13 @@ const OwnerBookingListPage = () => {
 
     try {
       setProcessing(true);
-      await api.ownerBooking.checkOut(selectedBooking._id);
+      const payload = isOverstayCheckout(selectedBooking)
+        ? {
+            lateCheckoutFeeAmount: Number(String(lateCheckoutFeeAmount).replace(/[^\d]/g, '')),
+            lateCheckoutFeeNote: lateCheckoutFeeNote.trim() || undefined,
+          }
+        : undefined;
+      await api.ownerBooking.checkOut(selectedBooking._id, payload);
       await reloadBookings();
       closeModals();
       toast.success('Check-out thành công');
@@ -572,6 +588,12 @@ const OwnerBookingListPage = () => {
           onClose={closeModals}
           onPreviewProof={setPreviewProofUrl}
           showCheckedInAt
+          lateCheckoutFeeAmount={lateCheckoutFeeAmount}
+          onLateCheckoutFeeAmountChange={setLateCheckoutFeeAmount}
+          lateCheckoutFeeNote={lateCheckoutFeeNote}
+          onLateCheckoutFeeNoteChange={setLateCheckoutFeeNote}
+          lateCheckoutOfflineConfirmed={lateCheckoutOfflineConfirmed}
+          onLateCheckoutOfflineConfirmedChange={setLateCheckoutOfflineConfirmed}
         />
 
         <OwnerBookingActionModal

@@ -84,8 +84,8 @@ const getBookingsByOwner = async (ownerId, hotelId, options = {}) => {
     BOOKING_POPULATE,
     buildOwnerBookingFilterQuery,
     buildOwnerActionBookingQuery,
+    buildBookingSearchFilter,
   } = require("./listQuery");
-  const User = require("../../models/User");
 
   const baseQuery = { hotel: { $in: hotelIds } };
   const conditions = [baseQuery];
@@ -104,14 +104,8 @@ const getBookingsByOwner = async (ownerId, hotelId, options = {}) => {
 
   const q = String(search || "").trim();
   if (q) {
-    const regex = { $regex: require("../../lib/http/pagination").escapeRegex(q), $options: "i" };
-    const guests = await User.find({
-      $or: [{ name: regex }, { phone: regex }],
-    }).select("_id");
-    const guestIds = guests.map((g) => g._id);
-    const searchConditions = [{ _id: regex }];
-    if (guestIds.length) searchConditions.push({ guest: { $in: guestIds } });
-    conditions.push({ $or: searchConditions });
+    const searchFilter = await buildBookingSearchFilter(q, { hotelIds });
+    if (searchFilter) conditions.push(searchFilter);
   }
 
   const mongoQuery = conditions.length > 1 ? { $and: conditions } : baseQuery;

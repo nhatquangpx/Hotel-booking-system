@@ -9,8 +9,6 @@ const {
 } = require("../../services/dashboards/roomMapDisplay");
 const { getTodayDateRange } = require("./core");
 
-const PANEL_LIMIT = 6;
-
 /** Chỉ field cần cho task dashboard — tránh load toàn bộ booking (refund, bank, …). */
 const DASHBOARD_BOOKING_TASK_SELECT = "_id guest room checkedInAt checkedOutAt";
 
@@ -98,7 +96,6 @@ async function getStaffDashboard(hotelId) {
     })
       .populate("guest", "name")
       .sort({ createdAt: -1 })
-      .limit(PANEL_LIMIT)
       .lean(),
   ]);
 
@@ -139,7 +136,7 @@ async function getStaffDashboard(hotelId) {
   }
 
   equipmentPanelItems.sort((a, b) => a.sortOrder - b.sortOrder || a.room.localeCompare(b.room));
-  const equipment = equipmentPanelItems.slice(0, PANEL_LIMIT).map(({ sortOrder, ...item }) => item);
+  const equipment = equipmentPanelItems.map(({ sortOrder, ...item }) => item);
   const equipmentAttentionCount = equipmentBrokenCount + equipmentUnderRepairCount;
 
   const tasks = [];
@@ -223,7 +220,6 @@ async function getStaffDashboard(hotelId) {
   const roomSnapshots = rooms
     .filter(roomNeedsDashboardAttention)
     .sort((a, b) => roomAttentionPriority(a) - roomAttentionPriority(b))
-    .slice(0, PANEL_LIMIT)
     .map(mapRoomSnapshot);
 
   const reviews = pendingReviews.map((review) => ({

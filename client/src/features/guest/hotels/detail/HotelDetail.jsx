@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import { GuestLayout, LoginRequiredModal } from '@/features/guest/components';
 import { useAuth } from '@/shared/hooks';
 import { useGuestWishlist } from '@/features/guest/hooks';
@@ -31,8 +30,7 @@ const GuestHotelDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useSelector((state) => state.user?.user);
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
 

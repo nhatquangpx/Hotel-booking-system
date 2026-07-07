@@ -99,6 +99,39 @@ describe("Booking Lifecycle — black box qua HTTP API", () => {
     expect(resWithBank.body.booking.paymentStatus).toBe("cancelled");
   });
 
+  it("Checkout quá hạn — yêu cầu ghi nhận phụ thu thu trực tiếp", async () => {
+    const guest = await authedRequest(app, data.credentials.guest);
+    const staff = await authedRequest(app, data.credentials.staff);
+    const owner = await authedRequest(app, data.credentials.owner);
+
+    const bookingId = await createPaidQrBooking(guest, owner, data, {
+      checkInOffset: 0,
+      nights: 2,
+      roomId: data.roomId,
+    });
+
+    const checkInRes = await staff.post(`/api/staff/bookings/${bookingId}/check-in`);
+    expect(checkInRes.status).toBe(200);
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+    await Booking.findByIdAndUpdate(bookingId, { checkOutDate: yesterday });
+
+    const failRes = await staff.post(`/api/staff/bookings/${bookingId}/check-out`);
+    expect(failRes.status).toBe(400);
+
+    const okRes = await staff.post(`/api/staff/bookings/${bookingId}/check-out`).send({
+      lateCheckoutFeeAmount: 350000,
+      lateCheckoutFeeNote: "1 đêm phụ, thu tiền mặt",
+    });
+    expect(okRes.status).toBe(200);
+    expect(okRes.body.booking.checkedOutAt).toBeDefined();
+    expect(okRes.body.booking.lateCheckoutSurcharge.amountCollected).toBe(350000);
+    expect(okRes.body.booking.lateCheckoutSurcharge.collectedOffline).toBe(true);
+    expect(okRes.body.booking.lateCheckoutSurcharge.daysOverdue).toBeGreaterThan(0);
+  });
+
   it("Owner check-in trực tiếp (không qua staff)", async () => {
     const guest = await authedRequest(app, data.credentials.guest);
     const owner = await authedRequest(app, data.credentials.owner);

@@ -33,6 +33,12 @@ const StaffBookingsPage = () => {
     processing,
     detailLoading,
     detailBooking,
+    lateCheckoutFeeAmount,
+    lateCheckoutFeeNote,
+    lateCheckoutOfflineConfirmed,
+    setLateCheckoutFeeAmount,
+    setLateCheckoutFeeNote,
+    setLateCheckoutOfflineConfirmed,
     handleViewModeChange,
     actionFilters,
     filters,
@@ -178,6 +184,12 @@ const StaffBookingsPage = () => {
           onClose={actions.closeModals}
           onPreviewProof={setPreviewProofUrl}
           showCheckedInAt
+          lateCheckoutFeeAmount={lateCheckoutFeeAmount}
+          onLateCheckoutFeeAmountChange={setLateCheckoutFeeAmount}
+          lateCheckoutFeeNote={lateCheckoutFeeNote}
+          onLateCheckoutFeeNoteChange={setLateCheckoutFeeNote}
+          lateCheckoutOfflineConfirmed={lateCheckoutOfflineConfirmed}
+          onLateCheckoutOfflineConfirmedChange={setLateCheckoutOfflineConfirmed}
         />
 
         <OwnerBookingDetailModal

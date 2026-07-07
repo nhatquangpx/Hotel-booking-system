@@ -24,7 +24,8 @@ const StaffBookingActionFilters = ({ search, onSearchChange, type, onTypeChange 
       >
         <option value="all">Tất cả</option>
         <option value="checkin">Chỉ check-in</option>
-        <option value="checkout">Chỉ check-out</option>
+        <option value="checkout">Check-out (hôm nay & quá hạn)</option>
+        <option value="overstay">Chỉ check-out quá hạn</option>
       </select>
     </div>
   </div>

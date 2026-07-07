@@ -8,6 +8,19 @@ export function toCalendarDateOnly(dateValue) {
   return d;
 }
 
+/** Số ngày lịch quá hạn so với ngày trả phòng đã đặt (0 = trong hạn). */
+export function getOverstayDays(booking, at = new Date()) {
+  if (!booking?.checkOutDate) return 0;
+  const today = toCalendarDateOnly(at);
+  const bookedCheckOut = toCalendarDateOnly(booking.checkOutDate);
+  if (today <= bookedCheckOut) return 0;
+  return Math.round((today - bookedCheckOut) / (1000 * 60 * 60 * 24));
+}
+
+export function isOverstayCheckout(booking, at = new Date()) {
+  return getOverstayDays(booking, at) > 0;
+}
+
 /**
  * Check-in: từ ngày nhận phòng đã đặt trở đi, trước ngày trả phòng đã đặt.
  * @returns {{ allowed: boolean, message: string }}
@@ -40,11 +53,28 @@ export function getCheckInEligibility(booking, at = new Date()) {
 
 /**
  * Check-out: từ ngày nhận phòng đã đặt trở đi, không muộn hơn ngày trả phòng đã đặt.
- * @returns {{ allowed: boolean, message: string }}
+ * Checkout quá hạn dùng luồng riêng (isOverstayCheckout).
+ * @returns {{ allowed: boolean, message: string, overstay?: boolean, daysOverdue?: number }}
  */
 export function getCheckOutEligibility(booking, at = new Date()) {
   if (!booking?.checkInDate || !booking?.checkOutDate) {
     return { allowed: false, message: 'Đơn đặt phòng thiếu thông tin ngày lưu trú' };
+  }
+
+  const daysOverdue = getOverstayDays(booking, at);
+  if (daysOverdue > 0) {
+    if (!booking.checkedInAt) {
+      return { allowed: false, message: 'Phải check-in trước khi check-out' };
+    }
+    if (booking.checkedOutAt) {
+      return { allowed: false, message: 'Đơn đặt phòng đã được check-out trước đó' };
+    }
+    return {
+      allowed: true,
+      overstay: true,
+      daysOverdue,
+      message: '',
+    };
   }
 
   const today = toCalendarDateOnly(at);

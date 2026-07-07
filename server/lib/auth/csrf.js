@@ -6,11 +6,15 @@ const CSRF_HEADER_NAME = "x-csrf-token";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const getCsrfCookieOptions = () => ({
+const getCsrfCookieBaseOptions = () => ({
   httpOnly: false,
   secure: isProduction,
   sameSite: isProduction ? "none" : "lax",
   path: "/",
+});
+
+const getCsrfCookieOptions = () => ({
+  ...getCsrfCookieBaseOptions(),
   maxAge: REFRESH_MS,
 });
 
@@ -24,7 +28,7 @@ function setCsrfCookie(res, token = generateCsrfToken()) {
 }
 
 function clearCsrfCookie(res) {
-  res.clearCookie(CSRF_COOKIE_NAME, { ...getCsrfCookieOptions() });
+  res.clearCookie(CSRF_COOKIE_NAME, getCsrfCookieBaseOptions());
 }
 
 function getCsrfTokenFromRequest(req) {

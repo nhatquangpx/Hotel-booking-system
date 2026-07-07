@@ -4,6 +4,8 @@ const {
   refreshRoomBookingStatus,
   validateActualCheckInDate,
   validateActualCheckOutDate,
+  getOverstayDays,
+  isOverstayCheckout,
 } = require("./core");
 const { staffCanAccessHotel } = require("../../services/hotels/staffHotel");
 
@@ -82,7 +84,7 @@ async function performCheckIn(booking) {
   return booking;
 }
 
-async function performCheckOut(booking) {
+async function performCheckOut(booking, options = {}) {
   if (!booking.checkedInAt) {
     httpError(400, "Bạn phải check-in trước khi check-out");
   }
@@ -90,9 +92,33 @@ async function performCheckOut(booking) {
     httpError(400, "Đơn đặt phòng đã được check-out trước đó");
   }
 
-  const checkOutDateRule = validateActualCheckOutDate(booking);
-  if (!checkOutDateRule.valid) {
-    httpError(400, checkOutDateRule.error);
+  const overstayDays = getOverstayDays(booking);
+
+  if (isOverstayCheckout(booking)) {
+    const amount = Number(options.lateCheckoutFeeAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      httpError(
+        400,
+        "Checkout quá hạn yêu cầu ghi nhận phụ thu thu trực tiếp (số tiền phải lớn hơn 0)"
+      );
+    }
+
+    const note = typeof options.lateCheckoutFeeNote === "string"
+      ? options.lateCheckoutFeeNote.trim()
+      : "";
+
+    booking.lateCheckoutSurcharge = {
+      daysOverdue: overstayDays,
+      amountCollected: amount,
+      note: note || undefined,
+      collectedOffline: true,
+      recordedAt: new Date(),
+    };
+  } else {
+    const checkOutDateRule = validateActualCheckOutDate(booking);
+    if (!checkOutDateRule.valid) {
+      httpError(400, checkOutDateRule.error);
+    }
   }
 
   booking.checkedOutAt = new Date();
@@ -110,9 +136,9 @@ async function checkInBooking(bookingId, user) {
   return performCheckIn(booking);
 }
 
-async function checkOutBooking(bookingId, user) {
+async function checkOutBooking(bookingId, user, options = {}) {
   const booking = await loadBookingForHotelTeam(bookingId, user);
-  return performCheckOut(booking);
+  return performCheckOut(booking, options);
 }
 
 module.exports = {

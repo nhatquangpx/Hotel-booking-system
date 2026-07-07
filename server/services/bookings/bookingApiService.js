@@ -200,10 +200,17 @@ async function checkInWithNotification({ id, user, staff = false }) {
   return { status: 200, body: { message: "Check-in thành công", booking } };
 }
 
-async function checkOutWithNotification({ id, user, staff = false }) {
+async function checkOutWithNotification({
+  id,
+  user,
+  staff = false,
+  lateCheckoutFeeAmount,
+  lateCheckoutFeeNote,
+}) {
+  const checkoutOptions = { lateCheckoutFeeAmount, lateCheckoutFeeNote };
   const booking = staff
-    ? await bookingService.staffCheckOut(id, user)
-    : await bookingService.checkOut(id, user);
+    ? await bookingService.staffCheckOut(id, user, checkoutOptions)
+    : await bookingService.checkOut(id, user, checkoutOptions);
   notifyCheckOut(id).catch((err) => console.error("Lỗi khi tạo thông báo check-out:", err));
   return { status: 200, body: { message: "Check-out thành công", booking } };
 }

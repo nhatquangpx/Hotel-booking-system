@@ -104,6 +104,14 @@ const BookingSchema = new mongoose.Schema(
     checkedOutAt: {
       type: Date
     },
+    /** Phụ thu checkout muộn — thu trực tiếp tại khách sạn, không qua hệ thống thanh toán. */
+    lateCheckoutSurcharge: {
+      daysOverdue: { type: Number, min: 1 },
+      amountCollected: { type: Number, min: 0 },
+      note: { type: String, trim: true },
+      collectedOffline: { type: Boolean, default: true },
+      recordedAt: { type: Date },
+    },
     checkInReminderSent: {
       type: Boolean,
       default: false

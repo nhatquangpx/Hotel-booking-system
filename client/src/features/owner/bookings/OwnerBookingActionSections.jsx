@@ -185,13 +185,13 @@ const OwnerBookingActionSections = ({
       />
 
       <OwnerBookingSection
-        title="Check-in / Check-out hôm nay"
+        title="Check-in / Check-out (hôm nay & quá hạn)"
         count={counts.checkInOut}
         tone="checkinout"
         filters={checkInOutFilters}
         onFiltersChange={updateCheckInOutFilters}
         bookings={checkInOutBookings}
-        emptyText="Không có đơn check-in hoặc check-out hôm nay phù hợp bộ lọc."
+        emptyText="Không có đơn check-in hoặc check-out cần xử lý phù hợp bộ lọc."
         renderCard={renderCard}
         filterFields={(filters, onChange) => (
           <>
@@ -210,7 +210,8 @@ const OwnerBookingActionSections = ({
               >
                 <option value="all">Tất cả</option>
                 <option value="checkin">Chỉ check-in</option>
-                <option value="checkout">Chỉ check-out</option>
+                <option value="checkout">Check-out (hôm nay & quá hạn)</option>
+                <option value="overstay">Chỉ check-out quá hạn</option>
               </select>
             </div>
           </>

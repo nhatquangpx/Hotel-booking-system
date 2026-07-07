@@ -58,7 +58,6 @@ function createApp() {
   });
 
   app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-  app.use(express.static("public"));
 
   app.use((req, res) => {
     res.status(404).json({

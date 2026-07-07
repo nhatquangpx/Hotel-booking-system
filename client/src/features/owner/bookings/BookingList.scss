@@ -861,6 +861,74 @@
       line-height: 1.45;
     }
 
+    .modal-late-checkout-block {
+      margin: 0.75rem 0 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid #f0c674;
+      border-radius: 8px;
+      background: #fffbeb;
+
+      &__title {
+        margin: 0 0 0.35rem;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #92400e;
+      }
+
+      &__hint {
+        margin: 0 0 0.85rem;
+        font-size: 0.88rem;
+        line-height: 1.45;
+        color: #78350f;
+      }
+
+      .late-checkout-field {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        color: $luxury-grey-dark;
+      }
+
+      .late-checkout-input,
+      .late-checkout-textarea {
+        width: 100%;
+        margin-bottom: 0.65rem;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid $border-medium;
+        border-radius: 6px;
+        font-size: 0.92rem;
+        font-family: inherit;
+        box-sizing: border-box;
+      }
+
+      .late-checkout-fee-preview {
+        margin: -0.35rem 0 0.65rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #92400e;
+      }
+
+      .late-checkout-confirm {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.88rem;
+        line-height: 1.4;
+        color: #78350f;
+        cursor: pointer;
+
+        input {
+          margin-top: 0.15rem;
+          flex-shrink: 0;
+        }
+      }
+    }
+
+    .late-surcharge-row .info-value {
+      color: #92400e;
+    }
+
     .modal-refund-proof-block {
       margin: 0.75rem 0;
       padding: 0.85rem 1rem;

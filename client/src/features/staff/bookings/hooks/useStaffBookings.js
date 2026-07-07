@@ -8,6 +8,7 @@ import {
   apiErrorMessage,
   getStaffActionCounts,
   bookingNeedsStaffAction,
+  isOverstayCheckout,
 } from '@/shared/utils';
 
 export function useStaffBookings() {
@@ -34,6 +35,9 @@ export function useStaffBookings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [actionSearch, setActionSearch] = useState('');
   const [actionType, setActionType] = useState('all');
+  const [lateCheckoutFeeAmount, setLateCheckoutFeeAmount] = useState('');
+  const [lateCheckoutFeeNote, setLateCheckoutFeeNote] = useState('');
+  const [lateCheckoutOfflineConfirmed, setLateCheckoutOfflineConfirmed] = useState(false);
   const [previewProofUrl, setPreviewProofUrl] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -235,6 +239,9 @@ export function useStaffBookings() {
 
   const openCheckOutModal = (booking) => {
     setSelectedBooking(booking);
+    setLateCheckoutFeeAmount('');
+    setLateCheckoutFeeNote('');
+    setLateCheckoutOfflineConfirmed(false);
     setShowCheckOutModal(true);
   };
 
@@ -242,6 +249,9 @@ export function useStaffBookings() {
     setShowCheckInModal(false);
     setShowCheckOutModal(false);
     setSelectedBooking(null);
+    setLateCheckoutFeeAmount('');
+    setLateCheckoutFeeNote('');
+    setLateCheckoutOfflineConfirmed(false);
   };
 
   const handleCheckIn = async () => {
@@ -265,7 +275,13 @@ export function useStaffBookings() {
 
     try {
       setProcessing(true);
-      await api.staffBooking.checkOut(selectedBooking._id);
+      const payload = isOverstayCheckout(selectedBooking)
+        ? {
+            lateCheckoutFeeAmount: Number(String(lateCheckoutFeeAmount).replace(/[^\d]/g, '')),
+            lateCheckoutFeeNote: lateCheckoutFeeNote.trim() || undefined,
+          }
+        : undefined;
+      await api.staffBooking.checkOut(selectedBooking._id, payload);
       await reloadBookings();
       closeModals();
       toast.success('Check-out thành công');
@@ -342,6 +358,12 @@ export function useStaffBookings() {
     processing,
     detailLoading,
     detailBooking,
+    lateCheckoutFeeAmount,
+    lateCheckoutFeeNote,
+    lateCheckoutOfflineConfirmed,
+    setLateCheckoutFeeAmount,
+    setLateCheckoutFeeNote,
+    setLateCheckoutOfflineConfirmed,
     handleViewModeChange,
     actionFilters: {
       search: actionSearch,

@@ -110,12 +110,6 @@ api.interceptors.response.use(
 
     if (originalRequest._retry) {
       store.dispatch(setLogout());
-      if (
-        typeof window !== 'undefined' &&
-        !window.location.pathname.startsWith('/login')
-      ) {
-        window.location.href = '/login';
-      }
       return Promise.reject(error);
     }
 
@@ -135,12 +129,6 @@ api.interceptors.response.use(
     } catch (refreshError) {
       processRefreshQueue(refreshError);
       store.dispatch(setLogout());
-      if (
-        typeof window !== 'undefined' &&
-        !window.location.pathname.startsWith('/login')
-      ) {
-        window.location.href = '/login';
-      }
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

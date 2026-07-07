@@ -1,70 +1,73 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaExclamationCircle, FaCheckCircle, FaWrench } from 'react-icons/fa';
+import React, { useMemo } from 'react';
+import {
+  FaExclamationCircle,
+  FaCheckCircle,
+  FaWrench,
+  FaClipboardList,
+} from 'react-icons/fa';
+import DashboardPanel from '@/features/staff/dashboard/components/DashboardPanel';
+import { PAGE_SIZE } from '@/constants/pagination';
 import './TaskList.scss';
 
+const getTaskLeading = (type) => {
+  switch (type) {
+    case 'urgent':
+    case 'maintenance':
+    case 'equipment_broken':
+      return <FaExclamationCircle className="staff-dash-warning" aria-hidden />;
+    case 'equipment_under_repair':
+      return <FaWrench className="owner-task-icon owner-task-icon--repair" aria-hidden />;
+    case 'checkin':
+    case 'checkout':
+      return <FaCheckCircle className="staff-dash-check staff-dash-check--done" aria-hidden />;
+    default:
+      return <FaExclamationCircle className="staff-dash-warning" aria-hidden />;
+  }
+};
+
 /**
- * TaskList Component
- * Displays a list of tasks for today
- * @param {Array} tasks - Array of task objects { id, type, text, urgent, time, linkTo? }
+ * Công việc hôm nay — phân trang client (2 cột, 10 mục/trang).
  */
 const TaskList = ({ tasks = [] }) => {
-  const getTaskIcon = (type) => {
-    switch (type) {
-      case 'urgent':
-      case 'maintenance':
-      case 'equipment_broken':
-        return <FaExclamationCircle className="task-icon urgent" />;
-      case 'equipment_under_repair':
-        return <FaWrench className="task-icon warning" />;
-      case 'completed':
-      case 'checkin':
-      case 'checkout':
-        return <FaCheckCircle className="task-icon completed" />;
-      default:
-        return <FaExclamationCircle className="task-icon urgent" />;
-    }
-  };
+  const items = useMemo(
+    () =>
+      tasks.map((task) => ({
+        id: task.id || task.text,
+        linkTo: task.linkTo,
+        leading: getTaskLeading(task.type),
+        main: (
+          <>
+            {task.urgent && (
+              <span className="staff-dash-badge staff-dash-badge--task-urgent">Gấp</span>
+            )}{' '}
+            {task.text}
+          </>
+        ),
+        meta: task.time || null,
+      })),
+    [tasks]
+  );
+
+  const urgentCount = tasks.filter((t) => t.urgent).length;
+  const subtitle =
+    tasks.length === 0
+      ? undefined
+      : urgentCount > 0
+        ? `${urgentCount} việc gấp · ${tasks.length} tổng`
+        : `${tasks.length} việc`;
 
   return (
-    <div className="task-list">
-      <h3 className="task-list-title">Công việc hôm nay</h3>
-      <div className="tasks-container">
-        {tasks.length > 0 ? (
-          tasks.map((task) => {
-            const rowClass = `task-item${task.linkTo ? ' task-item--link' : ''}`;
-            const inner = (
-              <>
-                <div className="task-icon-wrapper">
-                  {getTaskIcon(task.type)}
-                </div>
-                <div className="task-content">
-                  <span className="task-text">{task.text}</span>
-                  {task.time && <span className="task-time">{task.time}</span>}
-                </div>
-                {task.urgent && <span className="task-urgent-badge">Gấp</span>}
-              </>
-            );
-            if (task.linkTo) {
-              return (
-                <Link key={task.id || task.text} to={task.linkTo} className={rowClass}>
-                  {inner}
-                </Link>
-              );
-            }
-            return (
-              <div key={task.id || task.text} className={rowClass}>
-                {inner}
-              </div>
-            );
-          })
-        ) : (
-          <div className="no-tasks">Không có công việc nào hôm nay</div>
-        )}
-      </div>
-    </div>
+    <DashboardPanel
+      icon={FaClipboardList}
+      title="Công việc hôm nay"
+      subtitle={subtitle}
+      items={items}
+      emptyText="Không có công việc nào hôm nay"
+      pageSize={PAGE_SIZE.DASHBOARD_TASKS_TWO_COLUMN}
+      listLayout="two-column"
+      className="owner-dashboard-tasks"
+    />
   );
 };
 
 export default TaskList;
-

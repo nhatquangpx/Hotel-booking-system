@@ -13,6 +13,7 @@ import MetricCard from '@/features/owner/components/MetricCard';
 import { useStaffHotel } from '@/features/staff/context/StaffHotelContext';
 import { staffDashboardAPI } from '@/apis/staff/dashboard';
 import { formatDate } from '@/shared/utils';
+import { PAGE_SIZE } from '@/constants/pagination';
 import { getRoomMapDisplayStatus } from '@/features/staff/rooms/utils/roomMapDisplayStatus';
 import DashboardPanel from './DashboardPanel';
 import StaffBookingCalendar from './StaffBookingCalendar';
@@ -278,7 +279,7 @@ export const StaffDashboard = () => {
                 subtitle={`${panelMeta.unfinishedTasks} chưa xong`}
                 items={taskItems}
                 emptyText="Không có nhiệm vụ hôm nay"
-                collapsibleLimit={12}
+                pageSize={PAGE_SIZE.DASHBOARD_TASKS_TWO_COLUMN}
                 listLayout="two-column"
               />
             </div>
@@ -289,6 +290,7 @@ export const StaffDashboard = () => {
                 subtitle={`${panelMeta.attentionRooms ?? 0} cần chú ý`}
                 items={roomItems}
                 emptyText="Tất cả phòng đang ổn định"
+                fillList
                 viewAllTo="/staff/rooms"
               />
               <DashboardPanel
@@ -301,6 +303,7 @@ export const StaffDashboard = () => {
                 }`}
                 items={equipmentItems}
                 emptyText="Không có thiết bị cần xử lý"
+                fillList
                 viewAllTo="/staff/equipment"
               />
               <DashboardPanel
@@ -309,6 +312,7 @@ export const StaffDashboard = () => {
                 subtitle={`${stats.reviewsAwaitingReply} chưa trả lời`}
                 items={reviewItems}
                 emptyText="Không có đánh giá chờ phản hồi"
+                fillList
                 viewAllTo="/staff/reviews"
               />
             </div>

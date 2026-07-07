@@ -2,6 +2,7 @@
  * Hàng đợi xử lý đơn cho chủ khách sạn.
  */
 import { isSameCalendarDay } from './dates';
+import { getOverstayDays, isOverstayCheckout } from './checkInOut';
 import {
   matchesBookingSearch,
   matchesPaymentMethodFilter,
@@ -48,8 +49,23 @@ export function needsOwnerCheckOutToday(booking, referenceDate = new Date()) {
   );
 }
 
+export { isOverstayCheckout, getOverstayDays };
+
+export function needsOverstayCheckOut(booking, referenceDate = new Date()) {
+  return (
+    booking?.paymentStatus === 'paid' &&
+    Boolean(booking.checkedInAt) &&
+    !booking.checkedOutAt &&
+    isOverstayCheckout(booking, referenceDate)
+  );
+}
+
 export function needsOwnerCheckInOutToday(booking, referenceDate = new Date()) {
-  return needsOwnerCheckInToday(booking, referenceDate) || needsOwnerCheckOutToday(booking, referenceDate);
+  return (
+    needsOwnerCheckInToday(booking, referenceDate) ||
+    needsOwnerCheckOutToday(booking, referenceDate) ||
+    needsOverstayCheckOut(booking, referenceDate)
+  );
 }
 
 export function bookingNeedsOwnerPaymentQueue(booking) {
@@ -73,6 +89,10 @@ export function getOwnerActionLabel(booking, referenceDate = new Date()) {
   if (needsOwnerPaymentAction(booking)) return 'Chờ xác nhận thanh toán';
   if (needsOwnerRefundConfirm(booking)) return 'Chờ hoàn tiền';
   if (needsOwnerCheckInToday(booking, referenceDate)) return 'Check-in hôm nay';
+  if (needsOverstayCheckOut(booking, referenceDate)) {
+    const days = getOverstayDays(booking, referenceDate);
+    return `Check-out quá hạn (${days} ngày)`;
+  }
   if (needsOwnerCheckOutToday(booking, referenceDate)) return 'Check-out hôm nay';
   return null;
 }
@@ -134,7 +154,13 @@ export function filterOwnerCheckInOutQueue(
       if (!needsOwnerCheckInOutToday(booking, referenceDate)) return false;
       if (!matchesBookingSearch(booking, search)) return false;
       if (type === 'checkin') return needsOwnerCheckInToday(booking, referenceDate);
-      if (type === 'checkout') return needsOwnerCheckOutToday(booking, referenceDate);
+      if (type === 'checkout') {
+        return (
+          needsOwnerCheckOutToday(booking, referenceDate) ||
+          needsOverstayCheckOut(booking, referenceDate)
+        );
+      }
+      if (type === 'overstay') return needsOverstayCheckOut(booking, referenceDate);
       return true;
     }),
     referenceDate

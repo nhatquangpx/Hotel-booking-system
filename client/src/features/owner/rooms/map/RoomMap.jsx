@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { RoomCard, RoomStatusLegend, RoomDetailModal } from '../components';
 import { CreateRoomButton } from '../create';
 import { EditRoomDialog } from '../edit';
 import api from '@/apis';
-import { useAuth } from '@/shared/hooks';
 import { useOwnerHotel } from '../../context/OwnerHotelContext';
 import OwnerGuideCollapsible from '@/features/owner/components/OwnerGuideCollapsible';
 import './RoomMap.scss';
@@ -34,8 +32,6 @@ const normalizeRoomStatus = (room) => {
 };
 
 const RoomMap = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const { selectedHotelId, loading: hotelsLoading, hotels } = useOwnerHotel();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);

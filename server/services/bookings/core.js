@@ -209,6 +209,17 @@ const validateActualCheckInDate = (booking, at = new Date()) => {
   return { valid: true, error: null };
 };
 
+/** Số ngày lịch quá hạn so với ngày trả phòng đã đặt (0 = trong hạn). */
+const getOverstayDays = (booking, at = new Date()) => {
+  if (!booking?.checkOutDate) return 0;
+  const today = toBookingDateOnly(at);
+  const bookedCheckOut = toBookingDateOnly(booking.checkOutDate);
+  if (today <= bookedCheckOut) return 0;
+  return Math.round((today - bookedCheckOut) / (1000 * 60 * 60 * 24));
+};
+
+const isOverstayCheckout = (booking, at = new Date()) => getOverstayDays(booking, at) > 0;
+
 /**
  * Check-out thực tế phải nằm trong khoảng đặt phòng:
  * không sớm hơn ngày checkInDate đã đặt, không muộn hơn ngày checkOutDate đã đặt.
@@ -475,6 +486,8 @@ module.exports = {
   toBookingDateOnly,
   validateActualCheckInDate,
   validateActualCheckOutDate,
+  getOverstayDays,
+  isOverstayCheckout,
   checkBookingPermission,
   canGuestCancelBooking,
   canCancelBooking,

@@ -7,7 +7,7 @@ import RoleAccessDenied from "./RoleAccessDenied";
 /** Protects routes based on authentication and role */
 const ProtectedRoute = ({ allowedRoles, require2FA = false }) => {
   const location = useLocation();
-  const { user, isAuthenticated, isLoading, role } = useAuth();
+  const { isAuthenticated, isLoading, role } = useAuth();
 
   if (isLoading) {
     return (
@@ -40,11 +40,6 @@ const ProtectedRoute = ({ allowedRoles, require2FA = false }) => {
       );
     }
   }
-
-  // Future: Check 2FA requirement
-  // if (require2FA && !user.twoFactorVerified) {
-  //   return <Navigate to="/verify-2fa" replace />;
-  // }
 
   return <Outlet />;
 };

@@ -51,10 +51,10 @@ export const ownerBookingAPI = {
     }
   },
 
-  // Check-out đặt phòng
-  checkOut: async (id) => {
+  // Check-out đặt phòng (payload tùy chọn khi checkout quá hạn)
+  checkOut: async (id, payload = null) => {
     try {
-      const response = await api.post(`/owner/bookings/${id}/check-out`);
+      const response = await api.post(`/owner/bookings/${id}/check-out`, payload || {});
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

@@ -82,9 +82,9 @@ export const Navbar = () => {
   return (
     <>
     <div className={`navbar ${mobileMenuOpen ? 'navbar--mobile-open' : ''}`}>
-      <a href="/">
+      <Link to="/">
         <img src={IMAGE_PATHS.LOGO_VERTICAL_WHITE} alt="logo" />
-      </a>
+      </Link>
 
       <div className="navbar_center">
         <div className='navbar_menu navbar_menu--desktop'>

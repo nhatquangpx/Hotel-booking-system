@@ -117,7 +117,14 @@ exports.checkIn = (req, res) =>
   runService(res, () => bookingApi.checkInWithNotification({ id: req.params.id, user: req.user }));
 
 exports.checkOut = (req, res) =>
-  runService(res, () => bookingApi.checkOutWithNotification({ id: req.params.id, user: req.user }));
+  runService(res, () =>
+    bookingApi.checkOutWithNotification({
+      id: req.params.id,
+      user: req.user,
+      lateCheckoutFeeAmount: req.body?.lateCheckoutFeeAmount,
+      lateCheckoutFeeNote: req.body?.lateCheckoutFeeNote,
+    })
+  );
 
 exports.getStaffBookings = (req, res) =>
   runService(res, () =>
@@ -151,5 +158,11 @@ exports.staffCheckIn = (req, res) =>
 
 exports.staffCheckOut = (req, res) =>
   runService(res, () =>
-    bookingApi.checkOutWithNotification({ id: req.params.id, user: req.user, staff: true })
+    bookingApi.checkOutWithNotification({
+      id: req.params.id,
+      user: req.user,
+      staff: true,
+      lateCheckoutFeeAmount: req.body?.lateCheckoutFeeAmount,
+      lateCheckoutFeeNote: req.body?.lateCheckoutFeeNote,
+    })
   );

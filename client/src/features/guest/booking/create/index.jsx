@@ -77,14 +77,18 @@ const GuestBookingPage = () => {
   const checkInDisplay = booking?.checkInDate ?? bookingData.checkInDate;
   const checkOutDisplay = booking?.checkOutDate ?? bookingData.checkOutDate;
 
+  const activeHotel = booking?.hotel || hotel;
+  const activeRoom = booking?.room || room;
+  const activeGuest = booking?.guest || guest;
+
   const transferContent =
-    guest && hotel && room && checkInDisplay && checkOutDisplay
-      ? `${guest.name || ''} - ${hotel.name || ''} - ${room.roomNumber || ''} - ${formatDate(checkInDisplay)} - ${formatDate(checkOutDisplay)}`
+    activeGuest && activeHotel && activeRoom && checkInDisplay && checkOutDisplay
+      ? `${activeGuest.name || ''} - ${activeHotel.name || ''} - ${activeRoom.roomNumber || ''} - ${formatDate(checkInDisplay)} - ${formatDate(checkOutDisplay)}`
       : null;
-  const qrConfig = hotel?.paymentConfig?.qr || null;
+  const qrConfig = activeHotel?.paymentConfig?.qr || null;
   const qrIsEnabled = Boolean(qrConfig?.isConfigured);
   /** Chỉ tin cờ từ server; không kiểm tra tmnCode/secureSecret trên client (secret không được gửi ra browser). */
-  const vnpayIsEnabled = Boolean(hotel?.paymentConfig?.vnpay?.isConfigured);
+  const vnpayIsEnabled = Boolean(activeHotel?.paymentConfig?.vnpay?.isConfigured);
   const qrImageSrc = getImageUrl(qrConfig?.qrImageUrl || IMAGE_PATHS.QR_CODE) || IMAGE_PATHS.QR_CODE;
 
   const qrPaymentReported = booking?.paymentMethod === 'qr_code' && Boolean(booking?.qrPaymentReportedAt);
@@ -317,7 +321,12 @@ const GuestBookingPage = () => {
         } else {
           // QR code payment (giữ nguyên logic cũ)
           setBooking(response);
+          setGuest(response?.guest || guest);
+          setHotel(response?.hotel || hotel);
+          setRoom(response?.room || room);
+          setFinalAmount(response?.finalAmount ?? finalAmount);
           setProofImage(null);
+          setQrActionError('');
           setSuccessMessage('Đặt phòng thành công! Vui lòng quét mã QR để thanh toán.');
           setShowPaymentQRCode(true);
 
@@ -486,7 +495,7 @@ const GuestBookingPage = () => {
                   <button
                     className="back-to-bookings-btn"
                     onClick={handleConfirmQrPayment}
-                    disabled={confirmingQrPayment || !proofImage || !qrIsEnabled}
+                    disabled={confirmingQrPayment || !proofImage}
                   >
                     {confirmingQrPayment ? 'Đang ghi nhận...' : 'Tôi đã chuyển khoản'}
                   </button>
@@ -520,7 +529,7 @@ const GuestBookingPage = () => {
                     <button
                       className="back-to-bookings-btn"
                       onClick={handleConfirmQrPayment}
-                      disabled={confirmingQrPayment || !qrIsEnabled}
+                      disabled={confirmingQrPayment}
                     >
                       {confirmingQrPayment ? 'Đang cập nhật...' : 'Cập nhật minh chứng'}
                     </button>

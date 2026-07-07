@@ -13,14 +13,15 @@
     "db:seed": "node scripts/seedDatabase.js",
     "db:reseed": "node scripts/reseedDatabase.js",
     "db:supplement": "node scripts/supplementData.js",
-    "db:supplement-equipment": "node scripts/supplementRoomEquipment.js"
+    "db:supplement-equipment": "node scripts/supplementRoomEquipment.js",
+    "db:pricing-backtest": "node scripts/pricingBacktest.js",
+    "db:pricing-backtest:prepare": "node scripts/pricingBacktest.js --prepare-data"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@mongodb-js/saslprep": "^1.2.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",

@@ -29,9 +29,9 @@ export const staffBookingAPI = {
     }
   },
 
-  checkOut: async (id) => {
+  checkOut: async (id, payload = null) => {
     try {
-      const response = await api.post(`/staff/bookings/${id}/check-out`);
+      const response = await api.post(`/staff/bookings/${id}/check-out`, payload || {});
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

@@ -5,102 +5,24 @@ const Booking = require("../../models/Booking");
 const { getOwnerHotelIds } = require("../dashboards/core");
 const { ROOM_TYPE_ORDER, ROOM_TYPE_LABEL_VI } = require("../rooms/roomTypes");
 const { buildActiveBookingHoldFilter } = require("../../lib/booking/pendingHold");
+const {
+  vnWeekdayIndex,
+  vnDateKey,
+  vnDayBoundsFromKey,
+  roundVnd,
+  accumulateWeekdayNightCountsByType,
+  historicalWeekdayMultipliers,
+  computeSuggestedNightly,
+  LOOKBACK_DAYS,
+  MULTIPLIER_DAMPING,
+} = require("./pricingRules");
 
-const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WD_LABEL_VI = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-
-/**
- * Chỉ số thứ trong tuần theo múi giờ Asia/Ho_Chi_Minh (0 = Chủ nhật)
- */
-function vnWeekdayIndex(date) {
-  const w = date.toLocaleDateString("en-US", {
-    timeZone: "Asia/Ho_Chi_Minh",
-    weekday: "short",
-  });
-  const i = WD_SHORT.indexOf(w);
-  return i >= 0 ? i : 0;
-}
-
-function vnDateKey(date) {
-  return date.toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
-}
-
-function vnDayBoundsFromKey(dateKey) {
-  const start = new Date(`${dateKey}T00:00:00+07:00`);
-  const end = new Date(start.getTime() + 86400000);
-  return { start, end };
-}
 
 const { readRoomPrice } = require("../rooms/roomPrice");
 
 function effectiveNightly(room) {
   return readRoomPrice(room?.price);
-}
-
-function roundVnd(amount) {
-  const step = 10000;
-  return Math.round(amount / step) * step;
-}
-
-function occupancyMultiplier(rate) {
-  if (rate >= 0.9) return 1.12;
-  if (rate >= 0.75) return 1.08;
-  if (rate >= 0.5) return 1.02;
-  if (rate <= 0.15) return 0.88;
-  if (rate <= 0.25) return 0.92;
-  return 1;
-}
-
-function seasonMultiplierForDateKey(dateKey) {
-  const [, m, d] = dateKey.split("-").map(Number);
-  const month = m;
-  const day = d;
-
-  if (month === 12 && day >= 20) return 1.1;
-  if (month === 1 && day <= 5) return 1.1;
-  if (month === 4 && day >= 28 && day <= 30) return 1.06;
-  if (month === 5 && day <= 2) return 1.06;
-  if (month >= 6 && month <= 8) return 1.04;
-  return 1;
-}
-
-/**
- * Đếm số đêm đã bán theo thứ (VN) trong lookback, tách theo loại phòng (từ booking.room.type)
- */
-function accumulateWeekdayNightCountsByType(bookings, lookbackStart) {
-  /** @type {Record<string, number[]>} */
-  const byType = {};
-  for (const b of bookings) {
-    const rt = b.room?.type;
-    if (!rt) continue;
-    if (!byType[rt]) byType[rt] = [0, 0, 0, 0, 0, 0, 0];
-    let night = new Date(b.checkInDate);
-    const checkout = new Date(b.checkOutDate);
-    while (night < checkout) {
-      if (night >= lookbackStart) {
-        byType[rt][vnWeekdayIndex(night)] += 1;
-      }
-      night = new Date(night.getTime() + 86400000);
-    }
-  }
-  return byType;
-}
-
-function historicalWeekdayMultipliers(weekdayNightCounts) {
-  const maxC = Math.max(...weekdayNightCounts, 0);
-  if (maxC === 0) {
-    return [1, 1, 1, 1, 1, 1, 1];
-  }
-  return weekdayNightCounts.map((c) => 0.88 + 0.22 * (c / maxC));
-}
-
-const LOOKBACK_DAYS = 84;
-
-/** Làm mượt nhẹ tích các hệ số: kéo product về 1 để bộ quy tắc không quá cực đoan (tuỳ chọn tinh chỉnh). */
-const MULTIPLIER_DAMPING = 0.55;
-
-function dampCombinedMultiplier(product) {
-  return 1 + (product - 1) * MULTIPLIER_DAMPING;
 }
 
 /**
@@ -438,17 +360,24 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
 
         const occupancyRate = totalRooms > 0 ? occupiedRooms / totalRooms : 0;
         const wd = vnWeekdayIndex(nightStart);
-        const occMult = occupancyMultiplier(occupancyRate);
-        const seaMult = seasonMultiplierForDateKey(dateKey);
         const hist = histMult[wd] ?? 1;
 
-        const minP = avgCurrentNightly * 0.75;
-        const maxP = avgCurrentNightly * 1.35;
-        const rawProduct = occMult * seaMult * hist;
-        const dampedMult = dampCombinedMultiplier(rawProduct);
-        const rawBeforeClamp = avgCurrentNightly * dampedMult;
-        const afterClamp = Math.min(maxP, Math.max(minP, rawBeforeClamp));
-        const suggestedNightly = roundVnd(afterClamp);
+        const pricing = computeSuggestedNightly(avgCurrentNightly, {
+          occupancyRate,
+          dateKey,
+          histMult: hist,
+        });
+        const {
+          suggestedNightly,
+          occMult,
+          seaMult,
+          rawProduct,
+          dampedMult,
+          rawBeforeClamp,
+          afterClamp,
+          minP,
+          maxP,
+        } = pricing;
 
         const oneNightDelta = estimateVacantRoomDeltaRevenue(
           typeRooms,
@@ -709,5 +638,4 @@ async function applySuggestedPricesForOwner(ownerId, { hotelId, roomType, days, 
 module.exports = {
   getDynamicPricingForOwner,
   applySuggestedPricesForOwner,
-  ROOM_TYPE_LABEL_VI,
 };

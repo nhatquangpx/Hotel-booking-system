@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { formatDate, formatDateTime } from '@/shared/utils';
+import { formatDate, formatDateTime, formatCurrency } from '@/shared/utils';
 import { getImageUrl } from '@/constants/images';
 import { formatRoomType } from '@/constants/roomTypes';
 
@@ -135,6 +135,20 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                   <span className="info-label"><strong>Tổng tiền:</strong></span>
                   <span className="info-value"><strong>{(booking.finalAmount || 0).toLocaleString('vi-VN')} VNĐ</strong></span>
                 </div>
+                {booking.lateCheckoutSurcharge?.amountCollected > 0 && (
+                  <div className="info-row late-surcharge-row">
+                    <span className="info-label">Phụ thu checkout muộn (thu trực tiếp):</span>
+                    <span className="info-value">
+                      <strong>{formatCurrency(booking.lateCheckoutSurcharge.amountCollected)}</strong>
+                      {booking.lateCheckoutSurcharge.daysOverdue
+                        ? ` — quá ${booking.lateCheckoutSurcharge.daysOverdue} ngày`
+                        : ''}
+                      {booking.lateCheckoutSurcharge.note
+                        ? ` (${booking.lateCheckoutSurcharge.note})`
+                        : ''}
+                    </span>
+                  </div>
+                )}
                 {booking.cancellationReason && (
                   <div className="info-row">
                     <span className="info-label">Lý do hủy (khách):</span>
