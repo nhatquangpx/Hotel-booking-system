@@ -18,6 +18,7 @@ const BookingDetailModal = ({
   onReviewUpdate,
   onError,
   onHoldExpired,
+  onResubmitProof,
 }) => {
   const navigate = useNavigate();
   const [payingBookingId, setPayingBookingId] = useState(null);
@@ -80,7 +81,7 @@ const BookingDetailModal = ({
   };
 
   const handleContinuePaymentFromDetail = async () => {
-    if (!booking || holdExpired) return;
+    if (!booking || holdExpired || needsQrProofResubmit(booking)) return;
     if (booking.paymentMethod === 'vnpay') {
       try {
         setPayingBookingId(booking._id);
@@ -282,34 +283,46 @@ const BookingDetailModal = ({
                       : 'Đơn chưa thanh toán. Bạn có thể tiếp tục thanh toán ngay.'}
                 </p>
                 <div className="payment-action-buttons">
-                  <button
-                    type="button"
-                    className="pay-continue-btn"
-                    onClick={handleContinuePaymentFromDetail}
-                    disabled={
-                      holdExpired ||
-                      payingBookingId === booking._id ||
-                      (booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt))
-                    }
-                  >
-                    {payingBookingId === booking._id ? 'Đang mở thanh toán...' : 'Tiếp tục thanh toán'}
-                  </button>
-                  {booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt && !holdExpired && (
+                  {needsQrProofResubmit(booking) ? (
+                    <button
+                      type="button"
+                      className="pay-continue-btn pay-continue-btn--resubmit"
+                      onClick={() => onResubmitProof?.(booking)}
+                    >
+                      Tải lại minh chứng
+                    </button>
+                  ) : (
                     <>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="proof-file-input"
-                        onChange={(e) => setDetailProofImage(e.target.files?.[0] || null)}
-                      />
                       <button
                         type="button"
                         className="pay-continue-btn"
-                        onClick={handleConfirmQrPaymentFromDetail}
-                        disabled={confirmingQrBookingId === booking._id || holdExpired}
+                        onClick={handleContinuePaymentFromDetail}
+                        disabled={
+                          holdExpired ||
+                          payingBookingId === booking._id ||
+                          (booking.paymentMethod === 'qr_code' && Boolean(booking.qrPaymentReportedAt))
+                        }
                       >
-                        {confirmingQrBookingId === booking._id ? 'Đang ghi nhận...' : 'Tôi đã chuyển khoản'}
+                        {payingBookingId === booking._id ? 'Đang mở thanh toán...' : 'Tiếp tục thanh toán'}
                       </button>
+                      {booking.paymentMethod === 'qr_code' && !booking.qrPaymentReportedAt && !holdExpired && (
+                        <>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="proof-file-input"
+                            onChange={(e) => setDetailProofImage(e.target.files?.[0] || null)}
+                          />
+                          <button
+                            type="button"
+                            className="pay-continue-btn"
+                            onClick={handleConfirmQrPaymentFromDetail}
+                            disabled={confirmingQrBookingId === booking._id || holdExpired}
+                          >
+                            {confirmingQrBookingId === booking._id ? 'Đang ghi nhận...' : 'Tôi đã chuyển khoản'}
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

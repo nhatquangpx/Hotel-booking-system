@@ -15,6 +15,7 @@ async function cancelExpiredPendingBookings() {
   const expired = await Booking.find({
     paymentStatus: "pending",
     pendingExpiresAt: { $lte: now },
+    ownerQrRejectionType: { $ne: "invalid_proof" },
     $or: [{ qrPaymentReportedAt: { $exists: false } }, { qrPaymentReportedAt: null }],
   }).select("_id room");
 
@@ -32,6 +33,7 @@ async function cancelExpiredPendingBookings() {
       _id: { $in: expired.map((b) => b._id) },
       paymentStatus: "pending",
       pendingExpiresAt: { $lte: now },
+      ownerQrRejectionType: { $ne: "invalid_proof" },
       $or: [{ qrPaymentReportedAt: { $exists: false } }, { qrPaymentReportedAt: null }],
     },
     {

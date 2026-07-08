@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { GuestLayout } from '@/features/guest/components/layout';
 import Pagination from '@/shared/components/Pagination/Pagination';
 import { PAGE_SIZE } from '@/constants/pagination';
 import BookingDetailModal from '../detail/BookingDetailModal';
+import QrProofResubmitModal from '../detail/QrProofResubmitModal';
 import BookingListItem from './BookingListItem';
 import api from '@/apis';
 import {
@@ -46,6 +48,8 @@ const GuestMyBookingsPage = () => {
   const [cancelling, setCancelling] = useState(false);
   const [payingBookingId, setPayingBookingId] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showResubmitModal, setShowResubmitModal] = useState(false);
+  const [resubmitBooking, setResubmitBooking] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailBooking, setDetailBooking] = useState(null);
   const openedBookingFromUrl = useRef(false);
@@ -214,6 +218,10 @@ const GuestMyBookingsPage = () => {
   };
 
   const handleContinuePayment = async (b) => {
+    if (needsQrProofResubmit(b)) {
+      openResubmitModal(b);
+      return;
+    }
     if (isPendingHoldExpiredBooking(b)) {
       setError('Đơn đã quá thời hạn giữ phòng. Vui lòng đặt phòng mới.');
       return;
@@ -238,6 +246,47 @@ const GuestMyBookingsPage = () => {
     if (booking.paymentStatus === 'cancelled') return false;
     if (booking.checkedInAt || booking.checkedOutAt) return false;
     return booking.paymentStatus === 'pending' || booking.paymentStatus === 'paid';
+  };
+
+  const openResubmitModal = (booking) => {
+    setResubmitBooking(booking);
+    setShowResubmitModal(true);
+    setError(null);
+  };
+
+  const closeResubmitModal = () => {
+    setShowResubmitModal(false);
+    setResubmitBooking(null);
+  };
+
+  const handleResubmitSuccess = (patch) => {
+    if (!resubmitBooking?._id) return;
+    const bookingId = resubmitBooking._id;
+    setBookings((prev) =>
+      prev.map((b) =>
+        b._id === bookingId
+          ? {
+              ...b,
+              ...patch,
+              ownerPaymentRejectionReason: undefined,
+              ownerQrRejectionType: undefined,
+            }
+          : b
+      )
+    );
+    if (detailBooking?._id === bookingId) {
+      setDetailBooking((prev) =>
+        prev
+          ? {
+              ...prev,
+              ...patch,
+              ownerPaymentRejectionReason: undefined,
+              ownerQrRejectionType: undefined,
+            }
+          : prev
+      );
+    }
+    toast.success('Gửi lại minh chứng thành công');
   };
 
   const openDetailModal = async (bookingId) => {
@@ -276,7 +325,20 @@ const GuestMyBookingsPage = () => {
     if (!bookingIdFromQuery || openedBookingFromUrl.current || !user) return;
 
     openedBookingFromUrl.current = true;
-    openDetailModal(bookingIdFromQuery);
+    const loadFromUrl = async () => {
+      try {
+        const data = await api.userBooking.getBookingById(bookingIdFromQuery);
+        if (needsQrProofResubmit(data)) {
+          openResubmitModal(data);
+        } else {
+          setDetailBooking(data);
+          setShowDetailModal(true);
+        }
+      } catch {
+        setError('Không thể tải chi tiết đặt phòng');
+      }
+    };
+    loadFromUrl();
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('bookingId');
     setSearchParams(nextParams, { replace: true });
@@ -399,6 +461,7 @@ const GuestMyBookingsPage = () => {
                   canCancel={canGuestSubmitCancel(booking)}
                   onOpenDetail={openDetailModal}
                   onContinuePayment={handleContinuePayment}
+                  onResubmitProof={openResubmitModal}
                   onOpenCancel={openCancelModal}
                   onHoldExpired={refreshBookings}
                 />
@@ -507,6 +570,13 @@ const GuestMyBookingsPage = () => {
             </div>
           </div>
         )}
+        <QrProofResubmitModal
+          show={showResubmitModal}
+          booking={resubmitBooking}
+          onClose={closeResubmitModal}
+          onSuccess={handleResubmitSuccess}
+          onError={setError}
+        />
         <BookingDetailModal
           show={showDetailModal}
           loading={detailLoading}
@@ -529,6 +599,7 @@ const GuestMyBookingsPage = () => {
           onReviewUpdate={handleDetailReviewUpdate}
           onError={setError}
           onHoldExpired={handleHoldExpired}
+          onResubmitProof={openResubmitModal}
         />
       </div>
     </GuestLayout>

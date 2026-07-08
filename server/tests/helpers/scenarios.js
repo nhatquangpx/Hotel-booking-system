@@ -55,9 +55,16 @@ async function createPaidQrBooking(guestAgent, ownerAgent, data, options = {}) {
   return bookingId;
 }
 
+async function ownerRejectQrPayment(ownerAgent, bookingId, rejectionType = "invalid_proof") {
+  return ownerAgent
+    .post(`/api/owner/bookings/${bookingId}/reject-qr-payment`)
+    .send({ rejectionType });
+}
+
 module.exports = {
   createGuestBooking,
   reportQrPayment,
   ownerConfirmPaid,
   createPaidQrBooking,
+  ownerRejectQrPayment,
 };

@@ -523,6 +523,7 @@
         display: flex;
         justify-content: flex-end;
         gap: 15px;
+        flex-wrap: wrap;
 
         button {
           flex: 1;
@@ -561,6 +562,40 @@
           }
         }
       }
+    }
+
+    .qr-resubmit-modal {
+      &__reason {
+        margin-bottom: 20px;
+        padding: 12px 14px;
+        border-radius: 6px;
+        background: rgba(255, 193, 7, 0.12);
+        border: 1px solid rgba(200, 120, 0, 0.35);
+
+        p {
+          margin: 6px 0 0;
+          color: $text-medium;
+        }
+      }
+
+      &__file-name {
+        margin: 8px 0 0;
+        @include body-sm;
+        color: $text-light;
+      }
+
+      input[type='file'] {
+        width: 100%;
+        @include body-sm;
+      }
+    }
+  }
+
+  .pay-continue-btn--resubmit {
+    background-color: #c87800;
+
+    &:hover:not(:disabled) {
+      background-color: #a86400;
     }
   }
 

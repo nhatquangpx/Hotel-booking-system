@@ -17,6 +17,7 @@ const BookingListItem = ({
   canCancel,
   onOpenDetail,
   onContinuePayment,
+  onResubmitProof,
   onOpenCancel,
   onHoldExpired,
 }) => {
@@ -105,6 +106,18 @@ const BookingListItem = ({
             </button>
             {booking.paymentStatus === 'pending' &&
               !holdExpired &&
+              needsQrProofResubmit(booking) && (
+                <button
+                  type="button"
+                  className="pay-continue-btn pay-continue-btn--resubmit"
+                  onClick={() => onResubmitProof(booking)}
+                >
+                  Tải lại minh chứng
+                </button>
+              )}
+            {booking.paymentStatus === 'pending' &&
+              !holdExpired &&
+              !needsQrProofResubmit(booking) &&
               !(booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) && (
                 <button
                   type="button"

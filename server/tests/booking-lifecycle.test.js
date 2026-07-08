@@ -6,6 +6,7 @@ const {
   reportQrPayment,
   ownerConfirmPaid,
   createPaidQrBooking,
+  ownerRejectQrPayment,
 } = require("./helpers/scenarios");
 
 describe("Booking Lifecycle — black box qua HTTP API", () => {
@@ -346,6 +347,41 @@ describe("Booking Lifecycle — black box qua HTTP API", () => {
 
       const booking = await Booking.findById(bookingId);
       expect(booking.paymentStatus).toBe("pending");
+    });
+
+    it("không hủy đơn pending quá hạn khi chủ KS yêu cầu tải lại minh chứng", async () => {
+      const guest = await authedRequest(app, data.credentials.guest);
+      const owner = await authedRequest(app, data.credentials.owner);
+      const { checkInDate, checkOutDate } = data.futureStayDates({ checkInOffset: 43, nights: 2 });
+
+      const createRes = await createGuestBooking(guest, {
+        hotelId: data.hotelId,
+        roomId: data.roomId,
+        checkInDate,
+        checkOutDate,
+      });
+      expect(createRes.status).toBe(201);
+      const bookingId = createRes.body._id;
+
+      const qrRes = await reportQrPayment(guest, bookingId);
+      expect(qrRes.status).toBe(200);
+
+      const rejectRes = await ownerRejectQrPayment(owner, bookingId, "invalid_proof");
+      expect(rejectRes.status).toBe(200);
+
+      const afterReject = await Booking.findById(bookingId);
+      expect(afterReject.ownerQrRejectionType).toBe("invalid_proof");
+      expect(afterReject.pendingExpiresAt).toBeFalsy();
+
+      await Booking.findByIdAndUpdate(bookingId, {
+        pendingExpiresAt: new Date(Date.now() - 60_000),
+      });
+
+      await cancelExpiredPendingBookings();
+
+      const booking = await Booking.findById(bookingId);
+      expect(booking.paymentStatus).toBe("pending");
+      expect(booking.ownerQrRejectionType).toBe("invalid_proof");
     });
 
     it("đơn pending quá hạn chưa cron vẫn không chặn đặt phòng mới", async () => {

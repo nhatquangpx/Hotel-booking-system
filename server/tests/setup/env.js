@@ -11,7 +11,3 @@ process.env.VNPAY_HOST = "https://sandbox.vnpayment.vn";
 process.env.VNPAY_TMN_CODE = "YV6R3LQ0";
 process.env.VNPAY_SECURE_SECRET = "DGN4FIGZ3YANTCEX6JWK3TJWM4MKC5OB";
 process.env.VNPAY_RETURN_URL = "http://localhost:8001/api/payment/vnpay-return";
-// Test dùng lưu file local — không gọi Cloudinary (tránh upload thật khi chạy Jest).
-delete process.env.CLOUDINARY_API_KEY;
-delete process.env.CLOUDINARY_API_SECRET;
-delete process.env.CLOUDINARY_CLOUD_NAME;

@@ -26,6 +26,7 @@ export function isPendingHoldTrackable(booking) {
   if (booking?.paymentStatus !== 'pending') return false;
   if (!booking?.pendingExpiresAt) return false;
   if (booking.qrPaymentReportedAt) return false;
+  if (booking.ownerQrRejectionType === 'invalid_proof') return false;
   return true;
 }
 

@@ -367,6 +367,8 @@ const rejectQrPayment = async (bookingId, user, rejectionType) => {
   if (type === "invalid_proof") {
     booking.qrPaymentReportedAt = undefined;
     booking.qrPaymentProofUrl = undefined;
+    // Khách chỉ cần tải lại minh chứng — không áp lại hạn giữ phòng ban đầu
+    booking.pendingExpiresAt = undefined;
     await booking.save();
 
     if (latestTransaction) {

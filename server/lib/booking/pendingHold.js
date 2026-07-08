@@ -7,6 +7,7 @@ function isPendingHoldExpired(booking, now = new Date()) {
   if (!booking || booking.paymentStatus !== "pending") return false;
   if (!booking.pendingExpiresAt) return false;
   if (booking.qrPaymentReportedAt) return false;
+  if (booking.ownerQrRejectionType === "invalid_proof") return false;
   return new Date(booking.pendingExpiresAt).getTime() <= now.getTime();
 }
 
@@ -25,6 +26,7 @@ function buildActiveBookingHoldFilter(now = new Date()) {
           { pendingExpiresAt: null },
           { pendingExpiresAt: { $gt: now } },
           { qrPaymentReportedAt: { $exists: true, $ne: null } },
+          { ownerQrRejectionType: "invalid_proof" },
         ],
       },
     ],
