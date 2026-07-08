@@ -311,7 +311,6 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
         hotelId: hid.toString(),
         hotelName: hotel.name,
         roomTypes: [],
-        summary: null,
         note: "Không có phòng đang hoạt động",
       });
       continue;
@@ -339,7 +338,6 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
 
     /** @type {Array<{ type: string, typeLabel: string, roomCount: number, avgCurrentNightly: number, daily: object[], summary: object }>} */
     const roomTypesOut = [];
-    let hotelTotalDelta = 0;
 
     for (const roomType of types) {
       const typeRooms = roomsByType[roomType];
@@ -441,13 +439,11 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
         (s, row) => s + (row.estimatedDailyDeltaRevenue || 0),
         0
       );
-      let periodDeltaAtAvg = estimatePeriodVacantDeltaRevenue(
+      const periodDeltaAtAvg = estimatePeriodVacantDeltaRevenue(
         typeRooms,
         avgSuggestedNightly,
         occupiedNights
       );
-
-      hotelTotalDelta += periodDeltaAtAvg;
 
       const metaByType =
         hotel.dynamicPricingByRoomType && typeof hotel.dynamicPricingByRoomType === "object"
@@ -480,11 +476,6 @@ async function getDynamicPricingForOwner(ownerId, options = {}) {
       from: todayKey,
       days,
       roomTypes: roomTypesOut,
-      summary: {
-        estimatedAdditionalRevenue: Math.round(hotelTotalDelta),
-        note:
-          "Tổng chênh lệch = cộng theo từng loại phòng nếu áp giá TB gợi ý cả kỳ (mỗi đêm × Σ từng phòng).",
-      },
     });
   }
 
