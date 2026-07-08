@@ -10,8 +10,9 @@ const {
   getTodayDateRange,
   getDateRangeForDay,
   calculateRevenueInRange,
-  calculateRevenueForOccupiedRooms
 } = require('./core');
+const { aggregateRoomNightStats } = require('../reports/roomNightsAggregate');
+const { startOfDayReportTz } = require('../reports/reportTz');
 
 /**
  * Owner Dashboard Service
@@ -144,9 +145,9 @@ const getWeeklyRevenue = async (ownerId, hotelId) => {
 };
 
 /**
- * Get room occupancy statistics (last 7 days)
+ * Công suất phòng 7 ngày qua (%): đêm phòng bán / tổng phòng, theo check-in/check-out.
  * @param {String} ownerId - Owner user ID
- * @returns {Promise<Array>} Array of { day, value } objects
+ * @returns {Promise<Array>} Array of { day, value } — value là % (0–100)
  */
 const getRoomOccupancy = async (ownerId, hotelId) => {
   const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId);
@@ -155,16 +156,34 @@ const getRoomOccupancy = async (ownerId, hotelId) => {
     return [];
   }
 
+  const todayStart = startOfDayReportTz();
+  const rangeStart = todayStart.subtract(6, 'day').toDate();
+  const rangeEndExclusive = todayStart.add(1, 'day').toDate();
+
+  const [totalRooms, { nightMap }] = await Promise.all([
+    Room.countDocuments({ hotelId: { $in: hotelIds }, roomStatus: 'active' }),
+    aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive),
+  ]);
+
+  const denominator = totalRooms > 0
+    ? totalRooms
+    : await Room.countDocuments({ hotelId: { $in: hotelIds } });
+
   const occupancyData = [];
-  
+
   for (let i = 6; i >= 0; i--) {
-    const { date, nextDate } = getDateRangeForDay(i);
-    const dayRevenue = await calculateRevenueForOccupiedRooms(hotelIds, date, nextDate);
-    const dayIndex = date.getDay();
-    
+    const dayStart = todayStart.subtract(i, 'day');
+    const key = dayStart.format('YYYY-MM-DD');
+    const roomNights = nightMap.get(key) || 0;
+    const occupiedRooms = denominator > 0 ? Math.min(roomNights, denominator) : 0;
+    const rate =
+      denominator > 0
+        ? Math.min(100, Math.round((occupiedRooms / denominator) * 100))
+        : 0;
+
     occupancyData.push({
-      day: DAYS_OF_WEEK[dayIndex],
-      value: dayRevenue
+      day: DAYS_OF_WEEK[dayStart.day()],
+      value: rate,
     });
   }
 

@@ -12,8 +12,20 @@
   .chart-title {
     @include heading-md;
     color: $text-primary;
-    margin-bottom: 1rem;
+    margin-bottom: 0.35rem;
     font-weight: $font-bold;
+  }
+
+  &__subtitle {
+    @include body-xs;
+    color: $text-secondary;
+    margin: 0 0 1rem;
+  }
+
+  &__empty {
+    @include body-sm;
+    color: $text-secondary;
+    margin: 0;
   }
 
   .chart-container {
@@ -33,7 +45,7 @@
       }
 
       .chart-bar {
-        fill: $footer-bg;
+        fill: #d4af37;
         cursor: pointer;
         transition: opacity 0.2s;
 
