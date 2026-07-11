@@ -50,6 +50,7 @@ const NotificationBell = () => {
       case 'booking_cancelled':
       case 'payment_rejected':
       case 'qr_proof_resubmit':
+      case 'cancel_abuse_alert':
         return <FaBan />;
       case 'refund_processed':
       case 'high_value_booking':

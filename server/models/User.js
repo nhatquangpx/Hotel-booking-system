@@ -50,6 +50,16 @@ const UserSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active"
     },
+    /** Hết hạn vô hiệu hóa tạm thời; null = không thời hạn (chỉ khi status=inactive) */
+    inactiveUntil: {
+      type: Date,
+      default: null,
+    },
+    inactiveReason: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     twoFactorAuth: {
       enabled: {
         type: Boolean,

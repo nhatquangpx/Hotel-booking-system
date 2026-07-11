@@ -258,9 +258,34 @@ async function updateUser({ userId, body }) {
 
   const updatePayload = { ...body };
   delete updatePayload.wishlist;
+  delete updatePayload.inactiveDays;
 
   const existingUser = await User.findById(userId);
   if (!existingUser) throw new ServiceError(404, "Người dùng không tồn tại!");
+
+  if (updatePayload.status === "active") {
+    updatePayload.inactiveUntil = null;
+    updatePayload.inactiveReason = "";
+  } else if (updatePayload.status === "inactive") {
+    if (Object.prototype.hasOwnProperty.call(body, "inactiveUntil")) {
+      updatePayload.inactiveUntil = body.inactiveUntil
+        ? new Date(body.inactiveUntil)
+        : null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "inactiveReason")) {
+      updatePayload.inactiveReason = String(body.inactiveReason || "").trim();
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "inactiveDays")) {
+      const days = Number(body.inactiveDays);
+      if (Number.isFinite(days) && days > 0) {
+        updatePayload.inactiveUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      } else if (body.inactiveDays === null || body.inactiveDays === 0 || body.inactiveDays === "") {
+        updatePayload.inactiveUntil = null;
+      }
+    }
+    updatePayload.refreshTokenHash = null;
+    updatePayload.refreshTokenExpires = null;
+  }
 
   const nextRole = updatePayload.role ?? existingUser.role;
   if (updatePayload.role && !VALID_ROLES.includes(updatePayload.role)) {

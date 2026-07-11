@@ -30,6 +30,7 @@ const {
   findUserByRefreshToken,
 } = require("./tokens");
 const { ServiceError } = require("../../lib/http/serviceError");
+const { reactivateIfExpired } = require("../moderation/accountStatus");
 
 const formatAuthUser = (user, staffHotel = null) => ({
   id: user._id,
@@ -37,6 +38,7 @@ const formatAuthUser = (user, staffHotel = null) => ({
   name: user.name,
   email: user.email,
   role: user.role,
+  status: user.status,
   assignedHotelId: staffHotel
     ? { _id: staffHotel._id, name: staffHotel.name }
     : null,
@@ -119,6 +121,19 @@ async function login({ email, password, req, res }) {
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new ServiceError(400, "Mật khẩu không chính xác!");
+
+  await reactivateIfExpired(user);
+  if (user.status === "inactive") {
+    const until =
+      user.inactiveUntil &&
+      ` đến ${user.inactiveUntil.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}`;
+    throw new ServiceError(
+      403,
+      `Tài khoản đã bị vô hiệu hóa${until || ""}${
+        user.inactiveReason ? `: ${user.inactiveReason}` : ""
+      }`
+    );
+  }
 
   const staffHotel = await resolveStaffHotel(user);
 
@@ -260,6 +275,9 @@ async function refreshToken({ req, res }) {
   }
 
   if (user.status === "inactive") {
+    await reactivateIfExpired(user);
+  }
+  if (user.status === "inactive") {
     await clearRefreshToken(user);
     clearAuthCookies(res);
     throw new ServiceError(403, "Tài khoản đã bị vô hiệu hóa");
@@ -295,8 +313,10 @@ async function refreshToken({ req, res }) {
 }
 
 async function getMe({ userId }) {
-  const user = await User.findById(userId);
+  let user = await User.findById(userId);
   if (!user) throw new ServiceError(404, "Người dùng không tồn tại!");
+
+  user = await reactivateIfExpired(user);
 
   let staffHotel = null;
   if (user.role === "staff") {

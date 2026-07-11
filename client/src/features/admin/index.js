@@ -1,9 +1,6 @@
-/**
- * Admin Features
- * All features accessible by admin users only
- */
 export { AdminDashboardPage } from './dashboard';
 export * from './users';
+export * from './cancelAbuse';
 export * from './hotels';
 export * from './bookings';
 export * from './contact';

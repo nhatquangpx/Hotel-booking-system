@@ -10,6 +10,7 @@ const dashboardController = require('../controllers/dashboardController');
 const notificationController = require('../controllers/notificationController');
 const reportController = require('../controllers/reportController');
 const contactController = require("../controllers/contactController");
+const cancelAbuseController = require("../controllers/cancelAbuseController");
 const { uploadHotelPhotosAndQr, uploadRoomImages } = require('../config/multerConfig');
 const {
   createUserValidation,
@@ -49,6 +50,10 @@ router.get("/users/:id", idParamValidation, userController.getUserById);
 router.post("/users", createUserValidation, validateUser, userController.createUser);
 router.put("/users/:id", idParamValidation, updateUserValidation, validateUser, userController.updateUser);
 router.delete("/users/:id", idParamValidation, userController.deleteUser);
+
+router.get("/cancel-abuse-flags", cancelAbuseController.listCancelAbuseFlags);
+router.get("/cancel-abuse-flags/:id", idParamValidation, cancelAbuseController.getCancelAbuseFlag);
+router.put("/cancel-abuse-flags/:id/review", idParamValidation, cancelAbuseController.reviewCancelAbuseFlag);
 
 router.get("/hotels", hotelController.getAllHotels);
 router.get("/hotels/:id", idParamValidation, hotelController.getHotelById);
