@@ -6,6 +6,9 @@ const {
   buildValidatedSelfProfilePayload,
   PROFILE_DB_SELECT,
   toPublicProfile,
+  isCompleteGuestId,
+  normalizeIdNumber,
+  ID_NUMBER_PATTERN,
 } = require('./profileHelpers');
 
 function httpError(status, message) {
@@ -35,15 +38,56 @@ async function getProfileById(userId) {
   return toPublicProfile(enriched);
 }
 
-async function updateSelfProfile(userId, body) {
+async function updateSelfProfile(userId, body, { includeGuestIdFields = false } = {}) {
   assertValidUserId(userId);
 
-  const built = buildValidatedSelfProfilePayload(body);
+  const built = buildValidatedSelfProfilePayload(body, { includeGuestIdFields });
   if (built.error) {
     throw httpError(built.error.status, built.error.message);
   }
 
   try {
+    if (includeGuestIdFields) {
+      const existing = await User.findById(userId).select(PROFILE_DB_SELECT);
+      if (!existing) {
+        throw httpError(404, 'Người dùng không tồn tại!');
+      }
+
+      const merged = {
+        idNumber:
+          built.payload.idNumber !== undefined
+            ? built.payload.idNumber
+            : existing.idNumber,
+        idImageFrontUrl:
+          built.payload.idImageFrontUrl !== undefined
+            ? built.payload.idImageFrontUrl
+            : existing.idImageFrontUrl,
+        idImageBackUrl:
+          built.payload.idImageBackUrl !== undefined
+            ? built.payload.idImageBackUrl
+            : existing.idImageBackUrl,
+      };
+
+      const idNumber = normalizeIdNumber(merged.idNumber);
+      if (!ID_NUMBER_PATTERN.test(idNumber)) {
+        throw httpError(
+          400,
+          'Vui lòng nhập số CCCD/CMND hợp lệ (9 hoặc 12 chữ số)'
+        );
+      }
+      if (!merged.idImageFrontUrl || !merged.idImageBackUrl) {
+        throw httpError(
+          400,
+          'Vui lòng tải đủ ảnh CCCD mặt trước và mặt sau (ảnh đã có trên hồ sơ được giữ nguyên nếu không chọn lại)'
+        );
+      }
+      if (!isCompleteGuestId({ ...merged, idNumber })) {
+        throw httpError(400, 'Thông tin CCCD chưa đầy đủ');
+      }
+
+      built.payload.idNumber = idNumber;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(userId, built.payload, {
       new: true,
       runValidators: true,

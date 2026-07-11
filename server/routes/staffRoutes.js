@@ -60,6 +60,11 @@ router.put("/notifications/read-all", notificationController.markAllAsRead);
 router.get("/notifications/load-more", notificationController.loadMoreNotifications);
 
 router.get("/bookings", bookingController.getStaffBookings);
+router.get(
+  "/bookings/:id/sensitive-media/:kind",
+  bookingIdParamValidation,
+  bookingController.streamBookingSensitiveMedia
+);
 router.get("/bookings/:id", bookingIdParamValidation, bookingController.getStaffBookingById);
 router.post("/bookings/:id/check-in", bookingIdParamValidation, bookingController.staffCheckIn);
 router.post("/bookings/:id/check-out", bookingIdParamValidation, bookingController.staffCheckOut);

@@ -96,6 +96,54 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                   <span className="info-value">{booking.guest?.name || 'N/A'} - {booking.guest?.phone || 'N/A'}</span>
                 </div>
                 <div className="info-row">
+                  <span className="info-label">CCCD/CMND:</span>
+                  <span className="info-value">{booking.guestIdNumber || 'Chưa cập nhật'}</span>
+                </div>
+                {(booking.guestIdImageFrontUrl || booking.guestIdImageBackUrl) && (
+                  <>
+                    {booking.guestIdImageFrontUrl && (
+                      <div className="info-row">
+                        <span className="info-label">Ảnh CCCD mặt trước:</span>
+                        <span className="info-value">
+                          <button
+                            type="button"
+                            className="proof-link"
+                            onClick={() =>
+                              onPreviewProof(
+                                booking,
+                                'id-image-front',
+                                booking.guestIdImageFrontUrl
+                              )
+                            }
+                          >
+                            Xem mặt trước
+                          </button>
+                        </span>
+                      </div>
+                    )}
+                    {booking.guestIdImageBackUrl && (
+                      <div className="info-row">
+                        <span className="info-label">Ảnh CCCD mặt sau:</span>
+                        <span className="info-value">
+                          <button
+                            type="button"
+                            className="proof-link"
+                            onClick={() =>
+                              onPreviewProof(
+                                booking,
+                                'id-image-back',
+                                booking.guestIdImageBackUrl
+                              )
+                            }
+                          >
+                            Xem mặt sau
+                          </button>
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="info-row">
                   <span className="info-label">Khách sạn:</span>
                   <span className="info-value">{booking.hotel?.name || 'N/A'}</span>
                 </div>
@@ -192,7 +240,7 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                       <button
                         type="button"
                         className="proof-link"
-                        onClick={() => onPreviewProof(getImageUrl(booking.ownerRefundProofUrl))}
+                        onClick={() => onPreviewProof(booking, 'refund-proof', booking.ownerRefundProofUrl)}
                       >
                         Mở ảnh minh chứng hoàn
                       </button>
@@ -206,7 +254,7 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                       <button
                         type="button"
                         className="proof-link"
-                        onClick={() => onPreviewProof(getImageUrl(booking.qrPaymentProofUrl))}
+                        onClick={() => onPreviewProof(booking, 'qr-proof', booking.qrPaymentProofUrl)}
                       >
                         Mở ảnh minh chứng
                       </button>

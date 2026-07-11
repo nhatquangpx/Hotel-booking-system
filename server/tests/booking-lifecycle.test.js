@@ -187,6 +187,8 @@ describe("Booking Lifecycle — black box qua HTTP API", () => {
         checkInDate,
         checkOutDate,
         paymentMethod: "qr_code",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       };
 
       const [res1, res2] = await Promise.all([
@@ -222,6 +224,8 @@ describe("Booking Lifecycle — black box qua HTTP API", () => {
         checkInDate,
         checkOutDate,
         paymentMethod: "qr_code",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       };
 
       const results = await Promise.all(

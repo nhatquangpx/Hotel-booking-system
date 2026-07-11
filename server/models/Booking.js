@@ -31,6 +31,21 @@ const BookingSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    /** Số CCCD/CMND — snapshot khi đặt phòng, dùng đối chiếu check-in */
+    guestIdNumber: {
+      type: String,
+      trim: true,
+    },
+    /**
+     * Ảnh CCCD mặt trước/sau (private): `cld:authenticated:...` hoặc `local:private:...`
+     * Không lưu URL Cloudinary/public.
+     */
+    guestIdImageFrontUrl: {
+      type: String,
+    },
+    guestIdImageBackUrl: {
+      type: String,
+    },
     /** Dịch vụ đi kèm đã chọn (snapshot giá tại thời điểm đặt) */
     selectedAddons: [
       {
@@ -89,6 +104,7 @@ const BookingSchema = new mongoose.Schema(
     qrPaymentReportedAt: {
       type: Date
     },
+    /** Minh chứng QR (private ref — xem qua API auth) */
     qrPaymentProofUrl: {
       type: String
     },
@@ -125,7 +141,7 @@ const BookingSchema = new mongoose.Schema(
     ownerRefundCompletedAt: {
       type: Date
     },
-    /** Ảnh minh chứng hoàn tiền do chủ khách sạn tải lên khi xác nhận hoàn. */
+    /** Ảnh minh chứng hoàn tiền (private ref — xem qua API auth). */
     ownerRefundProofUrl: {
       type: String
     },

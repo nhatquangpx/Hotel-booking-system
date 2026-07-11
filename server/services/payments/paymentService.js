@@ -77,20 +77,9 @@ const createPaymentTransactionWithRetry = async (booking, payload, maxRetries = 
   throw lastError || new ServiceError(500, "Không thể tạo giao dịch thanh toán duy nhất");
 };
 
-const resolveProofImageUrl = (file) => {
-  if (!file) return null;
+const { buildSensitiveMediaRef } = require("../media/sensitiveMedia");
 
-  const candidate = file.path || file.secure_url || file.url || "";
-  if (/^https?:\/\//i.test(candidate)) return candidate;
-
-  if (file.filename) return `/uploads/payment-proofs/${file.filename}`;
-
-  const normalizedPath = String(candidate).replace(/\\/g, "/");
-  const uploadsIndex = normalizedPath.lastIndexOf("/uploads/");
-  if (uploadsIndex >= 0) return normalizedPath.slice(uploadsIndex);
-
-  return null;
-};
+const resolveProofImageUrl = (file) => buildSensitiveMediaRef(file, "payment-proofs");
 
 async function rejectIfPendingHoldExpired(booking) {
   if (!isPendingHoldExpired(booking)) return booking;

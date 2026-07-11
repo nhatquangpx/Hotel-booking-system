@@ -2,8 +2,18 @@ const bookingApi = require("../services/bookings/bookingApiService");
 const { runService } = require("../lib/http/controllerHelper");
 
 exports.createBooking = (req, res) =>
-  runService(res, () =>
-    bookingApi.createBooking({
+  runService(res, () => {
+    const { buildSensitiveMediaRef } = require("../services/media/sensitiveMedia");
+    const frontFile = req.files?.idImageFront?.[0];
+    const backFile = req.files?.idImageBack?.[0];
+    const guestIdImageFrontUrl = frontFile
+      ? buildSensitiveMediaRef(frontFile, "id-cards")
+      : undefined;
+    const guestIdImageBackUrl = backFile
+      ? buildSensitiveMediaRef(backFile, "id-cards")
+      : undefined;
+
+    return bookingApi.createBooking({
       bookingData: {
         hotelId: req.body.hotelId ?? req.body.hotel,
         roomId: req.body.roomId ?? req.body.room,
@@ -13,10 +23,31 @@ exports.createBooking = (req, res) =>
         specialRequests: req.body.specialRequests,
         guestCount: req.body.guestCount,
         selectedAddonIds: req.body.selectedAddonIds,
+        guestIdNumber: req.body.guestIdNumber,
+        guestIdImageFrontUrl,
+        guestIdImageBackUrl,
       },
       userId: req.user.id,
-    })
-  );
+    });
+  });
+
+/** Stream ảnh nhạy cảm (minh chứng / CCCD) — chỉ user có quyền. */
+exports.streamBookingSensitiveMedia = async (req, res) => {
+  try {
+    const { streamBookingSensitiveMedia } = require("../services/media/bookingSensitiveMedia");
+    await streamBookingSensitiveMedia({
+      bookingId: req.params.id,
+      kind: req.params.kind,
+      user: req.user,
+      res,
+    });
+  } catch (err) {
+    const status = err.statusCode || err.status || 500;
+    if (!res.headersSent) {
+      res.status(status).json({ message: err.message || "Không thể tải ảnh" });
+    }
+  }
+};
 
 exports.getPricePreview = (req, res) =>
   runService(res, () => {

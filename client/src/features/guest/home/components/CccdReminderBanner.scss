@@ -1,0 +1,70 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+
+.cccd-reminder-banner {
+  flex-shrink: 0;
+  width: 100%;
+  background: #fff8f0;
+  border-bottom: 1px solid #f0d9b8;
+  color: $text-medium;
+}
+
+.cccd-reminder-banner__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  @media (min-width: 720px) {
+    padding: 12px 20px;
+  }
+}
+
+.cccd-reminder-banner__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: $button-primary;
+  font-size: 1.05rem;
+}
+
+.cccd-reminder-banner__text {
+  flex: 1;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: $text-medium-alt;
+}
+
+.cccd-reminder-banner__link {
+  color: $button-primary;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: $button-primary-hover;
+  }
+}
+
+.cccd-reminder-banner__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px 0 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: $text-light;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: $text-medium;
+  }
+}

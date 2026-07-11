@@ -5,6 +5,7 @@ import { useAuth, usePendingHoldCountdown } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
 import { formatDate, formatCurrency, getRoomPrice, shouldShowPendingHoldCountdown, isPendingHoldTrackable, isPendingHoldExpiredBooking } from '@/shared/utils';
+import { resolveProofPreviewUrl } from '@/shared/utils/media/sensitiveMedia';
 import { formatRoomType } from '@/constants/roomTypes';
 import { formatAddonCategory, formatAddonPricingUnit } from '@/constants/addonServices';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
@@ -44,6 +45,11 @@ const GuestBookingPage = () => {
   const [confirmingQrPayment, setConfirmingQrPayment] = useState(false);
   const [proofImage, setProofImage] = useState(null);
   const [previewProofUrl, setPreviewProofUrl] = useState(null);
+  const [guestIdNumber, setGuestIdNumber] = useState('');
+  const [idImageFrontFile, setIdImageFrontFile] = useState(null);
+  const [idImageBackFile, setIdImageBackFile] = useState(null);
+  const [profileHasIdFront, setProfileHasIdFront] = useState(false);
+  const [profileHasIdBack, setProfileHasIdBack] = useState(false);
   const [qrActionError, setQrActionError] = useState('');
   const [hotelImageIndex, setHotelImageIndex] = useState(0);
   const [roomImageIndex, setRoomImageIndex] = useState(0);
@@ -109,6 +115,29 @@ const GuestBookingPage = () => {
   const shouldRenderErrorFallback = Boolean(
     error && !hotel && !room && !booking && !showPaymentQRCode
   );
+
+  useEffect(() => {
+    if (!sessionChecked || !isAuthenticated || resumeBookingId) return;
+
+    let cancelled = false;
+    const prefillIdFromProfile = async () => {
+      try {
+        const profile = await api.user.getUserProfile();
+        if (cancelled) return;
+        if (profile?.idNumber) {
+          setGuestIdNumber(String(profile.idNumber).replace(/[^\d]/g, '').slice(0, 12));
+        }
+        setProfileHasIdFront(Boolean(profile?.hasIdImageFront || profile?.idImageFrontUrl));
+        setProfileHasIdBack(Boolean(profile?.hasIdImageBack || profile?.idImageBackUrl));
+      } catch {
+        /* bỏ qua — khách vẫn nhập tay */
+      }
+    };
+    prefillIdFromProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionChecked, isAuthenticated, resumeBookingId]);
 
   useEffect(() => {
     if (!sessionChecked || !isAuthenticated) return;
@@ -327,6 +356,36 @@ const GuestBookingPage = () => {
 
   const guestCountInvalid =
     room && (Number(guestCount) < 1 || Number(guestCount) > room.maxPeople);
+  const guestIdNumberNormalized = String(guestIdNumber || '').replace(/\s+/g, '').trim();
+  const guestIdInvalid = !/^\d{9}$|^\d{12}$/.test(guestIdNumberNormalized);
+  const guestIdImagesMissing =
+    !Boolean(idImageFrontFile || profileHasIdFront) ||
+    !Boolean(idImageBackFile || profileHasIdBack);
+
+  const closeProofPreview = () => {
+    setPreviewProofUrl((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return null;
+    });
+  };
+
+  const handlePreviewProof = async () => {
+    if (!booking?._id || !booking.qrPaymentProofUrl) return;
+    try {
+      const url = await resolveProofPreviewUrl({
+        roleScope: 'guest',
+        bookingId: booking._id,
+        kind: 'qr-proof',
+        mediaRef: booking.qrPaymentProofUrl,
+      });
+      setPreviewProofUrl((prev) => {
+        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return url;
+      });
+    } catch {
+      setQrActionError('Không thể tải ảnh minh chứng');
+    }
+  };
   const guestCountError =
     room && Number(guestCount) > room.maxPeople
       ? `Số khách vượt quá sức chứa tối đa (${room.maxPeople} người)`
@@ -376,10 +435,31 @@ const GuestBookingPage = () => {
           guestCount: Number(guestCount),
           selectedAddonIds,
           paymentMethod: formData.paymentMethod,
-          specialRequests: formData.specialRequests || ''
+          specialRequests: formData.specialRequests || '',
+          guestIdNumber: String(guestIdNumber || '').replace(/\s+/g, '').trim(),
         };
-        
-        const response = await api.userBooking.createBooking(bookingPayload);
+
+        const idDigits = bookingPayload.guestIdNumber;
+        if (!/^\d{9}$|^\d{12}$/.test(idDigits)) {
+          setError('Vui lòng nhập số CCCD/CMND hợp lệ (9 hoặc 12 chữ số)');
+          setSubmitting(false);
+          return;
+        }
+
+        const hasFront = Boolean(idImageFrontFile || profileHasIdFront);
+        const hasBack = Boolean(idImageBackFile || profileHasIdBack);
+        if (!hasFront || !hasBack) {
+          setError(
+            'Vui lòng tải đủ ảnh CCCD mặt trước và mặt sau (ảnh đã có trên hồ sơ được dùng nếu không chọn lại)'
+          );
+          setSubmitting(false);
+          return;
+        }
+
+        const response = await api.userBooking.createBooking(bookingPayload, {
+          front: idImageFrontFile,
+          back: idImageBackFile,
+        });
         
         // Nếu payment method là VNPay, tạo payment URL và redirect
         if (formData.paymentMethod === 'vnpay') {
@@ -594,7 +674,7 @@ const GuestBookingPage = () => {
                         <button
                           type="button"
                           className="proof-link"
-                          onClick={() => setPreviewProofUrl(getImageUrl(booking.qrPaymentProofUrl))}
+                          onClick={handlePreviewProof}
                         >
                           Xem minh chứng đã gửi
                         </button>
@@ -616,10 +696,10 @@ const GuestBookingPage = () => {
                   Xem đơn đặt phòng của tôi
                 </button>
                 {previewProofUrl && (
-                  <div className="proof-preview-overlay" onClick={() => setPreviewProofUrl(null)}>
+                  <div className="proof-preview-overlay" onClick={closeProofPreview}>
                     <div className="proof-preview-modal" onClick={(e) => e.stopPropagation()}>
                       <img src={previewProofUrl} alt="Minh chứng thanh toán" />
-                      <button type="button" className="close-proof-btn" onClick={() => setPreviewProofUrl(null)}>
+                      <button type="button" className="close-proof-btn" onClick={closeProofPreview}>
                         Đóng
                       </button>
                     </div>
@@ -706,9 +786,9 @@ const GuestBookingPage = () => {
 
                 {!showPaymentQRCode && !hideBookingForm && (
                   <div className="booking-section booking-options-section">
-                    <h2>Tùy chọn đặt phòng</h2>
+                    <h2>Thông tin bổ sung</h2>
                     <p className="section-desc">
-                      Chọn số khách và dịch vụ đi kèm. Tổng chi phí sẽ hiển thị ở cuối trang.
+                      Nhập số khách, CCCD và dịch vụ đi kèm (nếu có). Tổng chi phí sẽ hiển thị ở cuối trang.
                     </p>
 
                     <div className="form-group guest-count-group">
@@ -733,6 +813,89 @@ const GuestBookingPage = () => {
                       ) : (
                         <p className="field-hint">Nhập số khách thực tế sẽ lưu trú tại phòng</p>
                       )}
+                    </div>
+
+                    <div className="form-group guest-id-group">
+                      <label htmlFor="guestIdNumber">
+                        Số CCCD/CMND <span className="required-mark" aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="guestIdNumber"
+                        name="guestIdNumber"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={12}
+                        value={guestIdNumber}
+                        onChange={(e) => setGuestIdNumber(e.target.value.replace(/[^\d]/g, ''))}
+                        placeholder="Nhập 9 hoặc 12 chữ số"
+                        className="guest-id-input"
+                        required
+                      />
+                      {guestIdNumber && guestIdInvalid ? (
+                        <p className="field-error" role="alert">
+                          Số CCCD/CMND phải gồm 9 hoặc 12 chữ số
+                        </p>
+                      ) : (
+                        <p className="field-hint">Dùng để đối chiếu khi check-in tại khách sạn</p>
+                      )}
+                    </div>
+
+                    <div className="form-group guest-id-images-group">
+                      <label>Ảnh CCCD</label>
+                      <p className="field-hint">Ảnh lưu bảo mật. Tối đa 8MB mỗi mặt.</p>
+                      <div className="guest-id-images-list">
+                        <label
+                          htmlFor="idImageFront"
+                          className={`guest-id-image-item${
+                            idImageFrontFile || profileHasIdFront ? ' guest-id-image-item--selected' : ''
+                          }`}
+                        >
+                          <input
+                            id="idImageFront"
+                            name="idImageFront"
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            className="guest-id-image-input"
+                            onChange={(e) => setIdImageFrontFile(e.target.files?.[0] || null)}
+                          />
+                          <div className="guest-id-image-content">
+                            <span className="guest-id-image-name">Mặt trước</span>
+                            <span className="guest-id-image-meta">
+                              {idImageFrontFile
+                                ? idImageFrontFile.name
+                                : profileHasIdFront
+                                  ? 'Đã có trên hồ sơ — chọn để thay ảnh mới'
+                                  : 'Chọn ảnh JPEG, PNG, GIF hoặc WebP'}
+                            </span>
+                          </div>
+                        </label>
+
+                        <label
+                          htmlFor="idImageBack"
+                          className={`guest-id-image-item${
+                            idImageBackFile || profileHasIdBack ? ' guest-id-image-item--selected' : ''
+                          }`}
+                        >
+                          <input
+                            id="idImageBack"
+                            name="idImageBack"
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            className="guest-id-image-input"
+                            onChange={(e) => setIdImageBackFile(e.target.files?.[0] || null)}
+                          />
+                          <div className="guest-id-image-content">
+                            <span className="guest-id-image-name">Mặt sau</span>
+                            <span className="guest-id-image-meta">
+                              {idImageBackFile
+                                ? idImageBackFile.name
+                                : profileHasIdBack
+                                  ? 'Đã có trên hồ sơ — chọn để thay ảnh mới'
+                                  : 'Chọn ảnh JPEG, PNG, GIF hoặc WebP'}
+                            </span>
+                          </div>
+                        </label>
+                      </div>
                     </div>
 
                     {hotelAddons.length > 0 && (
@@ -958,6 +1121,8 @@ const GuestBookingPage = () => {
                       disabled={
                         submitting ||
                         guestCountInvalid ||
+                        guestIdInvalid ||
+                        guestIdImagesMissing ||
                         (!resumeBookingId && Boolean(error) && !pricePreview)
                       }
                     >

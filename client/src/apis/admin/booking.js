@@ -36,6 +36,13 @@ export const adminBookingAPI = {
       throw error.response?.data || error.message;
     }
   },
+
+  getSensitiveMediaBlob: async (id, kind) => {
+    const response = await api.get(`/admin/bookings/${id}/sensitive-media/${kind}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 export default adminBookingAPI;

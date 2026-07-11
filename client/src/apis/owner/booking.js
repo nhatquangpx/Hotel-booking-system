@@ -86,6 +86,13 @@ export const ownerBookingAPI = {
       throw error.response?.data || error.message;
     }
   },
+
+  getSensitiveMediaBlob: async (id, kind) => {
+    const response = await api.get(`/owner/bookings/${id}/sensitive-media/${kind}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 export default ownerBookingAPI; 

@@ -8,7 +8,7 @@ function mapRoomImageUrls(files, hasCloudinary) {
     if (hasCloudinary) {
       return file.secure_url || file.url || file.path;
     }
-    return `/uploads/rooms/${file.filename}`;
+    return `/public-uploads/rooms/${file.filename}`;
   });
 }
 

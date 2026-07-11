@@ -77,10 +77,28 @@ describe("Guest — chức năng khách hàng", () => {
       expect(res.body.email).toBe(data.credentials.guest.email);
     });
 
-    it("PUT /profile — cập nhật tên", async () => {
-      const res = await guest.put("/api/guest/profile").send({ name: "Guest Updated" });
+    it("PUT /profile — cập nhật tên (kèm CCCD đủ)", async () => {
+      const { attachGuestIdImages } = require("./helpers/upload");
+      const req = guest
+        .put("/api/guest/profile")
+        .field("name", "Guest Updated")
+        .field("idNumber", "079123456789");
+      const res = await attachGuestIdImages(req);
       expect(res.status).toBe(200);
       expect(res.body.name).toBe("Guest Updated");
+      expect(res.body.idNumber).toBe("079123456789");
+      expect(res.body.hasIdImageFront).toBe(true);
+      expect(res.body.hasIdImageBack).toBe(true);
+      expect(res.body.hasCompleteId).toBe(true);
+    });
+
+    it("PUT /profile — CCCD thiếu ảnh 2 mặt → 400", async () => {
+      const User = require("../models/User");
+      await User.findByIdAndUpdate(data.userIds.guest, {
+        $unset: { idImageFrontUrl: 1, idImageBackUrl: 1, idNumber: 1 },
+      });
+      const res = await guest.put("/api/guest/profile").send({ idNumber: "079123456789" });
+      expect(res.status).toBe(400);
     });
 
     it("PUT /profile/changepassword", async () => {
@@ -135,9 +153,32 @@ describe("Guest — chức năng khách hàng", () => {
         checkInDate,
         checkOutDate,
         paymentMethod: "qr_code",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       });
       expect(res.status).toBe(201);
       expect(res.body.paymentStatus).toBe("pending");
+      expect(res.body.guestIdNumber).toBe("001234567890");
+      expect(res.body.guestIdImageFrontUrl).toBeTruthy();
+      expect(res.body.guestIdImageBackUrl).toBeTruthy();
+    });
+
+    it("POST /bookings — thiếu ảnh CCCD → 400", async () => {
+      const User = require("../models/User");
+      await User.findByIdAndUpdate(data.userIds.guest, {
+        $unset: { idImageFrontUrl: 1, idImageBackUrl: 1 },
+      });
+      const { checkInDate, checkOutDate } = data.futureStayDates({ checkInOffset: 11 });
+      const res = await guest.post("/api/guest/bookings").send({
+        hotel: data.hotelId,
+        room: data.roomIdDeluxe,
+        checkInDate,
+        checkOutDate,
+        paymentMethod: "qr_code",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
+      });
+      expect(res.status).toBe(400);
     });
 
     it("POST /bookings — từ chối ngày quá khứ", async () => {
@@ -146,6 +187,8 @@ describe("Guest — chức năng khách hàng", () => {
         room: data.roomIdDeluxe,
         checkInDate: "2020-01-01",
         checkOutDate: "2020-01-03",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       });
       expect([400, 500]).toContain(res.status);
     });
@@ -157,6 +200,8 @@ describe("Guest — chức năng khách hàng", () => {
         room: data.roomId,
         checkInDate,
         checkOutDate,
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       });
       expect(res.status).toBe(400);
     });

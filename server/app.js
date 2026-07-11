@@ -57,7 +57,9 @@ function createApp() {
     });
   });
 
-  app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+  app.use("/public-uploads", express.static(path.join(__dirname, "public-uploads")));
+  // Giữ alias /uploads cho URL cũ trong DB (trước khi đổi tên thư mục)
+  app.use("/uploads", express.static(path.join(__dirname, "public-uploads")));
 
   app.use((req, res) => {
     res.status(404).json({

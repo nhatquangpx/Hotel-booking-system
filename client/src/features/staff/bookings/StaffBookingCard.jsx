@@ -1,6 +1,5 @@
 import { FaPhone, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
 import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut, getStaffActionLabel } from '@/shared/utils';
-import { getImageUrl } from '@/constants/images';
 
 const StaffBookingCard = ({
   booking,
@@ -148,7 +147,7 @@ const StaffBookingCard = ({
               <button
                 type="button"
                 className="proof-link"
-                onClick={() => onPreviewProof(getImageUrl(booking.qrPaymentProofUrl))}
+                onClick={() => onPreviewProof(booking, 'qr-proof', booking.qrPaymentProofUrl)}
               >
                 Xem ảnh minh chứng
               </button>

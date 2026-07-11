@@ -25,6 +25,21 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       trim: true
     },
+    /** Số CCCD/CMND — chỉ dùng cho guest; snapshot sang Booking khi đặt phòng */
+    idNumber: {
+      type: String,
+      trim: true,
+    },
+    /**
+     * Ảnh CCCD mặt trước/sau (private: `cld:authenticated:` / `local:private:`).
+     * Chỉ guest; không public URL.
+     */
+    idImageFrontUrl: {
+      type: String,
+    },
+    idImageBackUrl: {
+      type: String,
+    },
     role: {
       type: String,
       enum: ["guest", "admin", "owner", "staff"],

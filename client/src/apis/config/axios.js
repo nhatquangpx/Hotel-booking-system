@@ -2,6 +2,12 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import store from '@/store';
 import { setLogin, setLogout } from '@/store/slices/userSlice';
+import { clearCccdReminderDismissals } from '@/shared/utils/auth/cccdReminder';
+
+const logoutClient = () => {
+  clearCccdReminderDismissals();
+  store.dispatch(setLogout());
+};
 
 const getApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
@@ -109,7 +115,7 @@ api.interceptors.response.use(
     }
 
     if (originalRequest._retry) {
-      store.dispatch(setLogout());
+      logoutClient();
       return Promise.reject(error);
     }
 
@@ -128,7 +134,7 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       processRefreshQueue(refreshError);
-      store.dispatch(setLogout());
+      logoutClient();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

@@ -83,8 +83,27 @@ const createBookingValidation = [
     .withMessage("guestCount là bắt buộc")
     .isInt({ min: 1, max: 50 })
     .withMessage("guestCount phải từ 1 đến 50"),
+  body("guestIdNumber")
+    .notEmpty()
+    .withMessage("Số CCCD/CMND là bắt buộc")
+    .customSanitizer((value) => String(value || "").replace(/\s+/g, "").trim())
+    .matches(/^\d{9}$|^\d{12}$/)
+    .withMessage("Số CCCD/CMND phải gồm 9 hoặc 12 chữ số"),
   body("selectedAddonIds")
     .optional()
+    .customSanitizer((value) => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === "string" && value.trim()) {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {
+          /* ignore */
+        }
+        return value.split(",").map((id) => id.trim()).filter(Boolean);
+      }
+      return [];
+    })
     .isArray()
     .withMessage("selectedAddonIds phải là mảng"),
   body("selectedAddonIds.*")

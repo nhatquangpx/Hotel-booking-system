@@ -27,14 +27,44 @@ export const userBookingAPI = {
     }
   },
 
-  // Tạo đặt phòng mới
-  createBooking: async (bookingData) => {
+  // Tạo đặt phòng mới (có thể kèm ảnh CCCD 2 mặt)
+  createBooking: async (bookingData, idImages = null) => {
     try {
+      const front = idImages?.front;
+      const back = idImages?.back;
+      if (front || back) {
+        const fd = new FormData();
+        Object.entries(bookingData || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null) return;
+          if (key === 'selectedAddonIds') {
+            fd.append(
+              'selectedAddonIds',
+              JSON.stringify(Array.isArray(value) ? value : [])
+            );
+            return;
+          }
+          fd.append(key, value);
+        });
+        if (front) fd.append('idImageFront', front);
+        if (back) fd.append('idImageBack', back);
+        const response = await api.post('/guest/bookings', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+      }
       const response = await api.post('/guest/bookings', bookingData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
+  },
+
+  /** Tải ảnh nhạy cảm (minh chứng / CCCD) */
+  getSensitiveMediaBlob: async (id, kind) => {
+    const response = await api.get(`/guest/bookings/${id}/sensitive-media/${kind}`, {
+      responseType: 'blob',
+    });
+    return response.data;
   },
 
   // Hủy đặt phòng (body: cancellationReason, refundBankAccountName, refundBankAccountNumber, refundBankName)
