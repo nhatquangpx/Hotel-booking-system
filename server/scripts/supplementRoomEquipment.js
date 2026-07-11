@@ -1,127 +1,58 @@
 /**
- * Bổ sung trang thiết bị (roomEquipment) cho tất cả phòng
- * thuộc khách sạn test "Sunrise Resort Nẵng".
+ * Bổ sung trang thiết bị (roomEquipment) cho phòng khách sạn.
+ *
+ * Mặc định: tất cả khách sạn.
+ * Chỉ 1 KS: npm run db:supplement-equipment -- --hotel "Silver Resort Nha Trang"
+ * Ghi đè: thêm --force
  *
  * Chạy: npm run db:supplement-equipment
- * Ghi đè toàn bộ thiết bị cũ: npm run db:supplement-equipment -- --force
  */
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const mongoose = require("mongoose");
 
 const Hotel = require("../models/Hotel");
-const Room = require("../models/Room");
+const {
+  buildEquipmentForRoom,
+  supplementEquipmentForHotels,
+} = require("./roomEquipmentSeed");
 
-const TARGET_HOTEL_NAME = "Sunrise Resort Nẵng";
+const DEFAULT_FOCUS_HOTEL = "Silver Resort Nha Trang";
 
-const BASE_EQUIPMENT = [
-  "Điều hòa",
-  "TV",
-  "Tủ lạnh mini",
-  "Bình nước nóng",
-  "Đèn phòng",
-  "Ổ cắm điện",
-  "Công tắc đèn",
-  "Rèm cửa",
-];
-
-const TYPE_EXTRA_EQUIPMENT = {
-  standard: ["Quạt trần", "Gương toàn thân"],
-  deluxe: ["Két sắt", "Bàn làm việc", "Vòi sen", "Minibar"],
-  suite: ["Két sắt", "Bồn tắm", "Minibar", "Máy pha cà phê", "Loa Bluetooth"],
-  family: ["Giường phụ", "Két sắt", "Vòi sen", "Quạt đứng"],
-  executive: ["Két sắt", "Bồn tắm", "Minibar", "Máy pha cà phê", "Bàn làm việc", "Loa Bluetooth"],
-};
-
-function pickStatus(roomIndex, itemIndex) {
-  const roll = (roomIndex * 17 + itemIndex * 31) % 100;
-  if (roll < 6) return "broken";
-  if (roll < 16) return "under_repair";
-  return "operational";
+function getArgValue(flag) {
+  const idx = process.argv.indexOf(flag);
+  if (idx === -1 || idx + 1 >= process.argv.length) return null;
+  return process.argv[idx + 1];
 }
 
-function buildEquipmentForRoom(room, roomIndex) {
-  const extras = TYPE_EXTRA_EQUIPMENT[room.type] || [];
-  const names = [...BASE_EQUIPMENT, ...extras];
-
-  return names.map((name, itemIndex) => ({
-    name,
-    status: pickStatus(roomIndex, itemIndex),
-  }));
-}
-
-async function findTargetHotel() {
-  const hotel = await Hotel.findOne({ name: TARGET_HOTEL_NAME });
-  if (hotel) return hotel;
-
-  const fuzzy = await Hotel.findOne({ name: { $regex: /Sunrise Resort.*Nẵng/i } });
-  if (fuzzy) return fuzzy;
-
-  throw new Error(`Không tìm thấy khách sạn "${TARGET_HOTEL_NAME}" trong DB.`);
-}
-
-function mergeEquipment(existing, generated) {
-  const existingNames = new Set(
-    (existing || []).map((e) => (e.name || "").trim().toLowerCase())
-  );
-  const merged = [...(existing || [])];
-
-  for (const item of generated) {
-    const key = item.name.trim().toLowerCase();
-    if (!existingNames.has(key)) {
-      merged.push(item);
-      existingNames.add(key);
+async function findHotels({ hotelName } = {}) {
+  if (hotelName) {
+    let hotel = await Hotel.findOne({ name: hotelName });
+    if (!hotel) {
+      hotel = await Hotel.findOne({
+        name: { $regex: new RegExp(hotelName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") },
+      });
     }
+    if (!hotel) {
+      throw new Error(`Không tìm thấy khách sạn "${hotelName}" trong DB.`);
+    }
+    return [hotel];
   }
-  return merged;
+  return Hotel.find().sort({ name: 1 });
 }
 
-async function supplementRoomEquipment({ force = false } = {}) {
-  const hotel = await findTargetHotel();
-  const rooms = await Room.find({ hotelId: hotel._id })
-    .select("+roomEquipment")
-    .sort({ roomNumber: 1 });
-
-  if (rooms.length === 0) {
-    throw new Error(`Khách sạn "${hotel.name}" chưa có phòng.`);
+async function supplementRoomEquipment({ force = false, hotelName = null } = {}) {
+  const hotels = await findHotels({ hotelName });
+  if (hotels.length === 0) {
+    throw new Error("Không có khách sạn nào trong DB.");
   }
 
-  let updated = 0;
-  let skipped = 0;
-  let totalItems = 0;
-  const statusCount = { operational: 0, under_repair: 0, broken: 0 };
-
-  for (let i = 0; i < rooms.length; i += 1) {
-    const room = rooms[i];
-    const hasExisting = Array.isArray(room.roomEquipment) && room.roomEquipment.length > 0;
-
-    if (hasExisting && !force) {
-      skipped += 1;
-      continue;
-    }
-
-    const generated = buildEquipmentForRoom(room, i);
-    room.roomEquipment = force ? generated : mergeEquipment(room.roomEquipment, generated);
-    await room.save();
-
-    updated += 1;
-    totalItems += room.roomEquipment.length;
-    for (const eq of room.roomEquipment) {
-      statusCount[eq.status] = (statusCount[eq.status] || 0) + 1;
-    }
-  }
-
-  return {
-    hotel,
-    roomCount: rooms.length,
-    updated,
-    skipped,
-    totalItems,
-    statusCount,
-  };
+  const result = await supplementEquipmentForHotels(hotels, { force });
+  return { hotels, ...result };
 }
 
 async function main() {
   const force = process.argv.includes("--force");
+  const hotelName = getArgValue("--hotel");
 
   if (!process.env.MONGO_URL) {
     console.error("Thiếu MONGO_URL trong file .env");
@@ -131,11 +62,20 @@ async function main() {
   try {
     await mongoose.connect(process.env.MONGO_URL, { dbName: "StayJourney" });
     console.log("Đã kết nối MongoDB (StayJourney)");
-    console.log(`Chế độ: ${force ? "ghi đè (--force)" : "bổ sung (giữ thiết bị cũ)"}\n`);
+    console.log(
+      `Chế độ: ${force ? "ghi đè (--force)" : "bổ sung (giữ thiết bị cũ)"} | Phạm vi: ${
+        hotelName || "tất cả khách sạn"
+      }\n`
+    );
 
-    const result = await supplementRoomEquipment({ force });
+    const result = await supplementRoomEquipment({ force, hotelName });
 
-    console.log(`Khách sạn: ${result.hotel.name} (${result.hotel._id})`);
+    console.log(`Khách sạn: ${result.hotels.length}`);
+    if (result.hotels.length <= 5) {
+      for (const h of result.hotels) {
+        console.log(`  - ${h.name} (${h._id})`);
+      }
+    }
     console.log(`  ✓ Tổng phòng: ${result.roomCount}`);
     console.log(`  ✓ Đã cập nhật: ${result.updated}`);
     console.log(`  - Bỏ qua (đã có thiết bị): ${result.skipped}`);
@@ -153,7 +93,12 @@ async function main() {
   }
 }
 
-module.exports = { supplementRoomEquipment, findTargetHotel, buildEquipmentForRoom };
+module.exports = {
+  supplementRoomEquipment,
+  findHotels,
+  buildEquipmentForRoom,
+  DEFAULT_FOCUS_HOTEL,
+};
 
 if (require.main === module) {
   main();

@@ -16,6 +16,7 @@ const COLLECTIONS = [
   "salepromotions",
   "contactmessages",
   "notifications",
+  "hoteladdonservices",
 ];
 
 async function clearAll() {

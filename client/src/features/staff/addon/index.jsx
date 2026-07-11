@@ -1,7 +1,7 @@
 import StaffLayout from '../components/StaffLayout';
 import { useStaffHotel } from '../context/StaffHotelContext';
 import { staffAddonAPI } from '@/apis/staff/addon';
-import AddonServicesPage from '@/features/shared/addon/AddonServicesPage';
+import AddonServicesPage from '@/features/hotel-shared-ui/addon/AddonServicesPage';
 
 const StaffAddonServicesPage = () => {
   const { hotelId } = useStaffHotel();

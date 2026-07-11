@@ -1,6 +1,7 @@
 /**
  * Bổ sung dữ liệu incremental (không xóa data cũ):
- * - ~10 đơn tương lai cho khách sạn "Sunrise Resort Nẵng"
+ * - ~10 đơn tương lai cho khách sạn "Silver Resort Nha Trang"
+ * - Trang thiết bị (roomEquipment) cho tất cả khách sạn
  * - Notification backfill từ bookings/reviews hiện có
  *
  * Chạy: node scripts/supplementData.js
@@ -18,6 +19,7 @@ const Review = require("../models/Review");
 const Notification = require("../models/Notification");
 const { getBookingFinalAmount } = require("../services/bookings/bookingAmount");
 const { getHotelStatusLabel } = require("../services/hotels/status");
+const { supplementEquipmentForHotels } = require("./roomEquipmentSeed");
 
 const {
   addDays,
@@ -27,9 +29,15 @@ const {
   datesOverlap,
 } = require("./helpers");
 
-const TARGET_HOTEL_NAME = "Sunrise Resort Nẵng";
+const TARGET_HOTEL_NAME = "Silver Resort Nha Trang";
 const FUTURE_BOOKING_COUNT = 10;
 const HIGH_VALUE_THRESHOLD = 10_000_000;
+
+function roundToTenThousand(amount) {
+  const n = Number(amount) || 0;
+  if (n <= 0) return 0;
+  return Math.max(10000, Math.round(n / 10000) * 10000);
+}
 
 function bookingIdShort(id) {
   return String(id).slice(-6).toUpperCase();
@@ -47,7 +55,7 @@ async function findTargetHotel() {
   const hotel = await Hotel.findOne({ name: TARGET_HOTEL_NAME });
   if (hotel) return hotel;
 
-  const fuzzy = await Hotel.findOne({ name: { $regex: /Sunrise Resort.*Nẵng/i } });
+  const fuzzy = await Hotel.findOne({ name: { $regex: /Silver Resort.*Nha Trang/i } });
   if (fuzzy) return fuzzy;
 
   throw new Error(`Không tìm thấy khách sạn "${TARGET_HOTEL_NAME}" trong DB.`);
@@ -70,6 +78,15 @@ async function loadRoomOccupancy(hotelId, roomIds) {
 }
 
 async function addFutureBookings(hotel) {
+  const existingCount = await Booking.countDocuments({ hotel: hotel._id });
+  if (existingCount >= 50) {
+    console.log(
+      `  - "${hotel.name}" đã có ${existingCount} đơn (≥50) — bỏ qua tạo đơn tương lai.`
+    );
+    return { bookings: [], transactions: [], notifications: [] };
+  }
+
+  const toCreate = Math.min(FUTURE_BOOKING_COUNT, 50 - existingCount);
   const guests = await User.find({ role: "guest", status: "active" });
   if (guests.length === 0) throw new Error("Không có guest nào trong DB.");
 
@@ -86,7 +103,7 @@ async function addFutureBookings(hotel) {
 
   const bookingPayloads = [];
 
-  for (let i = 0; i < FUTURE_BOOKING_COUNT; i += 1) {
+  for (let i = 0; i < toCreate; i += 1) {
     let scheduled = false;
 
     for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -104,20 +121,27 @@ async function addFutureBookings(hotel) {
       );
       if (conflict) continue;
 
-      const basePrice = room.price * nights;
-      const discountAmount = i % 4 === 0 ? Math.round(basePrice * 0.1) : 0;
-      const paymentStatus = Math.random() < 0.6 ? "paid" : "pending";
+      const guestCount = randomInt(1, Math.min(room.maxPeople || 2, 4));
+      const basePrice = roundToTenThousand(room.price * nights);
+      const discountAmount = i % 4 === 0 ? roundToTenThousand(basePrice * 0.1) : 0;
+      // KS tập trung: không tạo đơn chờ duyệt
+      const paymentStatus = Math.random() < 0.75 ? "paid" : "cancelled";
       const paymentMethod = Math.random() < 0.6 ? "qr_code" : "vnpay";
+      const createdAt = addDays(today, -randomInt(0, 14));
+      createdAt.setHours(randomInt(8, 20), randomInt(0, 59), randomInt(0, 59), 0);
 
-      bookingPayloads.push({
+      const payload = {
         guest: pickOne(guests)._id,
         hotel: hotel._id,
         room: room._id,
         checkInDate: checkIn,
         checkOutDate: checkOut,
+        guestCount,
+        selectedAddons: [],
+        addonsAmount: 0,
         basePrice,
         discountAmount,
-        finalAmount: basePrice - discountAmount,
+        finalAmount: roundToTenThousand(basePrice - discountAmount),
         promotionApplied: discountAmount > 0 ? { title: "Ưu đãi đặt sớm" } : undefined,
         paymentStatus,
         paymentMethod,
@@ -129,7 +153,20 @@ async function addFutureBookings(hotel) {
                 "Giường phụ cho trẻ em",
               ])
             : undefined,
-      });
+        createdAt,
+        updatedAt: createdAt,
+      };
+
+      if (paymentStatus === "paid" && paymentMethod === "vnpay") {
+        payload.vnpayPaidAt = addDays(createdAt, 0);
+        payload.vnpayPaidAt.setMinutes(payload.vnpayPaidAt.getMinutes() + randomInt(5, 40));
+        payload.vnpayOwnerVerifiedAt = addDays(payload.vnpayPaidAt, 0);
+        payload.vnpayOwnerVerifiedAt.setHours(
+          payload.vnpayOwnerVerifiedAt.getHours() + randomInt(1, 8)
+        );
+      }
+
+      bookingPayloads.push(payload);
 
       existing.push({ checkInDate: checkIn, checkOutDate: checkOut });
       occupancy.set(key, existing);
@@ -157,6 +194,9 @@ async function addFutureBookings(hotel) {
         : booking.paymentStatus === "cancelled"
           ? "cancelled"
           : "pending";
+    const txCreatedAt = booking.createdAt
+      ? new Date(booking.createdAt)
+      : addDays(new Date(), -randomInt(0, 2));
 
     return {
       booking: booking._id,
@@ -165,7 +205,8 @@ async function addFutureBookings(hotel) {
       paymentMethod: booking.paymentMethod,
       status: txStatus,
       clientIp: `192.168.${randomInt(0, 255)}.${randomInt(1, 254)}`,
-      createdAt: addDays(new Date(), -randomInt(0, 2)),
+      createdAt: txCreatedAt,
+      updatedAt: txCreatedAt,
     };
   });
 
@@ -180,7 +221,9 @@ async function addFutureBookings(hotel) {
     const checkInDate = formatVnDate(booking.checkInDate);
     const paymentMethod =
       booking.paymentMethod === "vnpay" ? "cổng thanh toán VNPay" : "QR code";
-    const createdAt = addDays(new Date(), -randomInt(0, 1));
+    const createdAt = booking.createdAt
+      ? new Date(booking.createdAt)
+      : addDays(new Date(), -randomInt(0, 1));
 
     notifications.push({
       recipientRole: "hotel",
@@ -216,6 +259,22 @@ async function addFutureBookings(hotel) {
   console.log(`  ✓ Notification cho đơn mới: ${notifications.length}`);
 
   return { bookings, transactions, notifications };
+}
+
+async function supplementAllHotelsEquipment({ force = false } = {}) {
+  const hotels = await Hotel.find().select("_id name").lean();
+  if (hotels.length === 0) {
+    console.log("  - Không có khách sạn để bổ sung thiết bị.");
+    return null;
+  }
+
+  const result = await supplementEquipmentForHotels(hotels, { force });
+  console.log(`  ✓ Thiết bị phòng: ${result.updated} phòng cập nhật / ${result.roomCount} phòng (${hotels.length} KS)`);
+  console.log(`  - Bỏ qua (đã có): ${result.skipped}`);
+  console.log(
+    `  ✓ Tổng item: ${result.totalItems} (OK ${result.statusCount.operational || 0} | sửa ${result.statusCount.under_repair || 0} | hỏng ${result.statusCount.broken || 0})`
+  );
+  return result;
 }
 
 function pushUniqueNotification(bucket, keySet, doc) {
@@ -491,6 +550,8 @@ async function supplementData() {
     process.exit(1);
   }
 
+  const forceEquipment = process.argv.includes("--force-equipment");
+
   try {
     await mongoose.connect(process.env.MONGO_URL, { dbName: "StayJourney" });
     console.log("Đã kết nối MongoDB (StayJourney)\n--- Bổ sung đơn tương lai ---");
@@ -498,6 +559,9 @@ async function supplementData() {
     const hotel = await findTargetHotel();
     console.log(`  → Khách sạn: ${hotel.name} (${hotel._id})`);
     await addFutureBookings(hotel);
+
+    console.log("\n--- Bổ sung thiết bị phòng (tất cả KS) ---");
+    await supplementAllHotelsEquipment({ force: forceEquipment });
 
     console.log("\n--- Backfill Notification từ data hiện có ---");
     await backfillNotifications();
@@ -511,7 +575,12 @@ async function supplementData() {
   }
 }
 
-module.exports = { supplementData, addFutureBookings, backfillNotifications };
+module.exports = {
+  supplementData,
+  addFutureBookings,
+  backfillNotifications,
+  supplementAllHotelsEquipment,
+};
 
 if (require.main === module) {
   supplementData();

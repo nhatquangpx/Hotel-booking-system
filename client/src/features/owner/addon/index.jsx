@@ -1,7 +1,7 @@
 import OwnerLayout from '../components/OwnerLayout';
 import { useOwnerHotel } from '../context/OwnerHotelContext';
 import { ownerAddonAPI } from '@/apis/owner/addon';
-import AddonServicesPage from '@/features/shared/addon/AddonServicesPage';
+import AddonServicesPage from '@/features/hotel-shared-ui/addon/AddonServicesPage';
 
 const OwnerAddonServicesPage = () => {
   const { selectedHotelId } = useOwnerHotel();

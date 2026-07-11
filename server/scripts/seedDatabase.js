@@ -14,6 +14,10 @@ const PaymentTransaction = require("../models/PaymentTransaction");
 const Review = require("../models/Review");
 const SalePromotion = require("../models/SalePromotion");
 const ContactMessage = require("../models/ContactMessage");
+const HotelAddonService = require("../models/HotelAddonService");
+const {
+  buildSelectedAddonSnapshot,
+} = require("../services/addon/addonPricing");
 
 const {
   ROOM_TYPES,
@@ -37,13 +41,112 @@ const {
   formatYmd,
   ymdToDate,
 } = require("./helpers");
+const { buildEquipmentForRoom } = require("./roomEquipmentSeed");
 
 const COMMON_PASSWORD = "123456";
 const MIN_USERS = 50;
 const MIN_HOTELS = 50;
 const MIN_BOOKINGS = 200;
-const FOCUS_BOOKINGS = 20;
+const FOCUS_BOOKINGS = 50;
+const FOCUS_HOTEL_NAME = "Silver Resort Nha Trang";
+const FOCUS_HOTEL_CITY = "Nha Trang";
+const FOCUS_HOTEL_STREETS = ["Trần Phú", "Yersin", "Lê Thánh Tôn", "Biệt Thự"];
 const MIN_CONTACT_MESSAGES = 20;
+
+/** Làm tròn về bội số 10.000 VNĐ (tối thiểu 10.000 nếu > 0). */
+function roundToTenThousand(amount) {
+  const n = Number(amount) || 0;
+  if (n <= 0) return 0;
+  return Math.max(10000, Math.round(n / 10000) * 10000);
+}
+
+/** Catalog dịch vụ đi kèm mẫu — mỗi KS lấy subset ngẫu nhiên */
+const ADDON_TEMPLATES = [
+  {
+    name: "Buffet sáng",
+    description: "Buffet sáng đa dạng món Á – Âu, phục vụ tại nhà hàng khách sạn.",
+    price: 180000,
+    category: "breakfast",
+    pricingUnit: "per_person_per_night",
+  },
+  {
+    name: "Bữa sáng tại phòng",
+    description: "Đặt bữa sáng mang lên phòng theo giờ yêu cầu.",
+    price: 220000,
+    category: "breakfast",
+    pricingUnit: "per_person_per_night",
+  },
+  {
+    name: "Set lunch văn phòng",
+    description: "Set ăn trưa 3 món, phù hợp khách công tác.",
+    price: 250000,
+    category: "lunch",
+    pricingUnit: "per_person_per_stay",
+  },
+  {
+    name: "Dinner set menu",
+    description: "Thực đơn tối cố định kèm món tráng miệng.",
+    price: 450000,
+    category: "dinner",
+    pricingUnit: "per_person_per_stay",
+  },
+  {
+    name: "Tiệc tối lãng mạn",
+    description: "Bàn riêng, trang trí nến và hoa cho 2 người.",
+    price: 1200000,
+    category: "dinner",
+    pricingUnit: "per_stay",
+  },
+  {
+    name: "Spa thư giãn 60 phút",
+    description: "Liệu trình massage body thư giãn tại khu spa.",
+    price: 550000,
+    category: "spa",
+    pricingUnit: "per_person_per_stay",
+  },
+  {
+    name: "Xông hơi & sauna",
+    description: "Sử dụng khu xông hơi trong suốt kỳ lưu trú.",
+    price: 200000,
+    category: "spa",
+    pricingUnit: "per_person_per_stay",
+  },
+  {
+    name: "Room service 24/7",
+    description: "Phí dịch vụ mang đồ ăn/uống lên phòng cả ngày.",
+    price: 80000,
+    category: "room_service",
+    pricingUnit: "per_night",
+  },
+  {
+    name: "Minibar miễn phí",
+    description: "Gói minibar nước ngọt và snack mỗi đêm.",
+    price: 150000,
+    category: "room_service",
+    pricingUnit: "per_night",
+  },
+  {
+    name: "Đưa đón sân bay",
+    description: "Xe đưa đón 1 chiều từ/đến sân bay gần nhất.",
+    price: 350000,
+    category: "other",
+    pricingUnit: "per_stay",
+  },
+  {
+    name: "Thuê xe máy theo ngày",
+    description: "Xe máy tự lái, bao gồm mũ bảo hiểm.",
+    price: 120000,
+    category: "other",
+    pricingUnit: "per_night",
+  },
+  {
+    name: "Gói trẻ em",
+    description: "Giường phụ / nôi trẻ em và đồ chơi trong phòng.",
+    price: 100000,
+    category: "other",
+    pricingUnit: "per_person_per_night",
+  },
+];
 
 const REAL_ACCOUNTS = {
   guest: { email: "quang.dn225911@sis.hust.edu.vn", name: "Đoàn Nhật Quang (Guest)" },
@@ -98,6 +201,7 @@ function buildRoomsForHotel(hotelId) {
   const basePerFloor = Math.floor(totalRooms / floors);
   const extra = totalRooms % floors;
   const rooms = [];
+  let roomIndex = 0;
 
   for (let floor = 1; floor <= floors; floor += 1) {
     const countOnFloor = basePerFloor + (floor <= extra ? 1 : 0);
@@ -105,12 +209,12 @@ function buildRoomsForHotel(hotelId) {
       const type = pickOne(ROOM_TYPES);
       const meta = ROOM_TYPE_META[type];
       const roomNumber = `${floor}${String(n).padStart(2, "0")}`;
-      rooms.push({
+      const roomDoc = {
         hotelId,
         roomNumber,
         type,
         description: `${meta.label} tầng ${floor}, diện tích ${randomInt(22, 45)}m², view ${pickOne(["thành phố", "biển", "núi", "vườn"])}.`,
-        price: meta.price + randomInt(-50000, 100000),
+        price: roundToTenThousand(meta.price + randomInt(-5, 10) * 10000),
         maxPeople: meta.maxPeople,
         facilities: pickMany(FACILITIES, randomInt(4, 7)),
         images: [
@@ -119,7 +223,10 @@ function buildRoomsForHotel(hotelId) {
         ],
         roomStatus: Math.random() < 0.95 ? "active" : "maintenance",
         bookingStatus: "empty",
-      });
+      };
+      roomDoc.roomEquipment = buildEquipmentForRoom(roomDoc, roomIndex);
+      roomIndex += 1;
+      rooms.push(roomDoc);
     }
   }
   return rooms;
@@ -142,18 +249,28 @@ async function createHotelsAndRooms(users) {
       owner = otherOwners[(i - mainOwnerHotelCount) % otherOwners.length];
     }
 
-    const addr = randomAddress();
+    const isFocusHotel = i === 0;
+    const addr = isFocusHotel
+      ? {
+          number: String(randomInt(1, 999)),
+          street: pickOne(FOCUS_HOTEL_STREETS),
+          city: FOCUS_HOTEL_CITY,
+        }
+      : randomAddress();
+
     hotelDocs.push({
-      name: randomHotelName(addr.city),
+      name: isFocusHotel ? FOCUS_HOTEL_NAME : randomHotelName(addr.city),
       ownerId: owner._id,
-      description: `Khách sạn ${randomInt(3, 5)} sao tại ${addr.city}, phục vụ khách du lịch và công tác. Tiện nghi hiện đại, nhân viên chuyên nghiệp.`,
+      description: isFocusHotel
+        ? `Khách sạn 4 sao ven biển ${FOCUS_HOTEL_CITY}, view biển, tiện nghi hiện đại — KS tập trung test StayJourney.`
+        : `Khách sạn ${randomInt(3, 5)} sao tại ${addr.city}, phục vụ khách du lịch và công tác. Tiện nghi hiện đại, nhân viên chuyên nghiệp.`,
       address: addr,
       images: [
         `https://picsum.photos/seed/hotel-${i}-1/1200/800`,
         `https://picsum.photos/seed/hotel-${i}-2/1200/800`,
         `https://picsum.photos/seed/hotel-${i}-3/1200/800`,
       ],
-      starRating: randomInt(3, 5),
+      starRating: isFocusHotel ? 4 : randomInt(3, 5),
       contactInfo: {
         phone: uniquePhone(50000 + i),
         email: `hotel${i + 1}@stayjourney-seed.test`,
@@ -163,7 +280,7 @@ async function createHotelsAndRooms(users) {
         checkOutTime: "12:00",
         refundMinDaysBeforeCheckIn: 2,
       },
-      status: Math.random() < 0.92 ? "active" : "maintenance",
+      status: isFocusHotel ? "active" : Math.random() < 0.92 ? "active" : "maintenance",
       staffIds: [],
     });
   }
@@ -203,13 +320,79 @@ async function createHotelsAndRooms(users) {
   const rooms = await Room.insertMany(allRooms);
 
   console.log(`  ✓ Hotels: ${hotels.length} (owner chính: ${mainOwnerHotels.length} KS)`);
-  console.log(`  ✓ Rooms: ${rooms.length} (tối thiểu 20/KS, 4-5 tầng)`);
+  console.log(`  ✓ Rooms: ${rooms.length} (tối thiểu 20/KS, 4-5 tầng, có roomEquipment)`);
 
   return { hotels, rooms, focusHotel, mainOwner, mainOwnerHotels };
 }
 
-function pickPaymentStatus(isPast) {
+async function createAddonServices(hotels, focusHotel) {
+  const docs = [];
+
+  for (const hotel of hotels) {
+    const isFocus = String(hotel._id) === String(focusHotel._id);
+    const templates = isFocus
+      ? ADDON_TEMPLATES
+      : pickMany(ADDON_TEMPLATES, randomInt(3, 6));
+
+    for (const tpl of templates) {
+      docs.push({
+        hotelId: hotel._id,
+        name: tpl.name,
+        description: tpl.description,
+        price: roundToTenThousand(tpl.price + randomInt(-2, 4) * 10000),
+        category: tpl.category,
+        pricingUnit: tpl.pricingUnit,
+        isActive: Math.random() < 0.92,
+      });
+    }
+  }
+
+  const addons = await HotelAddonService.insertMany(docs);
+  const byHotel = new Map();
+  for (const addon of addons) {
+    const key = String(addon.hotelId);
+    if (!byHotel.has(key)) byHotel.set(key, []);
+    byHotel.get(key).push(addon);
+  }
+
+  const focusCount = byHotel.get(String(focusHotel._id))?.length || 0;
+  console.log(`  ✓ HotelAddonServices: ${addons.length} (KS tập trung: ${focusCount})`);
+  return { addons, addonsByHotel: byHotel };
+}
+
+/**
+ * Thời điểm tạo đơn — độc lập với check-in/check-out.
+ * Luôn trước check-in và trải đều trong quá khứ gần đây.
+ */
+function pickBookingCreatedAt(checkIn, today) {
+  const created = new Date(checkIn);
+  // Đặt trước check-in từ 1–45 ngày (đơn tương lai có thể mới tạo gần đây)
+  const daysBeforeCheckIn = randomInt(1, 45);
+  created.setDate(created.getDate() - daysBeforeCheckIn);
+
+  // Không để createdAt ở tương lai so với "hôm nay"
+  if (created > today) {
+    const daysAgo = randomInt(0, 60);
+    created.setTime(today.getTime());
+    created.setDate(created.getDate() - daysAgo);
+    // Vẫn đảm bảo trước check-in nếu check-in đã qua
+    if (created >= checkIn) {
+      created.setTime(checkIn.getTime());
+      created.setDate(created.getDate() - randomInt(1, 14));
+    }
+  }
+
+  created.setHours(randomInt(7, 22), randomInt(0, 59), randomInt(0, 59), randomInt(0, 999));
+  return created;
+}
+
+function pickPaymentStatus(isPast, { allowPending = true } = {}) {
   const r = Math.random();
+  if (!allowPending) {
+    // KS tập trung: chỉ paid / cancelled — không còn đơn chờ duyệt
+    if (isPast) return r < 0.85 ? "paid" : "cancelled";
+    return r < 0.8 ? "paid" : "cancelled";
+  }
   if (isPast) {
     if (r < 0.78) return "paid";
     if (r < 0.88) return "cancelled";
@@ -226,7 +409,7 @@ function transactionStatusForPayment(paymentStatus) {
   return "pending";
 }
 
-async function createBookingsReviewsTransactions(users, hotels, rooms, focusHotel) {
+async function createBookingsReviewsTransactions(users, hotels, rooms, focusHotel, addonsByHotel) {
   const guests = users.filter((u) => u.role === "guest");
   const today = new Date();
   today.setHours(12, 0, 0, 0);
@@ -241,11 +424,13 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
   const roomBookings = new Map();
   const bookingPayloads = [];
 
-  const scheduleBooking = (hotel, guest, forcePast = null) => {
+  const scheduleBooking = (hotel, guest, forcePast = null, options = {}) => {
     const hotelRooms = roomsByHotel.get(String(hotel._id)) || [];
     if (hotelRooms.length === 0) return false;
+    const isFocus = String(hotel._id) === String(focusHotel._id);
+    const allowPending = options.allowPending !== false && !isFocus;
 
-    for (let attempt = 0; attempt < 30; attempt += 1) {
+    for (let attempt = 0; attempt < 40; attempt += 1) {
       const room = pickOne(hotelRooms);
       const nights = randomInt(1, 5);
       let checkIn;
@@ -269,12 +454,28 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
       );
       if (conflict) continue;
 
-      const basePrice = room.price * nights;
-      const discountAmount = Math.random() < 0.2 ? Math.round(basePrice * 0.1) : 0;
-      const finalAmount = basePrice - discountAmount;
+      const guestCount = randomInt(1, Math.min(room.maxPeople || 2, 4));
+      const basePrice = roundToTenThousand(room.price * nights);
+      const discountAmount =
+        Math.random() < 0.2 ? roundToTenThousand(basePrice * 0.1) : 0;
+
+      const hotelAddons = (addonsByHotel.get(String(hotel._id)) || []).filter((a) => a.isActive);
+      let selectedAddons = [];
+      let addonsAmount = 0;
+      if (hotelAddons.length > 0 && Math.random() < 0.55) {
+        const chosen = pickMany(hotelAddons, randomInt(1, Math.min(3, hotelAddons.length)));
+        selectedAddons = chosen.map((service) => {
+          const snap = buildSelectedAddonSnapshot(service, nights, guestCount);
+          return { ...snap, price: roundToTenThousand(snap.price), lineTotal: roundToTenThousand(snap.lineTotal) };
+        });
+        addonsAmount = selectedAddons.reduce((sum, item) => sum + item.lineTotal, 0);
+      }
+
+      const finalAmount = roundToTenThousand(basePrice - discountAmount + addonsAmount);
       const isPast = checkOut < today;
-      const paymentStatus = pickPaymentStatus(isPast);
+      const paymentStatus = pickPaymentStatus(isPast, { allowPending });
       const paymentMethod = Math.random() < 0.65 ? "qr_code" : "vnpay";
+      const createdAt = pickBookingCreatedAt(checkIn, today);
 
       const payload = {
         guest: guest._id,
@@ -282,6 +483,9 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
         room: room._id,
         checkInDate: checkIn,
         checkOutDate: checkOut,
+        guestCount,
+        selectedAddons,
+        addonsAmount,
         basePrice,
         discountAmount,
         finalAmount,
@@ -294,6 +498,8 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
           "Cần thêm gối",
           "Phòng không hút thuốc",
         ]) : undefined,
+        createdAt,
+        updatedAt: createdAt,
       };
 
       if (paymentStatus === "paid" && isPast) {
@@ -303,13 +509,27 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
         payload.checkedOutAt.setHours(11, 0, 0, 0);
       }
 
+      if (paymentStatus === "paid" && paymentMethod === "vnpay") {
+        payload.vnpayPaidAt = addDays(createdAt, 0);
+        payload.vnpayPaidAt.setMinutes(payload.vnpayPaidAt.getMinutes() + randomInt(5, 60));
+        payload.vnpayOwnerVerifiedAt = addDays(payload.vnpayPaidAt, 0);
+        payload.vnpayOwnerVerifiedAt.setHours(
+          payload.vnpayOwnerVerifiedAt.getHours() + randomInt(1, 12)
+        );
+      }
+
       if (paymentStatus === "cancelled" && Math.random() < 0.5) {
         payload.cancellationReason = pickOne([
           "Thay đổi lịch trình",
           "Tìm được khách sạn khác",
           "Công việc đột xuất",
         ]);
-        payload.guestCancelRequestedAt = addDays(checkIn, -randomInt(1, 5));
+        const cancelAt = addDays(createdAt, randomInt(0, 5));
+        if (cancelAt < checkIn) {
+          payload.guestCancelRequestedAt = cancelAt;
+        } else {
+          payload.guestCancelRequestedAt = addDays(checkIn, -randomInt(1, 3));
+        }
       }
 
       existing.push({ checkInDate: checkIn, checkOutDate: checkOut });
@@ -320,15 +540,24 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
     return false;
   };
 
-  for (let i = 0; i < FOCUS_BOOKINGS; i += 1) {
+  // ~50% past, ~50% upcoming/current — đủ đa dạng nhưng không pending
+  const focusPastCount = Math.round(FOCUS_BOOKINGS * 0.55);
+  for (let i = 0; i < focusPastCount; i += 1) {
     scheduleBooking(focusHotel, pickOne(guests), true);
   }
+  for (let i = focusPastCount; i < FOCUS_BOOKINGS; i += 1) {
+    scheduleBooking(focusHotel, pickOne(guests), i % 3 === 0 ? false : null);
+  }
 
+  const otherHotels = hotels.filter((h) => String(h._id) !== String(focusHotel._id));
   while (bookingPayloads.length < MIN_BOOKINGS) {
-    const hotel = pickOne(hotels);
+    const hotel = pickOne(otherHotels);
     const guest = pickOne(guests);
     if (!scheduleBooking(hotel, guest)) {
-      scheduleBooking(pickOne(hotels.filter((h) => roomsByHotel.get(String(h._id))?.length)), pickOne(guests));
+      scheduleBooking(
+        pickOne(otherHotels.filter((h) => roomsByHotel.get(String(h._id))?.length)),
+        pickOne(guests)
+      );
     }
   }
 
@@ -339,6 +568,10 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
 
   bookings.forEach((booking, index) => {
     const txStatus = transactionStatusForPayment(booking.paymentStatus);
+    const bookingCreatedAt = booking.createdAt ? new Date(booking.createdAt) : new Date();
+    const txCreatedAt = new Date(bookingCreatedAt);
+    txCreatedAt.setMinutes(txCreatedAt.getMinutes() + randomInt(1, 30));
+
     transactions.push({
       booking: booking._id,
       transactionRef: generateTransactionRef(booking._id, index),
@@ -346,6 +579,8 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
       paymentMethod: booking.paymentMethod,
       status: txStatus,
       clientIp: `192.168.${randomInt(0, 255)}.${randomInt(1, 254)}`,
+      createdAt: txCreatedAt,
+      updatedAt: txCreatedAt,
       ...(txStatus === "success" && booking.paymentMethod === "vnpay"
         ? {
             vnpResponseCode: "00",
@@ -360,16 +595,22 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
         : {}),
     });
 
+    const reviewCreatedAt = booking.checkedOutAt
+      ? addDays(booking.checkedOutAt, randomInt(0, 3))
+      : addDays(booking.checkOutDate, randomInt(0, 2));
+
     reviews.push({
       guest: booking.guest,
       hotel: booking.hotel,
       booking: booking._id,
       rating: randomInt(3, 5),
       comment: pickOne(REVIEW_COMMENTS),
+      createdAt: reviewCreatedAt,
+      updatedAt: reviewCreatedAt,
       ...(Math.random() < 0.15
         ? {
             ownerResponse: "Cảm ơn quý khách đã lưu trú. Rất mong được đón tiếp lại!",
-            ownerResponseAt: addDays(booking.checkOutDate, randomInt(1, 3)),
+            ownerResponseAt: addDays(reviewCreatedAt, randomInt(1, 3)),
             replyRole: "owner",
           }
         : {}),
@@ -380,9 +621,25 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
   await Review.insertMany(reviews);
 
   const focusCount = bookings.filter((b) => String(b.hotel) === String(focusHotel._id)).length;
-  console.log(`  ✓ Bookings: ${bookings.length} (${focusCount} tại KS owner chính)`);
-  console.log(`  ✓ PaymentTransactions: ${transactions.length}`);
-  console.log(`  ✓ Reviews: ${reviews.length}`);
+  const withAddons = bookings.filter((b) => (b.addonsAmount || 0) > 0).length;
+  const focusPending = bookings.filter(
+    (b) => String(b.hotel) === String(focusHotel._id) && b.paymentStatus === "pending"
+  ).length;
+  const focusByStatus = bookings
+    .filter((b) => String(b.hotel) === String(focusHotel._id))
+    .reduce((acc, b) => {
+      acc[b.paymentStatus] = (acc[b.paymentStatus] || 0) + 1;
+      return acc;
+    }, {});
+  const createdAts = bookings.map((b) => new Date(b.createdAt).getTime());
+  const uniqueCreatedDays = new Set(
+    bookings.map((b) => new Date(b.createdAt).toISOString().slice(0, 10))
+  ).size;
+
+  console.log(`  ✓ Bookings: ${bookings.length} (${focusCount} tại ${focusHotel.name}, pending KS này: ${focusPending})`);
+  console.log(`  ✓ Focus paymentStatus: ${JSON.stringify(focusByStatus)}`);
+  console.log(`  ✓ Booking createdAt: ${uniqueCreatedDays} ngày khác nhau (min/max lệch ${Math.round((Math.max(...createdAts) - Math.min(...createdAts)) / 86400000)} ngày)`);
+  console.log(`  ✓ Có addon: ${withAddons} đơn | PaymentTransactions: ${transactions.length} | Reviews: ${reviews.length}`);
 }
 
 async function createSalePromotions(mainOwnerHotels) {
@@ -496,9 +753,10 @@ async function seedDatabase() {
 
     const users = await createUsers();
     const { hotels, rooms, focusHotel, mainOwnerHotels } = await createHotelsAndRooms(users);
+    const { addonsByHotel } = await createAddonServices(hotels, focusHotel);
     const adminUser = users.find((u) => u.role === "admin");
 
-    await createBookingsReviewsTransactions(users, hotels, rooms, focusHotel);
+    await createBookingsReviewsTransactions(users, hotels, rooms, focusHotel, addonsByHotel);
     await createSalePromotions(mainOwnerHotels);
     await createContactMessages(adminUser);
 
