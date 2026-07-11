@@ -43,6 +43,7 @@ const NotificationSchema = new mongoose.Schema(
         "hotel_status_changed",
         // Guest (recipientRole: "guest")
         "booking_confirmed",
+        "booking_reopened",
         "payment_rejected",
         "qr_proof_resubmit",
         "refund_processed",

@@ -1,5 +1,5 @@
 import { FaPhone, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
-import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut, getOwnerActionLabel } from '@/shared/utils';
+import { formatDate, formatDateTime, tryOpenCheckIn, tryOpenCheckOut, getOwnerActionLabel, canOwnerReopenBooking } from '@/shared/utils';
 
 const OwnerBookingCard = ({
   booking,
@@ -12,6 +12,7 @@ const OwnerBookingCard = ({
   onOpenCheckOut,
   onOpenRefund,
   onOpenReject,
+  onOpenReopen,
   onPreviewProof,
 }) => {
   const guest = booking.guest || {};
@@ -33,6 +34,7 @@ const OwnerBookingCard = ({
     booking.guestCancelRequestedAt &&
     !booking.ownerRefundCompletedAt;
 
+  const canReopen = canOwnerReopenBooking(booking);
   const actionLabel = showActionBadge ? getOwnerActionLabel(booking) : null;
 
   const renderStatusButtons = () => {
@@ -83,26 +85,30 @@ const OwnerBookingCard = ({
         booking.qrPaymentProofUrl;
       const vnpayAwaitingVerify =
         booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt && !booking.vnpayOwnerVerifiedAt;
+      const vnpayWaitingGuestPay =
+        booking.paymentMethod === 'vnpay' && !booking.vnpayPaidAt;
 
       return (
         <>
-          <button className="status-btn pending">
+          <button type="button" className="status-btn pending" disabled>
             {vnpayAwaitingVerify
               ? 'VNPay đã thanh toán — chờ xác minh'
-              : booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt
-                ? 'Khách đã báo chuyển khoản'
-                : 'Chờ xác nhận'}
+              : vnpayWaitingGuestPay
+                ? 'Chờ khách thanh toán VNPay'
+                : booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt
+                  ? 'Khách đã báo chuyển khoản'
+                  : 'Chờ xác nhận'}
           </button>
           {canRejectQr && (
             <button type="button" className="status-btn reject" onClick={() => onOpenReject(booking)}>
               Xử lý minh chứng
             </button>
           )}
-          <button className="status-btn confirm" onClick={() => onOpenConfirm(booking)}>
-            {booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt
-              ? 'Xác minh thanh toán VNPay'
-              : 'Xác nhận'}
-          </button>
+          {!vnpayWaitingGuestPay && (
+            <button type="button" className="status-btn confirm" onClick={() => onOpenConfirm(booking)}>
+              {vnpayAwaitingVerify ? 'Xác minh thanh toán VNPay' : 'Xác nhận'}
+            </button>
+          )}
         </>
       );
     }
@@ -121,11 +127,20 @@ const OwnerBookingCard = ({
         );
       }
       return (
-        <button className="status-btn cancelled" disabled>
-          {booking.guestCancelSnapshot?.wasPaid && booking.ownerRefundCompletedAt
-            ? 'Đã hủy — đã hoàn tiền'
-            : 'Đã hủy'}
-        </button>
+        <>
+          <button type="button" className="status-btn cancelled" disabled>
+            {booking.guestCancelSnapshot?.wasPaid && booking.ownerRefundCompletedAt
+              ? 'Đã hủy — đã hoàn tiền'
+              : booking.vnpayPaidAt
+                ? 'Đã hủy — VNPay đã trừ tiền'
+                : 'Đã hủy'}
+          </button>
+          {canReopen && (
+            <button type="button" className="status-btn reopen" onClick={() => onOpenReopen(booking)}>
+              Mở lại đơn
+            </button>
+          )}
+        </>
       );
     }
 

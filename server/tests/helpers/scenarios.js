@@ -63,10 +63,15 @@ async function ownerRejectQrPayment(ownerAgent, bookingId, rejectionType = "inva
     .send({ rejectionType });
 }
 
+async function ownerReopenBooking(ownerAgent, bookingId, reason = "") {
+  return ownerAgent.post(`/api/owner/bookings/${bookingId}/reopen`).send({ reason });
+}
+
 module.exports = {
   createGuestBooking,
   reportQrPayment,
   ownerConfirmPaid,
   createPaidQrBooking,
   ownerRejectQrPayment,
+  ownerReopenBooking,
 };

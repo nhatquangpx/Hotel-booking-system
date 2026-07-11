@@ -175,6 +175,14 @@ const ownerRejectQrPaymentValidation = [
     .withMessage("rejectionType phải là invalid_proof hoặc payment_not_successful"),
 ];
 
+const ownerReopenBookingValidation = [
+  body("reason")
+    .optional({ values: "falsy" })
+    .isString()
+    .isLength({ max: 500 })
+    .withMessage("reason tối đa 500 ký tự"),
+];
+
 module.exports = {
   validate,
   availableRoomsQueryValidation,
@@ -183,5 +191,6 @@ module.exports = {
   cancelBookingValidation,
   ownerUpdateBookingStatusValidation,
   ownerRejectQrPaymentValidation,
+  ownerReopenBookingValidation,
   guestMyBookingsQueryValidation,
 };

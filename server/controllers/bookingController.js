@@ -155,6 +155,15 @@ exports.rejectQrPayment = (req, res) =>
     })
   );
 
+exports.reopenCancelledBooking = (req, res) =>
+  runService(res, () =>
+    bookingApi.reopenCancelledBooking({
+      id: req.params.id,
+      user: req.user,
+      reason: req.body.reason,
+    })
+  );
+
 exports.checkIn = (req, res) =>
   runService(res, () => bookingApi.checkInWithNotification({ id: req.params.id, user: req.user }));
 

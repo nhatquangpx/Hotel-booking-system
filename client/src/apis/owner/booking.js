@@ -87,6 +87,18 @@ export const ownerBookingAPI = {
     }
   },
 
+  /** Mở lại đơn đã hủy (tiền về chậm, lỗi cổng thanh toán, …) */
+  reopenCancelledBooking: async (id, reason = '') => {
+    try {
+      const response = await api.post(`/owner/bookings/${id}/reopen`, {
+        reason: reason || undefined,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   getSensitiveMediaBlob: async (id, kind) => {
     const response = await api.get(`/owner/bookings/${id}/sensitive-media/${kind}`, {
       responseType: 'blob',

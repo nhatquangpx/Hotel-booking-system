@@ -51,6 +51,7 @@ const GuestNotificationsPage = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'booking_confirmed':
+      case 'booking_reopened':
         return <FaCalendarAlt />;
       case 'refund_processed':
         return <FaDollarSign />;

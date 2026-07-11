@@ -104,6 +104,12 @@ async function createVNPayPaymentUrl({ bookingId, userId, req }) {
   if (booking.paymentStatus === "paid") {
     throw new ServiceError(400, "Đơn đặt phòng đã được thanh toán");
   }
+  if (booking.vnpayPaidAt) {
+    throw new ServiceError(
+      400,
+      "Hệ thống đã ghi nhận thanh toán VNPay cho đơn này. Vui lòng chờ khách sạn xác minh — không thanh toán lại để tránh bị trừ tiền trùng."
+    );
+  }
   if (booking.paymentMethod !== "vnpay") {
     throw new ServiceError(400, "Phương thức thanh toán không phải VNPay");
   }
@@ -267,24 +273,91 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
   }
 
   if (freshBooking.paymentStatus === "paid") {
+    // Callback trùng / giao dịch phụ sau khi đã paid — cần hoàn thủ công nếu bị trừ lần nữa
+    if (
+      paymentTransaction.transactionRef &&
+      freshBooking.vnpTransactionRef &&
+      String(paymentTransaction.transactionRef) !== String(freshBooking.vnpTransactionRef)
+    ) {
+      return handleVnpayRefundRequired({
+        booking: freshBooking,
+        paymentResult,
+        paymentTransaction,
+        reason:
+          "Đơn đã thanh toán trước đó. Giao dịch VNPay này có thể là thanh toán trùng — vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
+      });
+    }
     return {
       redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}`,
     };
   }
 
   if (freshBooking.vnpayPaidAt) {
+    const isSameTxn =
+      paymentTransaction.transactionRef &&
+      freshBooking.vnpTransactionRef &&
+      String(paymentTransaction.transactionRef) === String(freshBooking.vnpTransactionRef);
+
+    if (!isSameTxn) {
+      return handleVnpayRefundRequired({
+        booking: freshBooking,
+        paymentResult,
+        paymentTransaction,
+        reason:
+          "Hệ thống đã ghi nhận thanh toán VNPay trước đó. Giao dịch này có thể là thanh toán trùng — vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
+      });
+    }
+
+    if (freshBooking.paymentStatus === "cancelled") {
+      return {
+        redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}&awaitingReopen=1&message=${encodeURIComponent(
+          "Thanh toán VNPay đã ghi nhận nhưng đơn đang bị hủy. Liên hệ khách sạn để được mở lại đơn nếu đã nhận tiền."
+        )}`,
+      };
+    }
     return {
       redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}&awaitingVerification=1`,
     };
   }
 
   if (freshBooking.paymentStatus === "cancelled") {
+    const roomAvailable = await checkRoomAvailability(
+      freshBooking.room,
+      freshBooking.checkInDate,
+      freshBooking.checkOutDate,
+      freshBooking._id
+    );
+
+    paymentTransaction.status = "success";
+    paymentTransaction.errorMessage = roomAvailable
+      ? "VNPay đã trừ tiền sau khi đơn bị hủy. Chủ khách sạn có thể mở lại đơn trên hệ thống nếu xác nhận đã nhận tiền."
+      : "Đơn đã bị hủy và phòng không còn trống. Cần hoàn tiền thủ công nếu đã bị trừ tiền.";
+    await paymentTransaction.save();
+
+    if (roomAvailable) {
+      await Booking.findByIdAndUpdate(freshBooking._id, {
+        vnpayPaidAt: new Date(),
+        vnpTransactionRef: paymentResult.vnp_TxnRef,
+        $unset: { pendingExpiresAt: "" },
+      });
+
+      notifyPaymentSuccessful(booking._id).catch((err) =>
+        console.error("Lỗi khi tạo thông báo VNPay trên đơn đã hủy (cần mở lại):", err)
+      );
+
+      return {
+        redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}&awaitingReopen=1&message=${encodeURIComponent(
+          "Thanh toán VNPay thành công nhưng đơn đã bị hủy trước đó. Liên hệ khách sạn — chủ KS có thể mở lại đơn nếu đã nhận tiền."
+        )}`,
+      };
+    }
+
     return handleVnpayRefundRequired({
       booking: freshBooking,
       paymentResult,
       paymentTransaction,
       reason:
-        "Đơn đã bị hủy trước khi thanh toán hoàn tất. Vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
+        "Đơn đã bị hủy và phòng không còn trống. Vui lòng liên hệ khách sạn hoặc hỗ trợ để được hoàn tiền thủ công nếu đã bị trừ tiền.",
     });
   }
 

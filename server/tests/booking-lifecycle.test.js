@@ -7,6 +7,7 @@ const {
   ownerConfirmPaid,
   createPaidQrBooking,
   ownerRejectQrPayment,
+  ownerReopenBooking,
 } = require("./helpers/scenarios");
 
 describe("Booking Lifecycle — black box qua HTTP API", () => {
@@ -454,6 +455,60 @@ describe("Booking Lifecycle — black box qua HTTP API", () => {
       expect(booking.paymentStatus).toBe("cancelled");
       expect(booking.cancellationReason).toBe(SYSTEM_CANCEL_REASON);
     });
+  });
+
+  it("Owner mở lại đơn đã hủy (hết hạn giữ phòng) khi phòng còn trống", async () => {
+    const { cancelExpiredPendingBookings } = require("../services/bookings/pendingExpiry");
+    const guest = await authedRequest(app, data.credentials.guest);
+    const owner = await authedRequest(app, data.credentials.owner);
+    const { checkInDate, checkOutDate } = data.futureStayDates({ checkInOffset: 50, nights: 2 });
+
+    const createRes = await createGuestBooking(guest, {
+      hotelId: data.hotelId,
+      roomId: data.roomId,
+      checkInDate,
+      checkOutDate,
+      paymentMethod: "qr_code",
+    });
+    expect(createRes.status).toBe(201);
+    const bookingId = createRes.body._id;
+
+    await Booking.findByIdAndUpdate(bookingId, {
+      pendingExpiresAt: new Date(Date.now() - 60_000),
+    });
+    await cancelExpiredPendingBookings();
+
+    const cancelled = await Booking.findById(bookingId);
+    expect(cancelled.paymentStatus).toBe("cancelled");
+
+    const reopenRes = await ownerReopenBooking(owner, bookingId, "Tiền về chậm sau khi hết hạn giữ phòng");
+    expect(reopenRes.status).toBe(200);
+    expect(reopenRes.body.booking.paymentStatus).toBe("pending");
+    expect(reopenRes.body.booking.reopenedAt).toBeDefined();
+    expect(reopenRes.body.booking.reopenReason).toContain("Tiền về chậm");
+    expect(reopenRes.body.booking.pendingExpiresAt).toBeDefined();
+  });
+
+  it("Owner không mở lại đơn khách hủy sau khi đã thanh toán", async () => {
+    const guest = await authedRequest(app, data.credentials.guest);
+    const owner = await authedRequest(app, data.credentials.owner);
+    const bookingId = await createPaidQrBooking(guest, owner, data, {
+      checkInOffset: 52,
+      nights: 2,
+      roomId: data.roomIdDeluxe,
+    });
+
+    const cancelRes = await guest.put(`/api/guest/bookings/${bookingId}/cancel`).send({
+      cancellationReason: "Đổi lịch",
+      refundBankAccountName: "NGUYEN VAN A",
+      refundBankAccountNumber: "1234567890",
+      refundBankName: "Vietcombank",
+    });
+    expect(cancelRes.status).toBe(200);
+    expect(cancelRes.body.booking.paymentStatus).toBe("cancelled");
+
+    const reopenRes = await ownerReopenBooking(owner, bookingId, "Thử mở lại đơn đã thanh toán");
+    expect(reopenRes.status).toBe(400);
   });
 
   it("Sale giảm giá được áp dụng khi preview giá", async () => {

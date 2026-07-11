@@ -19,6 +19,28 @@ export function needsOwnerRefundConfirm(booking) {
   );
 }
 
+/**
+ * Chủ KS có thể mở lại đơn đã hủy (tiền về chậm, hết hạn nhầm, …).
+ * Không áp dụng đơn khách hủy sau khi đã thanh toán (luồng hoàn tiền).
+ */
+export function canOwnerReopenBooking(booking, referenceDate = new Date()) {
+  if (!booking || booking.paymentStatus !== 'cancelled') return false;
+  if (booking.guestCancelSnapshot?.wasPaid || booking.ownerRefundCompletedAt) return false;
+  if (booking.checkedInAt || booking.checkedOutAt) return false;
+  if (booking.checkOutDate && new Date(booking.checkOutDate).getTime() <= referenceDate.getTime()) {
+    return false;
+  }
+  return true;
+}
+
+/** Đơn đã hủy nhưng VNPay/QR đã có tín hiệu tiền — ưu tiên mở lại. */
+export function cancelledBookingHasPaymentEvidence(booking) {
+  if (!booking || booking.paymentStatus !== 'cancelled') return false;
+  if (booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt) return true;
+  if (booking.paymentMethod === 'qr_code' && booking.qrPaymentProofUrl) return true;
+  return false;
+}
+
 export function needsOwnerPaymentAction(booking) {
   return booking?.paymentStatus === 'pending';
 }

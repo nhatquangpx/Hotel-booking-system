@@ -93,6 +93,7 @@ const OwnerBookingActionSections = ({
       onOpenCheckOut={cardHandlers.onOpenCheckOut}
       onOpenRefund={cardHandlers.onOpenRefund}
       onOpenReject={cardHandlers.onOpenReject}
+      onOpenReopen={cardHandlers.onOpenReopen}
       onPreviewProof={cardHandlers.onPreviewProof}
     />
   );

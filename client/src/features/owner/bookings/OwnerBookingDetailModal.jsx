@@ -203,6 +203,23 @@ const OwnerBookingDetailModal = ({ show, loading, booking, onClose, onPreviewPro
                     <span className="info-value">{booking.cancellationReason}</span>
                   </div>
                 )}
+                {booking.reopenedAt && (
+                  <div className="info-row">
+                    <span className="info-label">Đã mở lại lúc:</span>
+                    <span className="info-value">
+                      {formatDateTime(booking.reopenedAt)}
+                      {booking.reopenReason ? ` — ${booking.reopenReason}` : ''}
+                    </span>
+                  </div>
+                )}
+                {booking.paymentStatus === 'cancelled' && booking.vnpayPaidAt && (
+                  <div className="info-row">
+                    <span className="info-label">VNPay đã trừ tiền:</span>
+                    <span className="info-value">
+                      {formatDateTime(booking.vnpayPaidAt)} — có thể mở lại đơn nếu đã nhận tiền
+                    </span>
+                  </div>
+                )}
                 {booking.ownerPaymentRejectionReason && (
                   <div className="info-row">
                     <span className="info-label">Lý do từ chối (chủ KS):</span>
