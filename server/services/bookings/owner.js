@@ -5,6 +5,7 @@ const PaymentTransaction = require("../../models/PaymentTransaction");
 const { getScopedHotelIdsForOwner } = require("../dashboards/core");
 const {
   checkBookingPermission,
+  checkRoomAvailability,
   isBookingEffectivelyPaid,
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus,
@@ -14,6 +15,17 @@ const { notifyGuestRefundProcessed, notifyGuestQrPaymentRejected, notifyGuestQrP
 const { sendRefundProcessedEmail, sendQrPaymentRejectedEmail, sendQrProofResubmitEmail } = require("../emails");
 const { getQrRejectionMessage } = require("./qrPaymentRejection");
 const { getBookingFinalAmount } = require("./bookingAmount");
+const { computePendingExpiresAt } = require("../../lib/booking/pendingHoldConfig");
+
+const httpError = (statusCode, message) => {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  return err;
+};
+
+/** Đơn khách đã hủy sau khi thanh toán — đi luồng hoàn tiền, không mở lại. */
+const isPaidGuestCancellation = (booking) =>
+  Boolean(booking?.guestCancelSnapshot?.wasPaid || booking?.ownerRefundCompletedAt);
 
 const {
   buildSensitiveMediaRef,
@@ -192,6 +204,13 @@ const updateBookingStatus = async (bookingId, status, user) => {
     throw new Error("Trạng thái không hợp lệ");
   }
 
+  if (booking.paymentStatus === "cancelled") {
+    throw httpError(
+      400,
+      "Đơn đã hủy. Dùng chức năng Mở lại đơn nếu cần khôi phục (ví dụ tiền về chậm do lỗi cổng thanh toán)."
+    );
+  }
+
   if (
     status === "paid" &&
     booking.paymentMethod === "qr_code" &&
@@ -201,7 +220,10 @@ const updateBookingStatus = async (bookingId, status, user) => {
   }
 
   if (status === "paid" && booking.paymentMethod === "vnpay" && !booking.vnpayPaidAt) {
-    throw new Error("Khách chưa hoàn tất thanh toán VNPay, không thể xác nhận");
+    throw httpError(
+      400,
+      "Khách chưa hoàn tất thanh toán VNPay, không thể xác nhận. Sau khi mở lại đơn, khách cần thanh toán VNPay lại (trừ khi hệ thống đã ghi nhận vnpayPaidAt từ lần thanh toán trước)."
+    );
   }
 
   const previousPaymentStatus = booking.paymentStatus;
@@ -210,6 +232,10 @@ const updateBookingStatus = async (bookingId, status, user) => {
     throw new Error(
       "Không thể hủy đơn đã thanh toán từ trang chủ khách sạn. Khách cần gửi hủy đơn trong tài khoản của họ; sau đó bạn dùng nút xác nhận hoàn tiền trên đơn đã hủy."
     );
+  }
+
+  if (status === "pending" && previousPaymentStatus !== "pending") {
+    throw httpError(400, "Không thể chuyển về chờ xác nhận qua API này. Dùng Mở lại đơn nếu đơn đã hủy.");
   }
 
   booking.paymentStatus = status;
@@ -412,6 +438,119 @@ const rejectQrPayment = async (bookingId, user, rejectionType) => {
   return populated;
 };
 
+/**
+ * Chủ KS mở lại đơn đã hủy trong trường hợp khách quan
+ * (tiền về chậm VNPay/QR, hết hạn giữ phòng nhầm, từ chối QR sai, …).
+ * Không áp dụng cho đơn khách hủy sau khi đã thanh toán (luồng hoàn tiền).
+ */
+const reopenCancelledBooking = async (bookingId, user, { reason } = {}) => {
+  const booking = await Booking.findById(bookingId).populate({
+    path: "hotel",
+    select: "ownerId name",
+  });
+
+  if (!booking) {
+    throw httpError(404, "Đơn đặt phòng không tồn tại");
+  }
+
+  if (!checkBookingPermission(booking, user)) {
+    throw httpError(403, "Bạn không có quyền thực hiện thao tác này");
+  }
+
+  if (booking.paymentStatus !== "cancelled") {
+    throw httpError(400, "Chỉ có thể mở lại đơn đã hủy.");
+  }
+
+  if (isPaidGuestCancellation(booking)) {
+    throw httpError(
+      400,
+      "Không thể mở lại đơn khách đã hủy sau khi thanh toán. Đơn này thuộc luồng hoàn tiền."
+    );
+  }
+
+  if (booking.checkedInAt || booking.checkedOutAt) {
+    throw httpError(400, "Không thể mở lại đơn đã check-in hoặc check-out.");
+  }
+
+  const now = new Date();
+  if (new Date(booking.checkOutDate).getTime() <= now.getTime()) {
+    throw httpError(400, "Khoảng lưu trú đã kết thúc, không thể mở lại đơn này.");
+  }
+
+  const roomAvailable = await checkRoomAvailability(
+    booking.room,
+    booking.checkInDate,
+    booking.checkOutDate,
+    booking._id
+  );
+  if (!roomAvailable) {
+    throw httpError(
+      400,
+      "Phòng đã được đặt cho khoảng ngày này. Không thể mở lại đơn cho đến khi phòng trống lại."
+    );
+  }
+
+  const latestTransaction = await PaymentTransaction.findOne({
+    booking: booking._id,
+    paymentMethod: booking.paymentMethod,
+  }).sort({ createdAt: -1 });
+
+  const trimmedReason = String(reason || "").trim().slice(0, 500);
+
+  booking.paymentStatus = "pending";
+  booking.cancellationReason = undefined;
+  booking.guestCancelRequestedAt = undefined;
+  booking.guestCancelSnapshot = undefined;
+  booking.guestRefundBankAccountName = undefined;
+  booking.guestRefundBankAccountNumber = undefined;
+  booking.guestRefundBankName = undefined;
+  booking.ownerPaymentRejectionReason = undefined;
+  booking.ownerQrRejectionType = undefined;
+  booking.reopenedAt = now;
+  booking.reopenedBy = user.id || user._id;
+  booking.reopenReason = trimmedReason || undefined;
+
+  const vnpayAlreadyPaid =
+    booking.paymentMethod === "vnpay" &&
+    (Boolean(booking.vnpayPaidAt) || latestTransaction?.status === "success");
+  const qrHasProof =
+    booking.paymentMethod === "qr_code" && Boolean(booking.qrPaymentProofUrl);
+
+  if (vnpayAlreadyPaid) {
+    if (!booking.vnpayPaidAt) {
+      booking.vnpayPaidAt = now;
+    }
+    booking.vnpayOwnerVerifiedAt = undefined;
+    booking.pendingExpiresAt = undefined;
+    if (latestTransaction?.transactionRef && !booking.vnpTransactionRef) {
+      booking.vnpTransactionRef = latestTransaction.transactionRef;
+    }
+  } else if (qrHasProof) {
+    booking.pendingExpiresAt = undefined;
+  } else {
+    booking.pendingExpiresAt = computePendingExpiresAt(now);
+  }
+
+  await booking.save();
+
+  if (latestTransaction) {
+    if (latestTransaction.status === "cancelled") {
+      latestTransaction.status = "pending";
+      latestTransaction.errorMessage = undefined;
+      await latestTransaction.save();
+    } else if (latestTransaction.status === "success" && latestTransaction.errorMessage) {
+      latestTransaction.errorMessage = undefined;
+      await latestTransaction.save();
+    }
+  }
+
+  if (booking.room) {
+    await refreshRoomBookingStatus(booking.room);
+  }
+
+  return getBookingById(bookingId, user);
+};
+
 module.exports = {
   getBookingsByOwner,
   getBookingsByRoomForOwner,
@@ -419,6 +558,7 @@ module.exports = {
   updateBookingStatus,
   confirmGuestRefund,
   rejectQrPayment,
+  reopenCancelledBooking,
   checkIn,
   checkOut
 };

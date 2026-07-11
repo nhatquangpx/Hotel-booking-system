@@ -32,6 +32,7 @@ const {
 const {
   ownerUpdateBookingStatusValidation,
   ownerRejectQrPaymentValidation,
+  ownerReopenBookingValidation,
   validate: validateBooking,
 } = require("../validations/bookingValidation");
 const {
@@ -172,6 +173,13 @@ router.post(
   ownerRejectQrPaymentValidation,
   validateBooking,
   bookingController.rejectQrPayment
+);
+router.post(
+  '/bookings/:id/reopen',
+  bookingIdParamValidation,
+  ownerReopenBookingValidation,
+  validateBooking,
+  bookingController.reopenCancelledBooking
 );
 router.post('/bookings/:id/check-in', bookingIdParamValidation, bookingController.checkIn);
 router.post('/bookings/:id/check-out', bookingIdParamValidation, bookingController.checkOut);

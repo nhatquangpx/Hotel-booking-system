@@ -37,6 +37,7 @@ const {
   updateBookingStatus: updateOwnerBookingStatus,
   confirmGuestRefund: confirmOwnerGuestRefund,
   rejectQrPayment: rejectOwnerQrPayment,
+  reopenCancelledBooking: reopenOwnerCancelledBooking,
   checkIn,
   checkOut
 } = require("./owner");
@@ -86,6 +87,7 @@ module.exports = {
   updateOwnerBookingStatus,
   confirmOwnerGuestRefund,
   rejectOwnerQrPayment,
+  reopenOwnerCancelledBooking,
   checkIn,
   checkOut,
 

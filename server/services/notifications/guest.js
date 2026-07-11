@@ -142,9 +142,39 @@ const notifyGuestQrProofResubmitRequired = async (bookingId) => {
   }
 };
 
+const notifyGuestBookingReopened = async (bookingId) => {
+  try {
+    const booking = await Booking.findById(bookingId)
+      .populate("hotel", "name")
+      .populate("guest", "name");
+
+    if (!booking || !booking.guest) {
+      return;
+    }
+
+    const guestId = booking.guest._id || booking.guest;
+    const guestIdStr = guestId.toString ? guestId.toString() : guestId;
+    const bookingIdShort = bookingId.toString().slice(-6).toUpperCase();
+    const checkInDate = new Date(booking.checkInDate).toLocaleDateString("vi-VN");
+
+    await createNotification(
+      guestIdStr,
+      "guest",
+      "booking_reopened",
+      "Đơn đặt phòng được mở lại",
+      `Khách sạn ${booking.hotel?.name || "N/A"} đã mở lại đơn #BK${bookingIdShort}. Check-in: ${checkInDate}. Vui lòng kiểm tra trạng thái thanh toán trong tài khoản của bạn.`,
+      bookingId,
+      "Booking"
+    );
+  } catch (error) {
+    console.error("Lỗi khi tạo thông báo mở lại đơn cho guest:", error);
+  }
+};
+
 module.exports = {
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
+  notifyGuestBookingReopened,
   notifyGuestRefundProcessed,
   notifyGuestQrPaymentRejected,
   notifyGuestQrProofResubmitRequired,

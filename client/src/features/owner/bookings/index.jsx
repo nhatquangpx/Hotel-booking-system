@@ -39,10 +39,12 @@ const OwnerBookingListPage = () => {
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showReopenModal, setShowReopenModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [refundProofFile, setRefundProofFile] = useState(null);
   const [rejectionType, setRejectionType] = useState('');
+  const [reopenReason, setReopenReason] = useState('');
   const [lateCheckoutFeeAmount, setLateCheckoutFeeAmount] = useState('');
   const [lateCheckoutFeeNote, setLateCheckoutFeeNote] = useState('');
   const [lateCheckoutOfflineConfirmed, setLateCheckoutOfflineConfirmed] = useState(false);
@@ -204,15 +206,23 @@ const OwnerBookingListPage = () => {
     setShowRejectModal(true);
   };
 
+  const openReopenModal = (booking) => {
+    setSelectedBooking(booking);
+    setReopenReason('');
+    setShowReopenModal(true);
+  };
+
   const closeModals = () => {
     setShowConfirmModal(false);
     setShowCheckInModal(false);
     setShowCheckOutModal(false);
     setShowRefundModal(false);
     setShowRejectModal(false);
+    setShowReopenModal(false);
     setSelectedBooking(null);
     setRefundProofFile(null);
     setRejectionType('');
+    setReopenReason('');
     setLateCheckoutFeeAmount('');
     setLateCheckoutFeeNote('');
     setLateCheckoutOfflineConfirmed(false);
@@ -330,6 +340,26 @@ const OwnerBookingListPage = () => {
     }
   };
 
+  const handleReopenBooking = async () => {
+    if (!selectedBooking) return;
+
+    try {
+      setProcessing(true);
+      setError(null);
+      const data = await api.ownerBooking.reopenCancelledBooking(
+        selectedBooking._id,
+        reopenReason.trim()
+      );
+      await reloadBookings();
+      closeModals();
+      toast.success(data?.message || 'Đã mở lại đơn đặt phòng');
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi mở lại đơn'));
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const openDetailModal = async (bookingId) => {
     try {
       setShowDetailModal(true);
@@ -376,6 +406,7 @@ const OwnerBookingListPage = () => {
     onOpenCheckOut: openCheckOutModal,
     onOpenRefund: openRefundModal,
     onOpenReject: openRejectModal,
+    onOpenReopen: openReopenModal,
     onPreviewProof: handlePreviewProof,
   };
 
@@ -421,7 +452,8 @@ const OwnerBookingListPage = () => {
                   <strong>Xác nhận thanh toán</strong>
                   <p>
                     Ưu tiên đơn QR đã gửi minh chứng; dùng bộ lọc trong từng mục để thu hẹp danh sách. Minh chứng QR
-                    không hợp lệ: yêu cầu tải lại; chưa thành công: hủy đơn.
+                    không hợp lệ: yêu cầu tải lại; chưa thành công: hủy đơn. Nếu tiền về chậm (VNPay/QR) sau khi hủy,
+                    dùng <strong>Mở lại đơn</strong> rồi xác nhận thanh toán.
                   </p>
                 </div>
               </div>
@@ -566,6 +598,7 @@ const OwnerBookingListPage = () => {
                   onOpenCheckOut={openCheckOutModal}
                   onOpenRefund={openRefundModal}
                   onOpenReject={openRejectModal}
+                  onOpenReopen={openReopenModal}
                   onPreviewProof={handlePreviewProof}
                 />
               ))}
@@ -681,6 +714,22 @@ const OwnerBookingListPage = () => {
           disableConfirm={!rejectionType}
           disableReason={!rejectionType ? 'Vui lòng chọn một trong hai lý do' : ''}
         />
+
+        <OwnerBookingActionModal
+          show={showReopenModal}
+          title="Mở lại đơn đã hủy"
+          prompt="Xác nhận mở lại đơn đặt phòng của"
+          booking={selectedBooking}
+          processing={processing}
+          confirmText="Mở lại đơn"
+          onConfirm={handleReopenBooking}
+          onClose={closeModals}
+          onPreviewProof={handlePreviewProof}
+          showReopenReason
+          reopenReason={reopenReason}
+          onReopenReasonChange={setReopenReason}
+        />
+
         <OwnerBookingDetailModal
           show={showDetailModal}
           loading={detailLoading}

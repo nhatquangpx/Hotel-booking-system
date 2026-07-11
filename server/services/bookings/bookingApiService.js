@@ -7,6 +7,7 @@ const {
   notifyPaymentSuccessful,
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
+  notifyGuestBookingReopened,
   notifyAdminHighValueBooking,
 } = require("../notifications");
 const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../emails");
@@ -208,6 +209,32 @@ async function rejectQrPayment({ id, user, rejectionType }) {
   };
 }
 
+async function reopenCancelledBooking({ id, user, reason }) {
+  if (user.role !== "owner") {
+    throw new ServiceError(403, "Chỉ chủ khách sạn mới được mở lại đơn đã hủy.");
+  }
+
+  const booking = await bookingService.reopenOwnerCancelledBooking(id, user, { reason });
+
+  notifyGuestBookingReopened(id).catch((err) =>
+    console.error("Lỗi khi tạo thông báo mở lại đơn cho guest:", err)
+  );
+
+  return {
+    status: 200,
+    body: {
+      message: booking.vnpayPaidAt
+        ? "Đã mở lại đơn. VNPay đã ghi nhận thanh toán — hãy xác minh nếu tiền đã về tài khoản."
+        : booking.qrPaymentProofUrl
+          ? "Đã mở lại đơn. Vui lòng xác nhận thanh toán nếu đã nhận đủ tiền."
+          : booking.paymentMethod === "vnpay"
+            ? "Đã mở lại đơn. Khách cần thanh toán VNPay lại trong thời gian giữ phòng mới."
+            : "Đã mở lại đơn. Khách có thể tiếp tục thanh toán trong thời gian giữ phòng mới.",
+      booking,
+    },
+  };
+}
+
 async function checkInWithNotification({ id, user, staff = false }) {
   const booking = staff
     ? await bookingService.staffCheckIn(id, user)
@@ -246,6 +273,7 @@ module.exports = {
   cancelBooking,
   confirmGuestRefund,
   rejectQrPayment,
+  reopenCancelledBooking,
   checkInWithNotification,
   checkOutWithNotification,
 };

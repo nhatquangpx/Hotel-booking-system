@@ -63,6 +63,33 @@ describe("Payment — thanh toán guest (black box)", () => {
         .send({ bookingId });
       expect(res.status).toBe(400);
     });
+
+    it("từ chối tạo URL khi đã có vnpayPaidAt (tránh trừ tiền trùng)", async () => {
+      const Booking = require("../models/Booking");
+      const guest = await authedRequest(app, data.credentials.guest);
+      const dates = data.futureStayDates({ checkInOffset: 14, nights: 2 });
+      const createRes = await createGuestBooking(guest, {
+        hotelId: data.hotelId,
+        roomId: data.roomId,
+        checkInDate: dates.checkInDate,
+        checkOutDate: dates.checkOutDate,
+        paymentMethod: "vnpay",
+      });
+      expect(createRes.status).toBe(201);
+      const bookingId = createRes.body._id;
+
+      await Booking.findByIdAndUpdate(bookingId, {
+        vnpayPaidAt: new Date(),
+        vnpTransactionRef: "VNP-ALREADY-PAID",
+        $unset: { pendingExpiresAt: "" },
+      });
+
+      const res = await guest
+        .post("/api/payment/vnpay/create-payment-url")
+        .send({ bookingId });
+      expect(res.status).toBe(400);
+      expect(String(res.body.message || "")).toMatch(/đã ghi nhận thanh toán VNPay/i);
+    });
   });
 
   describe("POST /qr/confirm-payment", () => {

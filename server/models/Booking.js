@@ -167,6 +167,19 @@ const BookingSchema = new mongoose.Schema(
     pendingExpiresAt: {
       type: Date,
     },
+    /** Chủ KS mở lại đơn đã hủy (lỗi thanh toán chậm, VNPay trễ, …). */
+    reopenedAt: {
+      type: Date,
+    },
+    reopenedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    reopenReason: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+    },
   },
   { timestamps: true }
 );

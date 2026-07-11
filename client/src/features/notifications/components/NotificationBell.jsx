@@ -43,6 +43,7 @@ const NotificationBell = () => {
     switch (type) {
       case 'new_booking':
       case 'booking_confirmed':
+      case 'booking_reopened':
       case 'checkin_today':
       case 'checkout_today':
         return <FaCalendarAlt />;

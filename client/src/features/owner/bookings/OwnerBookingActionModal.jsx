@@ -29,6 +29,9 @@ const OwnerBookingActionModal = ({
   showRejectionTypeSelect = false,
   rejectionType = '',
   onRejectionTypeChange = null,
+  showReopenReason = false,
+  reopenReason = '',
+  onReopenReasonChange = null,
 }) => {
   if (!show || !booking) return null;
 
@@ -221,6 +224,38 @@ const OwnerBookingActionModal = ({
             {selectedOption && (
               <p className="rejection-reason-hint">
                 Khách sẽ nhận thông báo và email với lý do: <strong>{selectedOption.label}</strong>.
+              </p>
+            )}
+          </div>
+        )}
+
+        {showReopenReason && (
+          <div className="modal-reopen-reason-block">
+            <label className="reopen-reason-label" htmlFor="reopen-reason">
+              Lý do mở lại (tùy chọn)
+            </label>
+            <textarea
+              id="reopen-reason"
+              className="reopen-reason-textarea"
+              rows={3}
+              maxLength={500}
+              placeholder="Ví dụ: VNPay chuyển tiền muộn / đối soát QR chậm / hết hạn giữ phòng nhầm…"
+              value={reopenReason}
+              onChange={(e) => onReopenReasonChange?.(e.target.value)}
+            />
+            {booking.vnpayPaidAt && (
+              <p className="reopen-reason-hint">
+                Hệ thống đã ghi nhận VNPay đã trừ tiền. Sau khi mở lại, hãy xác minh thanh toán nếu tiền đã về tài khoản.
+              </p>
+            )}
+            {booking.paymentMethod === 'vnpay' && !booking.vnpayPaidAt && (
+              <p className="reopen-reason-hint">
+                Đơn VNPay chưa có ghi nhận thanh toán thành công. Sau khi mở lại, khách cần thanh toán VNPay lại trước khi bạn xác minh.
+              </p>
+            )}
+            {booking.paymentMethod === 'qr_code' && booking.qrPaymentProofUrl && (
+              <p className="reopen-reason-hint">
+                Đơn còn minh chứng QR. Sau khi mở lại, bạn có thể xác nhận thanh toán nếu đã nhận đủ tiền.
               </p>
             )}
           </div>
