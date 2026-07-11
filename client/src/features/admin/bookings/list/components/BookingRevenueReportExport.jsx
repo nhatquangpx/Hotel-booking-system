@@ -50,9 +50,10 @@ const BookingRevenueReportExport = ({ hotels = [] }) => {
             ngày, rồi bấm « Tải file Excel ».
           </p>
           <p>
-            <strong>Nội dung file:</strong> có hai phần — <em>Tổng hợp kỳ</em> (tổng số phòng, doanh thu, số
-            đơn và đêm phòng bán trong cả kỳ) và <em>Chi tiết theo ngày</em>. Doanh thu và số đơn được tính
-            theo <strong>ngày tạo đơn</strong>, chỉ các đơn <strong>đã thanh toán</strong>.
+            <strong>Nội dung file:</strong> sheet <em>Tổng quan</em> (doanh thu, số đêm đã bán, tỷ lệ phòng có
+            khách, giá TB mỗi đêm, doanh thu TB mỗi phòng/ngày; chi tiết từng ngày + đơn đặt mới) và sheet{' '}
+            <em>Theo loại phòng</em> (so sánh hiệu quả từng loại). File có mục <strong>Chú thích</strong>. Doanh
+            thu tính theo <strong>từng đêm khách ở</strong>, chỉ đơn <strong>đã thanh toán</strong>.
           </p>
         </div>
       </div>

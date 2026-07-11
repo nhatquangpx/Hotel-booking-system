@@ -1,0 +1,81 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.owner-bar-chart {
+  width: 100%;
+
+  &__empty {
+    @include body-sm;
+    color: $text-secondary;
+    margin: 0.5rem 0 0;
+  }
+
+  &__canvas {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  &__svg {
+    width: 100%;
+    height: 300px;
+    min-width: 420px;
+    flex: 1 1 auto;
+  }
+
+  &__axis {
+    @include body-xs;
+    fill: $text-secondary;
+    font-size: 10px;
+    font-weight: $font-medium;
+
+    &--tilted {
+      font-size: 9px;
+    }
+  }
+
+  &__bar {
+    fill: #d4af37;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 0.82;
+    }
+  }
+
+  &__bar-label {
+    @include body-xs;
+    fill: $text-primary;
+    font-size: 9px;
+    font-weight: $font-medium;
+    pointer-events: none;
+  }
+
+  &__tooltip {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    background: #1f2937;
+    color: #fff;
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+
+    strong {
+      font-size: 0.75rem;
+      font-weight: $font-semibold;
+    }
+
+    span {
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}

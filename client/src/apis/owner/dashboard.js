@@ -1,13 +1,18 @@
 import api from '../config/axios';
 
-const hotelParams = (hotelId) => {
-  const params = {};
+const hotelParams = (hotelId, extra = {}) => {
+  const params = { ...extra };
   if (hotelId) params.hotelId = hotelId;
   return { params };
 };
 
+export const CHART_PERIODS = {
+  WEEK: 'week',
+  MONTH: 'month',
+  YEAR: 'year',
+};
+
 export const ownerDashboardAPI = {
-  // Lấy thống kê tổng quan
   getStats: async (hotelId) => {
     try {
       const response = await api.get('/owner/dashboard/stats', hotelParams(hotelId));
@@ -17,27 +22,47 @@ export const ownerDashboardAPI = {
     }
   },
 
-  // Lấy doanh thu tuần này
-  getWeeklyRevenue: async (hotelId) => {
+  /**
+   * Doanh thu theo kỳ.
+   * @param {string} hotelId
+   * @param {{ period?: string, offset?: number }} opts
+   */
+  getWeeklyRevenue: async (hotelId, opts = {}) => {
     try {
-      const response = await api.get('/owner/dashboard/revenue', hotelParams(hotelId));
+      const response = await api.get(
+        '/owner/dashboard/revenue',
+        hotelParams(hotelId, {
+          period: opts.period || 'week',
+          offset: opts.offset ?? 0,
+        })
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // Lấy công suất phòng
-  getRoomOccupancy: async (hotelId) => {
+  /**
+   * Công suất phòng theo kỳ + loại phòng.
+   * @param {string} hotelId
+   * @param {{ period?: string, offset?: number, roomType?: string }} opts
+   */
+  getRoomOccupancy: async (hotelId, opts = {}) => {
     try {
-      const response = await api.get('/owner/dashboard/rooms', hotelParams(hotelId));
+      const response = await api.get(
+        '/owner/dashboard/rooms',
+        hotelParams(hotelId, {
+          period: opts.period || 'week',
+          offset: opts.offset ?? 0,
+          ...(opts.roomType ? { roomType: opts.roomType } : {}),
+        })
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // Lấy danh sách công việc hôm nay
   getTodayTasks: async (hotelId) => {
     try {
       const response = await api.get('/owner/dashboard/tasks', hotelParams(hotelId));
@@ -47,14 +72,13 @@ export const ownerDashboardAPI = {
     }
   },
 
-  /** Xuất báo cáo Excel (.xlsx). */
   downloadReportExcel: async ({ hotelId, from, to }) => {
     const params = { from, to };
     if (hotelId) params.hotelId = hotelId;
     try {
       const response = await api.get('/owner/reports/export', {
         params,
-        responseType: 'blob'
+        responseType: 'blob',
       });
       const blob = response.data;
       let filename = 'bao-cao-owner.xlsx';
@@ -79,7 +103,6 @@ export const ownerDashboardAPI = {
     }
   },
 
-  // Lấy thông tin khách sạn (đã chọn trong context hoặc mặc định đầu tiên)
   getHotelInfo: async (hotelId) => {
     try {
       const response = await api.get('/owner/hotels');
@@ -95,8 +118,7 @@ export const ownerDashboardAPI = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
 };
 
 export default ownerDashboardAPI;
-

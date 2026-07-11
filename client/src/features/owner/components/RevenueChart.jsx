@@ -1,137 +1,76 @@
 import React from 'react';
+import OwnerBarChart from './OwnerBarChart';
+import ChartPeriodToolbar from './ChartPeriodToolbar';
 import './RevenueChart.scss';
 
+const formatTick = (value) => {
+  const n = Number(value) || 0;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
+  return n.toLocaleString('vi-VN');
+};
+
+const formatExact = (value) =>
+  `${Math.round(Number(value) || 0).toLocaleString('vi-VN')} VNĐ`;
+
 /**
- * RevenueChart Component
- * Displays weekly revenue as a line chart
- * @param {Array} data - Array of { day, value } objects
+ * Biểu đồ cột doanh thu — filter tuần/tháng/năm + điều hướng kỳ.
  */
-const RevenueChart = ({ data = [], title = 'Doanh thu tuần này' }) => {
-  // Default data if none provided
-  const defaultData = [
-    { day: 'T2', value: 4500000 },
-    { day: 'T3', value: 5200000 },
-    { day: 'T4', value: 3800000 },
-    { day: 'T5', value: 6100000 },
-    { day: 'T6', value: 7200000 },
-    { day: 'T7', value: 8500000 },
-    { day: 'CN', value: 7800000 },
-  ];
-
-  const chartData = data.length > 0 ? data : defaultData;
-  const maxValue = Math.max(...chartData.map(d => d.value), 10000000);
-  const minValue = 0;
-
-  const getYPosition = (value) => {
-    const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
-    return 100 - percentage; // Invert for SVG coordinates
-  };
-
-  const points = chartData.map((d, index) => {
-    const x = (index / (chartData.length - 1)) * 100;
-    const y = getYPosition(d.value);
-    return `${x},${y}`;
-  }).join(' ');
-
-  const formatValue = (value) => {
-    if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`;
-    }
-    return value.toLocaleString('vi-VN');
-  };
+const RevenueChart = ({
+  data = [],
+  title = 'Doanh thu',
+  period = 'week',
+  offset = 0,
+  periodLabel = '',
+  canGoNext = false,
+  loading = false,
+  onPeriodChange,
+  onOffsetChange,
+}) => {
+  const series = (data || []).map((d) => ({
+    key: d.key || d.day,
+    label: d.label || d.day,
+    value: d.value,
+  }));
 
   return (
-    <div className="revenue-chart">
-      <h3 className="chart-title">{title}</h3>
-      <div className="chart-container">
-        <svg viewBox="0 0 450 250" className="chart-svg" preserveAspectRatio="xMidYMid meet">
-          {/* Grid lines */}
-          {[0, 25, 50, 75, 100].map((y) => (
-            <line
-              key={y}
-              x1="50"
-              y1={y * 2 + 20}
-              x2="400"
-              y2={y * 2 + 20}
-              stroke="#e0e0e0"
-              strokeWidth="1"
-            />
-          ))}
-          
-          {/* Y-axis labels */}
-          {[0, 2500000, 5000000, 7500000, 10000000].map((value, index) => {
-            const y = 220 - (index * 50);
-            return (
-              <text
-                key={value}
-                x="45"
-                y={y}
-                className="axis-label"
-                textAnchor="end"
-              >
-                {formatValue(value)}
-              </text>
-            );
-          })}
+    <div className="revenue-chart owner-chart-card">
+      <div className="owner-chart-card__header">
+        <h3 className="chart-title">{title}</h3>
+        <p className="owner-chart-card__subtitle">
+          Tiền thu được theo từng đêm khách ở (chỉ đơn đã thanh toán)
+        </p>
+      </div>
 
-          {/* Line path */}
-          <polyline
-            points={chartData.map((d, index) => {
-              const x = 50 + (index / (chartData.length - 1)) * 350;
-              const y = 20 + getYPosition(d.value) * 2;
-              return `${x},${y}`;
-            }).join(' ')}
-            fill="none"
-            stroke="#D4AF37"
-            strokeWidth="3"
-            className="chart-line"
+      <div className="owner-chart-card__toolbar">
+        <ChartPeriodToolbar
+          period={period}
+          offset={offset}
+          label={periodLabel}
+          canGoNext={canGoNext}
+          disabled={loading}
+          onPeriodChange={onPeriodChange}
+          onOffsetChange={onOffsetChange}
+        />
+      </div>
+
+      {/* Giữ chỗ cùng chiều cao với filter loại phòng bên biểu đồ phải */}
+      <div className="owner-chart-card__filters" aria-hidden="true" />
+
+      <div className="owner-chart-card__body">
+        {loading ? (
+          <p className="owner-chart-card__loading">Đang tải…</p>
+        ) : (
+          <OwnerBarChart
+            data={series}
+            formatTick={formatTick}
+            formatExact={formatExact}
+            emptyText="Chưa có doanh thu trong kỳ"
           />
-
-          {/* Data points */}
-          {chartData.map((d, index) => {
-            const x = 50 + (index / (chartData.length - 1)) * 350;
-            const y = 20 + getYPosition(d.value) * 2;
-            return (
-              <g key={index}>
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="5"
-                  fill="#D4AF37"
-                  className="data-point"
-                />
-                <text
-                  x={x}
-                  y={y - 10}
-                  className="data-label"
-                  textAnchor="middle"
-                >
-                  {formatValue(d.value)}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* X-axis labels */}
-          {chartData.map((d, index) => {
-            const x = 50 + (index / (chartData.length - 1)) * 350;
-            return (
-              <text
-                key={index}
-                x={x}
-                y="240"
-                className="axis-label"
-                textAnchor="middle"
-              >
-                {d.day}
-              </text>
-            );
-          })}
-        </svg>
+        )}
       </div>
     </div>
   );
 };
 
 export default RevenueChart;
-

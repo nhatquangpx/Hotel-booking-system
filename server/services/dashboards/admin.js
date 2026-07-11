@@ -5,6 +5,7 @@ const Booking = require('../../models/Booking');
 const ContactMessage = require('../../models/ContactMessage');
 const { bookingRevenueSumExpr } = require('../bookings/bookingAmount');
 const { startOfDayReportTz } = require('../reports/reportTz');
+const { aggregateStayRevenueByHotel } = require('../reports/stayRevenueAggregate');
 const { ServiceError } = require('../../lib/http/serviceError');
 
 const PAYMENT_STATUS_LABELS = {
@@ -181,56 +182,33 @@ const getRecentActivities = async () => {
 };
 
 /**
- * Doanh thu theo khách sạn trong kỳ (đơn đã thanh toán, theo ngày tạo đơn).
+ * Doanh thu theo khách sạn trong kỳ (đơn đã thanh toán, phân bổ theo đêm lưu trú).
  * @returns {Promise<{ period, periodLabel, hotels: Array<{ hotelId, hotelName, revenue, bookingCount }> }>}
  */
 const getRevenueByHotel = async (period = 'week') => {
   const { period: normalized, periodLabel, start, endExclusive } = getPeriodDateRange(period);
 
-  const rows = await Booking.aggregate([
-    {
-      $match: {
-        paymentStatus: 'paid',
-        createdAt: { $gte: start, $lt: endExclusive },
-        hotel: { $ne: null },
-      },
-    },
-    {
-      $group: {
-        _id: '$hotel',
-        revenue: { $sum: bookingRevenueSumExpr },
-        bookingCount: { $sum: 1 },
-      },
-    },
-    {
-      $lookup: {
-        from: 'hotels',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'hotelDoc',
-      },
-    },
-    { $unwind: { path: '$hotelDoc', preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        hotelId: '$_id',
-        hotelName: { $ifNull: ['$hotelDoc.name', 'Khách sạn không xác định'] },
-        revenue: 1,
-        bookingCount: 1,
-      },
-    },
-    { $sort: { revenue: -1, hotelName: 1 } },
-  ]);
+  const stayRows = await aggregateStayRevenueByHotel(start, endExclusive);
+
+  const hotelIds = stayRows.map((row) => row._id).filter(Boolean);
+  const hotelDocs = hotelIds.length
+    ? await Hotel.find({ _id: { $in: hotelIds } }).select('name').lean()
+    : [];
+  const nameById = new Map(hotelDocs.map((h) => [String(h._id), h.name]));
+
+  const hotels = stayRows
+    .map((row) => ({
+      hotelId: String(row._id),
+      hotelName: nameById.get(String(row._id)) || 'Khách sạn không xác định',
+      revenue: row.revenue || 0,
+      bookingCount: row.bookingCount || 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue || a.hotelName.localeCompare(b.hotelName, 'vi'));
 
   return {
     period: normalized,
     periodLabel,
-    hotels: rows.map((row) => ({
-      hotelId: String(row.hotelId),
-      hotelName: row.hotelName,
-      revenue: row.revenue || 0,
-      bookingCount: row.bookingCount || 0,
-    })),
+    hotels,
   };
 };
 

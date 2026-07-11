@@ -1,8 +1,6 @@
 const Hotel = require('../../models/Hotel');
-const Room = require('../../models/Room');
-const Booking = require('../../models/Booking');
 const { startOfDayReportTz, REPORT_TZ } = require('../reports/reportTz');
-const { bookingRevenueSumExpr } = require('../bookings/bookingAmount');
+const { sumStayRevenueInRange } = require('../reports/stayRevenueAggregate');
 
 /**
  * Dashboard Core Service
@@ -69,57 +67,27 @@ const getDateRangeForDay = (daysAgo) => {
 };
 
 /**
- * Calculate revenue for bookings created in a date range
+ * Doanh thu trong khoảng ngày theo hiệu suất phòng:
+ * finalAmount chia đều cho mỗi đêm lưu trú; chỉ cộng các đêm nằm trong [startDate, endDate).
  * @param {Array} hotelIds - Array of hotel ObjectIds
- * @param {Date} startDate - Start date
- * @param {Date} endDate - End date
+ * @param {Date} startDate - Start date (inclusive)
+ * @param {Date} endDate - End date (exclusive)
  * @returns {Promise<Number>} Total revenue
  */
 const calculateRevenueInRange = async (hotelIds, startDate, endDate) => {
-  const result = await Booking.aggregate([
-    {
-      $match: {
-        hotel: { $in: hotelIds },
-        paymentStatus: 'paid',
-        createdAt: { $gte: startDate, $lt: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: bookingRevenueSumExpr }
-      }
-    }
-  ]);
-  return result[0]?.total || 0;
+  if (!hotelIds?.length) return 0;
+  return sumStayRevenueInRange(hotelIds, startDate, endDate);
 };
 
 /**
- * Calculate revenue for bookings that overlap with a date range
- * (for occupancy/revenue stats)
+ * Alias — cùng logic phân bổ theo đêm lưu trú với calculateRevenueInRange.
  * @param {Array} hotelIds - Array of hotel ObjectIds
  * @param {Date} startDate - Start date
  * @param {Date} endDate - End date
  * @returns {Promise<Number>} Total revenue
  */
 const calculateRevenueForOccupiedRooms = async (hotelIds, startDate, endDate) => {
-  const result = await Booking.aggregate([
-    {
-      $match: {
-        hotel: { $in: hotelIds },
-        paymentStatus: 'paid',
-        checkInDate: { $lt: endDate },
-        checkOutDate: { $gt: startDate }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: bookingRevenueSumExpr }
-      }
-    }
-  ]);
-  return result[0]?.total || 0;
+  return calculateRevenueInRange(hotelIds, startDate, endDate);
 };
 
 module.exports = {

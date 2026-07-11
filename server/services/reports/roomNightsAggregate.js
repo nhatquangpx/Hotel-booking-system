@@ -3,47 +3,56 @@ const { REPORT_TZ } = require('./reportTz');
 
 /**
  * Tổng đêm phòng trong kỳ + map YYYY-MM-DD → số đêm (REPORT_TZ), dùng MongoDB aggregation.
- * Tránh O(bookings × nights) trong JS khi admin chọn nhiều khách sạn / nhiều booking.
- * Yêu cầu MongoDB ≥ 5.0 ($dateTrunc, $dateDiff, $range theo pipeline hiện tại).
- *
+ * @param {Array} hotelIds
+ * @param {Date} rangeStart
+ * @param {Date} rangeEndExclusive
+ * @param {{ roomIds?: Array }} [options] — nếu có roomIds thì chỉ đếm đơn của các phòng đó
  * @returns {{ totalRoomNights: number, nightMap: Map<string, number> }}
  */
-async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive) {
+async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive, options = {}) {
   if (!hotelIds.length) {
     return { totalRoomNights: 0, nightMap: new Map() };
   }
 
+  const { roomIds } = options;
+  if (Array.isArray(roomIds) && roomIds.length === 0) {
+    return { totalRoomNights: 0, nightMap: new Map() };
+  }
+
+  const match = {
+    hotel: { $in: hotelIds },
+    paymentStatus: 'paid',
+    checkInDate: { $lt: rangeEndExclusive },
+    checkOutDate: { $gt: rangeStart },
+  };
+  if (Array.isArray(roomIds) && roomIds.length > 0) {
+    match.room = { $in: roomIds };
+  }
+
   const pipeline = [
-    {
-      $match: {
-        hotel: { $in: hotelIds },
-        paymentStatus: 'paid',
-        checkInDate: { $lt: rangeEndExclusive },
-        checkOutDate: { $gt: rangeStart }
-      }
-    },
+    { $match: match },
     {
       $addFields: {
         rs: { $literal: rangeStart },
-        re: { $literal: rangeEndExclusive }
-      }
+        re: { $literal: rangeEndExclusive },
+      },
     },
     {
       $addFields: {
         ci: { $dateTrunc: { date: '$checkInDate', unit: 'day', timezone: REPORT_TZ } },
-        co: { $dateTrunc: { date: '$checkOutDate', unit: 'day', timezone: REPORT_TZ } }
-      }
+        co: { $dateTrunc: { date: '$checkOutDate', unit: 'day', timezone: REPORT_TZ } },
+      },
     },
     {
       $addFields: {
         segStart: { $cond: [{ $gt: ['$ci', '$rs'] }, '$ci', '$rs'] },
-        segEnd: { $cond: [{ $lt: ['$co', '$re'] }, '$co', '$re'] }
-      }
+        segEnd: { $cond: [{ $lt: ['$co', '$re'] }, '$co', '$re'] },
+      },
     },
     {
       $match: {
-        $expr: { $lt: ['$segStart', '$segEnd'] }
-      }
+        $expr: { $lt: ['$segStart', '$segEnd'] },
+      },
     },
     {
       $addFields: {
@@ -51,13 +60,13 @@ async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive) 
           $dateDiff: {
             startDate: '$segStart',
             endDate: '$segEnd',
-            unit: 'day'
-          }
-        }
-      }
+            unit: 'day',
+          },
+        },
+      },
     },
     {
-      $match: { nightCount: { $gt: 0 } }
+      $match: { nightCount: { $gt: 0 } },
     },
     {
       $facet: {
@@ -65,15 +74,15 @@ async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive) 
           {
             $group: {
               _id: null,
-              totalRoomNights: { $sum: '$nightCount' }
-            }
-          }
+              totalRoomNights: { $sum: '$nightCount' },
+            },
+          },
         ],
         byDayPipeline: [
           {
             $addFields: {
-              offsets: { $range: [0, '$nightCount'] }
-            }
+              offsets: { $range: [0, '$nightCount'] },
+            },
           },
           { $unwind: '$offsets' },
           {
@@ -83,10 +92,10 @@ async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive) 
                   startDate: '$segStart',
                   unit: 'day',
                   amount: '$offsets',
-                  timezone: REPORT_TZ
-                }
-              }
-            }
+                  timezone: REPORT_TZ,
+                },
+              },
+            },
           },
           {
             $group: {
@@ -94,15 +103,15 @@ async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive) 
                 $dateToString: {
                   format: '%Y-%m-%d',
                   date: '$nightDate',
-                  timezone: REPORT_TZ
-                }
+                  timezone: REPORT_TZ,
+                },
               },
-              roomNights: { $sum: 1 }
-            }
-          }
-        ]
-      }
-    }
+              roomNights: { $sum: 1 },
+            },
+          },
+        ],
+      },
+    },
   ];
 
   const rows = await Booking.aggregate(pipeline).allowDiskUse(true);
@@ -120,5 +129,5 @@ async function aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive) 
 }
 
 module.exports = {
-  aggregateRoomNightStats
+  aggregateRoomNightStats,
 };

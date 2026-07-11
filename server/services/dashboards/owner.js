@@ -5,14 +5,19 @@ const Review = require('../../models/Review');
 const SalePromotion = require('../../models/SalePromotion');
 const { vnDateKey, activeSaleOnDateFilter } = require('../sale/saleShared');
 const {
-  DAYS_OF_WEEK,
   getScopedHotelIdsForOwner,
   getTodayDateRange,
-  getDateRangeForDay,
   calculateRevenueInRange,
 } = require('./core');
 const { aggregateRoomNightStats } = require('../reports/roomNightsAggregate');
-const { startOfDayReportTz } = require('../reports/reportTz');
+const { aggregateStayRevenueStats } = require('../reports/stayRevenueAggregate');
+const {
+  resolveChartPeriodRange,
+  buildPeriodSeries,
+  buildOccupancySeries,
+} = require('./periodRange');
+const { ROOM_TYPES, formatRoomTypeVi } = require('../rooms/roomTypes');
+const { ServiceError } = require('../../lib/http/serviceError');
 
 /**
  * Owner Dashboard Service
@@ -115,79 +120,108 @@ const getDashboardStats = async (ownerId, hotelId) => {
   };
 };
 
+const emptyChartPayload = (rangeMeta) => ({
+  period: rangeMeta.period,
+  offset: rangeMeta.offset,
+  label: rangeMeta.label,
+  from: rangeMeta.fromStr,
+  to: rangeMeta.toStr,
+  canGoNext: rangeMeta.canGoNext,
+  series: [],
+});
+
 /**
- * Get weekly revenue statistics (last 7 days)
- * @param {String} ownerId - Owner user ID
- * @param {String|null} hotelId - optional: one hotel (must belong to owner)
- * @returns {Promise<Array>} Array of { day, value } objects
+ * Doanh thu theo kỳ (tuần/tháng/năm) + offset — phân bổ theo đêm lưu trú.
+ * @returns {Promise<{ period, offset, label, from, to, canGoNext, series: Array<{ key, label, day, value }> }>}
  */
-const getWeeklyRevenue = async (ownerId, hotelId) => {
+const getWeeklyRevenue = async (ownerId, hotelId, period = 'week', offset = 0) => {
+  const rangeMeta = resolveChartPeriodRange(period, offset);
   const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
 
   if (hotelIds.length === 0) {
-    return [];
+    return emptyChartPayload(rangeMeta);
   }
 
-  const revenueData = [];
-  
-  for (let i = 6; i >= 0; i--) {
-    const { date, nextDate } = getDateRangeForDay(i);
-    const dayRevenue = await calculateRevenueInRange(hotelIds, date, nextDate);
-    const dayIndex = date.getDay();
-    
-    revenueData.push({
-      day: DAYS_OF_WEEK[dayIndex],
-      value: dayRevenue
-    });
-  }
+  const { revenueMap } = await aggregateStayRevenueStats(
+    hotelIds,
+    rangeMeta.rangeStart,
+    rangeMeta.rangeEndExclusive
+  );
 
-  return revenueData;
+  const series = buildPeriodSeries(rangeMeta, revenueMap).map((item) => ({
+    ...item,
+    day: item.label,
+  }));
+
+  return {
+    period: rangeMeta.period,
+    offset: rangeMeta.offset,
+    label: rangeMeta.label,
+    from: rangeMeta.fromStr,
+    to: rangeMeta.toStr,
+    canGoNext: rangeMeta.canGoNext,
+    series,
+  };
 };
 
 /**
- * Công suất phòng 7 ngày qua (%): đêm phòng bán / tổng phòng, theo check-in/check-out.
- * @param {String} ownerId - Owner user ID
- * @returns {Promise<Array>} Array of { day, value } — value là % (0–100)
+ * Công suất phòng theo kỳ + filter loại phòng.
+ * @param {String} roomType — '' | standard|deluxe|... (mặc định tất cả)
  */
-const getRoomOccupancy = async (ownerId, hotelId) => {
-  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId);
+const getRoomOccupancy = async (ownerId, hotelId, period = 'week', offset = 0, roomType = '') => {
+  const rangeMeta = resolveChartPeriodRange(period, offset);
+  const hotelIds = await getScopedHotelIdsForOwner(ownerId, hotelId || null);
+
+  const normalizedType = String(roomType || '').trim().toLowerCase();
+  if (normalizedType && !ROOM_TYPES.includes(normalizedType)) {
+    throw new ServiceError(400, `roomType không hợp lệ: ${normalizedType}`);
+  }
 
   if (hotelIds.length === 0) {
-    return [];
+    return {
+      ...emptyChartPayload(rangeMeta),
+      roomType: normalizedType || '',
+      roomTypeLabel: normalizedType ? formatRoomTypeVi(normalizedType) : 'Tất cả loại phòng',
+      roomCount: 0,
+    };
   }
 
-  const todayStart = startOfDayReportTz();
-  const rangeStart = todayStart.subtract(6, 'day').toDate();
-  const rangeEndExclusive = todayStart.add(1, 'day').toDate();
-
-  const [totalRooms, { nightMap }] = await Promise.all([
-    Room.countDocuments({ hotelId: { $in: hotelIds }, roomStatus: 'active' }),
-    aggregateRoomNightStats(hotelIds, rangeStart, rangeEndExclusive),
-  ]);
-
-  const denominator = totalRooms > 0
-    ? totalRooms
-    : await Room.countDocuments({ hotelId: { $in: hotelIds } });
-
-  const occupancyData = [];
-
-  for (let i = 6; i >= 0; i--) {
-    const dayStart = todayStart.subtract(i, 'day');
-    const key = dayStart.format('YYYY-MM-DD');
-    const roomNights = nightMap.get(key) || 0;
-    const occupiedRooms = denominator > 0 ? Math.min(roomNights, denominator) : 0;
-    const rate =
-      denominator > 0
-        ? Math.min(100, Math.round((occupiedRooms / denominator) * 100))
-        : 0;
-
-    occupancyData.push({
-      day: DAYS_OF_WEEK[dayStart.day()],
-      value: rate,
-    });
+  const roomFilter = {
+    hotelId: { $in: hotelIds },
+    roomStatus: 'active',
+  };
+  if (normalizedType) {
+    roomFilter.type = normalizedType;
   }
 
-  return occupancyData;
+  const rooms = await Room.find(roomFilter).select('_id').lean();
+  const roomIds = rooms.map((r) => r._id);
+  const roomCount = roomIds.length;
+
+  const { nightMap } = await aggregateRoomNightStats(
+    hotelIds,
+    rangeMeta.rangeStart,
+    rangeMeta.rangeEndExclusive,
+    normalizedType ? { roomIds } : undefined
+  );
+
+  const series = buildOccupancySeries(rangeMeta, nightMap, roomCount).map((item) => ({
+    ...item,
+    day: item.label,
+  }));
+
+  return {
+    period: rangeMeta.period,
+    offset: rangeMeta.offset,
+    label: rangeMeta.label,
+    from: rangeMeta.fromStr,
+    to: rangeMeta.toStr,
+    canGoNext: rangeMeta.canGoNext,
+    roomType: normalizedType || '',
+    roomTypeLabel: normalizedType ? formatRoomTypeVi(normalizedType) : 'Tất cả loại phòng',
+    roomCount,
+    series,
+  };
 };
 
 /**

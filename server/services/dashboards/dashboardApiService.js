@@ -32,13 +32,24 @@ async function getOwnerDashboardStats({ ownerId, hotelId }) {
   return { status: 200, body };
 }
 
-async function getOwnerRevenueStats({ ownerId, hotelId }) {
-  const body = await dashboardService.getWeeklyRevenue(ownerId, hotelId || null);
+async function getOwnerRevenueStats({ ownerId, hotelId, period, offset }) {
+  const body = await dashboardService.getWeeklyRevenue(
+    ownerId,
+    hotelId || null,
+    period,
+    offset
+  );
   return { status: 200, body };
 }
 
-async function getOwnerRoomStats({ ownerId, hotelId }) {
-  const body = await dashboardService.getRoomOccupancy(ownerId, hotelId || null);
+async function getOwnerRoomStats({ ownerId, hotelId, period, offset, roomType }) {
+  const body = await dashboardService.getRoomOccupancy(
+    ownerId,
+    hotelId || null,
+    period,
+    offset,
+    roomType
+  );
   return { status: 200, body };
 }
 

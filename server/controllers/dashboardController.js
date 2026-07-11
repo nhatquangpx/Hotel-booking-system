@@ -30,6 +30,8 @@ exports.getOwnerRevenueStats = (req, res) =>
     dashboardApi.getOwnerRevenueStats({
       ownerId: req.user.id,
       hotelId: req.query.hotelId,
+      period: req.query.period,
+      offset: req.query.offset,
     })
   );
 
@@ -38,6 +40,9 @@ exports.getOwnerRoomStats = (req, res) =>
     dashboardApi.getOwnerRoomStats({
       ownerId: req.user.id,
       hotelId: req.query.hotelId,
+      period: req.query.period,
+      offset: req.query.offset,
+      roomType: req.query.roomType,
     })
   );
 

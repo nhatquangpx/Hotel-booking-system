@@ -1,0 +1,91 @@
+@use "@/styles/variables" as *;
+@use "@/styles/global" as *;
+@use "@/styles/text" as *;
+
+.chart-period-toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-height: 40px;
+  margin: 0;
+
+  &__periods {
+    display: inline-flex;
+    flex-shrink: 0;
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  &__period {
+    border: none;
+    background: transparent;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    @include body-xs;
+    font-weight: $font-semibold;
+    color: $text-secondary;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover:not(:disabled) {
+      color: $text-primary;
+    }
+
+    &.is-active {
+      background: $bg-white;
+      color: $text-primary;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  &__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  &__nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: $bg-white;
+    color: $text-primary;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: #f9fafb;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  &__label {
+    @include body-sm;
+    color: $text-primary;
+    font-weight: $font-medium;
+    text-align: center;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+  }
+}

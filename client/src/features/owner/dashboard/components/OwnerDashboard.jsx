@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { FaDollarSign, FaBed, FaWrench, FaTags, FaCommentDots, FaFileExcel, FaClipboardCheck } from 'react-icons/fa';
-import { ownerDashboardAPI } from '@/apis/owner/dashboard';
+import {
+  FaDollarSign,
+  FaBed,
+  FaWrench,
+  FaTags,
+  FaCommentDots,
+  FaFileExcel,
+  FaClipboardCheck,
+} from 'react-icons/fa';
+import { ownerDashboardAPI, CHART_PERIODS } from '@/apis/owner/dashboard';
 import { useOwnerHotel } from '@/features/owner/context/OwnerHotelContext';
 import MetricCard from '../../components/MetricCard';
 import HotelInfoCard from '../../components/HotelInfoCard';
@@ -27,6 +35,12 @@ const defaultReportRange = () => {
   return { from: formatYmd(from), to: formatYmd(to) };
 };
 
+const emptyChartMeta = {
+  series: [],
+  label: '',
+  canGoNext: false,
+};
+
 /**
  * Owner Dashboard component
  * Displays overview statistics, charts, and tasks for hotel owner
@@ -44,23 +58,35 @@ export const OwnerDashboard = () => {
     reviewsAwaitingReply: 0,
     bookingsAwaitingAction: 0,
   });
-  const [weeklyRevenue, setWeeklyRevenue] = useState([]);
-  const [roomOccupancy, setRoomOccupancy] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [reportRange, setReportRange] = useState(defaultReportRange);
   const [exportingReport, setExportingReport] = useState(false);
 
-  useEffect(() => {
-    if (hotelsLoading) {
-      return;
-    }
+  const [revenuePeriod, setRevenuePeriod] = useState(CHART_PERIODS.WEEK);
+  const [revenueOffset, setRevenueOffset] = useState(0);
+  const [revenueChart, setRevenueChart] = useState(emptyChartMeta);
+  const [revenueLoading, setRevenueLoading] = useState(false);
 
-    const fetchDashboardData = async () => {
+  const [occupancyPeriod, setOccupancyPeriod] = useState(CHART_PERIODS.WEEK);
+  const [occupancyOffset, setOccupancyOffset] = useState(0);
+  const [occupancyRoomType, setOccupancyRoomType] = useState('');
+  const [occupancyChart, setOccupancyChart] = useState(emptyChartMeta);
+  const [occupancyLoading, setOccupancyLoading] = useState(false);
+
+  useEffect(() => {
+    setRevenueOffset(0);
+    setOccupancyOffset(0);
+    setOccupancyRoomType('');
+  }, [selectedHotelId]);
+
+  useEffect(() => {
+    if (hotelsLoading) return;
+
+    const fetchBase = async () => {
       try {
         setLoading(true);
-
         if (!selectedHotelId) {
           setStats({
             todayRevenue: 0,
@@ -71,34 +97,17 @@ export const OwnerDashboard = () => {
             reviewsAwaitingReply: 0,
             bookingsAwaitingAction: 0,
           });
-          setWeeklyRevenue([]);
-          setRoomOccupancy([]);
           setTasks([]);
           return;
         }
 
-        const [statsData, revenueData, occupancyData, tasksData] = await Promise.allSettled([
+        const [statsData, tasksData] = await Promise.allSettled([
           ownerDashboardAPI.getStats(selectedHotelId),
-          ownerDashboardAPI.getWeeklyRevenue(selectedHotelId),
-          ownerDashboardAPI.getRoomOccupancy(selectedHotelId),
-          ownerDashboardAPI.getTodayTasks(selectedHotelId)
+          ownerDashboardAPI.getTodayTasks(selectedHotelId),
         ]);
 
-        if (statsData.status === 'fulfilled') {
-          setStats(statsData.value);
-        }
-
-        if (revenueData.status === 'fulfilled') {
-          setWeeklyRevenue(revenueData.value);
-        }
-
-        if (occupancyData.status === 'fulfilled') {
-          setRoomOccupancy(occupancyData.value);
-        }
-
-        if (tasksData.status === 'fulfilled') {
-          setTasks(tasksData.value);
-        }
+        if (statsData.status === 'fulfilled') setStats(statsData.value);
+        if (tasksData.status === 'fulfilled') setTasks(tasksData.value);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
@@ -106,8 +115,90 @@ export const OwnerDashboard = () => {
       }
     };
 
-    fetchDashboardData();
+    fetchBase();
   }, [selectedHotelId, hotelsLoading]);
+
+  useEffect(() => {
+    if (hotelsLoading || !selectedHotelId) {
+      setRevenueChart(emptyChartMeta);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchRevenue = async () => {
+      try {
+        setRevenueLoading(true);
+        const data = await ownerDashboardAPI.getWeeklyRevenue(selectedHotelId, {
+          period: revenuePeriod,
+          offset: revenueOffset,
+        });
+        if (cancelled) return;
+        setRevenueChart({
+          series: data.series || [],
+          label: data.label || '',
+          canGoNext: Boolean(data.canGoNext),
+        });
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setRevenueChart(emptyChartMeta);
+          toast.error(err?.message || 'Không tải được biểu đồ doanh thu');
+        }
+      } finally {
+        if (!cancelled) setRevenueLoading(false);
+      }
+    };
+
+    fetchRevenue();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedHotelId, hotelsLoading, revenuePeriod, revenueOffset]);
+
+  useEffect(() => {
+    if (hotelsLoading || !selectedHotelId) {
+      setOccupancyChart(emptyChartMeta);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchOccupancy = async () => {
+      try {
+        setOccupancyLoading(true);
+        const data = await ownerDashboardAPI.getRoomOccupancy(selectedHotelId, {
+          period: occupancyPeriod,
+          offset: occupancyOffset,
+          roomType: occupancyRoomType,
+        });
+        if (cancelled) return;
+        setOccupancyChart({
+          series: data.series || [],
+          label: data.label || '',
+          canGoNext: Boolean(data.canGoNext),
+          roomTypeLabel: data.roomTypeLabel,
+        });
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setOccupancyChart(emptyChartMeta);
+          toast.error(err?.message || 'Không tải được biểu đồ tỷ lệ phòng có khách');
+        }
+      } finally {
+        if (!cancelled) setOccupancyLoading(false);
+      }
+    };
+
+    fetchOccupancy();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedHotelId,
+    hotelsLoading,
+    occupancyPeriod,
+    occupancyOffset,
+    occupancyRoomType,
+  ]);
 
   const handleEditHotel = () => {
     setShowEditDialog(true);
@@ -124,7 +215,7 @@ export const OwnerDashboard = () => {
       await ownerDashboardAPI.downloadReportExcel({
         hotelId: selectedHotelId,
         from: reportRange.from,
-        to: reportRange.to
+        to: reportRange.to,
       });
       toast.success('Đã tải báo cáo Excel thành công');
     } catch (err) {
@@ -148,15 +239,10 @@ export const OwnerDashboard = () => {
 
   return (
     <div className="owner-dashboard">
-      {/* Today's Overview Section */}
       <div className="today-overview">
-        <HotelInfoCard 
-          hotel={selectedHotel}
-          onEdit={handleEditHotel}
-        />
+        <HotelInfoCard hotel={selectedHotel} onEdit={handleEditHotel} />
       </div>
 
-      {/* Edit Hotel Dialog */}
       {selectedHotel && (
         <EditHotelDialog
           isOpen={showEditDialog}
@@ -166,7 +252,6 @@ export const OwnerDashboard = () => {
         />
       )}
 
-      {/* Policies Section */}
       <PoliciesCard />
 
       {selectedHotelId && (
@@ -179,10 +264,21 @@ export const OwnerDashboard = () => {
                 dụng cho <strong>khách sạn đang chọn</strong> trên thanh chọn khách sạn.
               </p>
               <p>
-                <strong>Nội dung file:</strong> có hai phần — <em>Tổng hợp kỳ</em> (tổng số phòng, doanh thu, số
-                đơn và đêm phòng bán trong cả kỳ) và <em>Chi tiết theo ngày</em>. Doanh thu và số đơn được tính
-                theo <strong>ngày tạo đơn</strong>, chỉ các đơn <strong>đã thanh toán</strong>; cột đêm phòng bán
-                phản ánh số đêm đã bán trong từng ngày của kỳ báo cáo.
+                <strong>Nội dung file:</strong> có 2 sheet —
+              </p>
+              <ul>
+                <li>
+                  <em>Tổng quan</em>: tổng doanh thu, số đêm đã bán, tỷ lệ phòng có khách, giá trung bình mỗi
+                  đêm, doanh thu trung bình mỗi phòng/ngày; kèm bảng theo từng ngày và xu hướng đơn đặt mới.
+                </li>
+                <li>
+                  <em>Theo loại phòng</em>: so sánh từng loại phòng (doanh thu, đêm bán, tỷ lệ có khách, đóng góp
+                  doanh thu).
+                </li>
+              </ul>
+              <p>
+                File Excel có mục <strong>Chú thích</strong> giải thích cách đọc từng cột. Doanh thu được chia
+                theo <strong>từng đêm khách ở</strong>, chỉ tính đơn <strong>đã thanh toán</strong>.
               </p>
             </div>
           </div>
@@ -192,9 +288,7 @@ export const OwnerDashboard = () => {
               <input
                 type="date"
                 value={reportRange.from}
-                onChange={(e) =>
-                  setReportRange((r) => ({ ...r, from: e.target.value }))
-                }
+                onChange={(e) => setReportRange((r) => ({ ...r, from: e.target.value }))}
               />
             </label>
             <label className="owner-report-export__field">
@@ -202,9 +296,7 @@ export const OwnerDashboard = () => {
               <input
                 type="date"
                 value={reportRange.to}
-                onChange={(e) =>
-                  setReportRange((r) => ({ ...r, to: e.target.value }))
-                }
+                onChange={(e) => setReportRange((r) => ({ ...r, to: e.target.value }))}
               />
             </label>
             <button
@@ -220,7 +312,6 @@ export const OwnerDashboard = () => {
         </div>
       )}
 
-      {/* Metrics Cards */}
       <div className="metrics-grid">
         <MetricCard
           title="Doanh thu hôm nay"
@@ -266,13 +357,38 @@ export const OwnerDashboard = () => {
         />
       </div>
 
-      {/* Charts Section */}
       <div className="charts-grid">
-        <RevenueChart data={weeklyRevenue} />
-        <RoomOccupancyChart data={roomOccupancy} />
+        <RevenueChart
+          data={revenueChart.series}
+          period={revenuePeriod}
+          offset={revenueOffset}
+          periodLabel={revenueChart.label}
+          canGoNext={revenueChart.canGoNext}
+          loading={revenueLoading}
+          onPeriodChange={(p) => {
+            setRevenuePeriod(p);
+            setRevenueOffset(0);
+          }}
+          onOffsetChange={setRevenueOffset}
+        />
+        <RoomOccupancyChart
+          data={occupancyChart.series}
+          period={occupancyPeriod}
+          offset={occupancyOffset}
+          periodLabel={occupancyChart.label}
+          canGoNext={occupancyChart.canGoNext}
+          roomType={occupancyRoomType}
+          roomTypeLabel={occupancyChart.roomTypeLabel || 'Tất cả loại phòng'}
+          loading={occupancyLoading}
+          onPeriodChange={(p) => {
+            setOccupancyPeriod(p);
+            setOccupancyOffset(0);
+          }}
+          onOffsetChange={setOccupancyOffset}
+          onRoomTypeChange={setOccupancyRoomType}
+        />
       </div>
 
-      {/* Today's Tasks Section */}
       <TaskList tasks={tasks} />
     </div>
   );
