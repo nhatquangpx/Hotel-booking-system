@@ -132,9 +132,9 @@ function resolveHotelUploadedImageUrl(file) {
     return file.secure_url || file.url || file.path || "";
   }
   if (file.fieldname === "qrCodeImage") {
-    return `/uploads/hotel-qr/${file.filename}`;
+    return `/public-uploads/hotel-qr/${file.filename}`;
   }
-  return `/uploads/hotels/${file.filename}`;
+  return `/public-uploads/hotels/${file.filename}`;
 }
 
 function isGuestHotelByIdRequest(req) {

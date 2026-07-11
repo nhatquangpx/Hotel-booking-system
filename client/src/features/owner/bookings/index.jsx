@@ -14,6 +14,7 @@ import {
   bookingNeedsOwnerAction,
   isOverstayCheckout,
 } from '@/shared/utils';
+import { resolveProofPreviewUrl } from '@/shared/utils/media/sensitiveMedia';
 import OwnerBookingCard from './OwnerBookingCard';
 import OwnerBookingDetailModal from './OwnerBookingDetailModal';
 import OwnerBookingActionModal from './OwnerBookingActionModal';
@@ -344,6 +345,30 @@ const OwnerBookingListPage = () => {
     }
   };
 
+  const closeProofPreview = useCallback(() => {
+    setPreviewProofUrl((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  const handlePreviewProof = useCallback(async (booking, kind, mediaRef) => {
+    try {
+      const url = await resolveProofPreviewUrl({
+        roleScope: 'owner',
+        bookingId: booking?._id,
+        kind,
+        mediaRef,
+      });
+      setPreviewProofUrl((prev) => {
+        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return url;
+      });
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Không thể tải ảnh minh chứng'));
+    }
+  }, []);
+
   const cardHandlers = {
     onOpenDetail: openDetailModal,
     onOpenConfirm: openConfirmModal,
@@ -351,7 +376,7 @@ const OwnerBookingListPage = () => {
     onOpenCheckOut: openCheckOutModal,
     onOpenRefund: openRefundModal,
     onOpenReject: openRejectModal,
-    onPreviewProof: setPreviewProofUrl,
+    onPreviewProof: handlePreviewProof,
   };
 
   const closeDetailModal = () => {
@@ -541,7 +566,7 @@ const OwnerBookingListPage = () => {
                   onOpenCheckOut={openCheckOutModal}
                   onOpenRefund={openRefundModal}
                   onOpenReject={openRejectModal}
-                  onPreviewProof={setPreviewProofUrl}
+                  onPreviewProof={handlePreviewProof}
                 />
               ))}
             </div>
@@ -578,7 +603,7 @@ const OwnerBookingListPage = () => {
           }
           onConfirm={handleConfirmBooking}
           onClose={closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
           showQrProofDetails
           qrProofMissing={isQrProofMissingForSelectedBooking}
           disableConfirm={isQrProofMissingForSelectedBooking}
@@ -598,7 +623,7 @@ const OwnerBookingListPage = () => {
           confirmText="Xác nhận check-in"
           onConfirm={handleCheckIn}
           onClose={closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
         />
 
         <OwnerBookingActionModal
@@ -610,7 +635,7 @@ const OwnerBookingListPage = () => {
           confirmText="Xác nhận check-out"
           onConfirm={handleCheckOut}
           onClose={closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
           showCheckedInAt
           lateCheckoutFeeAmount={lateCheckoutFeeAmount}
           onLateCheckoutFeeAmountChange={setLateCheckoutFeeAmount}
@@ -629,7 +654,7 @@ const OwnerBookingListPage = () => {
           confirmText="Đã hoàn tiền cho khách"
           onConfirm={handleConfirmGuestRefund}
           onClose={closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
           showRefundProofUpload
           refundProofFile={refundProofFile}
           onRefundProofChange={setRefundProofFile}
@@ -648,7 +673,7 @@ const OwnerBookingListPage = () => {
           }
           onConfirm={handleRejectQrPayment}
           onClose={closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
           showQrProofDetails
           showRejectionTypeSelect
           rejectionType={rejectionType}
@@ -661,13 +686,13 @@ const OwnerBookingListPage = () => {
           loading={detailLoading}
           booking={detailBooking}
           onClose={closeDetailModal}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
         />
         {previewProofUrl && (
-          <div className="proof-preview-overlay" onClick={() => setPreviewProofUrl(null)}>
+          <div className="proof-preview-overlay" onClick={closeProofPreview}>
             <div className="proof-preview-modal" onClick={(e) => e.stopPropagation()}>
               <img src={previewProofUrl} alt="Minh chứng chuyển khoản" />
-              <button type="button" className="close-proof-btn" onClick={() => setPreviewProofUrl(null)}>
+              <button type="button" className="close-proof-btn" onClick={closeProofPreview}>
                 Đóng
               </button>
             </div>

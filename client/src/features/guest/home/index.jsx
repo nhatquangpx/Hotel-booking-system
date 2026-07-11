@@ -7,6 +7,7 @@ import {
   TestimonialsSection,
   StatsSection,
   BookingCtaSection,
+  CccdReminderBanner,
 } from './components';
 import './HomePage.scss';
 
@@ -18,6 +19,7 @@ export const GuestHomePage = () => {
   return (
     <GuestLayout>
       <div className="homepage-content">
+        <CccdReminderBanner />
         <HeroBanner />
         <CategoriesSection />
         <FeaturedHotelsSection />
@@ -31,4 +33,3 @@ export const GuestHomePage = () => {
 };
 
 export default GuestHomePage;
-

@@ -5,4 +5,4 @@ export { BenefitsSection } from './BenefitsSection';
 export { TestimonialsSection } from './TestimonialsSection';
 export { StatsSection } from './StatsSection';
 export { BookingCtaSection } from './BookingCtaSection';
-
+export { CccdReminderBanner } from './CccdReminderBanner';

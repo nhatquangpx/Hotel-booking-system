@@ -37,6 +37,13 @@ export const staffBookingAPI = {
       throw error.response?.data || error.message;
     }
   },
+
+  getSensitiveMediaBlob: async (id, kind) => {
+    const response = await api.get(`/staff/bookings/${id}/sensitive-media/${kind}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 export default staffBookingAPI;

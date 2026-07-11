@@ -25,7 +25,8 @@ const StaffBookingsPage = () => {
     allPagination,
     emptyMessage,
     previewProofUrl,
-    setPreviewProofUrl,
+    handlePreviewProof,
+    closeProofPreview,
     showCheckInModal,
     showCheckOutModal,
     showDetailModal,
@@ -54,7 +55,7 @@ const StaffBookingsPage = () => {
       onOpenDetail={actions.openDetailModal}
       onOpenCheckIn={actions.openCheckInModal}
       onOpenCheckOut={actions.openCheckOutModal}
-      onPreviewProof={setPreviewProofUrl}
+      onPreviewProof={handlePreviewProof}
     />
   );
 
@@ -170,7 +171,7 @@ const StaffBookingsPage = () => {
           confirmText="Xác nhận check-in"
           onConfirm={actions.handleCheckIn}
           onClose={actions.closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
         />
 
         <OwnerBookingActionModal
@@ -182,7 +183,7 @@ const StaffBookingsPage = () => {
           confirmText="Xác nhận check-out"
           onConfirm={actions.handleCheckOut}
           onClose={actions.closeModals}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
           showCheckedInAt
           lateCheckoutFeeAmount={lateCheckoutFeeAmount}
           onLateCheckoutFeeAmountChange={setLateCheckoutFeeAmount}
@@ -197,10 +198,10 @@ const StaffBookingsPage = () => {
           loading={detailLoading}
           booking={detailBooking}
           onClose={actions.closeDetailModal}
-          onPreviewProof={setPreviewProofUrl}
+          onPreviewProof={handlePreviewProof}
         />
 
-        <StaffBookingProofPreview url={previewProofUrl} onClose={() => setPreviewProofUrl(null)} />
+        <StaffBookingProofPreview url={previewProofUrl} onClose={closeProofPreview} />
       </div>
     </StaffLayout>
   );

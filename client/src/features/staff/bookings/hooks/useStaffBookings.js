@@ -10,6 +10,7 @@ import {
   bookingNeedsStaffAction,
   isOverstayCheckout,
 } from '@/shared/utils';
+import { resolveProofPreviewUrl } from '@/shared/utils/media/sensitiveMedia';
 
 export function useStaffBookings() {
   const { hotelId, loading: hotelLoading, error: hotelError } = useStaffHotel();
@@ -312,6 +313,30 @@ export function useStaffBookings() {
     setDetailBooking(null);
   };
 
+  const closeProofPreview = useCallback(() => {
+    setPreviewProofUrl((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  const handlePreviewProof = useCallback(async (booking, kind, mediaRef) => {
+    try {
+      const url = await resolveProofPreviewUrl({
+        roleScope: 'staff',
+        bookingId: booking?._id,
+        kind,
+        mediaRef,
+      });
+      setPreviewProofUrl((prev) => {
+        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return url;
+      });
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Không thể tải ảnh minh chứng'));
+    }
+  }, []);
+
   useEffect(() => {
     const bookingId = searchParams.get('bookingId');
     if (!bookingId || openedBookingFromUrl.current || loading || hotelLoading) return;
@@ -350,7 +375,8 @@ export function useStaffBookings() {
     },
     emptyMessage,
     previewProofUrl,
-    setPreviewProofUrl,
+    handlePreviewProof,
+    closeProofPreview,
     showCheckInModal,
     showCheckOutModal,
     showDetailModal,

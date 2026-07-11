@@ -15,36 +15,25 @@ const { sendRefundProcessedEmail, sendQrPaymentRejectedEmail, sendQrProofResubmi
 const { getQrRejectionMessage } = require("./qrPaymentRejection");
 const { getBookingFinalAmount } = require("./bookingAmount");
 
-const resolveProofImageUrl = (file) => {
-  if (!file) return "";
+const {
+  buildSensitiveMediaRef,
+  createAccessUrl,
+  isLegacyPublicMediaUrl,
+} = require("../media/sensitiveMedia");
 
-  const candidate = file.path || file.secure_url || file.url || "";
-  if (/^https?:\/\//i.test(candidate)) {
-    return candidate;
+const resolveProofImageUrl = (file) => buildSensitiveMediaRef(file, "payment-proofs") || "";
+
+/** URL tạm cho email (signed / legacy). Ảnh private không public vĩnh viễn. */
+const toPublicUrl = (mediaRef) => {
+  if (!mediaRef) return "";
+  if (isLegacyPublicMediaUrl(mediaRef)) {
+    if (/^https?:\/\//i.test(mediaRef)) return mediaRef;
+    const backendBase = process.env.BACKEND_URL || process.env.API_URL || "http://localhost:5000";
+    const normalizedBase = String(backendBase).replace(/\/+$/, "");
+    const normalizedPath = mediaRef.startsWith("/") ? mediaRef : `/${mediaRef}`;
+    return `${normalizedBase}${normalizedPath}`;
   }
-
-  if (file.filename) {
-    return `/uploads/payment-proofs/${file.filename}`;
-  }
-
-  const normalizedPath = String(candidate).replace(/\\/g, "/");
-  const uploadsIndex = normalizedPath.lastIndexOf("/uploads/");
-  if (uploadsIndex >= 0) {
-    return normalizedPath.slice(uploadsIndex);
-  }
-
-  return "";
-};
-
-const toPublicUrl = (relativeOrAbsoluteUrl) => {
-  if (!relativeOrAbsoluteUrl) return "";
-  if (/^https?:\/\//i.test(relativeOrAbsoluteUrl)) return relativeOrAbsoluteUrl;
-  const backendBase = process.env.BACKEND_URL || process.env.API_URL || "http://localhost:5000";
-  const normalizedBase = String(backendBase).replace(/\/+$/, "");
-  const normalizedPath = relativeOrAbsoluteUrl.startsWith("/")
-    ? relativeOrAbsoluteUrl
-    : `/${relativeOrAbsoluteUrl}`;
-  return `${normalizedBase}${normalizedPath}`;
+  return createAccessUrl(mediaRef, { expiresInSec: 7 * 24 * 3600 }) || "";
 };
 
 /**

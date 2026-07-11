@@ -12,7 +12,7 @@ const contactController = require("../controllers/contactController");
 const notificationController = require('../controllers/notificationController');
 const { submitContactValidation, validate: validateContact } = require("../validations/contactValidation");
 const {
-  updateSelfProfileValidation,
+  updateGuestProfileValidation,
   changePasswordValidation,
   validate: validateProfile,
 } = require("../validations/profileValidation");
@@ -34,6 +34,7 @@ const {
   idParamValidation,
   hotelIdParamValidation,
 } = require("../validations/paramsValidation");
+const { optionalGuestIdImageUpload } = require("../config/multerConfig");
 
 router.get('/hotels', hotelController.getAllHotels);
 router.get('/hotels/cities', hotelController.getGuestHotelCities);
@@ -65,8 +66,15 @@ router.get(
 router.use(authenticate, isGuest);
 
 router.get('/profile', userController.getGuestProfile);
-router.put('/profile', updateSelfProfileValidation, validateProfile, userController.updateGuestProfile);
+router.put(
+  '/profile',
+  optionalGuestIdImageUpload,
+  updateGuestProfileValidation,
+  validateProfile,
+  userController.updateGuestProfile
+);
 router.put('/profile/changepassword', changePasswordValidation, validateProfile, userController.changeGuestPassword);
+router.get('/profile/id-image/:side', userController.streamGuestProfileIdImage);
 
 router.get(
   '/bookings',
@@ -80,7 +88,13 @@ router.get(
   validateBooking,
   bookingController.getPricePreview
 );
-router.post('/bookings', createBookingValidation, validateBooking, bookingController.createBooking);
+router.post(
+  '/bookings',
+  optionalGuestIdImageUpload,
+  createBookingValidation,
+  validateBooking,
+  bookingController.createBooking
+);
 router.put(
   '/bookings/:id/cancel',
   idParamValidation,
@@ -94,6 +108,11 @@ router.put(
   addReviewValidation,
   validateReview,
   reviewController.addReview
+);
+router.get(
+  '/bookings/:id/sensitive-media/:kind',
+  idParamValidation,
+  bookingController.streamBookingSensitiveMedia
 );
 router.get('/bookings/:id', idParamValidation, bookingController.getBookingById);
 

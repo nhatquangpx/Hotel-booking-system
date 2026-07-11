@@ -1,5 +1,4 @@
 import { formatDate, formatDateTime, formatCurrency } from '@/shared/utils';
-import { getImageUrl } from '@/constants/images';
 import { QR_REJECTION_OPTIONS } from './qrPaymentRejection';
 import { getOverstayDays, isOverstayCheckout } from '@/shared/utils/booking/checkInOut';
 
@@ -92,7 +91,7 @@ const OwnerBookingActionModal = ({
                     <button
                       type="button"
                       className="proof-link"
-                      onClick={() => onPreviewProof(getImageUrl(booking.qrPaymentProofUrl))}
+                      onClick={() => onPreviewProof(booking, 'qr-proof', booking.qrPaymentProofUrl)}
                     >
                       Mở ảnh minh chứng
                     </button>

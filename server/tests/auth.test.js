@@ -144,6 +144,8 @@ describe("Health & Auth", () => {
         checkInDate,
         checkOutDate,
         paymentMethod: "qr_code",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       });
       expect(res.status).toBe(403);
       expect(res.body.code).toBe("CSRF_INVALID");
@@ -158,6 +160,8 @@ describe("Health & Auth", () => {
         checkInDate,
         checkOutDate,
         paymentMethod: "qr_code",
+        guestCount: 1,
+        guestIdNumber: "001234567890",
       });
       expect(res.status).toBe(201);
       expect(res.body.pendingExpiresAt).toBeDefined();

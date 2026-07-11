@@ -5,6 +5,7 @@ import BookingReview from './BookingReview';
 import api from '@/apis';
 import { getImageUrl } from '@/constants/images';
 import { formatDate, needsQrProofResubmit, isQrPaymentRejectedCancelled, getRoomPrice, shouldShowPendingHoldCountdown, isPendingHoldTrackable, isPendingHoldExpiredBooking } from '@/shared/utils';
+import { resolveProofPreviewUrl } from '@/shared/utils/media/sensitiveMedia';
 import { formatRoomType } from '@/constants/roomTypes';
 import { usePendingHoldCountdown } from '@/shared/hooks';
 
@@ -235,6 +236,61 @@ const BookingDetailModal = ({
                   <p><strong>Địa chỉ:</strong> {formatAddressText(booking.hotel?.address)}</p>
                   <p><strong>Nhận phòng:</strong> {formatDate(booking.checkInDate)}</p>
                   <p><strong>Trả phòng:</strong> {formatDate(booking.checkOutDate)}</p>
+                  <p><strong>CCCD/CMND:</strong> {booking.guestIdNumber || '—'}</p>
+                  {booking.guestIdImageFrontUrl && (
+                    <p>
+                      <strong>Ảnh CCCD mặt trước:</strong>{' '}
+                      <button
+                        type="button"
+                        className="proof-link"
+                        onClick={async () => {
+                          try {
+                            const url = await resolveProofPreviewUrl({
+                              roleScope: 'guest',
+                              bookingId: booking._id,
+                              kind: 'id-image-front',
+                              mediaRef: booking.guestIdImageFrontUrl,
+                            });
+                            setPreviewProofUrl((prev) => {
+                              if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+                              return url;
+                            });
+                          } catch {
+                            onError?.('Không thể tải ảnh CCCD mặt trước');
+                          }
+                        }}
+                      >
+                        Xem mặt trước
+                      </button>
+                    </p>
+                  )}
+                  {booking.guestIdImageBackUrl && (
+                    <p>
+                      <strong>Ảnh CCCD mặt sau:</strong>{' '}
+                      <button
+                        type="button"
+                        className="proof-link"
+                        onClick={async () => {
+                          try {
+                            const url = await resolveProofPreviewUrl({
+                              roleScope: 'guest',
+                              bookingId: booking._id,
+                              kind: 'id-image-back',
+                              mediaRef: booking.guestIdImageBackUrl,
+                            });
+                            setPreviewProofUrl((prev) => {
+                              if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+                              return url;
+                            });
+                          } catch {
+                            onError?.('Không thể tải ảnh CCCD mặt sau');
+                          }
+                        }}
+                      >
+                        Xem mặt sau
+                      </button>
+                    </p>
+                  )}
                   <p><strong>Tổng tiền:</strong> {(booking.finalAmount || 0).toLocaleString('vi-VN')} VNĐ</p>
                   <p><strong>Trạng thái:</strong> {renderBookingStatus(booking)}</p>
                   {needsQrProofResubmit(booking) && (
@@ -256,7 +312,22 @@ const BookingDetailModal = ({
                     <button
                       type="button"
                       className="proof-link"
-                      onClick={() => setPreviewProofUrl(getImageUrl(booking.qrPaymentProofUrl))}
+                      onClick={async () => {
+                        try {
+                          const url = await resolveProofPreviewUrl({
+                            roleScope: 'guest',
+                            bookingId: booking._id,
+                            kind: 'qr-proof',
+                            mediaRef: booking.qrPaymentProofUrl,
+                          });
+                          setPreviewProofUrl((prev) => {
+                            if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+                            return url;
+                          });
+                        } catch {
+                          onError?.('Không thể tải ảnh minh chứng');
+                        }
+                      }}
                     >
                       Xem minh chứng chuyển khoản đã gửi
                     </button>
@@ -336,10 +407,23 @@ const BookingDetailModal = ({
           </div>
         )}
         {previewProofUrl && (
-          <div className="proof-preview-overlay" onClick={() => setPreviewProofUrl(null)}>
+          <div
+            className="proof-preview-overlay"
+            onClick={() => {
+              if (previewProofUrl.startsWith('blob:')) URL.revokeObjectURL(previewProofUrl);
+              setPreviewProofUrl(null);
+            }}
+          >
             <div className="proof-preview-modal" onClick={(e) => e.stopPropagation()}>
-              <img src={previewProofUrl} alt="Minh chứng chuyển khoản" />
-              <button type="button" className="close-proof-btn" onClick={() => setPreviewProofUrl(null)}>
+              <img src={previewProofUrl} alt="Xem ảnh" />
+              <button
+                type="button"
+                className="close-proof-btn"
+                onClick={() => {
+                  if (previewProofUrl.startsWith('blob:')) URL.revokeObjectURL(previewProofUrl);
+                  setPreviewProofUrl(null);
+                }}
+              >
                 Đóng
               </button>
             </div>

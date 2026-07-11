@@ -161,14 +161,20 @@ async function createUsers() {
   let phoneIndex = 1;
 
   const pushUser = (data) => {
-    users.push({
+    const doc = {
       name: data.name,
       email: data.email.toLowerCase(),
       password: hashed,
       phone: data.phone || uniquePhone(phoneIndex++),
       role: data.role,
       status: "active",
-    });
+    };
+    if (data.role === "guest") {
+      doc.idNumber =
+        data.idNumber ||
+        String(100000000000 + Math.floor(Math.random() * 899999999999)).slice(0, 12);
+    }
+    users.push(doc);
   };
 
   pushUser({ ...REAL_ACCOUNTS.admin, role: "admin" });
@@ -484,6 +490,7 @@ async function createBookingsReviewsTransactions(users, hotels, rooms, focusHote
         checkInDate: checkIn,
         checkOutDate: checkOut,
         guestCount,
+        guestIdNumber: `${String(100000000000 + randomInt(0, 899999999999)).slice(0, 12)}`,
         selectedAddons,
         addonsAmount,
         basePrice,

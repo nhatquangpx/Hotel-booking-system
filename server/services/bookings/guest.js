@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Booking = require("../../models/Booking");
 const Room = require("../../models/Room");
 const Hotel = require("../../models/Hotel");
+const User = require("../../models/User");
 const {
   checkRoomAvailability,
   analyzeRoomStayAvailability,
@@ -27,6 +28,7 @@ const {
 const { resolveEffectiveQrConfig } = require("../../services/payments/qrConfig");
 const { isVnpayConfigComplete } = require("../../services/hotels/paymentConfig");
 const { resolveAndPriceAddons } = require("../addon/addonPricing");
+const { hasSensitiveMedia } = require("../media/sensitiveMedia");
 
 const sanitizeGuestHotelPaymentConfig = (hotel) => {
   if (!hotel) return hotel;
@@ -74,11 +76,40 @@ const createBooking = async (bookingData, guestId) => {
     specialRequests,
     guestCount,
     selectedAddonIds,
+    guestIdNumber,
+    guestIdImageFrontUrl,
+    guestIdImageBackUrl,
   } = bookingData;
 
   const parsedGuestCount = Number(guestCount);
   if (!Number.isFinite(parsedGuestCount) || parsedGuestCount < 1) {
     const err = new Error("Số khách phải từ 1 trở lên");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const normalizedIdNumber = String(guestIdNumber || "").replace(/\s+/g, "").trim();
+  if (!/^\d{9}$|^\d{12}$/.test(normalizedIdNumber)) {
+    const err = new Error("Số CCCD/CMND không hợp lệ (9 hoặc 12 chữ số)");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const guestUser = await User.findById(guestId).select(
+    "idNumber idImageFrontUrl idImageBackUrl"
+  );
+  let resolvedFront = guestIdImageFrontUrl || undefined;
+  let resolvedBack = guestIdImageBackUrl || undefined;
+  if (!resolvedFront && hasSensitiveMedia(guestUser?.idImageFrontUrl)) {
+    resolvedFront = guestUser.idImageFrontUrl;
+  }
+  if (!resolvedBack && hasSensitiveMedia(guestUser?.idImageBackUrl)) {
+    resolvedBack = guestUser.idImageBackUrl;
+  }
+  if (!hasSensitiveMedia(resolvedFront) || !hasSensitiveMedia(resolvedBack)) {
+    const err = new Error(
+      "Vui lòng tải đủ ảnh CCCD mặt trước và mặt sau (ảnh đã có trên hồ sơ được dùng nếu không chọn lại)"
+    );
     err.statusCode = 400;
     throw err;
   }
@@ -159,6 +190,9 @@ const createBooking = async (bookingData, guestId) => {
       checkInDate: new Date(checkInDate),
       checkOutDate: new Date(checkOutDate),
       guestCount: parsedGuestCount,
+      guestIdNumber: normalizedIdNumber,
+      guestIdImageFrontUrl: resolvedFront || undefined,
+      guestIdImageBackUrl: resolvedBack || undefined,
       selectedAddons,
       addonsAmount,
       finalAmount,
@@ -172,6 +206,12 @@ const createBooking = async (bookingData, guestId) => {
       pendingExpiresAt: computePendingExpiresAt(),
     },
   });
+
+  // Đồng bộ CCCD vào profile guest (snapshot đơn vẫn giữ trên Booking)
+  const profileSync = { idNumber: normalizedIdNumber };
+  if (resolvedFront) profileSync.idImageFrontUrl = resolvedFront;
+  if (resolvedBack) profileSync.idImageBackUrl = resolvedBack;
+  await User.findByIdAndUpdate(guestId, profileSync);
 
   // Update room bookingStatus based on today's bookings (pending/empty/occupied)
   await refreshRoomBookingStatus(roomId);

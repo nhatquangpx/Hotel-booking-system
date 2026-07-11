@@ -147,6 +147,11 @@ router.post(
 );
 
 router.get('/bookings', bookingController.getBookingsByOwner);
+router.get(
+  '/bookings/:id/sensitive-media/:kind',
+  bookingIdParamValidation,
+  bookingController.streamBookingSensitiveMedia
+);
 router.get('/bookings/:id', bookingIdParamValidation, bookingController.getBookingById);
 router.put(
   '/bookings/:id/status',

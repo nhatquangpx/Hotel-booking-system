@@ -112,6 +112,54 @@
             outline: none;
           }
         }
+
+        &--id-image {
+          .id-image-pair {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+          }
+
+          .id-image-side__label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: $text-light;
+            @include label-base;
+          }
+
+          .id-image-preview {
+            width: 100%;
+            border: 1px solid $border-medium;
+            border-radius: 8px;
+            background: $bg-light;
+            overflow: hidden;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .id-image-preview__img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 320px;
+            object-fit: contain;
+            background: #fff;
+          }
+
+          .id-image-preview__status {
+            margin: 0;
+            padding: 1.5rem 1rem;
+            color: $text-light;
+            @include body-base;
+            text-align: center;
+
+            &--error {
+              color: #b42318;
+            }
+          }
+        }
       }
 
       .button-group {

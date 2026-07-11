@@ -2,7 +2,7 @@ const { attachPaymentProof } = require("./upload");
 
 async function createGuestBooking(
   guestAgent,
-  { hotelId, roomId, checkInDate, checkOutDate, paymentMethod = "qr_code", specialRequests }
+  { hotelId, roomId, checkInDate, checkOutDate, paymentMethod = "qr_code", specialRequests, guestCount = 1, guestIdNumber = "001234567890" }
 ) {
   return guestAgent.post("/api/guest/bookings").send({
     hotel: hotelId,
@@ -11,6 +11,8 @@ async function createGuestBooking(
     checkOutDate,
     paymentMethod,
     specialRequests,
+    guestCount,
+    guestIdNumber,
   });
 }
 

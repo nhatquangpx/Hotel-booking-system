@@ -91,6 +91,11 @@ router.delete("/rooms/:id", idParamValidation, roomController.deleteRoom);
 
 router.get("/bookings", bookingController.getAllBookings);
 router.get("/bookings/user/:userId", userIdRouteParamValidation, bookingController.getUserBookings);
+router.get(
+  "/bookings/:id/sensitive-media/:kind",
+  idParamValidation,
+  bookingController.streamBookingSensitiveMedia
+);
 router.get("/bookings/:id", idParamValidation, bookingController.getBookingById);
 
 router.get('/dashboard/stats', dashboardController.getAdminStats);

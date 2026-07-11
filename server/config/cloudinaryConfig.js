@@ -22,13 +22,13 @@ const buildHotelAssetParams = (file) => {
   };
 };
 
-// Storage dùng chung cho tài nguyên khách sạn (`images` và `qrCodeImage`)
+// Storage dùng chung cho tài nguyên khách sạn (`images` và `qrCodeImage`) — PUBLIC
 const hotelAssetStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => buildHotelAssetParams(file)
 });
 
-// Storage cho rooms
+// Storage cho rooms — PUBLIC
 const roomStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
@@ -48,12 +48,16 @@ const roomStorage = new CloudinaryStorage({
 const hotelStorage = hotelAssetStorage;
 const hotelPhotosAndQrCloudinaryStorage = hotelAssetStorage;
 
-// Storage cho minh chứng thanh toán QR
+/**
+ * Minh chứng thanh toán / hoàn tiền — AUTHENTICATED (không public).
+ * Xem ảnh qua signed URL hoặc API có auth.
+ */
 const paymentProofStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async () => {
     return {
       folder: 'hotel-booking/payment-proofs',
+      type: 'authenticated',
       allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
       transformation: [
         { width: 1600, height: 1600, crop: 'limit' },
@@ -64,11 +68,28 @@ const paymentProofStorage = new CloudinaryStorage({
   }
 });
 
+/** Ảnh CCCD — AUTHENTICATED */
+const idCardStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async () => {
+    return {
+      folder: 'hotel-booking/id-cards',
+      type: 'authenticated',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      transformation: [
+        { width: 1600, height: 1600, crop: 'limit' },
+        { quality: 'auto' }
+      ],
+      public_id: `id-card-${Date.now()}-${Math.round(Math.random() * 1E9)}`
+    };
+  }
+});
+
 module.exports = {
   cloudinary,
   hotelStorage,
   hotelPhotosAndQrCloudinaryStorage,
   roomStorage,
-  paymentProofStorage
+  paymentProofStorage,
+  idCardStorage
 };
-

@@ -70,7 +70,7 @@ Giao diện responsive; API có lớp **validation** (`express-validator`) và *
 | Backend | Node.js, Express 4, MongoDB (Mongoose 8), Socket.IO, node-cron |
 | Xác thực | JWT (access + refresh trong **HttpOnly cookie**), bcryptjs, 2FA (OTP email / mã dự phòng) |
 | Bảo mật API | **CSRF** (double-submit cookie), `express-validator` |
-| Upload | Multer + Cloudinary (fallback lưu local `server/uploads/`) |
+| Upload | Multer + Cloudinary (fallback local: `public-uploads/` public, `private-uploads/` nhạy cảm) |
 | Thanh toán | VNPay sandbox, QR chuyển khoản theo cấu hình từng KS |
 | Email | Nodemailer / Gmail SMTP (OTP, nhắc check-in, liên hệ, bảo trì…) |
 | Báo cáo | ExcelJS (xuất doanh thu) |
@@ -103,7 +103,8 @@ Hotel-booking-system/
 │   ├── services/           # booking, sale, pricing, notifications, emails…
 │   ├── socket/
 │   ├── tests/              # API integration tests (Jest)
-│   ├── uploads/            # Ảnh local khi chưa cấu hình Cloudinary
+│   ├── public-uploads/     # Ảnh KS/phòng local (static public)
+│   ├── private-uploads/    # Ảnh nhạy cảm local (chỉ qua API auth)
 │   ├── validations/        # express-validator rules
 │   └── .env.example
 ---
@@ -132,7 +133,7 @@ Hotel-booking-system/
 | npm | Đi kèm Node.js |
 | MongoDB | Atlas (khuyến nghị) hoặc Community (local) |
 | Gmail App Password | Bắt buộc nếu đăng nhập Admin/Owner (2FA qua email) |
-| Cloudinary | Khuyến nghị (thiếu → lưu ảnh tại `server/uploads/`) |
+| Cloudinary | Khuyến nghị (thiếu → `public-uploads/` + `private-uploads/`) |
 | VNPay Sandbox | Tùy chọn (demo thanh toán online) |
 
 ### Mô hình local
@@ -235,7 +236,7 @@ Chi tiết: `server/.env.example`, `client/.env.example`. Xem đầy đủ trong
 | `JWT_SECRET`, `JWT_ACCESS_EXPIRES`, `JWT_REFRESH_DAYS` | Token (refresh là **số ngày**, ví dụ `7`) |
 | `FRONTEND_URL` | Origin frontend (`http://localhost:3000`) — CORS + cookie |
 | `VITE_API_URL` | Base API client (`http://localhost:8001/api`) |
-| `CLOUDINARY_*` | Upload ảnh cloud (thiếu → `server/uploads/`) |
+| `CLOUDINARY_*` | Upload ảnh cloud (thiếu → local `public-uploads/` / `private-uploads/`) |
 | `EMAIL_USER`, `EMAIL_PASS` | Gmail App Password |
 | `VNPAY_*` | Cổng VNPay sandbox |
 | `DEFAULT_QR_*` | QR mặc định khi tạo KS (admin) |
