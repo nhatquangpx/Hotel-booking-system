@@ -5,6 +5,7 @@ const PaymentTransaction = require("../../models/PaymentTransaction");
 const { getScopedHotelIdsForOwner } = require("../dashboards/core");
 const {
   checkBookingPermission,
+  isBookingEffectivelyPaid,
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus,
 } = require("./core");
@@ -210,9 +211,13 @@ const updateBookingStatus = async (bookingId, status, user) => {
     throw new Error("Đơn QR chưa có minh chứng chuyển khoản, không thể xác nhận đã thanh toán");
   }
 
+  if (status === "paid" && booking.paymentMethod === "vnpay" && !booking.vnpayPaidAt) {
+    throw new Error("Khách chưa hoàn tất thanh toán VNPay, không thể xác nhận");
+  }
+
   const previousPaymentStatus = booking.paymentStatus;
 
-  if (status === "cancelled" && previousPaymentStatus === "paid") {
+  if (status === "cancelled" && isBookingEffectivelyPaid(booking)) {
     throw new Error(
       "Không thể hủy đơn đã thanh toán từ trang chủ khách sạn. Khách cần gửi hủy đơn trong tài khoản của họ; sau đó bạn dùng nút xác nhận hoàn tiền trên đơn đã hủy."
     );
@@ -221,6 +226,9 @@ const updateBookingStatus = async (bookingId, status, user) => {
   booking.paymentStatus = status;
   if (status === "paid") {
     booking.pendingExpiresAt = undefined;
+    if (booking.paymentMethod === "vnpay") {
+      booking.vnpayOwnerVerifiedAt = new Date();
+    }
   }
   await booking.save();
 
@@ -236,13 +244,13 @@ const updateBookingStatus = async (bookingId, status, user) => {
       await latestTransaction.save();
     }
   } else if (status === "cancelled" && previousPaymentStatus !== "paid") {
-    // Chỉ cập nhật transaction khi hủy đơn chưa thanh toán — không ghi đè success của lần thanh toán đã thành công
+    // Chỉ hủy transaction chưa thành công — không ghi đè success (kể cả VNPay đã callback).
     const latestTransaction = await PaymentTransaction.findOne({
       booking: booking._id,
       paymentMethod: booking.paymentMethod
     }).sort({ createdAt: -1 });
 
-    if (latestTransaction) {
+    if (latestTransaction && latestTransaction.status !== "success") {
       latestTransaction.status = "cancelled";
       await latestTransaction.save();
     }

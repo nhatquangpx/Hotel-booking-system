@@ -72,10 +72,17 @@ export const userBookingAPI = {
   },
 
   /** Xem trước giá (server) — cùng logic khi tạo đặt phòng */
-  getPricePreview: async ({ hotelId, roomId, checkInDate, checkOutDate }) => {
+  getPricePreview: async ({ hotelId, roomId, checkInDate, checkOutDate, guestCount, selectedAddonIds }) => {
     try {
       const response = await api.get('/guest/bookings/price-preview', {
-        params: { hotelId, roomId, checkInDate, checkOutDate },
+        params: {
+          hotelId,
+          roomId,
+          checkInDate,
+          checkOutDate,
+          guestCount,
+          selectedAddonIds: selectedAddonIds?.length ? selectedAddonIds.join(',') : undefined,
+        },
       });
       return response.data;
     } catch (error) {

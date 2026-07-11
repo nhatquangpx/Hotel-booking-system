@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { GuestLayout, LoginRequiredModal } from '@/features/guest/components';
 import { useAuth } from '@/shared/hooks';
 import { useGuestWishlist } from '@/features/guest/hooks';
@@ -29,16 +29,10 @@ import './HotelDetail.scss';
 const GuestHotelDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { user } = useAuth();
   const { applyWishlistedChange, isWishlisted } = useGuestWishlist();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      setShowLoginModal(false);
-    }
-  }, [isAuthenticated]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingBookingState, setPendingBookingState] = useState(null);
   const [hotel, setHotel] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,12 +147,6 @@ const GuestHotelDetailPage = () => {
       return;
     }
 
-    if (!isAuthenticated) {
-      setRoomSearchError(null);
-      setShowLoginModal(true);
-      return;
-    }
-
     try {
       setLoading(true);
       setRoomSearchError(null);
@@ -168,28 +156,12 @@ const GuestHotelDetailPage = () => {
       setSearchPerformed(true);
       setLoading(false);
     } catch (err) {
-      const status = err?.response?.status;
-      if (status === 401 || status === 403) {
-        setRoomSearchError(null);
-        setShowLoginModal(true);
-      } else {
-        const msg =
-          err?.response?.data?.message || err?.message || 'Không thể tải danh sách phòng';
-        setRoomSearchError(msg);
-      }
+      const msg =
+        err?.response?.data?.message || err?.message || 'Không thể tải danh sách phòng';
+      setRoomSearchError(msg);
       setLoading(false);
       console.error(err);
     }
-  };
-
-  const handleGoLogin = () => {
-    setShowLoginModal(false);
-    navigate('/login', { state: { from: location } });
-  };
-
-  const handleRoomSelect = (room) => {
-    setSelectedRoom(room);
-    setShowBookingModal(true);
   };
 
   const handleConfirmBooking = () => {
@@ -203,24 +175,41 @@ const GuestHotelDetailPage = () => {
     };
 
     if (!user) {
-      navigate('/login', {
-        state: {
-          from: {
-            pathname: '/booking/new',
-            search: '',
-            hash: '',
-            state: bookingState,
-          },
-        },
-      });
-      setSelectedRoom(null);
-      setShowBookingModal(false);
+      setPendingBookingState(bookingState);
+      setShowLoginModal(true);
       return;
     }
 
     navigate('/booking/new', { state: bookingState });
     setSelectedRoom(null);
     setShowBookingModal(false);
+  };
+
+  const handleGoLogin = () => {
+    setShowLoginModal(false);
+    navigate('/login', {
+      state: {
+        from: {
+          pathname: '/booking/new',
+          search: '',
+          hash: '',
+          state: pendingBookingState,
+        },
+      },
+    });
+    setPendingBookingState(null);
+    setSelectedRoom(null);
+    setShowBookingModal(false);
+  };
+
+  const handleCloseLoginModal = () => {
+    setShowLoginModal(false);
+    setPendingBookingState(null);
+  };
+
+  const handleRoomSelect = (room) => {
+    setSelectedRoom(room);
+    setShowBookingModal(true);
   };
 
   const handleCloseModal = () => {
@@ -310,9 +299,9 @@ const GuestHotelDetailPage = () => {
             />
             <LoginRequiredModal
               open={showLoginModal}
-              onClose={() => setShowLoginModal(false)}
+              onClose={handleCloseLoginModal}
               onLogin={handleGoLogin}
-              message="Bạn cần đăng nhập tài khoản trước khi tìm phòng. Vui lòng đăng nhập để tiếp tục."
+              message="Bạn cần đăng nhập để tiếp tục đặt phòng. Vui lòng đăng nhập để hoàn tất đơn đặt phòng của bạn."
             />
             <HotelContact hotel={hotel} />
             <HotelReviews

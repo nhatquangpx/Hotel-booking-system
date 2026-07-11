@@ -4,8 +4,9 @@ import { GuestLayout } from '@/features/guest/components/layout';
 import { useAuth, usePendingHoldCountdown } from '@/shared/hooks';
 import api from '../../../../apis';
 import { getImageUrl, IMAGE_PATHS } from '../../../../constants/images';
-import { formatDate, getRoomPrice, shouldShowPendingHoldCountdown, isPendingHoldTrackable, isPendingHoldExpiredBooking } from '@/shared/utils';
+import { formatDate, formatCurrency, getRoomPrice, shouldShowPendingHoldCountdown, isPendingHoldTrackable, isPendingHoldExpiredBooking } from '@/shared/utils';
 import { formatRoomType } from '@/constants/roomTypes';
+import { formatAddonCategory, formatAddonPricingUnit } from '@/constants/addonServices';
 import GuestSalePricingBreakdown from '@/features/guest/components/GuestSalePricingBreakdown';
 import './Booking.scss';
 
@@ -29,6 +30,10 @@ const GuestBookingPage = () => {
     paymentMethod: 'qr_code',
     specialRequests: ''
   });
+  const [guestCount, setGuestCount] = useState(1);
+  const [hotelAddons, setHotelAddons] = useState([]);
+  const [selectedAddonIds, setSelectedAddonIds] = useState([]);
+  const [addonsLoading, setAddonsLoading] = useState(false);
   const [finalAmount, setFinalAmount] = useState(0);
   const [pricePreview, setPricePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -167,11 +172,22 @@ const GuestBookingPage = () => {
         const roomResponse = await api.userRoom.getRoomById(bookingData.roomId);
         setRoom(roomResponse);
         try {
+          setAddonsLoading(true);
+          const addons = await api.guestAddon.getHotelAddons(bookingData.hotelId);
+          setHotelAddons(Array.isArray(addons) ? addons : []);
+        } catch {
+          setHotelAddons([]);
+        } finally {
+          setAddonsLoading(false);
+        }
+        try {
           const preview = await api.userBooking.getPricePreview({
             hotelId: bookingData.hotelId,
             roomId: bookingData.roomId,
             checkInDate: bookingData.checkInDate,
             checkOutDate: bookingData.checkOutDate,
+            guestCount: 1,
+            selectedAddonIds: [],
           });
           setPricePreview(preview);
           setFinalAmount(preview.finalAmount ?? 0);
@@ -263,6 +279,62 @@ const GuestBookingPage = () => {
   }, [hotel, resumeBookingId, qrIsEnabled, vnpayIsEnabled]);
 
   useEffect(() => {
+    if (resumeBookingId || !bookingData.hotelId || !bookingData.roomId || !sessionChecked || !isAuthenticated) {
+      return;
+    }
+
+    const refreshPreview = async () => {
+      try {
+        const preview = await api.userBooking.getPricePreview({
+          hotelId: bookingData.hotelId,
+          roomId: bookingData.roomId,
+          checkInDate: bookingData.checkInDate,
+          checkOutDate: bookingData.checkOutDate,
+          guestCount,
+          selectedAddonIds,
+        });
+        setPricePreview(preview);
+        setFinalAmount(preview.finalAmount ?? 0);
+        setError(null);
+      } catch (previewErr) {
+        const msg = previewErr?.response?.data?.message || previewErr?.message;
+        if (msg) {
+          setError(msg);
+          setPricePreview(null);
+          setFinalAmount(0);
+        }
+      }
+    };
+
+    refreshPreview();
+  }, [
+    resumeBookingId,
+    bookingData.hotelId,
+    bookingData.roomId,
+    bookingData.checkInDate,
+    bookingData.checkOutDate,
+    guestCount,
+    selectedAddonIds,
+    sessionChecked,
+    isAuthenticated,
+  ]);
+
+  const toggleAddon = (addonId) => {
+    setSelectedAddonIds((prev) =>
+      prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]
+    );
+  };
+
+  const guestCountInvalid =
+    room && (Number(guestCount) < 1 || Number(guestCount) > room.maxPeople);
+  const guestCountError =
+    room && Number(guestCount) > room.maxPeople
+      ? `Số khách vượt quá sức chứa tối đa (${room.maxPeople} người)`
+      : Number(guestCount) < 1
+        ? 'Số khách phải từ 1 trở lên'
+        : '';
+
+  useEffect(() => {
     setHotelImageIndex(0);
   }, [hotel?._id]);
 
@@ -301,6 +373,8 @@ const GuestBookingPage = () => {
           room: bookingData.roomId,
           checkInDate: bookingData.checkInDate,
           checkOutDate: bookingData.checkOutDate,
+          guestCount: Number(guestCount),
+          selectedAddonIds,
           paymentMethod: formData.paymentMethod,
           specialRequests: formData.specialRequests || ''
         };
@@ -595,7 +669,8 @@ const GuestBookingPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className="booking-summary">
+
+                <div className="booking-section booking-info-section">
                   <h2>Thông tin đặt phòng</h2>
                   <div className="summary-item">
                     <span className="label">Tên khách hàng:</span>
@@ -621,16 +696,97 @@ const GuestBookingPage = () => {
                       {checkOutDisplay ? new Date(checkOutDisplay).toLocaleDateString('vi-VN') : '—'}
                     </span>
                   </div>
-                  {pricePreview && pricePreview.discountAmount > 0 && (
-                    <div className="summary-item summary-item--sale-block">
-                      <GuestSalePricingBreakdown pricing={pricePreview} variant="full" />
+                  {(showPaymentQRCode || hideBookingForm) && (
+                    <div className="summary-item">
+                      <span className="label">Số khách lưu trú:</span>
+                      <span className="value">{booking?.guestCount ?? guestCount} người</span>
                     </div>
                   )}
-                  <div className="summary-item total">
-                    <span className="label">Tổng thanh toán:</span>
-                    <span className="value price">{finalAmount.toLocaleString('vi-VN')} VNĐ</span>
-                  </div>
                 </div>
+
+                {!showPaymentQRCode && !hideBookingForm && (
+                  <div className="booking-section booking-options-section">
+                    <h2>Tùy chọn đặt phòng</h2>
+                    <p className="section-desc">
+                      Chọn số khách và dịch vụ đi kèm. Tổng chi phí sẽ hiển thị ở cuối trang.
+                    </p>
+
+                    <div className="form-group guest-count-group">
+                      <label htmlFor="guestCount">Số khách lưu trú</label>
+                      <div className="guest-count-row">
+                        <input
+                          id="guestCount"
+                          name="guestCount"
+                          type="number"
+                          min={1}
+                          max={room?.maxPeople || 50}
+                          value={guestCount}
+                          onChange={(e) => setGuestCount(e.target.value)}
+                          className="guest-count-input"
+                        />
+                        <span className="guest-count-cap">/ tối đa {room?.maxPeople} người</span>
+                      </div>
+                      {guestCountError ? (
+                        <p className="field-error" role="alert">
+                          {guestCountError}
+                        </p>
+                      ) : (
+                        <p className="field-hint">Nhập số khách thực tế sẽ lưu trú tại phòng</p>
+                      )}
+                    </div>
+
+                    {hotelAddons.length > 0 && (
+                      <div className="form-group addon-services-group">
+                        <label>Dịch vụ đi kèm (tùy chọn)</label>
+                        {addonsLoading ? (
+                          <p className="addon-services-loading">Đang tải dịch vụ...</p>
+                        ) : (
+                          <div className="addon-services-list">
+                            {hotelAddons.map((addon) => {
+                              const selected = selectedAddonIds.includes(addon._id);
+                              return (
+                                <label
+                                  key={addon._id}
+                                  className={`addon-service-item${selected ? ' addon-service-item--selected' : ''}`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={() => toggleAddon(addon._id)}
+                                  />
+                                  <div className="addon-service-content">
+                                    <span className="addon-service-name">{addon.name}</span>
+                                    <span className="addon-service-meta">
+                                      {formatAddonCategory(addon.category)} ·{' '}
+                                      {addon.price.toLocaleString('vi-VN')} VNĐ ·{' '}
+                                      {formatAddonPricingUnit(addon.pricingUnit)}
+                                    </span>
+                                    {addon.description ? (
+                                      <span className="addon-service-desc">{addon.description}</span>
+                                    ) : null}
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="form-group">
+                      <label htmlFor="specialRequests">Yêu cầu đặc biệt (tùy chọn)</label>
+                      <textarea
+                        id="specialRequests"
+                        name="specialRequests"
+                        value={formData.specialRequests}
+                        onChange={handleInputChange}
+                        rows="3"
+                        placeholder="Ví dụ: Yêu cầu setup trước như thế nào, hoặc cần đồ dùng đặc biệt..."
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {showPaymentQRCode && (
                   <div className="payment-guide-section">
                     <h2>Hướng dẫn thanh toán</h2>
@@ -678,7 +834,9 @@ const GuestBookingPage = () => {
                   </div>
                 )}
                 {!showPaymentQRCode && !hideBookingForm && (
-                  <div className="booking-actions-confirm">
+                  <div className="booking-section booking-payment-section">
+                    <h2>Thanh toán</h2>
+                    <p className="section-desc">Chọn phương thức thanh toán phù hợp.</p>
                     <div className="form-group">
                       <label>Phương thức thanh toán</label>
                       <div className="payment-method-options">
@@ -720,30 +878,93 @@ const GuestBookingPage = () => {
                         </label>
                       </div>
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="specialRequests">Yêu cầu đặc biệt (tùy chọn)</label>
-                      <textarea
-                        id="specialRequests"
-                        name="specialRequests"
-                        value={formData.specialRequests}
-                        onChange={handleInputChange}
-                        rows="3"
-                        placeholder="Ví dụ: Yêu cầu setup trước như thế nào, hoặc cần đồ dùng đặc biệt..."
-                      ></textarea>
+                  </div>
+                )}
+
+                <div className="booking-section booking-price-section">
+                  <h2>Tổng chi phí</h2>
+                  {!showPaymentQRCode && !hideBookingForm && (
+                    <div className="summary-item">
+                      <span className="label">Số khách lưu trú:</span>
+                      <span className="value">{guestCount} người</span>
                     </div>
+                  )}
+                  {pricePreview ? (
+                    <>
+                      <div className="summary-item">
+                        <span className="label">
+                          Tiền phòng{pricePreview.nights ? ` (${pricePreview.nights} đêm)` : ''}
+                        </span>
+                        <span className="value">
+                          {pricePreview.discountAmount > 0 ? (
+                            <span className="price-with-discount">
+                              <span className="price-original">
+                                {formatCurrency(pricePreview.basePrice)}
+                              </span>
+                              <span className="price-after-discount">
+                                {formatCurrency(pricePreview.roomAmount ?? pricePreview.finalAmount - (pricePreview.addonsAmount || 0))}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="price">
+                              {formatCurrency(pricePreview.roomAmount ?? pricePreview.basePrice ?? 0)}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      {pricePreview.discountAmount > 0 && (
+                        <div className="summary-item summary-item--discount">
+                          <span className="label">Giảm khuyến mãi</span>
+                          <span className="value price-discount">
+                            −{formatCurrency(pricePreview.discountAmount)}
+                          </span>
+                        </div>
+                      )}
+                      {pricePreview.discountAmount > 0 && (
+                        <div className="summary-item summary-item--sale-block">
+                          <GuestSalePricingBreakdown
+                            pricing={{
+                              ...pricePreview,
+                              finalAmount:
+                                pricePreview.roomAmount ??
+                                pricePreview.finalAmount - (pricePreview.addonsAmount || 0),
+                            }}
+                            variant="full"
+                          />
+                        </div>
+                      )}
+                      {(pricePreview.addonsAmount ?? 0) > 0 && (
+                        <div className="summary-item">
+                          <span className="label">Dịch vụ đi kèm</span>
+                          <span className="value price">
+                            {formatCurrency(pricePreview.addonsAmount)}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  ) : null}
+                  <div className="summary-item total">
+                    <span className="label">Tổng thanh toán</span>
+                    <span className="value price">{finalAmount.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
+                </div>
+
+                {!showPaymentQRCode && !hideBookingForm && (
+                  <div className="booking-actions-confirm booking-actions-confirm--final">
                     <button
                       type="button"
                       className="submit-btn"
                       onClick={handleSubmit}
                       disabled={
                         submitting ||
+                        guestCountInvalid ||
                         (!resumeBookingId && Boolean(error) && !pricePreview)
                       }
                     >
-                      {submitting 
-                        ? (formData.paymentMethod === 'vnpay' ? 'Đang chuyển đến trang thanh toán...' : 'Đang xử lý...') 
-                        : formData.paymentMethod === 'vnpay' 
-                          ? 'Xác nhận đặt phòng và Thanh toán qua VNPay' 
+                      {submitting
+                        ? (formData.paymentMethod === 'vnpay' ? 'Đang chuyển đến trang thanh toán...' : 'Đang xử lý...')
+                        : formData.paymentMethod === 'vnpay'
+                          ? 'Xác nhận đặt phòng và Thanh toán qua VNPay'
                           : 'Xác nhận đặt phòng và Thanh toán'}
                     </button>
                     <button

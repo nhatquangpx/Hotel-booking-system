@@ -25,6 +25,29 @@ const BookingSchema = new mongoose.Schema(
       type: Date,
       required: true
     },
+    /** Số khách lưu trú (không vượt quá room.maxPeople) */
+    guestCount: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    /** Dịch vụ đi kèm đã chọn (snapshot giá tại thời điểm đặt) */
+    selectedAddons: [
+      {
+        service: { type: mongoose.Schema.Types.ObjectId, ref: "HotelAddonService" },
+        name: { type: String },
+        price: { type: Number },
+        pricingUnit: { type: String },
+        category: { type: String },
+        quantity: { type: Number, default: 1 },
+        lineTotal: { type: Number },
+      },
+    ],
+    /** Tổng tiền dịch vụ đi kèm */
+    addonsAmount: {
+      type: Number,
+      default: 0,
+    },
     /** Thành tiền sau sale — số tiền khách phải trả */
     finalAmount: {
       type: Number,
@@ -54,6 +77,14 @@ const BookingSchema = new mongoose.Schema(
     },
     vnpTransactionRef: {
       type: String
+    },
+    /** VNPay callback thành công — chờ chủ KS xác minh tiền đã về */
+    vnpayPaidAt: {
+      type: Date,
+    },
+    /** Chủ KS xác minh thanh toán VNPay hoàn tất */
+    vnpayOwnerVerifiedAt: {
+      type: Date,
     },
     qrPaymentReportedAt: {
       type: Date

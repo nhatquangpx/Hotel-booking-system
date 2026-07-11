@@ -14,6 +14,7 @@ const {
   checkBookingPermission,
   canGuestCancelBooking,
   canCancelBooking,
+  isBookingEffectivelyPaid,
   getGuestRefundPolicyEligibility,
   getBookingWithPopulate
 } = require("./core");
@@ -66,6 +67,7 @@ module.exports = {
   checkBookingPermission,
   canGuestCancelBooking,
   canCancelBooking,
+  isBookingEffectivelyPaid,
   getGuestRefundPolicyEligibility,
   getBookingWithPopulate,
   

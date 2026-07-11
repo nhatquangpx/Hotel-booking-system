@@ -8,7 +8,8 @@ import {
   FaCommentDots,
   FaChartLine,
   FaTags,
-  FaWrench
+  FaWrench,
+  FaConciergeBell
 } from 'react-icons/fa';
 import { ROUTES } from '@/constants/routes';
 import { readLocalStorageBoolean } from '@/shared/utils';
@@ -55,6 +56,7 @@ const OwnerLayout = ({ children }) => {
     if (location.pathname.includes('/owner/reviews')) return 'Đánh giá';
     if (location.pathname.includes('/owner/pricing')) return 'Giá động';
     if (location.pathname.includes('/owner/sale')) return 'Khuyến mãi';
+    if (location.pathname.includes('/owner/addon-services')) return 'Dịch vụ đi kèm';
     if (location.pathname.includes('/owner/notifications')) return 'Thông báo';
     return 'Quản lý khách sạn';
   };
@@ -63,6 +65,7 @@ const OwnerLayout = ({ children }) => {
     { path: ROUTES.OWNER_HOME, label: 'Tổng quan', icon: FaHome, title: 'Tổng quan' },
     { path: ROUTES.OWNER_ROOMS, label: 'Sơ đồ phòng', icon: FaBed, title: 'Sơ đồ phòng' },
     { path: ROUTES.OWNER_BOOKINGS, label: 'Đặt phòng', icon: FaCalendarCheck, title: 'Đặt phòng' },
+    { path: ROUTES.OWNER_ADDON_SERVICES, label: 'Dịch vụ', icon: FaConciergeBell, title: 'Dịch vụ đi kèm' },
     { path: ROUTES.OWNER_EQUIPMENT, label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
     { path: ROUTES.OWNER_PRICING, label: 'Giá động', icon: FaChartLine, title: 'Giá động' },
     { path: ROUTES.OWNER_SALE, label: 'Khuyến mãi', icon: FaTags, title: 'Khuyến mãi' },

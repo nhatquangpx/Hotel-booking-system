@@ -18,13 +18,15 @@ const VNPayCallbackPage = () => {
     // Kiểm tra kết quả từ URL params
     const responseCode = searchParams.get('vnp_ResponseCode');
     const errorMessage = searchParams.get('message');
-    const transactionRef = searchParams.get('vnp_TxnRef');
+    const awaitingVerification = searchParams.get('awaitingVerification') === '1';
 
-    // VNPay response code '00' nghĩa là thành công
     if (responseCode === '00') {
-      // Thanh toán thành công
       setStatus('success');
-      setMessage('Thanh toán thành công! Đơn đặt phòng của bạn đã được xác nhận.');
+      setMessage(
+        awaitingVerification
+          ? 'Thanh toán VNPay thành công! Vui lòng chờ khách sạn xác minh để hoàn tất đơn đặt phòng.'
+          : 'Thanh toán thành công! Đơn đặt phòng của bạn đã được xác nhận.'
+      );
       
       // Redirect về trang my-bookings sau 3 giây
       setTimeout(() => {

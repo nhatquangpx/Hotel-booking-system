@@ -13,6 +13,7 @@ import {
   needsQrProofResubmit,
   isQrPaymentRejectedCancelled,
   computeGuestRefundEligibility,
+  isBookingEffectivelyPaid,
   isPendingHoldExpiredBooking,
 } from '@/shared/utils';
 import './MyBookings.scss';
@@ -150,7 +151,7 @@ const GuestMyBookingsPage = () => {
       setCancelling(true);
       const ref = computeGuestRefundEligibility(target);
       const payload = { cancellationReason: cancelReason.trim() };
-      if (target.paymentStatus === 'paid' && ref.eligible) {
+      if (isBookingEffectivelyPaid(target) && ref.eligible) {
         payload.refundBankAccountName = refundBankAccountName.trim();
         payload.refundBankAccountNumber = refundBankAccountNumber.trim();
         payload.refundBankName = refundBankName.trim();
@@ -207,6 +208,9 @@ const GuestMyBookingsPage = () => {
     if (booking.paymentStatus === 'pending') {
       if (isPendingHoldExpiredBooking(booking)) {
         return <span className="status cancelled">Hết hạn giữ phòng</span>;
+      }
+      if (booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt) {
+        return <span className="status pending">VNPay đã thanh toán — chờ khách sạn xác minh</span>;
       }
       if (booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) {
         return <span className="status pending">Chờ xác nhận thanh toán</span>;
@@ -350,7 +354,7 @@ const GuestMyBookingsPage = () => {
     ? computeGuestRefundEligibility(cancelTarget)
     : { eligible: false, minNoticeDays: 0, daysUntilCheckIn: 0 };
   const showRefundBankForm = Boolean(
-    cancelTarget?.paymentStatus === 'paid' && cancelRefundRef.eligible
+    cancelTarget && isBookingEffectivelyPaid(cancelTarget) && cancelRefundRef.eligible
   );
   const cancelConfirmDisabled =
     cancelling ||
@@ -485,14 +489,14 @@ const GuestMyBookingsPage = () => {
               <h2>Xác nhận hủy đặt phòng</h2>
               <p>Bạn có chắc chắn muốn hủy đặt phòng này?</p>
 
-              {cancelTarget?.paymentStatus === 'paid' && cancelRefundRef.eligible && (
+              {cancelTarget && isBookingEffectivelyPaid(cancelTarget) && cancelRefundRef.eligible && (
                 <p className="cancel-modal__hint cancel-modal__hint--ok">
                   Đơn đã thanh toán và còn ít nhất <strong>{cancelRefundRef.minNoticeDays}</strong> ngày trước ngày
                   nhận phòng — bạn <strong>được hoàn tiền</strong> theo quy định. Khách sạn sẽ chuyển khoản hoàn thủ công
                   (QR hay VNPay) — vui lòng nhập STK nhận hoàn bên dưới.
                 </p>
               )}
-              {cancelTarget?.paymentStatus === 'paid' && !cancelRefundRef.eligible && (
+              {cancelTarget && isBookingEffectivelyPaid(cancelTarget) && !cancelRefundRef.eligible && (
                 <p className="cancel-modal__hint cancel-modal__hint--warn">
                   Đơn đã thanh toán nhưng <strong>không còn đủ</strong> số ngày trước nhận phòng theo chính sách (cần
                   ít nhất <strong>{cancelRefundRef.minNoticeDays}</strong> ngày, hiện còn{' '}
@@ -500,7 +504,7 @@ const GuestMyBookingsPage = () => {
                   <strong>không áp dụng hoàn tiền</strong> theo quy định chung của khách sạn.
                 </p>
               )}
-              {cancelTarget?.paymentStatus === 'pending' && (
+              {cancelTarget && !isBookingEffectivelyPaid(cancelTarget) && cancelTarget.paymentStatus === 'pending' && (
                 <p className="cancel-modal__hint">
                   Đơn chưa thanh toán — sau khi hủy bạn không cần thanh toán. Không phát sinh hoàn tiền.
                 </p>

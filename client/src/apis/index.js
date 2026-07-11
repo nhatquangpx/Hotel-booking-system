@@ -9,6 +9,7 @@ import userBookingAPI from './guest/booking';
 import reviewAPI from './guest/review';
 import paymentAPI from './guest/payment';
 import guestWishlistAPI from './guest/wishlist';
+import guestAddonAPI from './guest/addon';
 
 // Owner APIs
 import ownerHotelAPI from './owner/hotel';
@@ -18,6 +19,7 @@ import ownerBookingAPI from './owner/booking';
 import ownerReviewAPI from './owner/review';
 import notificationAPI from './shared/notification';
 import ownerProfileAPI from './owner/profile';
+import ownerAddonAPI from './owner/addon';
 
 // Staff APIs
 import staffRoomAPI from './staff/room';
@@ -27,6 +29,7 @@ import staffHotelAPI from './staff/hotel';
 import staffReviewAPI from './staff/review';
 import staffDashboardAPI from './staff/dashboard';
 import staffProfileAPI from './staff/profile';
+import staffAddonAPI from './staff/addon';
 
 // Admin APIs
 import adminUserAPI from './admin/user';
@@ -46,6 +49,7 @@ export default {
   review: reviewAPI,
   payment: paymentAPI,
   guestWishlist: guestWishlistAPI,
+  guestAddon: guestAddonAPI,
 
   ownerHotel: ownerHotelAPI,
   ownerRoom: ownerRoomAPI,
@@ -53,6 +57,7 @@ export default {
   ownerBooking: ownerBookingAPI,
   ownerReview: ownerReviewAPI,
   ownerProfile: ownerProfileAPI,
+  ownerAddon: ownerAddonAPI,
   
   staffRoom: staffRoomAPI,
   staffBooking: staffBookingAPI,
@@ -61,6 +66,7 @@ export default {
   staffReview: staffReviewAPI,
   staffDashboard: staffDashboardAPI,
   staffProfile: staffProfileAPI,
+  staffAddon: staffAddonAPI,
   notification: notificationAPI,
   
   adminUser: adminUserAPI,

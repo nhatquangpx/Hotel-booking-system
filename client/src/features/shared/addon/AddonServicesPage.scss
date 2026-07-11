@@ -1,0 +1,392 @@
+@use '@/styles/variables' as *;
+@use '@/styles/global' as *;
+
+.owner-addon-page {
+  width: calc(100% + 4rem);
+  margin-left: -2rem;
+  margin-right: -2rem;
+  padding: 0 2rem 2rem;
+  color: $text-primary;
+
+  .page-header {
+    width: 100%;
+
+    .owner-guide-collapsible {
+      width: 100%;
+    }
+  }
+
+  .page-desc {
+    color: $text-secondary;
+    line-height: 1.55;
+    margin: 0;
+    max-width: 720px;
+  }
+
+  .addon-guide-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 1.5rem;
+    padding: 1.2rem 1.25rem;
+    border: 1px solid rgba($lotte-primary, 0.22);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba($lotte-primary, 0.08) 0%, rgba($lotte-primary, 0.03) 100%);
+    box-shadow: 0 4px 16px rgba(160, 130, 109, 0.08);
+    text-align: center;
+
+    &__intro {
+      margin-bottom: 1rem;
+
+      h3 {
+        margin: 0 0 0.45rem;
+        font-size: 1.05rem;
+        color: $lotte-primary-dark;
+        text-align: center;
+      }
+
+      .page-desc {
+        margin: 0 auto;
+        max-width: 820px;
+        text-align: center;
+      }
+    }
+  }
+
+  .addon-guide-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .addon-guide-item {
+    position: relative;
+    flex: 1 1 280px;
+    max-width: 360px;
+    padding: 0.9rem 1rem 0.9rem 3.1rem;
+    background: $bg-white;
+    border: 1px solid $border-light;
+    border-radius: 12px;
+    text-align: center;
+
+    strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: $text-primary;
+      font-size: 0.92rem;
+    }
+
+    p {
+      margin: 0;
+      color: $text-secondary;
+      line-height: 1.5;
+      font-size: 0.86rem;
+    }
+
+    &__step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: $lotte-primary;
+      color: $text-white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 3px 8px rgba(160, 130, 109, 0.18);
+      flex-shrink: 0;
+    }
+  }
+
+  .addon-guide-note {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: $status-warning-bg;
+    color: $status-warning-text;
+    line-height: 1.5;
+    font-size: 0.88rem;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .addon-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid $admin-border;
+    border-radius: 12px;
+    background: $bg-light-alt;
+  }
+
+  .state-msg {
+    padding: 1.25rem;
+    text-align: center;
+    color: $text-secondary;
+    border: 1px dashed $border-light;
+    border-radius: 12px;
+    background: $bg-white;
+
+    &--error {
+      background: $danger-light;
+      color: $danger-dark;
+      border-style: solid;
+    }
+  }
+
+  .btn-primary {
+    padding: 0.55rem 1.05rem;
+    background: $button-primary;
+    color: $text-white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: $button-primary-hover;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .addon-table-wrap {
+    overflow-x: auto;
+    background: $bg-white;
+    border-radius: 12px;
+    border: 1px solid $admin-border;
+    box-shadow: 0 2px 12px rgba(160, 130, 109, 0.08);
+  }
+
+  .addon-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    min-width: 720px;
+
+    th,
+    td {
+      padding: 0.8rem 0.95rem;
+      text-align: center;
+      border-bottom: 1px solid $border-light;
+      vertical-align: middle;
+    }
+
+    th {
+      background: linear-gradient(180deg, $lotte-primary-light 0%, $lotte-primary 100%);
+      color: $text-white;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      border-bottom: none;
+
+      &:first-child {
+        border-top-left-radius: 11px;
+      }
+
+      &:last-child {
+        border-top-right-radius: 11px;
+      }
+    }
+
+    tbody tr {
+      &:nth-child(even) {
+        background: $bg-light-alt;
+      }
+
+      &:hover {
+        background: rgba($lotte-primary, 0.06);
+      }
+
+      &:last-child td {
+        border-bottom: none;
+      }
+    }
+
+    .addon-title-cell {
+      text-align: left;
+
+      strong {
+        color: $text-primary;
+        font-size: 0.95rem;
+      }
+
+      .addon-desc {
+        margin: 0.25rem 0 0;
+        color: $text-secondary;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        font-weight: normal;
+      }
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+
+      &--open {
+        background: $status-success-bg;
+        color: $status-success-text;
+      }
+
+      &--closed {
+        background: rgba($text-disabled, 0.15);
+        color: $text-secondary;
+      }
+    }
+
+    .addon-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      justify-content: center;
+    }
+
+    .action-btn {
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.2s ease, border-color 0.2s ease;
+
+      &--edit {
+        background: $status-info-bg;
+        color: $status-info-text;
+        border-color: rgba($status-info-text, 0.25);
+      }
+
+      &--success {
+        background: $status-success-bg;
+        color: $status-success-text;
+        border-color: rgba($status-success-text, 0.25);
+      }
+
+      &--danger {
+        background: $status-warning-bg;
+        color: $status-warning-text;
+        border-color: rgba($status-warning-text, 0.25);
+      }
+    }
+  }
+}
+
+.addon-form {
+  width: 100%;
+
+  .addon-form-error {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: $error-bg-light;
+    border: 1px solid $error-border-light;
+    color: $error-dark;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.9rem;
+      color: $text-primary;
+    }
+
+    input[type='text'],
+    input[type='number'],
+    select,
+    textarea {
+      width: 100%;
+      max-width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid $border-medium;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+      color: $text-primary;
+      background: $bg-white;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .addon-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+
+    .btn-primary {
+      padding: 0.55rem 1rem;
+      background: $button-primary;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-secondary {
+      padding: 0.55rem 1rem;
+      background: $bg-white;
+      border: 1px solid $border-medium;
+      border-radius: 8px;
+      color: $text-secondary;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-addon-page {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0 0 1.5rem;
+  }
+
+  .addon-form .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-addon-page .addon-guide-item {
+    max-width: none;
+  }
+}

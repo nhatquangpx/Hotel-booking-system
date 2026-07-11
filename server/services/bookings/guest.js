@@ -8,6 +8,7 @@ const {
   checkBookingPermission,
   canGuestCancelBooking,
   getGuestRefundPolicyEligibility,
+  isBookingEffectivelyPaid,
   getBookingWithPopulate,
   getBookingById: getBookingByIdCore,
   refreshRoomBookingStatus,
@@ -24,6 +25,7 @@ const {
 } = require("../sale/salePricingService");
 const { resolveEffectiveQrConfig } = require("../../services/payments/qrConfig");
 const { isVnpayConfigComplete } = require("../../services/hotels/paymentConfig");
+const { resolveAndPriceAddons } = require("../addon/addonPricing");
 
 const sanitizeGuestHotelPaymentConfig = (hotel) => {
   if (!hotel) return hotel;
@@ -62,7 +64,23 @@ const sanitizeGuestHotelPaymentConfig = (hotel) => {
  * @returns {Promise<Object>} Created booking
  */
 const createBooking = async (bookingData, guestId) => {
-  const { hotelId, roomId, checkInDate, checkOutDate, paymentMethod, specialRequests } = bookingData;
+  const {
+    hotelId,
+    roomId,
+    checkInDate,
+    checkOutDate,
+    paymentMethod,
+    specialRequests,
+    guestCount,
+    selectedAddonIds,
+  } = bookingData;
+
+  const parsedGuestCount = Number(guestCount);
+  if (!Number.isFinite(parsedGuestCount) || parsedGuestCount < 1) {
+    const err = new Error("Số khách phải từ 1 trở lên");
+    err.statusCode = 400;
+    throw err;
+  }
 
   await cancelExpiredPendingBookings();
 
@@ -93,6 +111,14 @@ const createBooking = async (bookingData, guestId) => {
     throw new Error("Phòng không thuộc về khách sạn đã chọn");
   }
 
+  if (parsedGuestCount > room.maxPeople) {
+    const err = new Error(
+      `Số khách (${parsedGuestCount}) vượt quá sức chứa tối đa của phòng (${room.maxPeople} người)`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
   // Kiểm tra nhanh trước khi tính giá (tránh tính toán không cần thiết).
   const isAvailable = await checkRoomAvailability(room, checkInDate, checkOutDate);
   if (!isAvailable) {
@@ -102,6 +128,14 @@ const createBooking = async (bookingData, guestId) => {
   }
 
   const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
+  const { selectedAddons, addonsAmount } = await resolveAndPriceAddons({
+    hotelId,
+    selectedAddonIds: selectedAddonIds || [],
+    checkInDate,
+    checkOutDate,
+    guestCount: parsedGuestCount,
+  });
+  const finalAmount = pricing.finalAmount + addonsAmount;
 
   const method = paymentMethod || "qr_code";
   if (method === "qr_code") {
@@ -123,7 +157,10 @@ const createBooking = async (bookingData, guestId) => {
       room: roomId,
       checkInDate: new Date(checkInDate),
       checkOutDate: new Date(checkOutDate),
-      finalAmount: pricing.finalAmount,
+      guestCount: parsedGuestCount,
+      selectedAddons,
+      addonsAmount,
+      finalAmount,
       basePrice: pricing.basePrice,
       discountAmount: pricing.discountAmount,
       promotionApplied: pricing.promotionApplied || undefined,
@@ -152,7 +189,17 @@ const createBooking = async (bookingData, guestId) => {
 /**
  * Xem trước giá (guest) — cùng logic với tạo đặt phòng
  */
-const previewBookingPrice = async (hotelId, roomId, checkInDate, checkOutDate) => {
+const previewBookingPrice = async (
+  hotelId,
+  roomId,
+  checkInDate,
+  checkOutDate,
+  { guestCount = 1, selectedAddonIds = [] } = {}
+) => {
+  const parsedGuestCount = Number(guestCount);
+  if (!Number.isFinite(parsedGuestCount) || parsedGuestCount < 1) {
+    throw new Error("Số khách phải từ 1 trở lên");
+  }
   const hotel = await Hotel.findById(hotelId).select("+paymentConfig");
   if (!hotel) {
     throw new Error("Không tìm thấy khách sạn");
@@ -171,13 +218,34 @@ const previewBookingPrice = async (hotelId, roomId, checkInDate, checkOutDate) =
     throw new Error("Phòng không thuộc về khách sạn đã chọn");
   }
 
+  if (parsedGuestCount > room.maxPeople) {
+    const err = new Error(
+      `Số khách (${parsedGuestCount}) vượt quá sức chứa tối đa của phòng (${room.maxPeople} người)`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
   const pricing = await computeStaySalePricing(room, hotelId, checkInDate, checkOutDate);
+  const { selectedAddons, addonsAmount } = await resolveAndPriceAddons({
+    hotelId,
+    selectedAddonIds,
+    checkInDate,
+    checkOutDate,
+    guestCount: parsedGuestCount,
+  });
+
   return {
     hotelId,
     roomId,
     checkInDate,
     checkOutDate,
+    guestCount: parsedGuestCount,
+    selectedAddons,
+    addonsAmount,
     ...pricing,
+    roomAmount: pricing.finalAmount,
+    finalAmount: pricing.finalAmount + addonsAmount,
   };
 };
 
@@ -373,13 +441,13 @@ const cancelBooking = async (bookingId, payload, user) => {
     throw new Error(cancelValidation.error);
   }
 
-  const previousPaymentStatus = booking.paymentStatus;
+  const effectivelyPaid = isBookingEffectivelyPaid(booking);
   const refundEligibility = getGuestRefundPolicyEligibility(booking);
   const bankName = trimStr(payload?.refundBankAccountName);
   const bankNumber = trimStr(payload?.refundBankAccountNumber);
   const bankBranch = trimStr(payload?.refundBankName);
 
-  if (previousPaymentStatus === "paid" && refundEligibility.eligible) {
+  if (effectivelyPaid && refundEligibility.eligible) {
     if (!bankName || !bankNumber || !bankBranch) {
       const err = new Error(
         "Vui lòng nhập đầy đủ tên chủ tài khoản, số tài khoản và tên ngân hàng để nhận hoàn tiền."
@@ -395,13 +463,13 @@ const cancelBooking = async (bookingId, payload, user) => {
     cancellationReason: cancellationReason || "Khách hủy đặt phòng",
     guestCancelRequestedAt: now,
     guestCancelSnapshot: {
-      wasPaid: previousPaymentStatus === "paid",
+      wasPaid: effectivelyPaid,
       paymentMethod: booking.paymentMethod,
-      refundPolicyEligible: Boolean(refundEligibility.eligible && previousPaymentStatus === "paid")
+      refundPolicyEligible: Boolean(refundEligibility.eligible && effectivelyPaid)
     }
   };
 
-  if (previousPaymentStatus === "paid" && refundEligibility.eligible) {
+  if (effectivelyPaid && refundEligibility.eligible) {
     update.guestRefundBankAccountName = bankName;
     update.guestRefundBankAccountNumber = bankNumber;
     update.guestRefundBankName = bankBranch;

@@ -12,6 +12,7 @@ const notificationController = require('../controllers/notificationController');
 const dashboardController = require('../controllers/dashboardController');
 const pricingController = require('../controllers/pricingController');
 const saleController = require('../controllers/saleController');
+const addonController = require('../controllers/addonController');
 const reportController = require('../controllers/reportController');
 const {
   updateSelfProfileValidation,
@@ -46,6 +47,13 @@ const {
   saleIdParamValidation,
   validate: validateSale,
 } = require("../validations/saleValidation");
+const {
+  addonHotelIdQueryValidation,
+  createAddonValidation,
+  updateAddonValidation,
+  setAddonStatusValidation,
+  validate: validateAddon,
+} = require("../validations/addonValidation");
 const {
   dynamicPricingQueryValidation,
   applySuggestedPricesValidation,
@@ -194,5 +202,10 @@ router.post('/sales', createSaleValidation, validateSale, saleController.createS
 router.put('/sales/:id', saleIdParamValidation, updateSaleValidation, validateSale, saleController.updateSale);
 router.patch('/sales/:id/status', saleIdParamValidation, setSaleStatusValidation, validateSale, saleController.setSaleStatus);
 router.delete('/sales/:id', saleIdParamValidation, saleController.deactivateSale);
+
+router.get('/addon-services', addonHotelIdQueryValidation, validateAddon, addonController.listOwnerAddons);
+router.post('/addon-services', createAddonValidation, validateAddon, addonController.createOwnerAddon);
+router.put('/addon-services/:id', idParamValidation, updateAddonValidation, validateAddon, addonController.updateOwnerAddon);
+router.patch('/addon-services/:id/status', idParamValidation, setAddonStatusValidation, validateAddon, addonController.setOwnerAddonStatus);
 
 module.exports = router;

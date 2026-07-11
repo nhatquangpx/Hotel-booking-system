@@ -36,6 +36,7 @@ import {
   OwnerDashboardPage,
   OwnerDynamicPricingPage,
   OwnerSalePage,
+  OwnerAddonServicesPage,
   OwnerRoomMapPage,
   OwnerBookingListPage,
   OwnerEquipmentPage,
@@ -51,6 +52,7 @@ import {
   StaffDashboardPage,
   StaffRoomMapPage,
   StaffBookingsPage,
+  StaffAddonServicesPage,
   StaffEquipmentPage,
   StaffReviewsPage,
   StaffNotificationsPage,
@@ -109,6 +111,7 @@ export default function AppRoutes() {
             <Route path={ROUTES.OWNER_ROOMS} element={<OwnerRoomMapPage />} />
             <Route path={ROUTES.OWNER_PRICING} element={<OwnerDynamicPricingPage />} />
             <Route path={ROUTES.OWNER_SALE} element={<OwnerSalePage />} />
+            <Route path={ROUTES.OWNER_ADDON_SERVICES} element={<OwnerAddonServicesPage />} />
             <Route path={ROUTES.OWNER_BOOKINGS} element={<OwnerBookingListPage />} />
             <Route path={ROUTES.OWNER_EQUIPMENT} element={<OwnerEquipmentPage />} />
             <Route path={ROUTES.OWNER_REVIEWS} element={<OwnerReviewsPage />} />
@@ -125,6 +128,7 @@ export default function AppRoutes() {
             <Route path={ROUTES.STAFF_HOME} element={<StaffDashboardPage />} />
             <Route path={ROUTES.STAFF_ROOMS} element={<StaffRoomMapPage />} />
             <Route path={ROUTES.STAFF_BOOKINGS} element={<StaffBookingsPage />} />
+            <Route path={ROUTES.STAFF_ADDON_SERVICES} element={<StaffAddonServicesPage />} />
             <Route path={ROUTES.STAFF_EQUIPMENT} element={<StaffEquipmentPage />} />
             <Route path={ROUTES.STAFF_REVIEWS} element={<StaffReviewsPage />} />
             <Route path={ROUTES.STAFF_NOTIFICATIONS} element={<StaffNotificationsPage />} />

@@ -227,12 +227,21 @@ const OwnerBookingListPage = () => {
       return;
     }
 
+    const isVnpayAwaitingVerify =
+      selectedBooking.paymentMethod === 'vnpay' &&
+      selectedBooking.vnpayPaidAt &&
+      !selectedBooking.vnpayOwnerVerifiedAt;
+
     try {
       setProcessing(true);
       await api.ownerBooking.updateBookingStatus(selectedBooking._id, 'paid');
       await reloadBookings();
       closeModals();
-      toast.success('Đã xác nhận thanh toán đơn đặt phòng');
+      toast.success(
+        isVnpayAwaitingVerify
+          ? 'Đã xác minh thanh toán VNPay thành công'
+          : 'Đã xác nhận thanh toán đơn đặt phòng'
+      );
     } catch (err) {
       toast.error(apiErrorMessage(err, 'Có lỗi xảy ra khi xác nhận đặt phòng'));
     } finally {
@@ -550,11 +559,23 @@ const OwnerBookingListPage = () => {
 
         <OwnerBookingActionModal
           show={showConfirmModal}
-          title="Xác nhận đặt phòng"
-          prompt="Bạn có chắc chắn muốn xác nhận đặt phòng của"
+          title={
+            selectedBooking?.paymentMethod === 'vnpay' && selectedBooking?.vnpayPaidAt
+              ? 'Xác minh thanh toán VNPay'
+              : 'Xác nhận đặt phòng'
+          }
+          prompt={
+            selectedBooking?.paymentMethod === 'vnpay' && selectedBooking?.vnpayPaidAt
+              ? 'Xác nhận bạn đã nhận đủ tiền VNPay vào tài khoản cho đơn của'
+              : 'Bạn có chắc chắn muốn xác nhận đặt phòng của'
+          }
           booking={selectedBooking}
           processing={processing}
-          confirmText="Xác nhận"
+          confirmText={
+            selectedBooking?.paymentMethod === 'vnpay' && selectedBooking?.vnpayPaidAt
+              ? 'Xác minh thanh toán'
+              : 'Xác nhận'
+          }
           onConfirm={handleConfirmBooking}
           onClose={closeModals}
           onPreviewProof={setPreviewProofUrl}
