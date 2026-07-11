@@ -33,7 +33,7 @@ const normalizeRefundMinDaysBeforeCheckIn = (raw) => {
 
 /**
  * X ngày tối thiểu trước ngày nhận phòng theo chính sách khách sạn — chỉ dùng khi xét **hoàn tiền cho đơn đã thanh toán**
- * (getGuestRefundPolicyEligibility). Không áp dụng cho đơn pending.
+ * (getGuestRefundPolicyEligibility). Không áp dụng cho đơn pending chưa thu tiền.
  */
 const getEffectiveRefundMinDaysBeforeCheckIn = (hotelOrPolicies) => {
   const policies =
@@ -343,11 +343,21 @@ const canGuestCancelBooking = (booking) => {
 const canCancelBooking = canGuestCancelBooking;
 
 /**
+ * Đơn đã thu tiền thực tế: paid, hoặc VNPay callback thành công đang chờ chủ KS xác minh.
+ * Dùng cho hủy/hoàn — không chỉ dựa paymentStatus === "paid".
+ */
+const isBookingEffectivelyPaid = (booking) => {
+  if (!booking) return false;
+  if (booking.paymentStatus === "paid") return true;
+  return Boolean(booking.vnpayPaidAt);
+};
+
+/**
  * Đơn đã thanh toán có đủ số ngày trước check-in theo chính sách hoàn tiền của KS hay không.
  * @returns {{ eligible: boolean, minNoticeDays: number, daysUntilCheckIn: number }}
  */
 const getGuestRefundPolicyEligibility = (booking) => {
-  if (!booking || booking.paymentStatus !== "paid") {
+  if (!booking || !isBookingEffectivelyPaid(booking)) {
     return { eligible: false, minNoticeDays: 0, daysUntilCheckIn: 0 };
   }
   const minNoticeDays = getEffectiveRefundMinDaysBeforeCheckIn(booking.hotel || {});
@@ -491,6 +501,7 @@ module.exports = {
   checkBookingPermission,
   canGuestCancelBooking,
   canCancelBooking,
+  isBookingEffectivelyPaid,
   getGuestRefundPolicyEligibility,
   getBookingWithPopulate,
   getBookingById,

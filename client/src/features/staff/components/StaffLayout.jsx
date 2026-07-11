@@ -6,6 +6,7 @@ import {
   FaCalendarCheck,
   FaWrench,
   FaCommentDots,
+  FaConciergeBell,
 } from 'react-icons/fa';
 import { ROUTES } from '@/constants/routes';
 import { readLocalStorageBoolean } from '@/shared/utils';
@@ -34,6 +35,7 @@ const StaffLayout = ({ children }) => {
     if (loc.pathname === '/staff') return 'Tổng quan';
     if (loc.pathname.includes('/staff/rooms')) return 'Sơ đồ phòng';
     if (loc.pathname.includes('/staff/bookings')) return 'Đặt phòng';
+    if (loc.pathname.includes('/staff/addon-services')) return 'Dịch vụ đi kèm';
     if (loc.pathname.includes('/staff/equipment')) return 'Thiết bị';
     if (loc.pathname.includes('/staff/reviews')) return 'Đánh giá';
     if (loc.pathname.includes('/staff/notifications')) return 'Thông báo';
@@ -52,6 +54,7 @@ const StaffLayout = ({ children }) => {
       icon: FaCalendarCheck,
       title: 'Đặt phòng',
     },
+    { path: ROUTES.STAFF_ADDON_SERVICES, label: 'Dịch vụ', icon: FaConciergeBell, title: 'Dịch vụ đi kèm' },
     { path: ROUTES.STAFF_EQUIPMENT, label: 'Thiết bị', icon: FaWrench, title: 'Thiết bị' },
     { path: ROUTES.STAFF_REVIEWS, label: 'Đánh giá', icon: FaCommentDots, title: 'Đánh giá' },
   ];

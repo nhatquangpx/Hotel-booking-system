@@ -5,6 +5,7 @@
 export { default as OwnerDashboardPage } from './dashboard';
 export { default as OwnerDynamicPricingPage } from './pricing';
 export { default as OwnerSalePage } from './sale';
+export { default as OwnerAddonServicesPage } from './addon';
 export { OwnerRoomMapPage } from './rooms';
 export { default as OwnerBookingListPage } from './bookings';
 export { default as OwnerEquipmentPage } from './equipment';

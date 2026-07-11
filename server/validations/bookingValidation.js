@@ -42,6 +42,18 @@ const pricePreviewQueryValidation = [
   mongoIdQuery("hotelId", "hotelId"),
   mongoIdQuery("roomId", "roomId"),
   ...bookingStayDateQueryValidation,
+  query("guestCount")
+    .optional({ values: "falsy" })
+    .isInt({ min: 1, max: 50 })
+    .withMessage("guestCount phải từ 1 đến 50"),
+  query("selectedAddonIds")
+    .optional({ values: "falsy" })
+    .custom((value) => {
+      if (value == null || value === "") return true;
+      const ids = Array.isArray(value) ? value : String(value).split(",");
+      return ids.every((id) => mongoose.isValidObjectId(String(id).trim()));
+    })
+    .withMessage("selectedAddonIds chứa ID không hợp lệ"),
 ];
 
 const createBookingValidation = [
@@ -66,6 +78,19 @@ const createBookingValidation = [
     .isString()
     .isLength({ max: 2000 })
     .withMessage("specialRequests tối đa 2000 ký tự"),
+  body("guestCount")
+    .notEmpty()
+    .withMessage("guestCount là bắt buộc")
+    .isInt({ min: 1, max: 50 })
+    .withMessage("guestCount phải từ 1 đến 50"),
+  body("selectedAddonIds")
+    .optional()
+    .isArray()
+    .withMessage("selectedAddonIds phải là mảng"),
+  body("selectedAddonIds.*")
+    .optional()
+    .isMongoId()
+    .withMessage("selectedAddonIds chứa ID không hợp lệ"),
 ];
 
 const cancelBookingValidation = [

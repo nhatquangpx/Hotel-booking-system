@@ -82,13 +82,17 @@ const OwnerBookingCard = ({
         booking.paymentMethod === 'qr_code' &&
         booking.qrPaymentReportedAt &&
         booking.qrPaymentProofUrl;
+      const vnpayAwaitingVerify =
+        booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt && !booking.vnpayOwnerVerifiedAt;
 
       return (
         <>
           <button className="status-btn pending">
-            {booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt
-              ? 'Khách đã báo chuyển khoản'
-              : 'Chờ xác nhận'}
+            {vnpayAwaitingVerify
+              ? 'VNPay đã thanh toán — chờ xác minh'
+              : booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt
+                ? 'Khách đã báo chuyển khoản'
+                : 'Chờ xác nhận'}
           </button>
           {canRejectQr && (
             <button type="button" className="status-btn reject" onClick={() => onOpenReject(booking)}>
@@ -96,7 +100,9 @@ const OwnerBookingCard = ({
             </button>
           )}
           <button className="status-btn confirm" onClick={() => onOpenConfirm(booking)}>
-            Xác nhận
+            {booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt
+              ? 'Xác minh thanh toán VNPay'
+              : 'Xác nhận'}
           </button>
         </>
       );

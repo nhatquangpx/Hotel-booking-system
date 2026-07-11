@@ -7,6 +7,7 @@ const roomController = require("../controllers/roomController");
 const bookingController = require("../controllers/bookingController");
 const hotelController = require("../controllers/hotelController");
 const reviewController = require("../controllers/reviewController");
+const addonController = require("../controllers/addonController");
 const dashboardController = require("../controllers/dashboardController");
 const notificationController = require("../controllers/notificationController");
 const userController = require("../controllers/userController");
@@ -27,6 +28,14 @@ const {
   equipmentRepairRequestValidation,
   validate: validateEquipment,
 } = require("../validations/equipmentValidation");
+const {
+  addonHotelIdQueryValidation,
+  addonStaffHotelIdQueryValidation,
+  createAddonValidation,
+  updateAddonValidation,
+  setAddonStatusValidation,
+  validate: validateAddon,
+} = require("../validations/addonValidation");
 const {
   idParamValidation,
   roomIdParamAltValidation,
@@ -96,6 +105,17 @@ router.patch(
   updateRoomStatusValidation,
   validateRoom,
   roomController.updateStaffRoomStatus
+);
+
+router.get("/addon-services", addonStaffHotelIdQueryValidation, validateAddon, addonController.listStaffAddons);
+router.post("/addon-services", createAddonValidation, validateAddon, addonController.createStaffAddon);
+router.put("/addon-services/:id", idParamValidation, updateAddonValidation, validateAddon, addonController.updateStaffAddon);
+router.patch(
+  "/addon-services/:id/status",
+  idParamValidation,
+  setAddonStatusValidation,
+  validateAddon,
+  addonController.setStaffAddonStatus
 );
 
 module.exports = router;

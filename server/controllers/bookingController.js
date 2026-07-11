@@ -11,20 +11,31 @@ exports.createBooking = (req, res) =>
         checkOutDate: req.body.checkOutDate,
         paymentMethod: req.body.paymentMethod,
         specialRequests: req.body.specialRequests,
+        guestCount: req.body.guestCount,
+        selectedAddonIds: req.body.selectedAddonIds,
       },
       userId: req.user.id,
     })
   );
 
 exports.getPricePreview = (req, res) =>
-  runService(res, () =>
-    bookingApi.getPricePreview({
+  runService(res, () => {
+    const rawAddonIds = req.query.selectedAddonIds;
+    const selectedAddonIds = Array.isArray(rawAddonIds)
+      ? rawAddonIds
+      : rawAddonIds
+        ? String(rawAddonIds).split(",").map((id) => id.trim()).filter(Boolean)
+        : [];
+
+    return bookingApi.getPricePreview({
       hotelId: req.query.hotelId,
       roomId: req.query.roomId,
       checkInDate: req.query.checkInDate,
       checkOutDate: req.query.checkOutDate,
-    })
-  );
+      guestCount: req.query.guestCount,
+      selectedAddonIds,
+    });
+  });
 
 exports.getMyBookings = (req, res) =>
   runService(res, () =>

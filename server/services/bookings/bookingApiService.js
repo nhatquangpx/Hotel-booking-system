@@ -7,10 +7,12 @@ const {
   notifyPaymentSuccessful,
   notifyGuestBookingConfirmed,
   notifyGuestBookingCancelled,
+  notifyAdminHighValueBooking,
 } = require("../notifications");
 const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../emails");
 const bookingService = require("./index");
 const { ServiceError } = require("../../lib/http/serviceError");
+const { getBookingFinalAmount } = require("./bookingAmount");
 
 function sanitizeBookingForResponse(booking) {
   const bookingObj = booking.toObject ? booking.toObject() : { ...booking };
@@ -52,7 +54,14 @@ async function createBooking({ bookingData, userId }) {
   return { status: 201, body };
 }
 
-async function getPricePreview({ hotelId, roomId, checkInDate, checkOutDate }) {
+async function getPricePreview({
+  hotelId,
+  roomId,
+  checkInDate,
+  checkOutDate,
+  guestCount,
+  selectedAddonIds,
+}) {
   if (!hotelId || !roomId || !checkInDate || !checkOutDate) {
     throw new ServiceError(400, "Thiếu hotelId, roomId, checkInDate hoặc checkOutDate");
   }
@@ -60,7 +69,8 @@ async function getPricePreview({ hotelId, roomId, checkInDate, checkOutDate }) {
     hotelId,
     roomId,
     checkInDate,
-    checkOutDate
+    checkOutDate,
+    { guestCount: guestCount || 1, selectedAddonIds: selectedAddonIds || [] }
   );
   return { status: 200, body };
 }
@@ -131,6 +141,12 @@ async function handlePaidStatusSideEffects(bookingId, oldStatus) {
     console.error("Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:", err)
   );
 
+  const booking = await Booking.findById(bookingId);
+  if (booking && getBookingFinalAmount(booking) >= 10000000) {
+    notifyAdminHighValueBooking(bookingId, 10000000).catch((err) =>
+      console.error("Lỗi khi tạo thông báo đặt phòng giá trị cao cho admin:", err)
+    );
+  }
 }
 
 async function updateBookingStatus({ id, status, user }) {

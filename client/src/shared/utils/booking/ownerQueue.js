@@ -23,6 +23,15 @@ export function needsOwnerPaymentAction(booking) {
   return booking?.paymentStatus === 'pending';
 }
 
+export function hasVnpayAwaitingOwnerVerification(booking) {
+  return (
+    needsOwnerPaymentAction(booking) &&
+    booking.paymentMethod === 'vnpay' &&
+    Boolean(booking.vnpayPaidAt) &&
+    !booking.vnpayOwnerVerifiedAt
+  );
+}
+
 export function hasQrProofAwaitingReview(booking) {
   return (
     needsOwnerPaymentAction(booking) &&
@@ -85,6 +94,7 @@ export function bookingNeedsOwnerAction(booking, referenceDate = new Date()) {
 }
 
 export function getOwnerActionLabel(booking, referenceDate = new Date()) {
+  if (hasVnpayAwaitingOwnerVerification(booking)) return 'VNPay đã thanh toán — chờ xác minh';
   if (hasQrProofAwaitingReview(booking)) return 'QR đã gửi minh chứng';
   if (needsOwnerPaymentAction(booking)) return 'Chờ xác nhận thanh toán';
   if (needsOwnerRefundConfirm(booking)) return 'Chờ hoàn tiền';
@@ -99,6 +109,9 @@ export function getOwnerActionLabel(booking, referenceDate = new Date()) {
 
 export function sortOwnerBookingsByPaymentPriority(bookings) {
   return [...bookings].sort((a, b) => {
+    const aVnpay = hasVnpayAwaitingOwnerVerification(a) ? 0 : 1;
+    const bVnpay = hasVnpayAwaitingOwnerVerification(b) ? 0 : 1;
+    if (aVnpay !== bVnpay) return aVnpay - bVnpay;
     const aProof = hasQrProofAwaitingReview(a) ? 0 : 1;
     const bProof = hasQrProofAwaitingReview(b) ? 0 : 1;
     if (aProof !== bProof) return aProof - bProof;
@@ -174,7 +187,7 @@ export function getOwnerActionCounts(bookings, referenceDate = new Date()) {
   let checkInOut = 0;
 
   for (const booking of bookings) {
-    if (hasQrProofAwaitingReview(booking)) {
+    if (hasVnpayAwaitingOwnerVerification(booking) || hasQrProofAwaitingReview(booking)) {
       qrProof += 1;
     } else if (needsOwnerPaymentAction(booking)) {
       pendingPayment += 1;

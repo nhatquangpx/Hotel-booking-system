@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getImageUrl } from '@/constants/images';
 import { formatCurrency, getRoomPrice } from '@/shared/utils';
 import { formatRoomType } from '@/constants/roomTypes';
@@ -11,6 +11,12 @@ import './BookingModal.scss';
  */
 const BookingModal = ({ isOpen, room, bookingDates, onConfirm, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (isOpen && room) {
+      setCurrentImageIndex(0);
+    }
+  }, [isOpen, room?._id]);
 
   if (!isOpen || !room) return null;
 

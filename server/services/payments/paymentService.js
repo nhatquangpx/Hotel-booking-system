@@ -283,6 +283,12 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
     };
   }
 
+  if (freshBooking.vnpayPaidAt) {
+    return {
+      redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}&awaitingVerification=1`,
+    };
+  }
+
   if (freshBooking.paymentStatus === "cancelled") {
     return handleVnpayRefundRequired({
       booking: freshBooking,
@@ -322,7 +328,7 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
   const updatedBooking = await Booking.findOneAndUpdate(
     { _id: booking._id, paymentStatus: "pending" },
     {
-      paymentStatus: "paid",
+      vnpayPaidAt: new Date(),
       vnpTransactionRef: paymentResult.vnp_TxnRef,
       $unset: { pendingExpiresAt: "" },
     },
@@ -331,9 +337,9 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
 
   if (!updatedBooking) {
     const latest = await Booking.findById(booking._id);
-    if (latest?.paymentStatus === "paid") {
+    if (latest?.vnpayPaidAt) {
       return {
-        redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}`,
+        redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}&awaitingVerification=1`,
       };
     }
     return handleVnpayRefundRequired({
@@ -347,41 +353,16 @@ async function handleVnpaySuccess(booking, paymentResult, paymentTransaction) {
 
   await refreshRoomBookingStatus(updatedBooking.room);
 
-  console.log(`Đã cập nhật booking ${booking._id} thành paid sau khi thanh toán VNPay thành công`);
-
-  const populatedBooking = await Booking.findById(updatedBooking._id)
-    .populate("guest", "name email phone")
-    .populate("hotel", "name address contactInfo")
-    .populate("room", "roomNumber type price maxPeople");
-
-  if (populatedBooking?.guest?.email) {
-    sendReceiptEmail(populatedBooking, "vnpay", paymentResult.vnp_TxnRef)
-      .then((success) => {
-        if (success) console.log(`Đã gửi email hóa đơn cho booking ${booking._id}`);
-        else console.error(`Không thể gửi email hóa đơn cho booking ${booking._id}`);
-      })
-      .catch((err) => console.error("Lỗi khi gửi email hóa đơn:", err));
-
-    sendCheckInReminderIfNeeded(populatedBooking).catch((err) =>
-      console.error("Lỗi khi gửi email nhắc nhở check-in:", err)
-    );
-  }
+  console.log(
+    `VNPay thanh toán thành công cho booking ${booking._id}, chờ chủ khách sạn xác minh`
+  );
 
   notifyPaymentSuccessful(booking._id).catch((err) =>
-    console.error("Lỗi khi tạo thông báo thanh toán thành công cho owner:", err)
+    console.error("Lỗi khi tạo thông báo VNPay chờ xác minh cho owner:", err)
   );
-  notifyGuestBookingConfirmed(booking._id).catch((err) =>
-    console.error("Lỗi khi tạo thông báo xác nhận đặt phòng cho guest:", err)
-  );
-
-  if (getBookingFinalAmount(booking) >= 10000000) {
-    notifyAdminHighValueBooking(booking._id, 10000000).catch((err) =>
-      console.error("Lỗi khi tạo thông báo đặt phòng giá trị cao cho admin:", err)
-    );
-  }
 
   return {
-    redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}`,
+    redirect: `${process.env.FRONTEND_URL}/payment/vnpay-return?vnp_ResponseCode=00&bookingId=${booking._id}&awaitingVerification=1`,
   };
 }
 

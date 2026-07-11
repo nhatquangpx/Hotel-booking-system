@@ -126,17 +126,24 @@ h1 {
   top: 130px; /* Điều chỉnh vị trí cố định */
 }
 
-.booking-summary {
+.booking-section {
   background: $bg-white;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 
   h2 {
     @include body-md-alt;
     color: $text-medium;
-    margin-bottom: 18px;
+    margin: 0 0 16px;
+  }
+
+  .section-desc {
+    margin: -8px 0 18px;
+    font-size: 0.9rem;
+    color: $text-light;
+    line-height: 1.5;
   }
 
   .summary-item--sale-block {
@@ -156,23 +163,95 @@ h1 {
       color: $text-light;
       min-width: 120px;
     }
+
     .value {
       color: $text-medium;
       @include body-base;
       flex: 1;
       text-align: $align-right;
+
       &.price {
         color: $danger;
         font-weight: $font-semibold;
       }
     }
   }
+
   .total {
-    .label, .value {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px dashed $border-medium;
+
+    .label,
+    .value {
       @include body-base-alt;
       font-weight: $font-semibold;
     }
   }
+}
+
+.booking-options-section {
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.booking-price-section {
+  border: 1px solid rgba($button-primary, 0.25);
+  background: linear-gradient(180deg, rgba($luxury-gold, 0.08) 0%, $grey-light 100%);
+  margin-bottom: 0;
+
+  .total .value.price {
+    font-size: 1.2rem;
+  }
+}
+
+.summary-item--discount {
+  .value.price-discount {
+    color: $status-success-text;
+    font-weight: $font-semibold;
+  }
+}
+
+.price-with-discount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.price-original {
+  text-decoration: line-through;
+  color: $text-light;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.price-after-discount {
+  color: $danger;
+  font-weight: $font-semibold;
+}
+
+.booking-actions-confirm--final {
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.booking-payment-section {
+  margin-bottom: 0;
+}
+
+.guest-count-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.guest-count-cap {
+  font-size: 0.9rem;
+  color: $text-light;
 }
 
 .booking-actions-confirm {
@@ -182,6 +261,97 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 15px;
+
+  .booking-payment-section & {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+.addon-services-group {
+  .addon-services-loading {
+    margin: 0;
+    color: $text-light;
+    font-size: 0.9rem;
+  }
+
+  .addon-services-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .addon-service-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid $border-light;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: $bg-white;
+
+    &:hover {
+      border-color: $button-primary;
+      background: rgba($luxury-gold, 0.05);
+    }
+
+    &--selected {
+      border-color: $button-primary;
+      background: rgba($luxury-gold, 0.08);
+      box-shadow: 0 0 0 1px rgba($button-primary, 0.15);
+    }
+
+    input[type='checkbox'] {
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+  }
+
+  .addon-service-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .addon-service-name {
+    font-weight: 600;
+    color: $text-medium;
+    @include body-base;
+  }
+
+  .addon-service-meta,
+  .addon-service-desc {
+    font-size: 0.9rem;
+    color: $text-light;
+    line-height: 1.45;
+  }
+}
+
+.guest-count-input {
+  width: 100%;
+  max-width: 160px;
+  padding: 12px;
+  border: 1px solid $border-medium;
+  border-radius: 5px;
+  @include body-base;
+  box-sizing: border-box;
+}
+
+.field-hint {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: $text-light;
+}
+
+.field-error {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: $error;
 }
 
 .form-group {

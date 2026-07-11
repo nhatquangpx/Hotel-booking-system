@@ -14,11 +14,20 @@ export function getEffectiveRefundMinDaysBeforeCheckIn(policies) {
 }
 
 /**
+ * Đơn đã thu tiền thực tế: paid, hoặc VNPay đã callback thành công (chờ KS xác minh).
+ */
+export function isBookingEffectivelyPaid(booking) {
+  if (!booking) return false;
+  if (booking.paymentStatus === 'paid') return true;
+  return Boolean(booking.vnpayPaidAt);
+}
+
+/**
  * Đơn đã thanh toán có đủ ngày trước check-in theo chính sách hoàn (đồng bộ logic server).
  * @returns {{ eligible: boolean, minNoticeDays: number, daysUntilCheckIn: number }}
  */
 export function computeGuestRefundEligibility(booking) {
-  if (!booking || booking.paymentStatus !== 'paid') {
+  if (!booking || !isBookingEffectivelyPaid(booking)) {
     return { eligible: false, minNoticeDays: 0, daysUntilCheckIn: 0 };
   }
   const minNoticeDays = getEffectiveRefundMinDaysBeforeCheckIn(booking.hotel?.policies || {});

@@ -118,7 +118,8 @@ const BookingListItem = ({
             {booking.paymentStatus === 'pending' &&
               !holdExpired &&
               !needsQrProofResubmit(booking) &&
-              !(booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) && (
+              !(booking.paymentMethod === 'qr_code' && booking.qrPaymentReportedAt) &&
+              !(booking.paymentMethod === 'vnpay' && booking.vnpayPaidAt) && (
                 <button
                   type="button"
                   className="pay-continue-btn"

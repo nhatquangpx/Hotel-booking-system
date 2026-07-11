@@ -7,6 +7,7 @@ const hotelController = require('../controllers/hotelController');
 const roomController = require('../controllers/roomController');
 const bookingController = require('../controllers/bookingController');
 const reviewController = require('../controllers/reviewController');
+const addonController = require('../controllers/addonController');
 const contactController = require("../controllers/contactController");
 const notificationController = require('../controllers/notificationController');
 const { submitContactValidation, validate: validateContact } = require("../validations/contactValidation");
@@ -49,6 +50,17 @@ router.get(
   validateReview,
   reviewController.getReviewsByHotel
 );
+router.get(
+  '/bookings/available-rooms',
+  availableRoomsQueryValidation,
+  validateBooking,
+  bookingController.getAvailableRooms
+);
+router.get(
+  '/hotels/:hotelId/addon-services',
+  hotelIdParamValidation,
+  addonController.listGuestHotelAddons
+);
 
 router.use(authenticate, isGuest);
 
@@ -61,12 +73,6 @@ router.get(
   guestMyBookingsQueryValidation,
   validateBooking,
   bookingController.getMyBookings
-);
-router.get(
-  '/bookings/available-rooms',
-  availableRoomsQueryValidation,
-  validateBooking,
-  bookingController.getAvailableRooms
 );
 router.get(
   '/bookings/price-preview',
