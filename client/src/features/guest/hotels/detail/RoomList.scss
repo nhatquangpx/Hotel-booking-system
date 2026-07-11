@@ -3,34 +3,56 @@
 @use "@/styles/text" as *;
 
 .room-list-loading {
-  margin-bottom: 40px;
+  margin-bottom: 28px;
   text-align: $align-center;
-  padding: 50px 0;
-  
+  padding: 40px 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
   .loading {
     @include body-md;
   }
 }
 
 .room-list {
-  margin-bottom: 40px;
+  margin-bottom: 28px;
   background-color: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
 
   h2 {
     @include heading-md;
-    margin-bottom: 10px;
+    margin: 0 0 6px;
     color: $text-medium;
-    border-bottom: 2px solid $star-orange;
-    padding-bottom: 10px;
   }
 
   .room-list-dates {
     @include body-sm;
     color: $text-light;
-    margin-bottom: 20px;
+    margin: 0;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(46, 125, 50, 0.1);
+    color: #2e7d32;
+    @include body-sm;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   .no-rooms {
@@ -42,26 +64,37 @@
     color: $text-light;
   }
 
-  .room-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 30px;
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .room-card {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: white;
-    transition: transform 0.3s ease;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) minmax(160px, 200px);
+    gap: 18px;
+    align-items: stretch;
+    padding: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    background: #fff;
+    transition: box-shadow 0.2s ease;
 
     &:hover {
-      transform: translateY(-5px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    &--partial {
+      border-color: rgba($star-orange, 0.45);
+      background: #fffdf8;
     }
 
     .room-image {
-      height: 200px;
+      height: 140px;
+      border-radius: 10px;
       overflow: hidden;
+      background: $bg-light-alt;
 
       img {
         width: 100%;
@@ -71,111 +104,209 @@
     }
 
     .room-info {
-      padding: 20px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
 
       h3 {
-        margin-top: 0;
-        margin-bottom: 10px;
+        margin: 0;
         @include body-md-alt;
         color: $text-medium;
       }
 
       .room-type {
+        margin: 0;
         color: $text-light;
-        margin-bottom: 15px;
-        @include body-base;
-        text-transform: $transform-capitalize;
+        @include body-sm;
       }
 
-      .room-price-block {
-        margin-bottom: 16px;
-      }
+      .room-sale-breakdown {
+        margin-top: 4px;
+        width: 100%;
+        max-width: 100%;
 
-      .room-price-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 6px;
-        flex-wrap: wrap;
-
-        .price-label {
-          @include body-sm;
-          color: $text-light;
+        .guest-sale-pricing__main,
+        .guest-sale-pricing__periods li {
+          white-space: normal;
+          overflow-wrap: anywhere;
+          word-break: normal;
         }
 
-        .price-original {
-          @include body-base;
-          text-decoration: line-through;
-          color: $grey-text;
-        }
+        .guest-sale-pricing__periods {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px 14px;
+          padding-left: 0;
+          list-style: none;
+          margin-bottom: 0;
 
-        &--promo {
-          align-items: center;
-        }
+          li {
+            margin-bottom: 0;
+            position: relative;
+            padding-left: 0.9rem;
 
-        .sale-badge {
-          display: inline-block;
-          background: linear-gradient(135deg, #e53935, #c62828);
-          color: #fff;
-          font-size: 0.75rem;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 999px;
-        }
-
-        .price-final {
-          @include body-lg-alt;
-          font-weight: $font-semibold;
-          color: $error;
+            &::before {
+              content: '•';
+              position: absolute;
+              left: 0;
+            }
+          }
         }
       }
+    }
 
-      .price-stay-total {
+    .room-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .room-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: $grey-light;
+      color: $text-medium;
+      @include body-sm;
+    }
+
+    .room-partial {
+      margin-top: 4px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba($star-orange, 0.12);
+
+      &__title {
+        margin: 0 0 4px;
+        @include body-sm;
+        font-weight: 700;
+        color: #9a6b00;
+      }
+
+      &__hint {
+        margin: 0;
         @include body-sm;
         color: $text-medium;
-        margin-top: 8px;
         line-height: 1.4;
+      }
+    }
 
-        .price-stay-compare {
-          color: $grey-text;
-          text-decoration: line-through;
-          font-weight: normal;
-        }
+    .room-action {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: right;
+    }
+
+    .room-price-block {
+      width: 100%;
+    }
+
+    .room-price-original {
+      @include body-sm;
+      color: $grey-text;
+      text-decoration: line-through;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .room-price-total {
+      @include body-lg-alt;
+      font-weight: $font-semibold;
+      color: $star-orange;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .room-price-night {
+      margin-top: 4px;
+      @include body-sm;
+      color: $text-light;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      &__was {
+        text-decoration: line-through;
+        color: $grey-text;
       }
 
-      .room-price {
-        margin-bottom: 20px;
+      &__now {
+        color: $text-medium;
+        font-weight: 600;
+      }
+    }
 
-        .price {
-          @include body-lg-alt;
-          font-weight: $font-semibold;
-          color: $error;
-        }
+    .sale-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #e53935, #c62828);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
 
-        .per-night {
-          @include body-sm;
-          color: $grey-text;
-          margin-left: 5px;
-        }
+    .room-action__buttons {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .book-btn {
+      width: 100%;
+      padding: 11px 14px;
+      background-color: $lotte-primary;
+      color: $text-white;
+      border: none;
+      border-radius: 8px;
+      @include button-text;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: $lotte-primary-dark;
       }
 
-      .book-btn {
-        width: 100%;
-        padding: 12px;
-        background-color: $button-primary;
-        color: $text-white;
-        border: none;
-        border-radius: 4px;
-        @include button-text;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+      &--secondary {
+        background: transparent;
+        color: $lotte-primary-dark;
+        border: 1px solid rgba($lotte-primary, 0.45);
 
         &:hover {
-          background-color: $button-primary-hover;
+          background: rgba($lotte-primary, 0.08);
         }
       }
     }
   }
 }
 
+@media (max-width: 768px) {
+  .room-list {
+    padding: 16px;
+
+    .room-card {
+      grid-template-columns: 1fr;
+      gap: 12px;
+
+      .room-image {
+        height: 180px;
+      }
+
+      .room-action {
+        align-items: stretch;
+        text-align: left;
+      }
+
+      .room-price-night {
+        justify-content: flex-start;
+      }
+    }
+  }
+}

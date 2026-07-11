@@ -30,15 +30,18 @@
   }
 
   .reviews-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
 
     .review-item {
       background-color: $bg-light-alt;
       padding: 20px;
       border-radius: 8px;
       border: 1px solid $border-light;
+      min-width: 0;
+      height: 100%;
+      box-sizing: border-box;
 
       .review-header {
         display: flex;
@@ -50,6 +53,7 @@
 
         .reviewer-info {
           flex: 1;
+          min-width: 0;
 
           .reviewer-name {
             @include body-md;
@@ -101,7 +105,7 @@
         background-color: $grey-light;
         padding: 15px;
         border-radius: 6px;
-        margin-left: 20px;
+        margin-left: 0;
 
         &__header {
           display: flex;
@@ -169,6 +173,14 @@
     .page-info {
       @include body-base;
       color: $text-medium;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .hotel-reviews {
+    .reviews-list {
+      grid-template-columns: 1fr;
     }
   }
 }

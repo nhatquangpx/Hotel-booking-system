@@ -96,18 +96,34 @@ const buildBookingConflictQuery = (
   return query;
 };
 
+/** Chuẩn hoá về 00:00:00 local để so sánh ngày lịch (đặt phòng / check-in-out thực tế). */
+const toBookingDateOnly = (dateLike) => {
+  const d = new Date(dateLike);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+/** YYYY-MM-DD theo lịch local (đồng bộ với toBookingDateOnly). */
+const toDateKey = (dateLike) => {
+  const d = toBookingDateOnly(dateLike);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 /**
- * Check if room is available for the given date range
- * Checks all necessary conditions: booking conflicts and room status
- * NOTE: Room.bookingStatus is NOT used here, it only reflects current occupancy state.
- * @param {String|Object} roomIdOrRoom - Room ID or Room object
- * @param {Date|String} startDate - Check-in date
- * @param {Date|String} endDate - Check-out date
- * @param {String} excludeBookingId - Optional: Booking ID to exclude from check (for updates)
- * @returns {Promise<Boolean>} True if room is available, false otherwise
+ * Phân tích availability theo từng đêm trong [startDate, endDate).
+ * - available: không đêm nào bị chiếm
+ * - partial: còn ít nhất 1 khoảng trống liên tục ≥ 1 đêm
+ * - unavailable: mọi đêm đều bị chiếm (hoặc phòng không active)
  */
-const checkRoomAvailability = async (roomIdOrRoom, startDate, endDate, excludeBookingId = null) => {
-  // Get room object if only roomId is provided
+const analyzeRoomStayAvailability = async (
+  roomIdOrRoom,
+  startDate,
+  endDate,
+  excludeBookingId = null
+) => {
   let room;
   let roomId;
 
@@ -119,19 +135,144 @@ const checkRoomAvailability = async (roomIdOrRoom, startDate, endDate, excludeBo
     roomId = room._id || room.id;
   }
 
-  if (!room) {
-    return false;
+  if (!room || room.roomStatus !== "active") {
+    return { status: "unavailable", room: null, roomId: null };
   }
 
-  if (room.roomStatus !== "active") {
-    return false;
+  const stayStart = toBookingDateOnly(startDate);
+  const stayEnd = toBookingDateOnly(endDate);
+  const totalNights = calculateNights(stayStart, stayEnd);
+  if (totalNights < 1) {
+    return { status: "unavailable", room, roomId };
   }
 
-  const conflictingBooking = await Booking.findOne(
-    buildBookingConflictQuery(roomId, startDate, endDate, excludeBookingId)
+  const conflicts = await Booking.find(
+    buildBookingConflictQuery(roomId, stayStart, stayEnd, excludeBookingId)
+  ).select("checkInDate checkOutDate");
+
+  const blockedSet = new Set();
+  for (const booking of conflicts) {
+    let cursor = toBookingDateOnly(
+      Math.max(stayStart.getTime(), toBookingDateOnly(booking.checkInDate).getTime())
+    );
+    const blockEnd = toBookingDateOnly(
+      Math.min(stayEnd.getTime(), toBookingDateOnly(booking.checkOutDate).getTime())
+    );
+    while (cursor < blockEnd) {
+      blockedSet.add(toDateKey(cursor));
+      cursor = toBookingDateOnly(cursor);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  const nightKeys = [];
+  {
+    let cursor = toBookingDateOnly(stayStart);
+    while (cursor < stayEnd) {
+      nightKeys.push(toDateKey(cursor));
+      cursor = toBookingDateOnly(cursor);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  const blockedNights = nightKeys.filter((k) => blockedSet.has(k));
+  if (blockedNights.length === 0) {
+    return {
+      status: "available",
+      room,
+      roomId,
+      totalNights,
+      blockedNights: [],
+      freeRanges: [
+        {
+          checkInDate: toDateKey(stayStart),
+          checkOutDate: toDateKey(stayEnd),
+          nights: totalNights,
+        },
+      ],
+      suggestion: {
+        checkInDate: toDateKey(stayStart),
+        checkOutDate: toDateKey(stayEnd),
+        nights: totalNights,
+      },
+    };
+  }
+
+  if (blockedNights.length >= totalNights) {
+    return {
+      status: "unavailable",
+      room,
+      roomId,
+      totalNights,
+      blockedNights,
+      freeRanges: [],
+      suggestion: null,
+    };
+  }
+
+  const freeRanges = [];
+  let rangeStart = null;
+  for (let i = 0; i <= nightKeys.length; i += 1) {
+    const key = nightKeys[i];
+    const isFree = key && !blockedSet.has(key);
+    if (isFree && rangeStart === null) {
+      rangeStart = key;
+    } else if (!isFree && rangeStart !== null) {
+      const checkOutDate = key || toDateKey(stayEnd);
+      const nights = calculateNights(rangeStart, checkOutDate);
+      if (nights >= 1) {
+        freeRanges.push({ checkInDate: rangeStart, checkOutDate, nights });
+      }
+      rangeStart = null;
+    }
+  }
+
+  if (freeRanges.length === 0) {
+    return {
+      status: "unavailable",
+      room,
+      roomId,
+      totalNights,
+      blockedNights,
+      freeRanges: [],
+      suggestion: null,
+    };
+  }
+
+  const suggestion = [...freeRanges].sort((a, b) => {
+    if (b.nights !== a.nights) return b.nights - a.nights;
+    return a.checkInDate.localeCompare(b.checkInDate);
+  })[0];
+
+  return {
+    status: "partial",
+    room,
+    roomId,
+    totalNights,
+    blockedNights,
+    freeRanges,
+    suggestion,
+  };
+};
+
+/**
+ * Check if room is available for the given date range
+ * Checks all necessary conditions: booking conflicts and room status
+ * NOTE: Room.bookingStatus is NOT used here, it only reflects current occupancy state.
+ * @param {String|Object} roomIdOrRoom - Room ID or Room object
+ * @param {Date|String} startDate - Check-in date
+ * @param {Date|String} endDate - Check-out date
+ * @param {String} excludeBookingId - Optional: Booking ID to exclude from check (for updates)
+ * @returns {Promise<Boolean>} True if room is available, false otherwise
+ */
+const checkRoomAvailability = async (roomIdOrRoom, startDate, endDate, excludeBookingId = null) => {
+  const analysis = await analyzeRoomStayAvailability(
+    roomIdOrRoom,
+    startDate,
+    endDate,
+    excludeBookingId
   );
-
-  return !conflictingBooking;
+  return analysis.status === "available";
 };
 
 /**
@@ -165,13 +306,6 @@ const validateBookingDates = (checkInDate, checkOutDate) => {
   }
 
   return { valid: true, error: null };
-};
-
-/** Chuẩn hoá về 00:00:00 local để so sánh ngày lịch (đặt phòng / check-in-out thực tế). */
-const toBookingDateOnly = (dateLike) => {
-  const d = new Date(dateLike);
-  d.setHours(0, 0, 0, 0);
-  return d;
 };
 
 const formatBookingDateLabel = (dateLike) => {
@@ -488,6 +622,7 @@ module.exports = {
   calculateNights,
   calculateAmount,
   buildBookingConflictQuery,
+  analyzeRoomStayAvailability,
   checkRoomAvailability,
   DEFAULT_REFUND_MIN_DAYS_BEFORE_CHECKIN,
   normalizeRefundMinDaysBeforeCheckIn,

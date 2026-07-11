@@ -15,7 +15,6 @@ import HotelContact from './HotelContact';
 import HotelReviews from './HotelReviews';
 import { PAGE_SIZE } from '@/constants/pagination';
 import {
-  getEffectiveRefundMinDaysBeforeCheckIn,
   isGuestBookableHotel,
   getHotelStatusLabel,
   getHotelStatusBannerMessage,
@@ -46,6 +45,7 @@ const GuestHotelDetailPage = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedStayDates, setSelectedStayDates] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [reviewStats, setReviewStats] = useState(null);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -66,7 +66,6 @@ const GuestHotelDetailPage = () => {
       try {
         setLoading(true);
         const response = await api.userHotel.getHotelById(id);
-        console.log('Hotel Detail Response:', response);
         setHotel(response);
         setLoading(false);
       } catch (err) {
@@ -150,8 +149,11 @@ const GuestHotelDetailPage = () => {
     try {
       setLoading(true);
       setRoomSearchError(null);
-      const response = await api.userBooking.getAvailableRooms(id, bookingDates.checkInDate, bookingDates.checkOutDate);
-      console.log('Rooms Response:', response);
+      const response = await api.userBooking.getAvailableRooms(
+        id,
+        bookingDates.checkInDate,
+        bookingDates.checkOutDate
+      );
       setRooms(Array.isArray(response) ? response : []);
       setSearchPerformed(true);
       setLoading(false);
@@ -164,14 +166,29 @@ const GuestHotelDetailPage = () => {
     }
   };
 
+  const resolveStayDates = (room, overrideDates) => {
+    if (overrideDates?.checkInDate && overrideDates?.checkOutDate) {
+      return overrideDates;
+    }
+    const suggestion = room?.availability?.suggestion;
+    if (room?.availability?.status === 'partial' && suggestion) {
+      return {
+        checkInDate: suggestion.checkInDate,
+        checkOutDate: suggestion.checkOutDate,
+      };
+    }
+    return bookingDates;
+  };
+
   const handleConfirmBooking = () => {
     if (!selectedRoom) return;
 
+    const stay = selectedStayDates || resolveStayDates(selectedRoom);
     const bookingState = {
       hotelId: id,
       roomId: selectedRoom._id,
-      checkInDate: bookingDates.checkInDate,
-      checkOutDate: bookingDates.checkOutDate,
+      checkInDate: stay.checkInDate,
+      checkOutDate: stay.checkOutDate,
     };
 
     if (!user) {
@@ -182,6 +199,7 @@ const GuestHotelDetailPage = () => {
 
     navigate('/booking/new', { state: bookingState });
     setSelectedRoom(null);
+    setSelectedStayDates(null);
     setShowBookingModal(false);
   };
 
@@ -199,6 +217,7 @@ const GuestHotelDetailPage = () => {
     });
     setPendingBookingState(null);
     setSelectedRoom(null);
+    setSelectedStayDates(null);
     setShowBookingModal(false);
   };
 
@@ -207,14 +226,47 @@ const GuestHotelDetailPage = () => {
     setPendingBookingState(null);
   };
 
-  const handleRoomSelect = (room) => {
+  const handleRoomSelect = (room, overrideDates) => {
+    const stay = resolveStayDates(room, overrideDates);
     setSelectedRoom(room);
+    setSelectedStayDates(stay);
     setShowBookingModal(true);
+  };
+
+  const handleApplySuggestedDates = async (suggestion) => {
+    if (!suggestion?.checkInDate || !suggestion?.checkOutDate) return;
+    const nextDates = {
+      checkInDate: suggestion.checkInDate,
+      checkOutDate: suggestion.checkOutDate,
+    };
+    setBookingDates(nextDates);
+
+    if (!guestBookable) return;
+
+    try {
+      setLoading(true);
+      setRoomSearchError(null);
+      const response = await api.userBooking.getAvailableRooms(
+        id,
+        nextDates.checkInDate,
+        nextDates.checkOutDate
+      );
+      setRooms(Array.isArray(response) ? response : []);
+      setSearchPerformed(true);
+      setLoading(false);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || err?.message || 'Không thể tải danh sách phòng';
+      setRoomSearchError(msg);
+      setLoading(false);
+      console.error(err);
+    }
   };
 
   const handleCloseModal = () => {
     setShowBookingModal(false);
     setSelectedRoom(null);
+    setSelectedStayDates(null);
   };
 
   const handleReviewPageChange = (page) => {
@@ -251,11 +303,6 @@ const GuestHotelDetailPage = () => {
       <div className="hotel-detail-container">
         {hotel && (
           <>
-            <HotelHeader
-              hotel={hotel}
-              isWishlisted={isWishlisted(hotel._id)}
-              onWishlistedChange={applyWishlistedChange}
-            />
             {!guestBookable && (
               <div className="hotel-unavailable-banner" role="alert">
                 <strong>{getHotelStatusLabel(hotel.status)}</strong>
@@ -265,35 +312,61 @@ const GuestHotelDetailPage = () => {
                 </span>
               </div>
             )}
-            <HotelGallery hotel={hotel} />
-            <HotelDescription hotel={hotel} />
-            <HotelPolicies hotel={hotel} />
-            {roomSearchError ? (
-              <div className="error-message hotel-detail-container__search-error" role="alert">
-                {roomSearchError}
+
+            <div className="hotel-detail-hero">
+              <div className="hotel-detail-hero__main">
+                <HotelHeader
+                  hotel={hotel}
+                  isWishlisted={isWishlisted(hotel._id)}
+                  onWishlistedChange={applyWishlistedChange}
+                />
+                <HotelGallery hotel={hotel} />
+                {!searchPerformed ? <HotelDescription hotel={hotel} /> : null}
               </div>
-            ) : null}
-            <BookingSearch
-              bookingDates={bookingDates}
-              onDateChange={handleBookingDateChange}
-              onSearch={searchAvailableRooms}
-              loading={loading && searchPerformed}
-              refundMinDaysBeforeCheckIn={getEffectiveRefundMinDaysBeforeCheckIn(hotel.policies)}
-              disabled={!guestBookable}
-            />
+              <aside className="hotel-detail-hero__sidebar">
+                {roomSearchError ? (
+                  <div
+                    className="error-message hotel-detail-container__search-error"
+                    role="alert"
+                  >
+                    {roomSearchError}
+                  </div>
+                ) : null}
+                <div className="hotel-detail-hero__sidebar-panel">
+                  <BookingSearch
+                    bookingDates={bookingDates}
+                    onDateChange={handleBookingDateChange}
+                    onSearch={searchAvailableRooms}
+                    loading={loading && searchPerformed}
+                    disabled={!guestBookable}
+                  />
+                  <HotelPolicies hotel={hotel} variant="sidebar" />
+                  <HotelContact hotel={hotel} variant="sidebar" />
+                </div>
+              </aside>
+            </div>
+
             {guestBookable ? (
               <RoomList
                 rooms={rooms}
                 bookingDates={bookingDates}
                 onRoomSelect={handleRoomSelect}
+                onApplySuggestedDates={handleApplySuggestedDates}
                 loading={loading}
                 searchPerformed={searchPerformed}
               />
             ) : null}
+
+            {searchPerformed ? (
+              <div className="hotel-detail-info">
+                <HotelDescription hotel={hotel} />
+              </div>
+            ) : null}
+
             <BookingModal
               isOpen={showBookingModal}
               room={selectedRoom}
-              bookingDates={bookingDates}
+              bookingDates={selectedStayDates || bookingDates}
               onConfirm={handleConfirmBooking}
               onClose={handleCloseModal}
             />
@@ -303,7 +376,6 @@ const GuestHotelDetailPage = () => {
               onLogin={handleGoLogin}
               message="Bạn cần đăng nhập để tiếp tục đặt phòng. Vui lòng đăng nhập để hoàn tất đơn đặt phòng của bạn."
             />
-            <HotelContact hotel={hotel} />
             <HotelReviews
               reviews={reviews}
               reviewStats={reviewStats}
@@ -322,4 +394,3 @@ const GuestHotelDetailPage = () => {
 };
 
 export default GuestHotelDetailPage;
-

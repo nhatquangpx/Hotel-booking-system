@@ -4,6 +4,7 @@ const Room = require("../../models/Room");
 const Hotel = require("../../models/Hotel");
 const {
   checkRoomAvailability,
+  analyzeRoomStayAvailability,
   validateBookingDates,
   checkBookingPermission,
   canGuestCancelBooking,
@@ -358,12 +359,31 @@ const getBookingById = async (bookingId, user) => {
   return booking;
 };
 
+const buildSalePricingPayload = (room, pricing) => ({
+  basePrice: pricing.basePrice,
+  finalAmount: pricing.finalAmount,
+  discountAmount: pricing.discountAmount,
+  displayPercentOff: pricing.displayPercentOff,
+  promotionTitle: pricing.promotionApplied?.title || null,
+  nightlyBase: pricing.nightlyBase,
+  finalNightly: pricing.finalNightly,
+  nights: pricing.nights,
+  regularNightly: readRoomPrice(room.price),
+  nightBreakdown: pricing.nightBreakdown,
+  salePeriods: pricing.salePeriods,
+  nightsOnSale: pricing.nightsOnSale,
+  nightsRegularPrice: pricing.nightsRegularPrice,
+  mixedSalePricing: pricing.mixedSalePricing,
+});
+
 /**
- * Get available rooms for a hotel by date range
+ * Get available rooms for a hotel by date range.
+ * Phòng trống cả kỳ + phòng chỉ trống một phần (gợi ý khoảng ngày còn trống).
+ * Phòng bị chiếm toàn bộ kỳ sẽ không trả về.
  * @param {String} hotelId - Hotel ID
  * @param {Date|String} checkInDate - Check-in date
  * @param {Date|String} checkOutDate - Check-out date
- * @returns {Promise<Array>} Array of available rooms
+ * @returns {Promise<Array>} Array of available / partially available rooms
  */
 const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
   await cancelExpiredPendingBookings();
@@ -377,41 +397,47 @@ const getAvailableRooms = async (hotelId, checkInDate, checkOutDate) => {
     throw new Error("Không tìm thấy khách sạn");
   }
 
-  // Find all rooms in the hotel
   const allRooms = await Room.find({ hotelId: hotelId });
-
   const startDate = new Date(checkInDate);
   const endDate = new Date(checkOutDate);
-
   const availableRooms = [];
-
   const sales = await loadSalesOverlappingStay(hotelId, checkInDate, checkOutDate);
 
   for (const room of allRooms) {
-    const isAvailable = await checkRoomAvailability(room, startDate, endDate);
+    const analysis = await analyzeRoomStayAvailability(room, startDate, endDate);
+    if (analysis.status === "unavailable") continue;
 
-    if (isAvailable) {
-      const pricing = computeStaySalePricingFromSales(room, checkInDate, checkOutDate, sales);
-      const roomObj = room.toObject ? room.toObject() : { ...room };
-      roomObj.salePricing = {
-        basePrice: pricing.basePrice,
-        finalAmount: pricing.finalAmount,
-        discountAmount: pricing.discountAmount,
-        displayPercentOff: pricing.displayPercentOff,
-        promotionTitle: pricing.promotionApplied?.title || null,
-        nightlyBase: pricing.nightlyBase,
-        finalNightly: pricing.finalNightly,
-        nights: pricing.nights,
-        regularNightly: readRoomPrice(room.price),
-        nightBreakdown: pricing.nightBreakdown,
-        salePeriods: pricing.salePeriods,
-        nightsOnSale: pricing.nightsOnSale,
-        nightsRegularPrice: pricing.nightsRegularPrice,
-        mixedSalePricing: pricing.mixedSalePricing,
-      };
-      availableRooms.push(roomObj);
-    }
+    const priceCheckIn =
+      analysis.status === "partial" ? analysis.suggestion.checkInDate : checkInDate;
+    const priceCheckOut =
+      analysis.status === "partial" ? analysis.suggestion.checkOutDate : checkOutDate;
+
+    const pricing = computeStaySalePricingFromSales(
+      room,
+      priceCheckIn,
+      priceCheckOut,
+      sales
+    );
+
+    const roomObj = room.toObject ? room.toObject() : { ...room };
+    roomObj.salePricing = buildSalePricingPayload(room, pricing);
+    roomObj.availability = {
+      status: analysis.status,
+      blockedNights: analysis.blockedNights,
+      freeRanges: analysis.freeRanges,
+      suggestion: analysis.suggestion,
+      requestedCheckInDate: checkInDate,
+      requestedCheckOutDate: checkOutDate,
+    };
+    availableRooms.push(roomObj);
   }
+
+  availableRooms.sort((a, b) => {
+    if (a.availability.status !== b.availability.status) {
+      return a.availability.status === "available" ? -1 : 1;
+    }
+    return 0;
+  });
 
   return availableRooms;
 };
