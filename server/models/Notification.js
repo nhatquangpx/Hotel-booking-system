@@ -51,6 +51,7 @@ const NotificationSchema = new mongoose.Schema(
         "booking_cancelled",
         // Admin (recipientRole: "admin")
         "high_value_booking",
+        "cancel_abuse_alert",
       ],
       required: true
     },
@@ -70,7 +71,7 @@ const NotificationSchema = new mongoose.Schema(
     },
     relatedModel: {
       type: String,
-      enum: ["Booking", "Review", "Hotel", "Room", "User"]
+      enum: ["Booking", "Review", "Hotel", "Room", "User", "CancelAbuseFlag"]
     },
   },
   { timestamps: true }

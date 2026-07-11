@@ -23,6 +23,7 @@ import { AuthLoginPage, AuthRegisterPage, AuthForgotPasswordPage } from "@/featu
 import {
   AdminDashboardPage,
   AdminUserListPage,
+  AdminCancelAbuseListPage,
   AdminHotelListPage,
   AdminBookingListPage,
   AdminContactMessageListPage,
@@ -95,6 +96,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN_HOME} element={<AdminDashboardPage />} />
           <Route path={ROUTES.ADMIN_USERS} element={<AdminUserListPage />} />
+          <Route path={ROUTES.ADMIN_BLACKLIST} element={<AdminCancelAbuseListPage />} />
           <Route path={ROUTES.ADMIN_HOTELS} element={<AdminHotelListPage />} />
           <Route path={ROUTES.ADMIN_BOOKINGS} element={<AdminBookingListPage />} />
           <Route path={ROUTES.ADMIN_CONTACT_MESSAGES} element={<AdminContactMessageListPage />} />

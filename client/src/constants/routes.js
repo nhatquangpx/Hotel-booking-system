@@ -35,6 +35,7 @@ export const ROUTES = {
   // Admin
   ADMIN_HOME: '/admin',
   ADMIN_USERS: '/admin/users',
+  ADMIN_BLACKLIST: '/admin/blacklist',
   ADMIN_HOTELS: '/admin/hotels',
   ADMIN_BOOKINGS: '/admin/bookings',
   ADMIN_CONTACT_MESSAGES: '/admin/contact-messages',

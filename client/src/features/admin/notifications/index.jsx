@@ -51,6 +51,8 @@ const AdminNotificationsPage = () => {
     switch (type) {
       case 'high_value_booking':
         return <FaDollarSign />;
+      case 'cancel_abuse_alert':
+        return <FaExclamationTriangle style={{ color: '#c0392b' }} />;
       case 'booking_cancelled':
         return <FaBan />;
       case 'new_review':

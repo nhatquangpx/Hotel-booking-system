@@ -13,6 +13,7 @@
     "db:seed": "node scripts/seedDatabase.js",
     "db:reseed": "node scripts/reseedDatabase.js",
     "db:supplement": "node scripts/supplementData.js",
+    "db:seed-blacklist": "node scripts/seedCancelAbuseBlacklist.js",
     "db:supplement-equipment": "node scripts/supplementRoomEquipment.js",
     "db:pricing-backtest": "node scripts/pricingBacktest.js",
     "db:pricing-backtest:prepare": "node scripts/pricingBacktest.js --prepare-data"

@@ -27,10 +27,12 @@ export const notificationConfig = {
       list: '/admin/notifications',
       booking: (id) => `/admin/bookings?bookingId=${id}`,
       user: (id) => `/admin/users?userId=${id}`,
-      hotel: (id) => `/admin/hotels?hotelId=${id}`
+      hotel: (id) => `/admin/hotels?hotelId=${id}`,
+      cancelAbuse: (id) => `/admin/blacklist?flagId=${id}`,
     },
     supportedTypes: [
       'high_value_booking',
+      'cancel_abuse_alert',
       'booking_cancelled',
       'new_review',
       'negative_review'
@@ -98,6 +100,12 @@ export const getNotificationPath = (notification, role) => {
     case 'refund_processed':
     case 'high_value_booking':
       return config.routes.booking(notification.relatedId);
+
+    case 'cancel_abuse_alert':
+      if (config.routes.cancelAbuse) {
+        return config.routes.cancelAbuse(notification.relatedId);
+      }
+      return config.routes.list;
 
     case 'new_review':
     case 'negative_review':

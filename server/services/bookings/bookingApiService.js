@@ -14,6 +14,8 @@ const { sendReceiptEmail, sendCheckInReminderIfNeeded } = require("../emails");
 const bookingService = require("./index");
 const { ServiceError } = require("../../lib/http/serviceError");
 const { getBookingFinalAmount } = require("./bookingAmount");
+const { evaluateAfterGuestCancel } = require("../moderation/cancelAbuseService");
+const { assertAccountActive } = require("../moderation/accountStatus");
 
 function sanitizeBookingForResponse(booking) {
   const bookingObj = booking.toObject ? booking.toObject() : { ...booking };
@@ -51,6 +53,7 @@ async function getStaffBookingByIdWithReview({ id, user }) {
 }
 
 async function createBooking({ bookingData, userId }) {
+  await assertAccountActive(userId);
   const body = await bookingService.createGuestBooking(bookingData, userId);
   return { status: 201, body };
 }
@@ -171,6 +174,7 @@ async function updateBookingStatus({ id, status, user }) {
 }
 
 async function cancelBooking({ id, user, body }) {
+  await assertAccountActive(user?.id || user?._id);
   const booking = await bookingService.cancelGuestBooking(id, body || {}, user);
 
   notifyBookingCancelled(id).catch((err) =>
@@ -178,6 +182,11 @@ async function cancelBooking({ id, user, body }) {
   );
   notifyGuestBookingCancelled(id).catch((err) =>
     console.error("Lỗi khi tạo thông báo hủy đặt phòng cho guest:", err)
+  );
+
+  const guestId = booking?.guest?._id || booking?.guest || user?.id || user?._id;
+  evaluateAfterGuestCancel(guestId, booking?._id || id).catch((err) =>
+    console.error("Lỗi đánh giá hủy đơn liên tục:", err)
   );
 
   return {
