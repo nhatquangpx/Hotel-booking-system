@@ -3,18 +3,36 @@
 @use "@/styles/text" as *;
 
 .booking-search {
-  margin-bottom: 40px;
   background-color: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 
-  h2 {
-    @include heading-md;
-    margin-bottom: 20px;
-    color: $text-medium;
-    border-bottom: 2px solid $star-orange;
-    padding-bottom: 10px;
+  &__header {
+    background: $lotte-primary;
+    color: $text-white;
+    padding: 16px 18px;
+    text-align: center;
+
+    h2 {
+      margin: 0 0 4px;
+      @include heading-md;
+      color: $text-white;
+      border: none;
+      padding: 0;
+      text-align: center;
+    }
+
+    p {
+      margin: 0;
+      @include body-sm;
+      opacity: 0.95;
+      text-align: center;
+    }
+  }
+
+  &__body {
+    padding: 18px;
   }
 
   &__disabled-note {
@@ -28,83 +46,73 @@
 
   &--disabled {
     opacity: 0.92;
-
-    .booking-search__hint {
-      opacity: 0.75;
-    }
   }
 
-  &__hint {
-    @include body-base;
-    margin: -8px 0 16px;
+  &__summary {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba($lotte-primary, 0.1);
     color: $text-medium;
-
-    p {
-      margin: 0 0 8px;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
+    @include body-sm;
+    font-weight: 600;
+    text-align: center;
   }
 
   .date-picker {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-end;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 14px;
 
     .date-field {
-      flex: 1;
-      min-width: 200px;
+      width: 100%;
 
       label {
         display: block;
         margin-bottom: 8px;
         @include label-base;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        font-size: 0.75rem;
+        text-align: center;
       }
 
       input {
         width: 100%;
         padding: 12px;
         border: 1px solid $border-medium;
-        border-radius: 4px;
+        border-radius: 8px;
         @include body-base;
+        background: #fff;
+        text-align: center;
       }
     }
+  }
 
-    .search-btn {
-      padding: 12px 25px;
+  .search-btn {
+    width: 100%;
+    padding: 14px 18px;
+    background-color: $lotte-primary-light;
+    color: $text-white;
+    border: none;
+    border-radius: 8px;
+    @include button-text;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+
+    &--ready {
       background-color: $button-primary;
-      color: $text-white;
-      border: none;
-      border-radius: 4px;
-      @include button-text;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
 
       &:hover:not(:disabled) {
         background-color: $button-primary-hover;
       }
+    }
 
-      &:disabled {
-        background-color: $grey-medium-alt;
-        cursor: not-allowed;
-      }
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.75;
     }
   }
 }
-
-@media (max-width: 768px) {
-  .booking-search {
-    .date-picker {
-      flex-direction: column;
-      align-items: stretch;
-
-      .search-btn {
-        margin-top: 10px;
-      }
-    }
-  }
-}
-

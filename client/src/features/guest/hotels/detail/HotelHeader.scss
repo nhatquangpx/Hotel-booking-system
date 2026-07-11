@@ -3,15 +3,15 @@
 @use "@/styles/text" as *;
 
 .hotel-header {
-  text-align: $align-center;
-  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 18px;
 
   .hotel-title-row {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   h1 {
@@ -28,7 +28,7 @@
   }
 
   .hotel-rating {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 
     .star {
       color: $star-orange;
@@ -39,7 +39,8 @@
 
   .hotel-address {
     @include body-base-alt;
-    color: $text-light;
+    color: $star-orange;
+    margin: 0;
   }
 }
 
@@ -54,4 +55,3 @@
     }
   }
 }
-
